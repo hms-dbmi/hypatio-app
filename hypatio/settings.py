@@ -74,7 +74,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'hypatio-app.wsgi.application'
+WSGI_APPLICATION = 'hypatio.wsgi.application'
 
 
 # Database
