@@ -1,0 +1,32 @@
+[
+  {
+    "model": "dataprojects.dataproject",
+    "pk": 1,
+    "fields": {
+      "name": "Dr. Berson's Dataset",
+      "institution": "",
+      "description": "A dataset collected over a lifetime of work.",
+      "short_description": "Biostats ready longitudinal dataset."
+    }
+  },
+  {
+    "model": "dataprojects.dataproject",
+    "pk": 2,
+    "fields": {
+      "name": "NHANES",
+      "institution": "HMS",
+      "description": "<div>A detailed database of health information for the US Population.</div><br /><div><a class='btn btn-primary' href='https://nhanes.hms.harvard.edu/transmart/datasetExplorer/index' role='button'>Click here to access NHANES i2b2/tranSMART</a></div>",
+      "short_description": "An instance of i2b2/tranSMART loaded with the publicly available NHANES dataset."
+    }
+  },
+  {
+    "model": "dataprojects.dataproject",
+    "pk": 3,
+    "fields": {
+      "name": "GRDR",
+      "institution": "HMS",
+      "description": "<div>An accumulation of data on rare disease.</div><br /><div><a class='btn btn-primary' href='https://grdr.hms.harvard.edu/transmart/datasetExplorer/index' role='button'>Click here to access GRDR i2b2/tranSMART</a></div>",
+      "short_description": "An instance of i2b2/tranSMART loaded with data from the Global Rare Disease Registry Program."
+    }
+  }
+]
