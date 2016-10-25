@@ -113,7 +113,8 @@ AUTH0_CALLBACK_URL = os.environ["AUTH0_CALLBACK_URL"]
 AUTH0_SUCCESS_URL = os.environ["AUTH0_SUCCESS_URL"]
 AUTH0_LOGOUT_URL = os.environ["AUTH0_LOGOUT_URL"]
 
-AUTHENTICATION_BACKENDS = ('tokenlogin.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend')
+AUTHENTICATION_BACKENDS = ( 'django.contrib.auth.backends.ModelBackend')
+ACCOUNT_SERVER_URL = "http://authentication.aws.dbmi.hms.harvard.edu:8001/login/auth/"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/

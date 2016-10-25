@@ -5,7 +5,7 @@
     "fields": {
       "name": "Dr. Berson's Dataset",
       "institution": "",
-      "description": "A dataset collected over a lifetime of work.",
+      "description": "<div>A dataset collected over a lifetime of work.</div><br /><div><a class='btn btn-primary' href='' role='button'>Click here to request access to the Berson dataset.</a></div>",
       "short_description": "Biostats ready longitudinal dataset."
     }
   },
@@ -25,8 +25,8 @@
     "fields": {
       "name": "GRDR",
       "institution": "HMS",
-      "description": "<div>An accumulation of data on rare disease.</div><br /><div><a class='btn btn-primary' href='https://grdr.hms.harvard.edu/transmart/datasetExplorer/index' role='button'>Click here to access GRDR i2b2/tranSMART</a></div>",
-      "short_description": "An instance of i2b2/tranSMART loaded with data from the Global Rare Disease Registry Program."
+      "description": "<div><i>The integration of clinical and biomedical data hosted in multiple distributed repositories is confronted by two significant challenges: i) correctly linking information pertaining to the same patient across repositories, for example, linking lab results data with bedside observations data; and ii) making data available for analysis at different locations across a collaboration network. These problems are exacerbated in the case of rare diseases research, given the very limited availability of data sets and data standards. We propose to develop the NCAT Global Repository for Rare Diseases Research (GRDR) based on BD2K PIC-SURE platform to address these challenges. NCAT GRDR repository will be a scalable, secure, and flexible integration architecture for clinical and biomedical datasets, which by extending the successful i2b2/tranSMART platform will allow data providers to easily share their data with the wider research community without requiring them to subscribe to proprietary vocabulary standards or to develop complex mapping protocols. Using federated data access and querying methods that retrieve relevant data from different locations before combining them, GRDR will make it possible for comparative analysis methods to be executed on the integrated datasets. By assigning generic identifiers (after de-identification) to related data across locations, GRDR will ease the difficulties of linking data while conforming to the requirements of patient data privacy and other security regulations. We aim to progressively integrate up to 17 multidimensional, and heterogeneous patient registries on GRDR and provide encrypted access to this data to authenticated users over a secure connection.</i></div><br /><div><a class='btn btn-primary' href='https://grdr.hms.harvard.edu/transmart/datasetExplorer/index' role='button'>Click here to access GRDR i2b2/tranSMART</a></div>",
+      "short_description": "NIH/NCATS Global Rare Diseases Patient Registry i2b2/tranSMART Data Repository."
     }
   }
 ]
