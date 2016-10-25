@@ -37,4 +37,4 @@ def listDataprojects(request, template_name='dataprojects/list.html'):
 
     all_data_projects = DataProject.objects.all()
 
-    return render(request, template_name, {"dataprojects": all_data_projects, "user_logged_in": user_logged_in, "user": user})
+    return render(request, template_name, {"dataprojects": all_data_projects, "user_logged_in": user_logged_in, "user": user, "account_server_url": settings.ACCOUNT_SERVER_URL})

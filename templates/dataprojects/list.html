@@ -54,7 +54,7 @@
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
                        aria-expanded="false"><strong>{{ user.email }}</strong> <span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li><a href="#">Profile</a></li>
+                        <li><a href="">Profile</a></li>
                         <li role="separator" class="divider"></li>
                         <li><a href="#">Sign Out</a></li>
                     </ul>
@@ -63,7 +63,7 @@
                 {% else %}
 
                 <li>
-                    <a href="http://localhost:8000/login/auth/?next=http://localhost:8001/dataprojects/list/">
+                    <a href="{{ account_server_url }}?next=http://portal.aws.dbmi.hms.harvard.edu/dataprojects/list/">
                         <span class="glyphicon glyphicon-user"></span>&nbsp;
                         <strong>Register / Sign In</strong>
                     </a>
