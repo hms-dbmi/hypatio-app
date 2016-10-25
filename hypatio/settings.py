@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 
 from os.path import normpath, join, dirname, abspath
+from django.utils.crypto import get_random_string
+
+chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ["SECRET_KEY"]
+SECRET_KEY = os.environ.get("SECRET_KEY", get_random_string(50, chars))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -106,14 +109,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH0_DOMAIN = os.environ["AUTH0_DOMAIN"]
-AUTH0_CLIENT_ID = os.environ["AUTH0_CLIENT_ID"]
-AUTH0_SECRET = os.environ["AUTH0_SECRET"]
-AUTH0_CALLBACK_URL = os.environ["AUTH0_CALLBACK_URL"]
-AUTH0_SUCCESS_URL = os.environ["AUTH0_SUCCESS_URL"]
-AUTH0_LOGOUT_URL = os.environ["AUTH0_LOGOUT_URL"]
+AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN")
+AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID")
+AUTH0_SECRET = os.environ.get("AUTH0_SECRET")
+AUTH0_CALLBACK_URL = os.environ.get("AUTH0_CALLBACK_URL")
+AUTH0_SUCCESS_URL = os.environ.get("AUTH0_SUCCESS_URL")
+AUTH0_LOGOUT_URL = os.environ.get("AUTH0_LOGOUT_URL")
 
-AUTHENTICATION_BACKENDS = ( 'django.contrib.auth.backends.ModelBackend')
+AUTHENTICATION_BACKENDS = ('hypatio.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend')
 ACCOUNT_SERVER_URL = "http://authentication.aws.dbmi.hms.harvard.edu:8001/login/auth/"
 
 # Internationalization
@@ -155,3 +158,8 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass
