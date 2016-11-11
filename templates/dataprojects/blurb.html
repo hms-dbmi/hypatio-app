@@ -1,3 +1,5 @@
+{% load dataprojects_extras %}
+
 <div class="panel panel-default">
     <div class="panel-heading" role="tab" id="heading{{ project_counter }}">
         <h4 class="panel-title">
@@ -13,6 +15,18 @@
     <div id="collapse{{ project_counter }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading{{ project_counter }}">
         <div class="panel-body">
             {% autoescape off %}{{ dataproject.description }}{% endautoescape %}
+
+            {% if dataproject.permission_scheme == "PUBLIC" %}
+                <div>
+                    <a class='btn btn-primary' href='{{ dataproject.project_url }}' role='button'>Click here to access the {{ dataproject.name }}</a>
+                </div>
+            {% elif dataproject.permission_scheme == "REQUEST_ACCESS" %}
+                {% if permission_dictionary|keyvalue:dataproject.project_key == "VIEW" %}
+                    <a class='btn btn-primary' href='{{ dataproject.project_url }}' role='button'>Click here to access the {{ dataproject.name }}</a>
+                {% else %}
+                    <a class='btn btn-primary' role='button'>Click here to request access to the {{ dataproject.name }}</a>
+                {% endif %}
+            {% endif %}
         </div>
     </div>
 </div>
