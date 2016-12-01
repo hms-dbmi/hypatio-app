@@ -118,6 +118,7 @@ AUTH0_LOGOUT_URL = os.environ.get("AUTH0_LOGOUT_URL")
 
 AUTHENTICATION_BACKENDS = ('hypatio.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend')
 ACCOUNT_SERVER_URL = "http://authentication.aws.dbmi.hms.harvard.edu:8001/login/auth/"
+PERMISSION_SERVER = "http://authorization.aws.dbmi.hms.harvard.edu:8003/user_permission/"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
