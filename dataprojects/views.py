@@ -148,6 +148,7 @@ def listDataprojects(request, template_name='dataprojects/list.html'):
                                            "user_logged_in": user_logged_in,
                                            "user": user,
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
+                                           "profile_server_url": settings.SCIREG_SERVER_URL,
                                            "permission_dictionary": permission_dictionary,
                                            "project_permission_setup": project_permission_setup,
                                            "access_request_dictionary": access_request_dictionary})
