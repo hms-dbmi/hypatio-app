@@ -9,6 +9,22 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
         integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
         crossorigin="anonymous"></script>
+
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+<script type="application/javascript">
+    function spawn_modal_access_popup(div_id, project_key)
+    {
+        jQuery( "#request_access_div_" +  div_id).load("dataprojects/request_access/", {"project_key": project_key, 'csrfmiddlewaretoken': '{{ csrf_token }}'})
+            .dialog({
+                width: 600,
+                height: 500,
+                modal: true
+            });
+    }
+</script>
+
 <body>
 
 <div class="navbar navbar-default navbar-fixed-top" role="navigation" id="topnavbar">
@@ -65,7 +81,7 @@
                 {% else %}
 
                 <li>
-                    <a href="{{ account_server_url }}?next=http://portal.aws.dbmi.hms.harvard.edu/dataprojects/list/">
+                    <a href="{{ account_server_url }}?next={{ request.build_absolute_uri  }}">
                         <span class="glyphicon glyphicon-user"></span>&nbsp;
                         <strong>Register / Sign In</strong>
                     </a>

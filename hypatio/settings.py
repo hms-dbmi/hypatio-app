@@ -112,13 +112,19 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN")
 AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID")
 AUTH0_SECRET = os.environ.get("AUTH0_SECRET")
-AUTH0_CALLBACK_URL = os.environ.get("AUTH0_CALLBACK_URL")
 AUTH0_SUCCESS_URL = os.environ.get("AUTH0_SUCCESS_URL")
 AUTH0_LOGOUT_URL = os.environ.get("AUTH0_LOGOUT_URL")
 
 AUTHENTICATION_BACKENDS = ('hypatio.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend')
 ACCOUNT_SERVER_URL = "http://authentication.aws.dbmi.hms.harvard.edu:8001/login/auth/"
-PERMISSION_SERVER = "http://authorization.aws.dbmi.hms.harvard.edu:8003/user_permission/"
+AUTHZ_BASE = "http://authorization.aws.dbmi.hms.harvard.edu:8003"
+
+PERMISSION_SERVER = AUTHZ_BASE + "/user_permission/"
+PROJECT_PERMISSION_URL = AUTHZ_BASE + "/authorizable_projects/"
+PROJECT_SETUP_URL = AUTHZ_BASE + "/project_setup/"
+CREATE_REQUEST_URL = AUTHZ_BASE + "/authorization_requests/"
+CREATE_DUA_SIGN = AUTHZ_BASE + "/dua_sign/"
+GET_ACCESS_REQUESTS = AUTHZ_BASE + "/authorization_requests/"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
@@ -144,14 +150,14 @@ SITE_ROOT = dirname(DJANGO_ROOT)
 
 ########## STATIC FILE CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-root
-STATIC_ROOT = normpath(join(SITE_ROOT, 'hypatio-app', 'assets'))
+STATIC_ROOT = normpath(join(SITE_ROOT, 'hypatio', 'assets'))
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = '/static/'
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 STATICFILES_DIRS = (
-    normpath(join(SITE_ROOT, 'static')),
+    normpath(join(SITE_ROOT, 'hypatio', 'static')),
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
