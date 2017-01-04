@@ -16,7 +16,7 @@
 <script type="application/javascript">
     function spawn_modal_access_popup(div_id, project_key)
     {
-        jQuery( "#request_access_div_" +  div_id).load("dataprojects/request_access/", {"project_key": project_key, 'csrfmiddlewaretoken': '{{ csrf_token }}'})
+        jQuery( "#request_access_div_" +  div_id).load("/dataprojects/request_access/", {"project_key": project_key, 'csrfmiddlewaretoken': '{{ csrf_token }}'})
             .dialog({
                 width: 600,
                 height: 500,
