@@ -40,28 +40,19 @@
         <div class="navbar-collapse collapse" id="navbar-main">
             <ul class="nav navbar-nav">
                 <li>
-                    <a href="#"><span class="glyphicon glyphicon-home"></span> DBMI Home</a>
+                    <a href="https://dbmi.hms.harvard.edu/"><span class="glyphicon glyphicon-home"></span> DBMI Home</a>
                 </li>
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="download">
                         <span class="glyphicon glyphicon-list"></span> Project Type <span class="caret"></span></a>
                     <ul class="dropdown-menu" aria-labelledby="download">
                         <li>
-                            <a href="./example1">Data Projects</a>
+                            <a href="">Data Projects</a>
                         </li>
                         <li class="divider"></li>
-                        <li>
-                            <a href="./example3">Software Projects</a>
-                        </li>
                     </ul>
                 </li>
-                <li>
-                    <form class="navbar-form">
-                        <input type="text" class="form-control" placeholder="Search Project Text">
-                        <button type="submit" class="btn btn-default"><i class="glyphicon glyphicon-search"></i>
-                        </button>
-                    </form>
-                </li>
+
             </ul>
 
             <ul class="nav navbar-nav navbar-right">
@@ -74,7 +65,7 @@
                     <ul class="dropdown-menu">
                         <li><a href="{{ profile_server_url }}/registration/profile/">Profile</a></li>
                         <li role="separator" class="divider"></li>
-                        <li><a href="#">Sign Out</a></li>
+                        <li><a href="/dataprojects/signout">Sign Out</a></li>
                     </ul>
                 </li>
 

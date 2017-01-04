@@ -1,11 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from stronghold.decorators import public
 from dataprojects.models import DataProject
 from django.conf import settings
 import jwt
 import base64
 from django.contrib import auth as django_auth
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 import logging
 import requests
 import json
@@ -13,6 +13,12 @@ import json
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+
+def signout(request):
+    logout(request)
+    response = redirect('/dataprojects/list')
+    response.delete_cookie('DBMI_JWT')
+    return response
 
 def request_access(request, template_name='dataprojects/access_request.html'):
 
