@@ -116,7 +116,7 @@ AUTH0_SUCCESS_URL = os.environ.get("AUTH0_SUCCESS_URL")
 AUTH0_LOGOUT_URL = os.environ.get("AUTH0_LOGOUT_URL")
 
 AUTHENTICATION_BACKENDS = ('hypatio.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend')
-ACCOUNT_SERVER_URL = "http://authentication.aws.dbmi.hms.harvard.edu:8001/login/auth/"
+ACCOUNT_SERVER_URL = "http://authentication.aws.dbmi.hms.harvard.edu:8001/auth"
 SCIREG_SERVER_URL = "http://registration.aws.dbmi.hms.harvard.edu:8005"
 AUTHZ_BASE = "http://authorization.aws.dbmi.hms.harvard.edu:8003"
 
