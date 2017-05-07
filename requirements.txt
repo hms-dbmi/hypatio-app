@@ -1,7 +1,9 @@
 Django==1.10.1
 django-jquery==3.1.0
 django-stronghold==0.2.8
+djangorestframework-jwt==1.9.0
 jwt==0.3.2
+py-auth0-jwt==0.2.4
 pycrypto==2.6.1
 PyJWT==1.4.2
 PyMySQL==0.7.9
