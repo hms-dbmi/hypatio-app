@@ -42,9 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'stronghold',
     'jquery',
-    'dataprojects'
+    'dataprojects',
+    'pyauth0jwt'
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -56,7 +56,6 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'stronghold.middleware.LoginRequiredMiddleware',
 ]
 
 ROOT_URLCONF = 'hypatio.urls'
@@ -115,7 +114,7 @@ AUTH0_SECRET = os.environ.get("AUTH0_SECRET")
 AUTH0_SUCCESS_URL = os.environ.get("AUTH0_SUCCESS_URL")
 AUTH0_LOGOUT_URL = os.environ.get("AUTH0_LOGOUT_URL")
 
-AUTHENTICATION_BACKENDS = ('hypatio.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend')
+AUTHENTICATION_BACKENDS = ['pyauth0jwt.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend']
 ACCOUNT_SERVER_URL = "http://authentication.aws.dbmi.hms.harvard.edu:8001/auth"
 SCIREG_SERVER_URL = "http://registration.aws.dbmi.hms.harvard.edu:8005"
 AUTHZ_BASE = "http://authorization.aws.dbmi.hms.harvard.edu:8003"
@@ -126,6 +125,8 @@ PROJECT_SETUP_URL = AUTHZ_BASE + "/project_setup/"
 CREATE_REQUEST_URL = AUTHZ_BASE + "/authorization_requests/"
 CREATE_DUA_SIGN = AUTHZ_BASE + "/dua_sign/"
 GET_ACCESS_REQUESTS = AUTHZ_BASE + "/authorization_requests/"
+
+COOKIE_DOMAIN = ".dbmi.hms.harvard.edu"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/

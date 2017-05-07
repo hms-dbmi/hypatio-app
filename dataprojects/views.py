@@ -10,16 +10,21 @@ import logging
 import requests
 import json
 
+from pyauth0jwt.auth0authenticate import user_auth_and_jwt
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 
+@user_auth_and_jwt
 def signout(request):
     logout(request)
-    response = redirect('/dataprojects/list')
-    response.delete_cookie('DBMI_JWT')
+    response = redirect(settings.AUTH0_LOGOUT_URL)
+    response.delete_cookie('DBMI_JWT', domain=settings.COOKIE_DOMAIN)
     return response
 
+
+@user_auth_and_jwt
 def request_access(request, template_name='dataprojects/access_request.html'):
 
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
@@ -49,6 +54,7 @@ def request_access(request, template_name='dataprojects/access_request.html'):
                                            "data_use_agreement": dua_name})
 
 
+@user_auth_and_jwt
 def submit_request(request, template_name='dataprojects/submit_request.html'):
 
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
@@ -65,27 +71,13 @@ def submit_request(request, template_name='dataprojects/submit_request.html'):
 
     return render(request, template_name)
 
-@public
+@user_auth_and_jwt
 def listDataprojects(request, template_name='dataprojects/list.html'):
     user = None
 
     permission_dictionary = {}
     project_permission_setup = {}
     access_request_dictionary = {}
-
-    # If not logged in, check for cookie with JWT.
-    if not request.user.is_authenticated():
-        try:
-            jwt_string = request.COOKIES.get("DBMI_JWT", None)
-            payload = jwt.decode(jwt_string, base64.b64decode(settings.AUTH0_SECRET, '-_'), algorithms=['HS256'],
-                                 audience=settings.AUTH0_CLIENT_ID)
-            request.session['profile'] = payload
-            user = django_auth.authenticate(**payload)
-
-            if user:
-                login(request, user)
-        except jwt.InvalidTokenError:
-            logger.error("No/Bad JWT Token.")
 
     all_data_projects = DataProject.objects.all()
 
