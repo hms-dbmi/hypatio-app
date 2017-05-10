@@ -6,6 +6,7 @@ import jwt
 import base64
 from django.contrib import auth as django_auth
 from django.contrib.auth import login, logout
+from hypatio.scireg_services import request_project_access
 import logging
 import requests
 import json
@@ -27,28 +28,22 @@ def signout(request):
 @user_auth_and_jwt
 def request_access(request, template_name='dataprojects/access_request.html'):
 
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
-
-    project_permissions_setup = settings.PROJECT_SETUP_URL + request.POST['project_key']
-
-    # ------------------
-    # Get Project Permissions & Requirements
-    r = requests.get(project_permissions_setup, headers=jwt_headers)
+    r = request_project_access(request.COOKIES.get("DBMI_JWT", None), request.POST['project_key'])
 
     try:
         dua_text = r.json()["results"][0]["dua"][0]["agreement_text"]
         dua_name = r.json()["results"][0]["dua"][0]["name"]
-        dua = r.json()["results"][0]["dua_required"]
-        grant_required = r.json()["results"][0]["permission_scheme"] == "PRIVATE"
+        dua = r.json()["results"][0]["permission_scheme"] == "PRIVATE"
+        signatured_required = r.json()["results"][0]["dua_required"]
     except:
         dua_text = ""
+        dua_name = ""
         dua = True
-        grant_required = True
+        signatured_required = True
     # ------------------
 
     return render(request, template_name, {"dua": dua,
-                                           "grant_required": grant_required,
+                                           "signatured_required": signatured_required,
                                            "dua_text": dua_text,
                                            "project_key": request.POST['project_key'],
                                            "data_use_agreement": dua_name})

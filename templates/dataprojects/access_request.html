@@ -10,17 +10,15 @@
 <form name="dua_access_form" action="/submit_request/" method="post">
     {% if dua %}
         {{ dua_text | safe }}
-        Please sign the DUA
+    {% endif %}
+
+    {% if signatured_required%}
+        <br />
+        <br />
+        Typing your name in the box below signifies you agree with the terms of the Data Use Agreement
         <br />
         <br />
         <input type="text" id="dua_name" class="form-control" />
-    {% endif %}
-
-    <br />
-    <br />
-
-    {% if grant_required %}
-        This project requires that the study owner review each request for approval. After a brief review process you be notified if access is to be granted.
     {% endif %}
 
     <br />
