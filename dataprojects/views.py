@@ -1,17 +1,13 @@
 from django.shortcuts import render, redirect
-from stronghold.decorators import public
 from dataprojects.models import DataProject
 from django.conf import settings
-import jwt
-import base64
-from django.contrib import auth as django_auth
-from django.contrib.auth import login, logout
+from django.contrib.auth import logout
 from hypatio.scireg_services import request_project_access
 import logging
 import requests
 import json
 
-from pyauth0jwt.auth0authenticate import user_auth_and_jwt
+from pyauth0jwt.auth0authenticate import user_auth_and_jwt, public_user_auth_and_jwt
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -66,7 +62,8 @@ def submit_request(request, template_name='dataprojects/submit_request.html'):
 
     return render(request, template_name)
 
-@user_auth_and_jwt
+
+@public_user_auth_and_jwt
 def listDataprojects(request, template_name='dataprojects/list.html'):
     user = None
 

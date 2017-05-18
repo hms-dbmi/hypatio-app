@@ -40,6 +40,17 @@
                     {% endif %}
 
                 {% endif %}
+            {% else %}
+                <div>
+                    <span style="font-size: 1.5em;">
+                        Please Register or Sign in before attempting to access this data resource.
+                    </span>
+                    <br />
+                    <br />
+
+                    <a class='btn btn-primary' href='{{ account_server_url }}?next={{ request.build_absolute_uri  }}' role='button'>Register / Sign In</a>
+
+                </div>
             {% endif %}
         </div>
     </div>
