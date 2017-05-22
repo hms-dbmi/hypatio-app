@@ -20,7 +20,7 @@
                 {{ dataproject.description }}
             {% endautoescape %}
 
-            {% if not user.is_authenticated %}
+            {% if not user_logged_in %}
                 <div>
                     <span style="font-size: 1.5em;">
                         Please Register or Sign in before attempting to access this data resource.

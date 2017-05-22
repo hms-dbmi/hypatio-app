@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import sys
 
 from os.path import normpath, join, dirname, abspath
 from django.utils.crypto import get_random_string
@@ -28,7 +29,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get("SECRET_KEY", get_random_string(50, chars))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -112,7 +113,8 @@ AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN")
 AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID")
 AUTH0_SECRET = os.environ.get("AUTH0_SECRET")
 AUTH0_SUCCESS_URL = os.environ.get("AUTH0_SUCCESS_URL")
-AUTH0_LOGOUT_URL = os.environ.get("AUTH0_LOGOUT_URL")
+AUTH0_LOGOUT_URL = os.environ.get("AUTH0_LOGOUT_URL","")
+
 
 AUTHENTICATION_BACKENDS = ['pyauth0jwt.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend']
 
@@ -127,7 +129,7 @@ CREATE_REQUEST_URL = AUTHZ_BASE + "/authorization_requests/"
 CREATE_DUA_SIGN = AUTHZ_BASE + "/dua_sign/"
 GET_ACCESS_REQUESTS = AUTHZ_BASE + "/authorization_requests/"
 
-COOKIE_DOMAIN = ".dbmi.hms.harvard.edu"
+COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN")
 
 SSL_SETTING = "https"
 
@@ -170,6 +172,37 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
+
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+        },
+        'file_debug': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'debug.log',
+        },
+        'file_error': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'error.log',
+        }
+    },
+    'root': {
+        'handlers': ['console', 'file_debug'],
+        'level': 'DEBUG'
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file_error'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
 
 try:
     from .local_settings import *
