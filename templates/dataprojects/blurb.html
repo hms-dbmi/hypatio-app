@@ -20,27 +20,7 @@
                 {{ dataproject.description }}
             {% endautoescape %}
 
-            {% if project_permission_setup|keyvalue_permission_scheme:dataproject.project_key == "PUBLIC" %}
-                <div>
-                    <a class='btn btn-primary' href='{{ dataproject.project_url }}' role='button'>Click here to access the {{ dataproject.name }}</a>
-                </div>
-            {% elif project_permission_setup|keyvalue_permission_scheme:dataproject.project_key == "PRIVATE" %}
-                {% if permission_dictionary|keyvalue:dataproject.project_key == "VIEW" %}
-                    <a class='btn btn-primary' href='{{ dataproject.project_url }}' role='button'>Click here to access the {{ dataproject.name }}</a>
-                {% else %}
-                    {% if access_request_dictionary|permission_requested:dataproject.project_key %}
-                        <span style="font-size: 1.5em; color: red">
-                            You've already requested access to this project on {{ access_request_dictionary|get_date_requested:dataproject.project_key }}, please wait for your access to be granted.
-                        </span>
-                        <br />
-                        <br />
-
-                    {% else %}
-                        <a class='btn btn-primary' role='button' onclick="spawn_modal_access_popup({{ project_counter }}, '{{ dataproject.project_key }}')">Click here to request access to the {{ dataproject.name }}</a>
-                    {% endif %}
-
-                {% endif %}
-            {% else %}
+            {% if not user.is_authenticated %}
                 <div>
                     <span style="font-size: 1.5em;">
                         Please Register or Sign in before attempting to access this data resource.
@@ -48,9 +28,31 @@
                     <br />
                     <br />
 
-                    <a class='btn btn-primary' href='{{ account_server_url }}?next={{ request.build_absolute_uri  }}' role='button'>Register / Sign In</a>
+                    <a class='btn btn-primary' href='{{ account_server_url }}?next={{ ssl_setting }}://{{ request.META.HTTP_HOST }}' role='button'>Register / Sign In</a>
 
                 </div>
+            {% else %}
+                {% if project_permission_setup|keyvalue_permission_scheme:dataproject.project_key == "PUBLIC" %}
+                    <div>
+                        <a class='btn btn-primary' href='{{ dataproject.project_url }}' role='button'>Click here to access the {{ dataproject.name }}</a>
+                    </div>
+                {% elif project_permission_setup|keyvalue_permission_scheme:dataproject.project_key == "PRIVATE" %}
+                    {% if permission_dictionary|keyvalue:dataproject.project_key == "VIEW" %}
+                        <a class='btn btn-primary' href='{{ dataproject.project_url }}' role='button'>Click here to access the {{ dataproject.name }}</a>
+                    {% else %}
+                        {% if access_request_dictionary|permission_requested:dataproject.project_key %}
+                            <span style="font-size: 1.5em; color: red">
+                                You've already requested access to this project on {{ access_request_dictionary|get_date_requested:dataproject.project_key }}, please wait for your access to be granted.
+                            </span>
+                            <br />
+                            <br />
+
+                        {% else %}
+                            <a class='btn btn-primary' role='button' onclick="spawn_modal_access_popup({{ project_counter }}, '{{ dataproject.project_key }}')">Click here to request access to the {{ dataproject.name }}</a>
+                        {% endif %}
+
+                    {% endif %}
+                {% endif %}
             {% endif %}
         </div>
     </div>

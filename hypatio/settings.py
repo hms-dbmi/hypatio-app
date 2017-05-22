@@ -115,9 +115,10 @@ AUTH0_SUCCESS_URL = os.environ.get("AUTH0_SUCCESS_URL")
 AUTH0_LOGOUT_URL = os.environ.get("AUTH0_LOGOUT_URL")
 
 AUTHENTICATION_BACKENDS = ['pyauth0jwt.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend']
-ACCOUNT_SERVER_URL = "http://authentication.aws.dbmi.hms.harvard.edu:8001/auth"
-SCIREG_SERVER_URL = "http://registration.aws.dbmi.hms.harvard.edu:8005"
-AUTHZ_BASE = "http://authorization.aws.dbmi.hms.harvard.edu:8003"
+
+ACCOUNT_SERVER_URL = os.environ.get("ACCOUNT_SERVER_URL")
+SCIREG_SERVER_URL = os.environ.get("SCIREG_SERVER_URL")
+AUTHZ_BASE = os.environ.get("AUTHZ_BASE", "")
 
 PERMISSION_SERVER = AUTHZ_BASE + "/user_permission/"
 PROJECT_PERMISSION_URL = AUTHZ_BASE + "/authorizable_projects/"
@@ -127,6 +128,8 @@ CREATE_DUA_SIGN = AUTHZ_BASE + "/dua_sign/"
 GET_ACCESS_REQUESTS = AUTHZ_BASE + "/authorization_requests/"
 
 COOKIE_DOMAIN = ".dbmi.hms.harvard.edu"
+
+SSL_SETTING = "https"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/

@@ -137,6 +137,7 @@ def listDataprojects(request, template_name='dataprojects/list.html'):
     return render(request, template_name, {"dataprojects": all_data_projects,
                                            "user_logged_in": user_logged_in,
                                            "user": user,
+                                           "ssl_setting": settings.SSL_SETTING,
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
                                            "profile_server_url": settings.SCIREG_SERVER_URL,
                                            "permission_dictionary": permission_dictionary,
