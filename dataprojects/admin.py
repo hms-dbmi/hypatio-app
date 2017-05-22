@@ -1,3 +1,8 @@
 from django.contrib import admin
+from .models import DataProject
 
-# Register your models here.
+
+class DataprojectsAdmin(admin.ModelAdmin):
+    list_display = ('name', 'project_key', 'project_url')
+
+admin.site.register(DataProject, DataprojectsAdmin)
