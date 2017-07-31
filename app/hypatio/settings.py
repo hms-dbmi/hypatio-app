@@ -21,6 +21,7 @@ chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+print(BASE_DIR)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -33,7 +34,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'jquery',
     'dataprojects',
-    'pyauth0jwt'
+    'pyauth0jwt',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -155,23 +155,23 @@ SITE_ROOT = dirname(DJANGO_ROOT)
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-########## STATIC FILE CONFIGURATION
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#static-root
-STATIC_ROOT = normpath(join(SITE_ROOT, 'hypatio', 'assets'))
-
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
+##########
+# STATIC FILE CONFIGURATION
+DJANGO_ROOT = dirname(dirname(abspath(__file__)))
+# THIS IS WHERE FILES ARE COLLECTED INTO.
+STATIC_ROOT = normpath(join(DJANGO_ROOT, 'assets'))
 STATIC_URL = '/static/'
 
-# See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
+# THIS IS WHERE FILES ARE COLLECTED FROM
 STATICFILES_DIRS = (
-    normpath(join(SITE_ROOT, 'hypatio', 'static')),
+    normpath(join(DJANGO_ROOT, 'static')),
 )
 
-# See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
+##########
 
 LOGGING = {
     'version': 1,
