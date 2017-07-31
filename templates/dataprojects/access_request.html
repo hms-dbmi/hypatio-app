@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Access Request</title>
+
+</head>
+<body>
+{% load static %}
+<form name="dua_access_form" action="/submit_request/" method="post">
+    {% if dua %}
+        {{ dua_text | safe }}
+    {% endif %}
+
+    {% if signatured_required%}
+        <br />
+        <br />
+        Typing your name in the box below signifies you agree with the terms of the Data Use Agreement
+        <br />
+        <br />
+        <input type="text" id="dua_name" class="form-control" />
+    {% endif %}
+
+    <br />
+    <br />
+
+    <input type="hidden" id="project_key" name="project_key" value="{{ project_key }}" />
+    <input type="hidden" id="data_use_agreement" name="data_use_agreement" value="{{ data_use_agreement }}" />
+    <img name="loading" id="loading" src="{% static 'gears.svg' %}">
+    <input name="submit_form" id="submit_form" type="submit" class="btn btn-default" value="Submit for approval" />
+    <div id="status" style="color: green; font-size: 1.5em;"></div>
+
+    {% csrf_token %}
+</form>
+
+<script type="application/javascript">
+    $("#loading").hide();
+    $('form[name=dua_access_form]').submit(function(){
+
+        $("#loading").show();
+
+        $.post($(this).attr('action'), $(this).serialize(), function(res){
+            $("#loading").hide();
+            $("#status").text("Access request submitted!");
+        });
+
+        return false;
+    });
+</script>
+
+</body>
+</html>
