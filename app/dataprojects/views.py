@@ -1,13 +1,14 @@
-from django.shortcuts import render, redirect
-from dataprojects.models import DataProject
+import json
+import logging
+
+import requests
 from django.conf import settings
 from django.contrib.auth import logout
-from hypatio.scireg_services import request_project_access
-import logging
-import requests
-import json
-
+from django.shortcuts import render, redirect
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt, public_user_auth_and_jwt
+
+from .models import DataProject
+from hypatio.scireg_services import request_project_access
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
