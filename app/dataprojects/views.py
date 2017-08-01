@@ -136,9 +136,9 @@ def listDataprojects(request, template_name='dataprojects/list.html'):
                 access_request_dictionary = {}
             # ------------------
 
-    print("Project Permission Setup %s" % project_permission_setup)
-    print("permission_dictionary %s" % permission_dictionary)
-    print("all_data_projects %s" % all_data_projects)
+    logger.debug("Project Permission Setup %s" % project_permission_setup)
+    logger.debug("permission_dictionary %s" % permission_dictionary)
+    logger.debug("all_data_projects %s" % all_data_projects)
 
     return render(request, template_name, {"dataprojects": all_data_projects,
                                            "user_logged_in": user_logged_in,
