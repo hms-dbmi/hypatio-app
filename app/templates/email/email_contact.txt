@@ -1,0 +1,4 @@
+Name: {{ from_name }}
+Email: {{ from_email }}
+Comment:
+{{ message }}

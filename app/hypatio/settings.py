@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'jquery',
+    'bootstrap3',
     'dataprojects',
     'pyauth0jwt',
 ]
@@ -131,6 +132,9 @@ COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN")
 
 SSL_SETTING = "https"
 
+CONTACT_FORM_RECIPIENTS="dbmi_tech_core@hms.harvard.edu"
+DEFAULT_FROM_EMAIL="dbmi_tech_core@hms.harvard.edu"
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
@@ -170,6 +174,13 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 ##########
+
+EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
+EMAIL_USE_SSL = True
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = os.environ.get("EMAIL_PORT")
 
 LOGGING = {
     'version': 1,
