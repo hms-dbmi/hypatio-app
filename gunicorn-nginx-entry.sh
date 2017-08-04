@@ -8,6 +8,11 @@ AUTH0_SUCCESS_URL_VAULT=$(aws ssm get-parameters --names $PS_PATH.auth0_success_
 AUTH0_LOGOUT_URL_VAULT=$(aws ssm get-parameters --names $PS_PATH.auth0_logout_url --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 COOKIE_DOMAIN=$(aws ssm get-parameters --names $PS_PATH.cookie_domain --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 
+MYSQL_USERNAME=$(aws ssm get-parameters --names $PS_PATH.mysql_username --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+MYSQL_PASSWORD=$(aws ssm get-parameters --names $PS_PATH.mysql_pw --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+MYSQL_HOST=$(aws ssm get-parameters --names $PS_PATH.mysql_host --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+MYSQL_PORT=$(aws ssm get-parameters --names $PS_PATH.mysql_port --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+
 export COOKIE_DOMAIN
 export SECRET_KEY=$DJANGO_SECRET
 export AUTH0_DOMAIN=$AUTH0_DOMAIN_VAULT
@@ -15,6 +20,11 @@ export AUTH0_CLIENT_ID=$AUTH0_CLIENT_ID_VAULT
 export AUTH0_SECRET=$AUTH0_SECRET_VAULT
 export AUTH0_SUCCESS_URL=$AUTH0_SUCCESS_URL_VAULT
 export AUTH0_LOGOUT_URL=$AUTH0_LOGOUT_URL_VAULT
+
+export MYSQL_USERNAME
+export MYSQL_PASSWORD
+export MYSQL_HOST
+export MYSQL_PORT
 
 ACCOUNT_SERVER_URL=$(aws ssm get-parameters --names $PS_PATH.authentication_login_url --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 SCIREG_SERVER_URL=$(aws ssm get-parameters --names $PS_PATH.register_user_url --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
