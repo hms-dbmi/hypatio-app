@@ -252,8 +252,8 @@ def email_send(subject=None, recipients=None, message=None, extra=None):
         except gaierror:
             logger.error("[P2M2][DEBUG][email_send] Could not send mail! Possible bad server connection.")
             sent_without_error = False
-        except:
-            print(sys.exc_info()[0])
+        except Exception as ex:
+            print(ex)
             sent_without_error = False
 
         logger.debug("[P2M2][DEBUG][email_send] E-Mail Status - " + str(sent_without_error))
