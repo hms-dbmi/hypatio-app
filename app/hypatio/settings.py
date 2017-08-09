@@ -15,6 +15,9 @@ import sys
 
 from os.path import normpath, join, dirname, abspath
 from django.utils.crypto import get_random_string
+from pythonpstore.pythonpstore import SecretStore
+
+secret_store = SecretStore()
 
 chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
 
@@ -30,7 +33,10 @@ SECRET_KEY = os.environ.get("SECRET_KEY", get_random_string(50, chars))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['.dbmi.hms.harvard.edu']
+PARAMETER_PATH = os.environ.get("PS_PATH")
+
+if PARAMETER_PATH is not None:
+    ALLOWED_HOSTS = secret_store.get_secret_for_key(PARAMETER_PATH + '/allowed_hosts')
 
 # Application definition
 
@@ -44,7 +50,7 @@ INSTALLED_APPS = [
     'jquery',
     'bootstrap3',
     'dataprojects',
-    'pyauth0jwt',
+    'pyauth0jwt'
 ]
 
 MIDDLEWARE_CLASSES = [
