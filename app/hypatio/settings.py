@@ -36,7 +36,7 @@ DEBUG = False
 PARAMETER_PATH = os.environ.get("PS_PATH")
 
 if PARAMETER_PATH is not None:
-    ALLOWED_HOSTS = secret_store.get_secret_for_key(PARAMETER_PATH + '/allowed_hosts')
+    ALLOWED_HOSTS = secret_store.get_secret_for_key(PARAMETER_PATH + '.allowed_hosts')
 
 # Application definition
 
