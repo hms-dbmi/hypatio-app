@@ -9,7 +9,7 @@ jwt==0.3.2
 mysqlclient==1.3.9
 py-auth0-jwt==0.2.5
 py-auth0-jwt-rest==0.1
-python-pstore==0.3
+python-pstore==0.4
 pycrypto==2.6.1
 PyJWT==1.4.2
 PyMySQL==0.7.9
