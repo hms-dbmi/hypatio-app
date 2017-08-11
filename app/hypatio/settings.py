@@ -34,7 +34,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", get_random_string(50, chars))
 DEBUG = False
 
 PARAMETER_PATH = os.environ.get("PS_PATH", "")
-ALLOWED_HOSTS = secret_store.get_secret_for_key(PARAMETER_PATH + '.allowed_hosts')
+ALLOWED_HOSTS = [secret_store.get_secret_for_key(PARAMETER_PATH + '.allowed_hosts')]
 
 print(ALLOWED_HOSTS)
 
