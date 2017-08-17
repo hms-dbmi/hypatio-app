@@ -13,4 +13,5 @@ python-pstore==0.8
 pycrypto==2.6.1
 PyJWT==1.4.2
 PyMySQL==0.7.9
+raven==6.1.0
 requests==2.11.1
