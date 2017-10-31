@@ -57,4 +57,4 @@ python manage.py collectstatic --no-input
 
 chown -R www-data:www-data /app
 
-gunicorn hypatio.wsgi:application  --user=www-data --group=www-data
+gunicorn hypatio.wsgi:application -b 0.0.0.0:8000  --user=www-data --group=www-data

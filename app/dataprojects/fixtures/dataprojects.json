@@ -34,5 +34,17 @@
       "project_key": "GRDR",
       "project_url": "https://grdr.hms.harvard.edu/transmart/datasetExplorer/index"
     }
+  },
+  {
+    "model": "dataprojects.dataproject",
+    "pk": 4,
+    "fields": {
+      "name": "SSC i2b2/tranSMART",
+      "institution": "HMS",
+      "description": "<div>Description</div><br />",
+      "short_description": "Simons Simplex Collection",
+      "project_key": "SSC",
+      "project_url": "https://ssc.hms.harvard.edu/transmart/datasetExplorer/index"
+    }
   }
 ]
