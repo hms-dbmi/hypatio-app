@@ -1,0 +1,42 @@
+version: '2.1'
+services:
+  hypatio:
+    container_name: hypatio
+    image: dbmi/hypatio
+    networks:
+      portal:
+        aliases:
+          - portal.aws.dbmi-dev.hms.harvard.edu
+    ports:
+      - "80:80"
+      - "443:443"
+  scireg:
+    container_name: scireg
+    image: dbmi/scireg
+    networks:
+      portal:
+        aliases:
+          - registration.aws.dbmi-dev.hms.harvard.edu
+    ports:
+      - "8005:8005"
+  sciauth:
+    container_name: sciauth
+    image: dbmi/sciauth
+    networks:
+      portal:
+        aliases:
+          - authentication.aws.dbmi-dev.hms.harvard.edu
+    ports:
+      - "8001:8001"
+  sciauthz:
+    container_name: sciauthz
+    image: dbmi/sciauthz
+    networks:
+      portal:
+        aliases:
+          - authorization.aws.dbmi-dev.hms.harvard.edu
+    ports:
+      - "8003:8003"
+networks:
+  portal:
+    driver: bridge
