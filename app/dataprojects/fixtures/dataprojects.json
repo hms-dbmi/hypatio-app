@@ -46,5 +46,17 @@
       "project_key": "SSC",
       "project_url": "https://ssc.hms.harvard.edu/transmart/datasetExplorer/index"
     }
+  },
+  {
+    "model": "dataprojects.dataproject",
+    "pk": 5,
+    "fields": {
+      "name": "i2b2 NLP Research Data Sets",
+      "institution": "Partners Healthcare",
+      "description": "<div>i2b2 is a passionate advocate for the potential of existing clinical information to yield insights that can directly impact healthcare improvement.  In our many use cases (Driving Biology Projects) it has become increasingly obvious that the value locked in unstructured text is essential to the success of our mission.  In order to enhance the ability of natural language processing (NLP) tools to prise increasingly fine grained information from clinical records, i2b2 has previously provided sets of fully deidentified notes from the Research Patient Data Repository at Partners HealthCare for a series of NLP Challenges organized by Dr. Ozlem Uzuner.  We are pleased to now make those notes available to the community for general research purposes. At this time we are releasing the notes (~1,500) from the first four i2b2 Challenges as i2b2 NLP Research Data Sets. A similar set of notes from the most recent i2b2 Challenge will be released on the one year anniversary of that Challenge. These data sets have already enabled hundreds of journal and conference articles by the research community.</div><br />",
+      "short_description": "Unstructured notes from the Research Patient Data Repository at Partners Healthcare.",
+      "project_key": "NLP",
+      "project_url": "https://www.i2b2.org/NLP/DataSets/Main.php"
+    }
   }
 ]

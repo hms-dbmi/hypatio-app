@@ -57,14 +57,6 @@
     }
 
     $( document ).ready(function() {
-        var $loading = $('#loadingDiv').hide();
-
-        $(document).ajaxStart(function () {
-            $loading.show();
-        }).ajaxStop(function () {
-            $loading.hide();
-        });
-
         $('.collapse').on('show.bs.collapse', function() {
             var icon = $( this ).closest('.panel-default' ).find( '.step-icon' )[0]
 
