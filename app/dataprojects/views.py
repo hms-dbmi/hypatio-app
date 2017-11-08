@@ -44,6 +44,7 @@ def request_access(request, template_name='dataprojects/access_request.html'):
         dua_name = r.json()["results"][0]["dua"][0]["name"]
         dua = r.json()["results"][0]["permission_scheme"] == "PRIVATE"
         signatured_required = r.json()["results"][0]["dua_required"]
+        dua_form = r.json()["results"][0]["dua"][0]["agreement_form"]
     except:
         dua_text = ""
         dua_name = ""
@@ -54,6 +55,7 @@ def request_access(request, template_name='dataprojects/access_request.html'):
     return render(request, template_name, {"dua": dua,
                                            "signatured_required": signatured_required,
                                            "dua_text": dua_text,
+                                           "dua_form": dua_form,
                                            "project_key": request.POST['project_key'],
                                            "data_use_agreement": dua_name})
 
@@ -64,8 +66,11 @@ def submit_request(request, template_name='dataprojects/submit_request.html'):
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
     jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
-    data_request = {'project': request.POST['project_key'], 'user': request.user.email}
-    data_dua_sign = {'data_use_agreement': request.POST['data_use_agreement'], 'user': request.user.email}
+    data_request = {"project": request.POST['project_key'], "user": request.user.email}
+
+    data_dua_sign = {"data_use_agreement": request.POST['data_use_agreement'],
+                     "user": request.user.email,
+                     "agreement_text": request.POST['agreement_text']}
 
     create_auth_request_url = settings.CREATE_REQUEST_URL
     create_dua_sign_request_url = settings.CREATE_DUA_SIGN
@@ -110,8 +115,8 @@ def listDataprojects(request, template_name='dataprojects/list.html'):
             try:
                 for project_setup in r.json()["results"]:
                     for project in all_data_projects:
-                            if project.project_key == project_setup["project_key"]:
-                                project_permission_setup[project.project_key] = project_setup
+                        if project.project_key == project_setup["project_key"]:
+                            project_permission_setup[project.project_key] = project_setup
             except:
                 project_permission_setup = {}
 
