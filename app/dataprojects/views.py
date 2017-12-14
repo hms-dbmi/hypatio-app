@@ -39,26 +39,8 @@ def request_access(request, template_name='dataprojects/access_request.html'):
 
     r = request_project_access(request.COOKIES.get("DBMI_JWT", None), request.POST['project_key'])
 
-    try:
-        dua_text = r.json()["results"][0]["dua"][0]["agreement_text"]
-        dua_name = r.json()["results"][0]["dua"][0]["name"]
-        dua = r.json()["results"][0]["permission_scheme"] == "PRIVATE"
-        signatured_required = r.json()["results"][0]["dua_required"]
-        dua_form = r.json()["results"][0]["dua"][0]["agreement_form"]
-    except:
-        dua_text = ""
-        dua_name = ""
-        dua = True
-        signatured_required = True
-    # ------------------
-
-    return render(request, template_name, {"dua": dua,
-                                           "signatured_required": signatured_required,
-                                           "dua_text": dua_text,
-                                           "dua_form": dua_form,
-                                           "project_key": request.POST['project_key'],
-                                           "data_use_agreement": dua_name})
-
+    return render(request, template_name, {"dua_results": r.json()["results"][0],
+                                           "project_key": request.POST['project_key']})
 
 @user_auth_and_jwt
 def submit_request(request, template_name='dataprojects/submit_request.html'):
