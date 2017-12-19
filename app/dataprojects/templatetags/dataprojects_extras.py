@@ -25,6 +25,5 @@ def modal_contact_form_link(text='Contact us', classes=''):
 @register.filter
 def get_dua_form_file_contents(dua_form_file):
 
-    form_path = settings.STATIC_ROOT + '/dua_forms/' + dua_form_file
+    form_path = os.path.join(settings.DATA_USE_AGREEMENT_FORM_DIR, dua_form_file)
     return open(form_path, 'r').read()
-
