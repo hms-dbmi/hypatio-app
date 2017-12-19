@@ -10,7 +10,6 @@ from django.http import HttpResponse, HttpRequest
 from django.contrib.auth import get_user_model
 
 from .models import DataUseAgreement
-from .views import submit_request
 
 TEST_JWT_TOKEN = "WIUHDI&WHQDBKbIYWGD^GUQG^DG&wdydwg^@@Ejdh37364BQWKDBKWDU##B@@9wUDBi&@GiYWBD"
 TEST_USER_EMAIL = "test-user@example.com"
