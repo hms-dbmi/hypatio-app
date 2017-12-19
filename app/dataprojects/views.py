@@ -105,7 +105,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
 
         for access_request in user_access_requests:
             projects_with_access_requests[access_request['item']] = {
-                'date_requested': access_request['date_request_granted'],
+                'date_requested': access_request['date_requested'],
                 'request_granted': access_request['request_granted'],
                 'date_request_granted': access_request['date_request_granted']}
 
