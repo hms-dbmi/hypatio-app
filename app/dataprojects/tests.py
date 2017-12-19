@@ -9,11 +9,8 @@ from django.core.management import call_command
 from django.http import HttpResponse, HttpRequest
 from django.contrib.auth import get_user_model
 
-from .models import DataUseAgreement, DataUseAgreementSign, DataProject
+from .models import DataUseAgreement
 from .views import submit_request
-
-# TODO DELETE THIS
-from .views import submit_request2
 
 TEST_JWT_TOKEN = "WIUHDI&WHQDBKbIYWGD^GUQG^DG&wdydwg^@@Ejdh37364BQWKDBKWDU##B@@9wUDBi&@GiYWBD"
 TEST_USER_EMAIL = "test-user@example.com"
@@ -39,4 +36,3 @@ class HypatioTests(TestCase):
         for dua in data_use_agreements:
             form_path = os.path.join(settings.DATA_USE_AGREEMENT_FORM_DIR, dua.agreement_form_file)
             self.assertEqual(True, os.path.isfile(form_path), "DUA '" + dua.name + "' agreement_form_file '" + dua.agreement_form_file + "' missing in directory " + settings.DATA_USE_AGREEMENT_FORM_DIR + ".")
-
