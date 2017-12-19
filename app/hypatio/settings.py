@@ -131,10 +131,7 @@ SCIREG_SERVER_URL = os.environ.get("SCIREG_SERVER_URL")
 AUTHZ_BASE = os.environ.get("AUTHZ_BASE", "")
 
 PERMISSION_SERVER = AUTHZ_BASE + "/user_permission/"
-PROJECT_PERMISSION_URL = AUTHZ_BASE + "/authorizable_projects/"
-PROJECT_SETUP_URL = AUTHZ_BASE + "/project_setup/"
 CREATE_REQUEST_URL = AUTHZ_BASE + "/authorization_requests/"
-CREATE_DUA_SIGN = AUTHZ_BASE + "/dua_sign/"
 GET_ACCESS_REQUESTS = AUTHZ_BASE + "/authorization_requests/"
 
 COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN")
