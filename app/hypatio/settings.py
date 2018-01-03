@@ -179,6 +179,9 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
+
+DATA_USE_AGREEMENT_FORM_DIR = STATIC_ROOT + '/dua_forms'
+
 ##########
 
 EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
