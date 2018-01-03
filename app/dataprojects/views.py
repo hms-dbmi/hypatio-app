@@ -2,15 +2,15 @@ import json
 import logging
 import sys
 import requests
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth import logout
 from django.shortcuts import render, redirect
-from pyauth0jwt.auth0authenticate import user_auth_and_jwt, public_user_auth_and_jwt
+from pyauth0jwt.auth0authenticate import user_auth_and_jwt, public_user_auth_and_jwt, validate_jwt, logout_redirect
 
 from .forms import ContactForm
-from .models import DataProject
-from hypatio.scireg_services import request_project_access
+from .models import DataProject, DataUseAgreement, DataUseAgreementSign
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
@@ -20,11 +20,8 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from socket import gaierror
 
-
-
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
 
 @user_auth_and_jwt
 def signout(request):
@@ -33,121 +30,116 @@ def signout(request):
     response.delete_cookie('DBMI_JWT', domain=settings.COOKIE_DOMAIN)
     return response
 
-
 @user_auth_and_jwt
 def request_access(request, template_name='dataprojects/access_request.html'):
 
-    r = request_project_access(request.COOKIES.get("DBMI_JWT", None), request.POST['project_key'])
+    project = DataProject.objects.get(project_key=request.POST['project_key'])
 
-    return render(request, template_name, {"dua_results": r.json()["results"][0],
-                                           "project_key": request.POST['project_key']})
+    # There may be multiple DUAs for a project for the user to choose from
+    data_use_agreements = DataUseAgreement.objects.filter(project=project).values()
+
+    return render(request, template_name, {"project_key": request.POST['project_key'],
+                                           "data_use_agreements": data_use_agreements})
 
 @user_auth_and_jwt
-def submit_request(request, template_name='dataprojects/submit_request.html'):
+def submit_request(request):
 
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
     jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
-    data_request = {"project": request.POST['project_key'], "user": request.user.email}
+    dua = DataUseAgreement.objects.get(id=request.POST['dua_id'])
 
-    data_dua_sign = {"data_use_agreement": request.POST['data_use_agreement'],
-                     "user": request.user.email,
-                     "agreement_text": request.POST['agreement_text']}
+    date_requested = datetime.now().isoformat()
 
+    # Save the signed DUA
+    dua_signed = DataUseAgreementSign(data_use_agreement=dua,
+                                      user=request.user,
+                                      date_signed=date_requested,
+                                      agreement_text=request.POST['agreement_text'])
+    dua_signed.save()
+
+    data_request = {"user": request.user.email,
+                    "item": request.POST['project_key']}
+
+    # Send the authorization request to SciAuthZ
     create_auth_request_url = settings.CREATE_REQUEST_URL
-    create_dua_sign_request_url = settings.CREATE_DUA_SIGN
+    requests.post(create_auth_request_url, headers=jwt_headers, data=json.dumps(data_request), verify=False)
 
-    requests.post(create_auth_request_url, headers=jwt_headers, data=json.dumps(data_request))
-    requests.post(create_dua_sign_request_url, headers=jwt_headers, data=json.dumps(data_dua_sign))
-
-    return render(request, template_name)
-
+    return HttpResponse(200)
 
 @public_user_auth_and_jwt
-def listDataprojects(request, template_name='dataprojects/list.html'):
-    user = None
-
-    permission_dictionary = {}
-    project_permission_setup = {}
-    access_request_dictionary = {}
+def list_data_projects(request, template_name='dataprojects/list.html'):
 
     all_data_projects = DataProject.objects.all()
 
-    # Okay, definitely not a real user.
+    data_projects = []
+    projects_with_view_permissions = []
+    projects_with_access_requests = {}
+
     if not request.user.is_authenticated():
+        user = None
         user_logged_in = False
     else:
-        user_logged_in = True
         user = request.user
-
+        user_logged_in = True
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-        if user_jwt:
+        # If the JWT has expired or the user doesn't have one, force the user to login again
+        if user_jwt is None or validate_jwt(request) is None:
+            logout_redirect(request)
 
-            jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
+        # The JWT token that will get passed in API calls
+        jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
-            permissions_url = settings.PERMISSION_SERVER
-            project_permissions_setup = settings.PROJECT_PERMISSION_URL
-            access_requests_url = settings.GET_ACCESS_REQUESTS
+        # Get all of the user's VIEW permissions
+        permissions_url = settings.PERMISSION_SERVER
+        user_permissions = requests.get(permissions_url, headers=jwt_headers, verify=False).json()["results"]
 
-            # ------------------
-            # Get Project Permissions & Requirements
-            r = requests.get(project_permissions_setup, headers=jwt_headers)
+        for user_permission in user_permissions:
+            if user_permission['permission'] == 'VIEW':
+                projects_with_view_permissions.append(user_permission['item'])
 
-            try:
-                for project_setup in r.json()["results"]:
-                    for project in all_data_projects:
-                        if project.project_key == project_setup["project_key"]:
-                            project_permission_setup[project.project_key] = project_setup
-            except:
-                project_permission_setup = {}
+        # Get all of the user's permission requests
+        access_requests_url = settings.GET_ACCESS_REQUESTS
+        user_access_requests = requests.get(access_requests_url, headers=jwt_headers, verify=False).json()["results"]
 
-            # ------------------
+        for access_request in user_access_requests:
+            projects_with_access_requests[access_request['item']] = {
+                'date_requested': access_request['date_requested'],
+                'request_granted': access_request['request_granted'],
+                'date_request_granted': access_request['date_request_granted']}
 
-            # ------------------
-            # Get user permissions.
-            r = requests.get(permissions_url, headers=jwt_headers)
+    # Build the dictionary with all project and permission information needed
+    for project in all_data_projects:
 
-            try:
-                for project_permission in r.json()["results"]:
-                    for project in all_data_projects:
-                        if project.project_key == project_permission["project"]:
-                            permission_dictionary[project.project_key] = project_permission["permission"]
-            except:
-                permission_dictionary = {}
-            # ------------------
+        user_has_view_permissions = project.project_key in projects_with_view_permissions
 
+        if project.project_key in projects_with_access_requests:
+            user_requested_access_on = projects_with_access_requests[project.project_key]['date_requested']
+            user_requested_access = True
+        else:
+            user_requested_access_on = None
+            user_requested_access = False
 
-            # ------------------
-            # Find what requests for access the user has already made.
-            r = requests.get(access_requests_url, headers=jwt_headers)
+        # Package all the necessary information into one dictionary
+        project = {"name": project.name,
+                   "short_description": project.short_description,
+                   "description": project.description,
+                   "project_key": project.project_key,
+                   "project_url": project.project_url,
+                   "permission_scheme": project.permission_scheme,
+                   "user_has_view_permissions": user_has_view_permissions,
+                   "user_requested_access": user_requested_access,
+                   "user_requested_access_on": user_requested_access_on}
 
-            try:
-                for access_request in r.json()["results"]:
-                    for project in all_data_projects:
-                        if project.project_key == access_request["project"]:
-                            access_request_dictionary[project.project_key] = {
-                                "date_requested": access_request["date_requested"],
-                                "request_granted": access_request["request_granted"],
-                                "date_request_granted": access_request["request_granted"],
-                            }
-            except:
-                access_request_dictionary = {}
-            # ------------------
+        data_projects.append(project)
 
-    logger.debug("Project Permission Setup %s" % project_permission_setup)
-    logger.debug("permission_dictionary %s" % permission_dictionary)
-    logger.debug("all_data_projects %s" % all_data_projects)
-
-    return render(request, template_name, {"dataprojects": all_data_projects,
+    return render(request, template_name, {"data_projects": data_projects,
                                            "user_logged_in": user_logged_in,
                                            "user": user,
                                            "ssl_setting": settings.SSL_SETTING,
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
-                                           "profile_server_url": settings.SCIREG_SERVER_URL,
-                                           "permission_dictionary": permission_dictionary,
-                                           "project_permission_setup": project_permission_setup,
-                                           "access_request_dictionary": access_request_dictionary})
+                                           "profile_server_url": settings.SCIREG_SERVER_URL})
 
 @public_user_auth_and_jwt
 def contact_form(request):
@@ -215,7 +207,6 @@ def contact_form(request):
         # Generate and render the form.
         form = ContactForm(initial=initial)
         return render(request, 'dataprojects/contact.html', {'contact_form': form})
-
 
 def email_send(subject=None, recipients=None, message=None, extra=None):
     """

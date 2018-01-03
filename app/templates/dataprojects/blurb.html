@@ -1,23 +1,21 @@
 {% load dataprojects_extras %}
 
-
-
 <div class="panel panel-default">
     <div class="panel-heading" role="tab" id="heading{{ project_counter }}">
         <h4 class="panel-title">
             <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse{{ project_counter }}" aria-expanded="false"
                aria-controls="collapse{{ project_counter }}">
-                <span style="font-size:24px; font-weight: bold; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">{{ dataproject.name }}</span>
+                <span style="font-size:24px; font-weight: bold; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">{{ data_project.name }}</span>
                 <br />
                 <br />
-                {{ dataproject.short_description }}
+                {{ data_project.short_description }}
             </a>
         </h4>
     </div>
     <div id="collapse{{ project_counter }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading{{ project_counter }}">
         <div class="panel-body">
             {% autoescape off %}
-                {{ dataproject.description }}
+                {{ data_project.description }}
             {% endautoescape %}
 
             {% if not user_logged_in %}
@@ -31,28 +29,20 @@
                     <a class='btn btn-primary' href='{{ account_server_url }}?next={{ ssl_setting }}://{{ request.META.HTTP_HOST }}' role='button'>Register / Sign In</a>
 
                 </div>
-            {% else %}
-                {% if project_permission_setup|keyvalue_permission_scheme:dataproject.project_key == "PUBLIC" %}
-                    <div>
-                        <a class='btn btn-primary' href='{{ dataproject.project_url }}' role='button'>Click here to access the {{ dataproject.name }}</a>
-                    </div>
-                {% elif project_permission_setup|keyvalue_permission_scheme:dataproject.project_key == "PRIVATE" %}
-                    {% if permission_dictionary|keyvalue:dataproject.project_key == "VIEW" %}
-                        <a class='btn btn-primary' href='{{ dataproject.project_url }}' role='button'>Click here to access the {{ dataproject.name }}</a>
-                    {% else %}
-                        {% if access_request_dictionary|permission_requested:dataproject.project_key %}
-                            <span style="font-size: 1.5em; color: red">
-                                You've already requested access to this project on {{ access_request_dictionary|get_date_requested:dataproject.project_key }}, please wait for your access to be granted.
-                            </span>
-                            <br />
-                            <br />
-
-                        {% else %}
-                            <a class='btn btn-primary' role='button' onclick="spawn_modal_access_popup({{ project_counter }}, '{{ dataproject.project_key }}')">Click here to request access to the {{ dataproject.name }}</a>
-                        {% endif %}
-
-                    {% endif %}
+            {% else %}   
+                <div>       
+                {% if data_project.permission_scheme == "PUBLIC" %}
+                    <a class='btn btn-success' href='{{ data_project.project_url }}' role='button'>Click here to access the {{ data_project.name }}</a>
+                {% elif data_project.permission_scheme == "PRIVATE" and data_project.user_has_view_permissions %}
+                    <a class='btn btn-success' href='{{ data_project.project_url }}' role='button'>Click here to access the {{ data_project.name }}</a>                
+                {% elif data_project.permission_scheme == "PRIVATE" and data_project.user_requested_access %}
+                    <span style="font-size: 1.5em; color: red">
+                        You've already requested access to this project on {{ data_project.user_requested_access_on }}, please wait for your access to be granted.
+                    </span>
+                {% else %}
+                    <a class='btn btn-primary' role='button' onclick="spawn_modal_access_popup({{ project_counter }}, '{{ data_project.project_key }}')">Click here to request access to the {{ data_project.name }}</a>
                 {% endif %}
+                </div>               
             {% endif %}
         </div>
     </div>

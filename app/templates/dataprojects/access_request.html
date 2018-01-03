@@ -1,3 +1,5 @@
+{% load dataprojects_extras %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,63 +10,28 @@
 <body>
 {% load static %}
 <form name="dua_access_form" action="/submit_request/" method="post">
-    <input type="hidden" id="agreement_text" name="agreement_text" value="" />
     <input type="hidden" id="project_key" name="project_key" value="{{ project_key }}" />
+
+    <div id="dua_options">
+        <p>Please select an available Data Use Agreement to sign:</p>
+        {% for dua in data_use_agreements %}
+            <button type="button" class="btn btn-primary dua_form_select" data-dua-form-id="{{ dua.id }}">{{ dua.name }}</button>            
+        {% endfor %}
+    </div>
+
+    <div id="dua_forms">
+    {% for dua in data_use_agreements %}
+        <div class="dua_form" data-dua-form-id="{{ dua.id }}" style="display:none;">
+            {{ dua.agreement_form_file|get_dua_form_file_contents | safe }}
+        </div>
+    {% endfor %}
+    </div>
+
+    <input type="hidden" id="dua_id" name="dua_id" value="" />
+    <input type="hidden" id="agreement_text" name="agreement_text" value="" />
     
-    {% if dua_results.permission_scheme == "PRIVATE" %}
+    <input name="submit_form" id="submit_form" type="submit" class="btn btn-default" style="display: none;" value="Submit for approval" />
         
-        {# When there is more than one DUA form for this project, have the user select which form they will complete #}
-        {% if dua_results.dua|length > 1 %}
-            <div id="dua_form_selection">
-                <p>Select a form option:</p>
-                {% for agreement in dua_results.dua %}
-                    <button type="button" class="btn btn-primary dua_form_select" data-dua-form-name="{{ agreement.name }}">{{ agreement.name }}</button>            
-                {% endfor %}
-            </div>
-
-            <div id="dua_forms">
-            {# Initialize each form but hide them until the user has selected one to complete #}
-            {% for agreement in dua_results.dua %}
-                <div class="dua_form" data-dua-form-name="{{ agreement.name }}" style="display: none;">
-                    {{ agreement.agreement_form | safe }}
-                </div>
-            {% endfor %}
-            </div>
-
-            <input type="hidden" id="data_use_agreement" name="data_use_agreement" value="" />
-            <input name="submit_form" id="submit_form" type="submit" class="btn btn-default" style="display: none;" value="Submit for approval" />    
-        
-        {% elif dua_results.dua|length == 1 %}
-
-            <div class="dua_form" data-dua-form-name="{{ dua_results.dua.0.name }}">         
-            {# The DUA might be come in either as an HTML form or as plain text #}       
-            {% if dua_results.dua.0.agreement_form %}
-                {{ dua_results.dua.0.agreement_form | safe }}
-            {% else %}
-                {{ dua_results.dua.0.agreement_text | safe }}
-            
-                {% if dua_results.dua.0.dua_required %}
-                    <br />
-                    <br />
-                    Typing your name in the box below signifies you agree with the terms of the Data Use Agreement
-                    <br />
-                    <br />
-                    <input type="text" id="dua_signature" class="form-control" />
-                {% endif %}
-            {% endif %}
-            </div>
-
-            <input type="hidden" id="data_use_agreement" name="data_use_agreement" value="{{ dua_results.dua.0.name }}" />
-            <input name="submit_form" id="submit_form" type="submit" class="btn btn-default" value="Submit for approval" />    
-
-        {% else %}
-            Error: not implemented.
-        {% endif %}
-    
-    {% else %}
-        Error: this is not implemented.
-    {% endif %}
-    
     <img name="loading" id="loading" src="{% static 'gears.svg' %}" style="display:none;">
     <div id="status" style="color: green; font-size: 1.5em;"></div>
 
@@ -74,30 +41,31 @@
 <script type="application/javascript">
     // Display the DUA form if a user has selected one to complete
     $('.dua_form_select').click(function() {
-        var dua_form_name = $(this).attr("data-dua-form-name");
+        var dua_id = $(this).attr("data-dua-form-id");
 
-        // Set the data_use_agreement input value
-        $('#data_use_agreement').val(dua_form_name);
+        // Set the dua_id input value
+        $('#dua_id').val(dua_id);
         
         // Display the form and submit button
-        $('.dua_form[data-dua-form-name="' + dua_form_name + '"]').show();
+        $('.dua_form[data-dua-form-id="' + dua_id + '"]').show();
         $('#submit_form').show();
 
         // Hide the DUA form select buttons
-        $('#dua_form_selection').hide();
+        $('#dua_options').hide();
     });
 </script>
 
 <script type="application/javascript">
-    $('form[name=dua_access_form]').submit(function(){
-
+    $('form[name=dua_access_form]').submit(function(e){
+        e.preventDefault();
+        
         $("#loading").show();
 
         // Get the name of the DUA form that was submitted
-        var dua_form_name = $('#data_use_agreement').val();
+        var dua_id = $('#dua_id').val();
 
         // Get the div element holding the DUA form
-        var dua_form = $(this).find(".dua_form[data-dua-form-name='" + dua_form_name + "']");
+        var dua_form = $(this).find(".dua_form[data-dua-form-id='" + dua_id + "']");
 
         // Replace each input field within the dua form with its value, so we have one complete dua form as a string
         dua_form.find("input").each(function() {
@@ -109,10 +77,16 @@
 
         $.post($(this).attr('action'), $(this).serialize(), function(res){
             $("#loading").hide();
-            $("#status").text("Access request submitted!");
+        }).done(function() {
+            $("#status").text("Access request submitted! Refreshing page...");          
+            
+            // Refresh the page so the user does not see the Request Access button again
+            setTimeout(function(){
+                location.reload();
+            },2000);
+        }).fail(function() {
+            $("#status").text("Access request failed.");            
         });
-
-        return false;
     });
 </script>
 

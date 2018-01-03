@@ -194,9 +194,9 @@
     </div>
 
     <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-        {% for dataproject in dataprojects %}
-        {% include "dataprojects/blurb.html" with project_counter=forloop.counter0 %}
-        <br/>
+        {% for data_project in data_projects %}
+            {% include "dataprojects/blurb.html" with project_counter=forloop.counter0 %}
+            <br/>
         {% endfor %}
     </div>
 
