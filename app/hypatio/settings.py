@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'jquery',
     'bootstrap3',
+    'contact',
     'dataprojects',
     'pyauth0jwt',
     'raven.contrib.django.raven_compat',
