@@ -1,185 +1,112 @@
-{% load static %}
+{% extends 'base.html' %}
 {% load dataprojects_extras %}
 
-<html>
-<!-- Latest compiled and minified CSS -->
-<script src="https://code.jquery.com/jquery-3.1.1.min.js"
-        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-      integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
-        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-        crossorigin="anonymous"></script>
+{% block scripts %}
+    <script type="application/javascript">
+        function spawn_modal_access_popup(div_id, project_key)
+        {
+            jQuery( "#request_access_div_" +  div_id).load("/dataprojects/request_access/", {"project_key": project_key, 'csrfmiddlewaretoken': '{{ csrf_token }}'})
+                .dialog({
+                    width: 600,
+                    height: 500,
+                    modal: true
+                });
+        }
 
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<script type='text/javascript' src="{% static 'bootstrap-notify.min.js' %}"></script>
-
-<script type="application/javascript">
-    function spawn_modal_access_popup(div_id, project_key)
-    {
-        jQuery( "#request_access_div_" +  div_id).load("/dataprojects/request_access/", {"project_key": project_key, 'csrfmiddlewaretoken': '{{ csrf_token }}'})
-            .dialog({
-                width: 600,
-                height: 500,
-                modal: true
-            });
-    }
-
-    function notify(type, message, icon) {
-        $.notify({
-            // options
-            icon: 'glyphicon glyphicon-' + icon,
-            message: message,
-        },{
-            // settings
-            type: type,
-            allow_dismiss: true,
-            newest_on_top: false,
-            showProgressbar: false,
-            placement: {
-                from: "top",
-                align: "center"
-            },
-            offset: {
-                x: 0,
-                y: 80
-            },
-            spacing: 10,
-            z_index: 1031,
-            delay: 2000,
-            timer: 500,
-            animate: {
-                enter: 'animated fadeInDown',
-                exit: 'animated fadeOutUp'
-            }
-        });
-    }
-
-    $( document ).ready(function() {
-        $('.collapse').on('show.bs.collapse', function() {
-            var icon = $( this ).closest('.panel-default' ).find( '.step-icon' )[0]
-
-            // Find the control.
-            $( icon ).addClass('glyphicon-collapse-up').removeClass('glyphicon-collapse-down');
-         });
-
-        $('.collapse').on('hide.bs.collapse', function() {
-            var icon = $( this ).closest('.panel-default' ).find( '.step-icon' )[0]
-
-            // Check if completed.
-            var collapsedClass = 'glyphicon-collapse-down'
-            if( $( icon ).hasClass('filled_out_already') ) {
-                collapsedClass = 'glyphicon-check'
-            }
-
-            // Find the control.
-            $( icon ).addClass(collapsedClass).removeClass('glyphicon-collapse-up');
-         });
-
-        // AJAX for posting
-        $(".contact-form-button").on('click', function () {
-            console.log("Loading contact form");
-            $.ajax({
-                type: 'GET',
-                url: '/dataprojects/contact_form/',
-                success: function (data, textStatus, jqXHR) {
-                    $('#contact-form-modal').html(data);
-                    $('#contact-form-modal').modal('show');
+        function notify(type, message, icon) {
+            $.notify({
+                // options
+                icon: 'glyphicon glyphicon-' + icon,
+                message: message,
+            },{
+                // settings
+                type: type,
+                allow_dismiss: true,
+                newest_on_top: false,
+                showProgressbar: false,
+                placement: {
+                    from: "top",
+                    align: "center"
                 },
-                error : function(xhr,errmsg,err) {
-                    console.log(xhr.status + ": " + xhr.responseText);
+                offset: {
+                    x: 0,
+                    y: 80
+                },
+                spacing: 10,
+                z_index: 1031,
+                delay: 2000,
+                timer: 500,
+                animate: {
+                    enter: 'animated fadeInDown',
+                    exit: 'animated fadeOutUp'
                 }
             });
-            return false;
-        });
+        }
 
-        $('#contact-form-modal').on('submit', '#contact-form', function() {
-            console.log("Sending contact form");
-            $.ajax({
-                url : "/dataprojects/contact_form/",
-                type : "POST",
-                data: $(this).serialize(),
-                context: this,
-                success : function(json) {
-                    $('#contact-form-modal').modal('hide');
-                    notify('success', 'Thanks, your message has been submitted!', 'thumbs-up');
-                },
-                error : function(xhr,errmsg,err) {
-                    $('#contact-form-modal').modal('hide');
-                    notify('danger', 'Something happened, please try again', 'exclamation-sign');
-                    console.log(xhr.status + ": " + xhr.responseText);
-                }
+        $( document ).ready(function() {
+            $('.collapse').on('show.bs.collapse', function() {
+                var icon = $( this ).closest('.panel-default' ).find( '.step-icon' )[0]
+
+                // Find the control.
+                $( icon ).addClass('glyphicon-collapse-up').removeClass('glyphicon-collapse-down');
             });
-            return false;
+
+            $('.collapse').on('hide.bs.collapse', function() {
+                var icon = $( this ).closest('.panel-default' ).find( '.step-icon' )[0]
+
+                // Check if completed.
+                var collapsedClass = 'glyphicon-collapse-down'
+                if( $( icon ).hasClass('filled_out_already') ) {
+                    collapsedClass = 'glyphicon-check'
+                }
+
+                // Find the control.
+                $( icon ).addClass(collapsedClass).removeClass('glyphicon-collapse-up');
+            });
+
+            // AJAX for posting
+            $(".contact-form-button").on('click', function () {
+                console.log("Loading contact form");
+                $.ajax({
+                    type: 'GET',
+                    url: '/dataprojects/contact_form/',
+                    success: function (data, textStatus, jqXHR) {
+                        $('#contact-form-modal').html(data);
+                        $('#contact-form-modal').modal('show');
+                    },
+                    error : function(xhr,errmsg,err) {
+                        console.log(xhr.status + ": " + xhr.responseText);
+                    }
+                });
+                return false;
+            });
+
+            $('#contact-form-modal').on('submit', '#contact-form', function() {
+                console.log("Sending contact form");
+                $.ajax({
+                    url : "/dataprojects/contact_form/",
+                    type : "POST",
+                    data: $(this).serialize(),
+                    context: this,
+                    success : function(json) {
+                        $('#contact-form-modal').modal('hide');
+                        notify('success', 'Thanks, your message has been submitted!', 'thumbs-up');
+                    },
+                    error : function(xhr,errmsg,err) {
+                        $('#contact-form-modal').modal('hide');
+                        notify('danger', 'Something happened, please try again', 'exclamation-sign');
+                        console.log(xhr.status + ": " + xhr.responseText);
+                    }
+                });
+                return false;
+            });
+
         });
 
-    });
+    </script>
+{% endblock %}
 
-</script>
-
-<body>
-
-<div class="navbar navbar-default navbar-fixed-top" role="navigation" id="topnavbar">
-    <div class="container">
-        <div class="navbar-header">
-            <a href="#" class="navbar-brand">DBMI Portal</a>
-            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-        </div>
-        <div class="navbar-collapse collapse" id="navbar-main">
-            <ul class="nav navbar-nav">
-                <li>
-                    <a href="https://dbmi.hms.harvard.edu/"><span class="glyphicon glyphicon-home"></span> DBMI Home</a>
-                </li>
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="download">
-                        <span class="glyphicon glyphicon-list"></span> Project Type <span class="caret"></span></a>
-                    <ul class="dropdown-menu" aria-labelledby="download">
-                        <li>
-                            <a href="">Data Projects</a>
-                        </li>
-                        <li class="divider"></li>
-                    </ul>
-                </li>
-
-            </ul>
-
-            <ul class="nav navbar-nav navbar-right">
-
-                {% if user_logged_in %}
-
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                       aria-expanded="false"><strong>{{ user.email }}</strong> <span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="{{ profile_server_url }}/registration/profile/">Profile</a></li>
-                        <li role="separator" class="divider"></li>
-                        <li><a href="/dataprojects/signout">Sign Out</a></li>
-                    </ul>
-                </li>
-
-                {% else %}
-
-                <li>
-                    <a href="{{ account_server_url }}?next={{ ssl_setting }}://{{ request.META.HTTP_HOST }}">
-                        <span class="glyphicon glyphicon-user"></span>&nbsp;
-                        <strong>Register / Sign In</strong>
-                    </a>
-                </li>
-                {% endif %}
-
-            </ul>
-
-        </div>
-    </div>
-</div>
-
-
-<div class="container">
+{% block content %}
     <div class="page-header" id="banner">
         <div class="row">
             <div class="col-lg-8 col-md-7 col-sm-6">
@@ -200,12 +127,6 @@
         {% endfor %}
     </div>
 
-</div>
-
-
-{# Add a placeholder for the modal contact form #}
-<div id='contact-form-modal' class='modal fade' tabindex='-1'></div>
-
-</body>
-
-</html>
+    {# Add a placeholder for the modal contact form #}
+    <div id='contact-form-modal' class='modal fade' tabindex='-1'></div>
+{% endblock %}

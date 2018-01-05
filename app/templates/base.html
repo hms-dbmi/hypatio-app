@@ -1,0 +1,87 @@
+{% load static %}
+
+<html>
+    <head>
+        <!-- Latest compiled and minified CSS -->
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+                integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+            integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+                integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+                crossorigin="anonymous"></script>
+
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <script type='text/javascript' src="{% static 'bootstrap-notify.min.js' %}"></script>
+
+        {% block scripts %}
+        {% endblock %}
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation" id="topnavbar">
+            <div class="container">
+                <div class="navbar-header">
+                    <a href="#" class="navbar-brand">DBMI Portal</a>
+                    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+                <div class="navbar-collapse collapse" id="navbar-main">
+                    <ul class="nav navbar-nav">
+                        <li>
+                            <a href="https://dbmi.hms.harvard.edu/"><span class="glyphicon glyphicon-home"></span> DBMI Home</a>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="download">
+                                <span class="glyphicon glyphicon-list"></span> Project Type <span class="caret"></span></a>
+                            <ul class="dropdown-menu" aria-labelledby="download">
+                                <li>
+                                    <a href="">Data Projects</a>
+                                </li>
+                                <li class="divider"></li>
+                            </ul>
+                        </li>
+
+                    </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+
+                        {% if user_logged_in %}
+
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                            aria-expanded="false"><strong>{{ user.email }}</strong> <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="{{ profile_server_url }}/registration/profile/">Profile</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a href="/dataprojects/signout">Sign Out</a></li>
+                            </ul>
+                        </li>
+
+                        {% else %}
+
+                        <li>
+                            <a href="{{ account_server_url }}?next={{ ssl_setting }}://{{ request.META.HTTP_HOST }}">
+                                <span class="glyphicon glyphicon-user"></span>&nbsp;
+                                <strong>Register / Sign In</strong>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                    </ul>
+
+                </div>
+            </div>
+        </div>
+    
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </body>
+</html>
