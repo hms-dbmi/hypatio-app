@@ -1,4 +1,5 @@
 {% load static %}
+{% load contact_extras %}
 
 <html>
     <head>
@@ -14,6 +15,100 @@
         <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
         <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
         <script type='text/javascript' src="{% static 'bootstrap-notify.min.js' %}"></script>
+
+        <script type="application/javascript">
+            
+            function notify(type, message, icon) {
+                $.notify({
+                    // options
+                    icon: 'glyphicon glyphicon-' + icon,
+                    message: message,
+                },{
+                    // settings
+                    type: type,
+                    allow_dismiss: true,
+                    newest_on_top: false,
+                    showProgressbar: false,
+                    placement: {
+                        from: "top",
+                        align: "center"
+                    },
+                    offset: {
+                        x: 0,
+                        y: 80
+                    },
+                    spacing: 10,
+                    z_index: 1031,
+                    delay: 2000,
+                    timer: 500,
+                    animate: {
+                        enter: 'animated fadeInDown',
+                        exit: 'animated fadeOutUp'
+                    }
+                });
+            }
+    
+            $( document ).ready(function() {
+                $('.collapse').on('show.bs.collapse', function() {
+                    var icon = $( this ).closest('.panel-default' ).find( '.step-icon' )[0]
+    
+                    // Find the control.
+                    $( icon ).addClass('glyphicon-collapse-up').removeClass('glyphicon-collapse-down');
+                });
+    
+                $('.collapse').on('hide.bs.collapse', function() {
+                    var icon = $( this ).closest('.panel-default' ).find( '.step-icon' )[0]
+    
+                    // Check if completed.
+                    var collapsedClass = 'glyphicon-collapse-down'
+                    if( $( icon ).hasClass('filled_out_already') ) {
+                        collapsedClass = 'glyphicon-check'
+                    }
+    
+                    // Find the control.
+                    $( icon ).addClass(collapsedClass).removeClass('glyphicon-collapse-up');
+                });
+    
+                // AJAX for posting
+                $(".contact-form-button").on('click', function () {
+                    console.log("Loading contact form");
+                    $.ajax({
+                        type: 'GET',
+                        url: '/contact/contact_form/',
+                        success: function (data, textStatus, jqXHR) {
+                            $('#contact-form-modal').html(data);
+                            $('#contact-form-modal').modal('show');
+                        },
+                        error : function(xhr,errmsg,err) {
+                            console.log(xhr.status + ": " + xhr.responseText);
+                        }
+                    });
+                    return false;
+                });
+    
+                $('#contact-form-modal').on('submit', '#contact-form', function() {
+                    console.log("Sending contact form");
+                    $.ajax({
+                        url : "/contact/contact_form/",
+                        type : "POST",
+                        data: $(this).serialize(),
+                        context: this,
+                        success : function(json) {
+                            $('#contact-form-modal').modal('hide');
+                            notify('success', 'Thanks, your message has been submitted!', 'thumbs-up');
+                        },
+                        error : function(xhr,errmsg,err) {
+                            $('#contact-form-modal').modal('hide');
+                            notify('danger', 'Something happened, please try again', 'exclamation-sign');
+                            console.log(xhr.status + ": " + xhr.responseText);
+                        }
+                    });
+                    return false;
+                });
+    
+            });
+    
+        </script>
 
         {% block scripts %}
         {% endblock %}
@@ -80,8 +175,24 @@
         </div>
     
         <div class="container">
+            <div class="page-header" id="banner">
+                <div class="row">
+                    <div class="col-lg-8 col-md-7 col-sm-6">
+                        <h1>{% block title %}{% endblock %}</h1>
+                        <p class="lead">{% block subtitle %}{% endblock %}</p>
+                    </div>
+        
+                    <div class="row">
+                        <div class="col-xs-12" style="text-align: right; font-size: 20px;">{% modal_contact_form_link 'Need help? Contact us!' %}</div>
+                    </div>
+                </div>
+            </div>
+
             {% block content %}
             {% endblock %}
+            
+            {# Add a placeholder for the modal contact form #}
+            <div id='contact-form-modal' class='modal fade' tabindex='-1'></div>
         </div>
     </body>
 </html>
