@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'bootstrap3',
     'contact',
     'dataprojects',
+    'profiles',
     'pyauth0jwt',
     'raven.contrib.django.raven_compat',
 ]

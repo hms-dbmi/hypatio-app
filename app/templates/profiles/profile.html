@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load bootstrap3 %}
+
+{% block title %}User Profiles{% endblock %}
+{% block subtitle %}Review and update your profile{% endblock %}
+
+{% block content %}
+    {% csrf_token %}
+    {% bootstrap_form user_profile_form %}
+{% endblock %}
