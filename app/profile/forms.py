@@ -10,4 +10,3 @@ class UserProfileForm(forms.Form):
     state = forms.CharField(label="State", max_length=255, required=False)
     zipcode = forms.CharField(label="Zip", max_length=255, required=False)
     phone_number = forms.CharField(label="Phone Number", max_length=255, required=False)
-
