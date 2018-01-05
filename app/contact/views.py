@@ -81,7 +81,7 @@ def contact_form(request):
 
         # Generate and render the form.
         form = ContactForm(initial=initial)
-        return render(request, 'dataprojects/contact.html', {'contact_form': form})
+        return render(request, 'contact/contact.html', {'contact_form': form})
 
 def email_send(subject=None, recipients=None, message=None, extra=None):
     """
