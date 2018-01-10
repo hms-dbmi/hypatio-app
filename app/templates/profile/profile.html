@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
 {% load bootstrap4 %}
 
-{% block title %}{{ form.first_name.value }} {{ form.last_name.value }}{% endblock %}
+{% block title %}
+{% if new_user %}
+    New User
+{% else %}
+    {{ form.first_name.value }} {{ form.last_name.value }}
+{% endif %}
+{% endblock %}
+
 {% block subtitle %}Review and update your profile{% endblock %}
 
 {% block content %}
@@ -11,6 +18,12 @@
             <div class="panel panel-default">
                 <div class="panel-heading">User Profile</div>
                 <div class="panel-body">
+                    {% if new_user %}
+                        <div class="alert alert-warning" role="alert">
+                            Welcome to Hypatio! Please complete your registration form below to get started.
+                        </div>
+                    {% endif %}
+                    
                     <form role="form" method="post">
                         {% csrf_token %}
 
