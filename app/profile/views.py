@@ -34,25 +34,50 @@ def profile(request, template_name='profile/profile.html'):
     # The JWT token that will get passed in API calls
     jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
-    # Query SciReg to get the user's information
-    registration_url = settings.SCIREG_SERVER_URL + '/api/register'
-    registration_info = requests.get(registration_url, headers=jwt_headers, verify=False).json()["results"]
+    # If there was a POST request, a form was submitted
+    if request.method == 'POST':
 
-    # Populate the form with the returned registration info
-    form_values = {
-        'first_name': registration_info[0]['first_name'],
-        'last_name': registration_info[0]['last_name'],
-        'email': registration_info[0]['email'],
-        'street_address1': registration_info[0]['street_address1'],
-        'street_address2': registration_info[0]['street_address2'],
-        'city': registration_info[0]['city'],
-        'state': registration_info[0]['state'],
-        'zipcode': registration_info[0]['zipcode'],
-        'phone_number': registration_info[0]['phone_number']
-    }
+        # Process the form
+        form = UserProfileForm(request.POST)
+        if form.is_valid():
 
-    # Generate and render the form.
-    form = UserProfileForm(initial=form_values)
-    return render(request, template_name, {'user_profile_form': form,
-                                           'user': user,
-                                           'user_logged_in': user_logged_in})
+            # The SciReg API endpoint
+            registration_url = settings.SCIREG_SERVER_URL + '/api/register/' + form.cleaned_data['id'] + '/'
+
+            logger.debug('[HYPATIO][DEBUG] Profile form fields submitted: ' + json.dumps(form.cleaned_data))            
+
+            # Send the data to SciReg
+            requests.put(registration_url, headers=jwt_headers, data=json.dumps(form.cleaned_data), verify=False)
+
+            # Generate and render the form.
+            return render(request, template_name, {'form': form,
+                                                   'user': user,
+                                                   'user_logged_in': user_logged_in})
+        else:
+            logger.debug('[HYPATIO][DEBUG] Profile form errors: ' + form.errors.as_json())
+
+            # TODO send this back to profile to display errors
+            return HttpResponse(status=500)
+
+    else:
+
+        # The SciReg API endpoint
+        registration_url = settings.SCIREG_SERVER_URL + '/api/register/'
+
+        # Query SciReg to get the user's information
+        registration_info = requests.get(registration_url, headers=jwt_headers, verify=False).json()
+
+        if registration_info is not None:
+            registration_info = registration_info["results"]
+        else:
+            # TODO user does not have a registration in scireg, what should we do?
+            pass
+
+        logger.debug('[HYPATIO][DEBUG] Registration info ' + json.dumps(registration_info))
+
+        # Generate and render the form.
+        form = UserProfileForm(initial=registration_info[0])
+        return render(request, template_name, {'form': form,
+                                               'user': user,
+                                               'user_logged_in': user_logged_in})
+
