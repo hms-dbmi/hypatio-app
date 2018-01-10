@@ -1,10 +1,35 @@
 {% extends 'base.html' %}
-{% load bootstrap3 %}
+{% load bootstrap4 %}
 
-{% block title %}User Profile{% endblock %}
+{% block title %}{{ form.first_name.value }} {{ form.last_name.value }}{% endblock %}
 {% block subtitle %}Review and update your profile{% endblock %}
 
 {% block content %}
-    {% csrf_token %}
-    {% bootstrap_form user_profile_form %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">User Profile</div>
+                <div class="panel-body">
+                    <form role="form" method="post">
+                        {% csrf_token %}
+
+                        {% bootstrap_form_errors form type='non_fields' %}
+                        {% bootstrap_form form %}
+
+                        {% buttons submit='Update' reset="Cancel" %}{% endbuttons %}
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">Data Contests</div>
+                <div class="panel-body">
+                    Contests here
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
