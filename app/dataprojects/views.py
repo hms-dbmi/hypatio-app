@@ -92,21 +92,29 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
 
         # Get all of the user's VIEW permissions
         permissions_url = settings.PERMISSION_SERVER
-        user_permissions = requests.get(permissions_url, headers=jwt_headers, verify=False).json()["results"]
+        user_permissions = requests.get(permissions_url, headers=jwt_headers, verify=False).json()
+        logger.debug('[HYPATIO][DEBUG] User Permissions: ' + json.dumps(user_permissions))
 
-        for user_permission in user_permissions:
-            if user_permission['permission'] == 'VIEW':
-                projects_with_view_permissions.append(user_permission['item'])
+        if user_permissions is not None and 'results' in user_permissions:
+            user_permissions = user_permissions["results"]
+
+            for user_permission in user_permissions:
+                if user_permission['permission'] == 'VIEW':
+                    projects_with_view_permissions.append(user_permission['item'])
 
         # Get all of the user's permission requests
         access_requests_url = settings.GET_ACCESS_REQUESTS
-        user_access_requests = requests.get(access_requests_url, headers=jwt_headers, verify=False).json()["results"]
+        user_access_requests = requests.get(access_requests_url, headers=jwt_headers, verify=False).json()
+        logger.debug('[HYPATIO][DEBUG] User Permission Requests: ' + json.dumps(user_access_requests))
 
-        for access_request in user_access_requests:
-            projects_with_access_requests[access_request['item']] = {
-                'date_requested': access_request['date_requested'],
-                'request_granted': access_request['request_granted'],
-                'date_request_granted': access_request['date_request_granted']}
+        if user_access_requests is not None and 'results' in user_access_requests:
+            user_access_requests = user_access_requests["results"]
+
+            for access_request in user_access_requests:
+                projects_with_access_requests[access_request['item']] = {
+                    'date_requested': access_request['date_requested'],
+                    'request_granted': access_request['request_granted'],
+                    'date_request_granted': access_request['date_request_granted']}
 
     # Build the dictionary with all project and permission information needed
     for project in all_data_projects:
