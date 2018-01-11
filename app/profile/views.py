@@ -67,6 +67,7 @@ def profile(request, template_name='profile/profile.html'):
         # Query SciReg to get the user's information
         registration_url = settings.SCIREG_SERVER_URL + '/api/register/'
         registration_info = requests.get(registration_url, headers=jwt_headers, verify=False).json()
+
         logger.debug('[HYPATIO][DEBUG] Registration info ' + json.dumps(registration_info))
 
         if registration_info['count'] != 0:
