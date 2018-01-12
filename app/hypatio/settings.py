@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'jquery',
     'bootstrap4',
     'contact',
+    'datachallenges',
     'dataprojects',
     'profile',
     'pyauth0jwt',
