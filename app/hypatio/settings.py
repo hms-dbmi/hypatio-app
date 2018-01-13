@@ -147,6 +147,11 @@ SSL_SETTING = "https"
 CONTACT_FORM_RECIPIENTS="dbmi_tech_core@hms.harvard.edu"
 DEFAULT_FROM_EMAIL="dbmi_tech_core@hms.harvard.edu"
 
+RECAPTCHA_KEY = os.environ.get('RECAPTCHA_KEY')
+RECAPTCHA_CLIENT_ID = os.environ.get('RECAPTCHA_CLIENT_ID')
+
+EMAIL_CONFIRM_SUCCESS_URL = os.environ.get('EMAIL_CONFIRM_SUCCESS_URL')
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
