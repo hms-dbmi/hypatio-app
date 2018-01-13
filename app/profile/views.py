@@ -2,6 +2,7 @@ import json
 import logging
 import requests
 
+from django.contrib import messages
 from django.conf import settings
 from django.shortcuts import render
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt, validate_jwt, logout_redirect
@@ -67,11 +68,15 @@ def profile(request, template_name='profile/profile.html'):
         if registration_info['count'] != 0:
             registration_info = registration_info["results"][0]
             form = RegistrationForm(initial=registration_info)
+
             new_user = False
         else:
             # User does not have a registration in scireg, present them with a blank form to complete and prepopulate the email
             form = RegistrationForm(initial={'email': user.email}, new_registration=True)
             new_user = True
+
+        # Check for a returning task and set messages accordingly
+        get_task_context_data(request)
 
         # Generate and render the form.
         return render(request, template_name, {'form': form,
@@ -133,3 +138,24 @@ def send_confirmation_email_view(request):
             return HttpResponse("FAILED_RECAPTCHA")
     else:
         return HttpResponse("INVALID_POST")
+
+
+def get_task_context_data(request):
+    logger.debug("[profile][get_task_context_data] Checking for tasks - " + str(request.user.id))
+
+    # Check for a returning task
+    task = request.GET.get('task')
+    state = request.GET.get('state')
+    message = request.GET.get('message')
+
+    # Handle email confirm
+    if task and state and message and task == 'email_confirm':
+        logger.debug("[profile][get_task_context_data] Handling task '{}' - '{}' for {}".format(
+            task, state, request.user.id))
+
+        # Stash a message for the user.
+        if state == 'success':
+            messages.success(request, message, extra_tags='success', fail_silently=True)
+
+        elif state == 'failed':
+            messages.error(request, message, extra_tags='danger', fail_silently=True)
