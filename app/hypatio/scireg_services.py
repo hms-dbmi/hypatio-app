@@ -16,7 +16,8 @@ def send_confirmation_email(user_jwt):
     logger.debug("[P2M2][DEBUG][send_confirmation_email] - Sending user confirmation e-mail to " + send_confirm_email_url)
 
     email_confirm_data = {
-        'success_url': settings.EMAIL_CONFIRM_SUCCESS_URL
+        'success_url': settings.EMAIL_CONFIRM_SUCCESS_URL,
+        'project': 'hypatio',
     }
 
     requests.post(send_confirm_email_url, headers=build_headers_with_jwt(user_jwt), data=json.dumps(email_confirm_data))
