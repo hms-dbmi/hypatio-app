@@ -1,21 +1,15 @@
 import json
 import logging
-import sys
 import requests
-from datetime import datetime
 
 from django.conf import settings
-from django.contrib.auth import logout
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt, validate_jwt, logout_redirect
-
 from .forms import RegistrationForm
+from django.http import HttpResponse
 
-from django.http import HttpResponse, HttpResponseRedirect
-from django.urls import reverse
-from django.contrib import messages
+from hypatio import scireg_services
 
-from django.template.loader import render_to_string
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -83,4 +77,59 @@ def profile(request, template_name='profile/profile.html'):
         return render(request, template_name, {'form': form,
                                                'user': user,
                                                'new_user': new_user,
-                                               'user_logged_in': user_logged_in})
+                                               'user_logged_in': user_logged_in,
+                                               'recaptcha_client_id': settings.RECAPTCHA_CLIENT_ID})
+
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
+def recaptcha_check(request):
+    """
+    Send a query over to google's servers with the result of the Captcha to see whether it's valid.
+    :param request:
+    :return:
+    """
+    response = {}
+
+    captcha_rs = request.POST.get('g-recaptcha-response')
+
+    url = "https://www.google.com/recaptcha/api/siteverify"
+
+    params = {
+        'secret': settings.RECAPTCHA_KEY,
+        'response': captcha_rs,
+        'remoteip': get_client_ip(request)
+    }
+
+    logger.debug("[P2M2][DEBUG][recaptcha_check] Sending Captcha results to google - " + str(request.user.id))
+
+    verify_rs = requests.get(url, params=params, verify=True)
+    verify_rs = verify_rs.json()
+    response["status"] = verify_rs.get("success", False)
+    response['message'] = verify_rs.get('error-codes', None) or "Unspecified error."
+
+    return response
+
+@user_auth_and_jwt
+def send_confirmation_email_view(request):
+    logger.debug("[P2M2][DEBUG][send_confirmation_email_view] Sending user verification e-mail - " + str(request.user.id))
+
+    if request.method == 'POST':
+
+        # Need to verify the Google Recaptcha before sending e-mail.
+        recaptcha_response = recaptcha_check(request)
+
+        if recaptcha_response["status"]:
+            scireg_services.send_confirmation_email(request.COOKIES.get("DBMI_JWT", None))
+            return HttpResponse("SENT")
+        else:
+            return HttpResponse("FAILED_RECAPTCHA")
+    else:
+        return HttpResponse("INVALID_POST")
