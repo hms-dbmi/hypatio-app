@@ -61,10 +61,14 @@ def list_data_challenges(request, template_name='datachallenges/list.html'):
                     "permission_scheme": data_challenge.permission_scheme}
 
             data_challenges.append(challenge)
+        
+        # TODO 
+        is_manager = True
 
     return render(request, template_name, {"data_challenges": data_challenges,
                                            "user_logged_in": user_logged_in,
                                            "user": user,
                                            "ssl_setting": settings.SSL_SETTING,
+                                           "is_manager": is_manager,
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
                                            "profile_server_url": settings.SCIREG_SERVER_URL})

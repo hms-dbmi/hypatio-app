@@ -153,6 +153,15 @@
                             aria-expanded="false"><strong>{{ user.email }}</strong> <span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li><a href="/profile">Profile</a></li>
+                                
+                                {% if is_manager %}
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="/manageprojects">Manage Projects</a></li>
+                                    
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="/managecontests">Manage Contests</a></li>
+                                {% endif %}
+                                
                                 <li role="separator" class="divider"></li>
                                 <li><a href="/dataprojects/signout">Sign Out</a></li>
                             </ul>

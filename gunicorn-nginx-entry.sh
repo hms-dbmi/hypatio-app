@@ -58,6 +58,7 @@ cd /app/
 
 python manage.py migrate
 python manage.py loaddata dataprojects
+python manage.py loaddata datachallenges
 if [ ! -d static ]; then
   mkdir static
 fi

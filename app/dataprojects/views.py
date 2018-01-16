@@ -87,6 +87,9 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
         if user_jwt is None or validate_jwt(request) is None:
             logout_redirect(request)
 
+        logger.debug('[HYPATIO][DEBUG] Raw JWT: ' + user_jwt)
+        logger.debug('[HYPATIO][DEBUG] JWT payload: ' + json.dumps(validate_jwt(request)))
+
         # The JWT token that will get passed in API calls
         jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
@@ -141,9 +144,13 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
 
         data_projects.append(project)
 
+        # TODO 
+        is_manager = True
+
     return render(request, template_name, {"data_projects": data_projects,
                                            "user_logged_in": user_logged_in,
                                            "user": user,
                                            "ssl_setting": settings.SSL_SETTING,
+                                           "is_manager": is_manager,
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
