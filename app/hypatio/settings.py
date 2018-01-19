@@ -15,7 +15,6 @@ import sys
 
 from os.path import normpath, join, dirname, abspath
 from django.utils.crypto import get_random_string
-from pythonpstore.pythonpstore import SecretStore
 
 chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
 
@@ -31,15 +30,9 @@ SECRET_KEY = os.environ.get("SECRET_KEY", get_random_string(50, chars))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-secret_store = SecretStore()
-PARAMETER_PATH = os.environ.get("PS_PATH", "")
+PROJECT = 'hypatio'
 
-if PARAMETER_PATH:
-    ALLOWED_HOSTS = [secret_store.get_secret_for_key(PARAMETER_PATH + '.allowed_hosts')]
-    RAVEN_URL = secret_store.get_secret_for_key(PARAMETER_PATH + '.raven_url')
-else:
-    ALLOWED_HOSTS = ["localhost"]
-    RAVEN_URL = ""
+ALLOWED_HOSTS = [os.environ.get("ALLOWED_HOSTS")]
 
 # Application definition
 
@@ -147,6 +140,11 @@ SSL_SETTING = "https"
 CONTACT_FORM_RECIPIENTS="dbmi_tech_core@hms.harvard.edu"
 DEFAULT_FROM_EMAIL="dbmi_tech_core@hms.harvard.edu"
 
+RECAPTCHA_KEY = os.environ.get('RECAPTCHA_KEY')
+RECAPTCHA_CLIENT_ID = os.environ.get('RECAPTCHA_CLIENT_ID')
+
+EMAIL_CONFIRM_SUCCESS_URL = os.environ.get('EMAIL_CONFIRM_SUCCESS_URL')
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
@@ -229,7 +227,7 @@ LOGGING = {
 }
 
 RAVEN_CONFIG = {
-    'dsn': RAVEN_URL,
+    'dsn': os.environ.get("RAVEN_URL", ""),
     # If you are using git, you can also automatically configure the
     # release based on the git info.
     'release': '1',

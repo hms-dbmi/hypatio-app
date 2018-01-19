@@ -2,6 +2,7 @@ import json
 import logging
 import sys
 import requests
+import furl
 from datetime import datetime
 
 from django.conf import settings
@@ -78,6 +79,20 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
     projects_with_access_requests = {}
 
     is_manager = False
+    
+    # Build the login URL
+    login_url = furl.furl(settings.ACCOUNT_SERVER_URL)
+
+    # Add the next URL
+    login_url.args.add('next', request.build_absolute_uri())
+
+    # Add project, if any
+    project = getattr(settings, 'PROJECT', None)
+    if project is not None:
+                login_url.args.add('project', project)
+
+    # We want email verification by default so pass that success url too
+    login_url.args.add('email_confirm_success_url', settings.EMAIL_CONFIRM_SUCCESS_URL)
 
     if not request.user.is_authenticated():
         user = None
@@ -155,5 +170,6 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
                                            "user": user,
                                            "ssl_setting": settings.SSL_SETTING,
                                            "is_manager": is_manager,
+                                           "login_url": login_url.url,
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
