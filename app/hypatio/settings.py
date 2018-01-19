@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'jquery',
-    'bootstrap4',
+    'bootstrap3',
     'contact',
     'datachallenges',
     'dataprojects',
@@ -129,9 +129,9 @@ ACCOUNT_SERVER_URL = os.environ.get("ACCOUNT_SERVER_URL")
 SCIREG_SERVER_URL = os.environ.get("SCIREG_SERVER_URL")
 AUTHZ_BASE = os.environ.get("AUTHZ_BASE", "")
 
-PERMISSION_SERVER = AUTHZ_BASE + "/user_permission/"
-CREATE_REQUEST_URL = AUTHZ_BASE + "/authorization_requests/"
-GET_ACCESS_REQUESTS = AUTHZ_BASE + "/authorization_requests/"
+USER_PERMISSIONS_URL = AUTHZ_BASE + "/user_permission/"
+AUTHORIZATION_REQUEST_URL = AUTHZ_BASE + "/authorization_requests/"
+AUTHORIZATION_REQUEST_GRANT_URL = AUTHZ_BASE + "/authorization_request_change/"
 
 COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN")
 

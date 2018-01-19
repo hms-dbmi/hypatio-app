@@ -12,6 +12,8 @@ from pyauth0jwt.auth0authenticate import user_auth_and_jwt, public_user_auth_and
 
 from .models import DataProject, DataUseAgreement, DataUseAgreementSign
 
+from profile.views import user_has_manage_permission
+
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
@@ -62,7 +64,7 @@ def submit_request(request):
                     "item": request.POST['project_key']}
 
     # Send the authorization request to SciAuthZ
-    create_auth_request_url = settings.CREATE_REQUEST_URL
+    create_auth_request_url = settings.AUTHORIZATION_REQUEST_URL
     requests.post(create_auth_request_url, headers=jwt_headers, data=json.dumps(data_request), verify=False)
 
     return HttpResponse(200)
@@ -76,6 +78,8 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
     projects_with_view_permissions = []
     projects_with_access_requests = {}
 
+    is_manager = False
+    
     # Build the login URL
     login_url = furl.furl(settings.ACCOUNT_SERVER_URL)
 
@@ -102,11 +106,14 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
         if user_jwt is None or validate_jwt(request) is None:
             logout_redirect(request)
 
+        # TODO Does this user have MANAGE permissions on any item?
+        is_manager = user_has_manage_permission(request, 'N2C2')
+
         # The JWT token that will get passed in API calls
         jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
         # Get all of the user's VIEW permissions
-        permissions_url = settings.PERMISSION_SERVER
+        permissions_url = settings.USER_PERMISSIONS_URL + "?email=" + user.email
         user_permissions = requests.get(permissions_url, headers=jwt_headers, verify=False).json()
         logger.debug('[HYPATIO][DEBUG] User Permissions: ' + json.dumps(user_permissions))
 
@@ -118,7 +125,9 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
                     projects_with_view_permissions.append(user_permission['item'])
 
         # Get all of the user's permission requests
-        access_requests_url = settings.GET_ACCESS_REQUESTS
+        access_requests_url = settings.AUTHORIZATION_REQUEST_URL + "?email=" + user.email
+        logger.debug('[HYPATIO][DEBUG] access_requests_url: ' + access_requests_url)
+
         user_access_requests = requests.get(access_requests_url, headers=jwt_headers, verify=False).json()
         logger.debug('[HYPATIO][DEBUG] User Permission Requests: ' + json.dumps(user_access_requests))
 
@@ -160,6 +169,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
                                            "user_logged_in": user_logged_in,
                                            "user": user,
                                            "ssl_setting": settings.SSL_SETTING,
+                                           "is_manager": is_manager,
                                            "login_url": login_url.url,
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
