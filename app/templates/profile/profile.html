@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% load bootstrap4 %}
 
+{% block page_title %}Profile{% endblock %}
+
 {% block title %}
 {% if new_user %}
     New User
@@ -13,6 +15,10 @@
 
 {% block content %}
 
+    {% if messages %}
+        {% include 'messages.html' %}
+    {% endif %}
+
     <div class="row">
         <div class="col-md-6">
             <div class="panel panel-default">
@@ -21,6 +27,32 @@
                     {% if new_user %}
                         <div class="alert alert-warning" role="alert">
                             Welcome to Hypatio! Please complete your registration form below to get started.
+                        </div>
+                    {% endif %}
+                    {% if not form.email_confirmed.value %}
+                        <div id="email_confirm" class="alert alert-warning" role="alert">
+                            <form id="confirm_email_form" method="post">
+                                {% csrf_token %}
+
+                                Please click the button below to send a verification e-mail. Google's anti-spam measures might ask you to perform a small task before sending the verification e-mail. <br /><br />
+
+                                <script src='https://www.google.com/recaptcha/api.js'></script>
+
+                                <br />
+
+                                <div style="display:none;" id="loadingDiv">
+                                    <img src="/static/default.gif"/>
+                                </div>
+
+                                <button id="submit_verification_email"
+                                        disabled class='btn btn-primary g-recaptcha'
+                                        data-sitekey="{{ recaptcha_client_id }}"
+                                        type="button"
+                                        data-callback="send_confirm_email"
+                                        data-loading-text="Send Verification E-Mail &nbsp;&nbsp; <i class='fa fa-spinner fa-spin '></i>">
+                                    Send Verification E-Mail
+                                </button>
+                            </form>
                         </div>
                     {% endif %}
                     
@@ -45,4 +77,37 @@
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript">
+    function recaptchaCallback() {
+        $('#submit_verification_email').removeAttr('disabled');
+    };
+
+    function send_confirm_email() {
+
+        // Show the loading animation
+        $('#submit_verification_email').button('loading');
+
+        $.post("/profile/send_confirmation_email/",
+            $('#confirm_email_form').serialize(),
+            function( data ) {
+
+                // Return the button to its default state
+                setTimeout(function () {
+                    $('#submit_verification_email').button('reset');
+                }, 1000);
+
+                if(data == "SENT") {
+                    notify('success', "E-Mail Sent.", 'thumbs-up');
+
+                    // Update the html.
+                    $('#email_confirm').html('The confirmation e-mail has been sent! Check your inbox for instructions on how to complete the e-mail verification process')
+                }
+                else if(data == "FAILED_RECAPTCHA") {notify('danger', "Failed to verify reCAPTCHA, please refresh page and try again.");}
+                else if(data == "INVALID_POST") {notify('danger', "Error processing request.");}
+            })
+    }
+</script>
 {% endblock %}

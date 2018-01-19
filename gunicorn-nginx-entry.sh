@@ -44,6 +44,10 @@ export ACCOUNT_SERVER_URL
 export SCIREG_SERVER_URL
 export AUTHZ_BASE
 
+export RECAPTCHA_KEY=$(aws ssm get-parameters --names $PS_PATH.recaptcha_key --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+export RECAPTCHA_CLIENT_ID=$(aws ssm get-parameters --names $PS_PATH.recaptcha_client_id --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+export EMAIL_CONFIRM_SUCCESS_URL=$(aws ssm get-parameters --names $PS_PATH.email_confirm_success_url --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+
 SSL_KEY=$(aws ssm get-parameters --names $PS_PATH.ssl_key --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 SSL_CERT_CHAIN1=$(aws ssm get-parameters --names $PS_PATH.ssl_cert_chain1 --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 SSL_CERT_CHAIN2=$(aws ssm get-parameters --names $PS_PATH.ssl_cert_chain2 --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
@@ -57,7 +61,6 @@ echo $SSL_CERT_CHAIN | base64 -d >> /etc/nginx/ssl/server.crt
 cd /app/
 
 python manage.py migrate
-python manage.py loaddata dataprojects
 if [ ! -d static ]; then
   mkdir static
 fi
