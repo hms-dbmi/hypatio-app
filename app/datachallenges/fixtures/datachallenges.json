@@ -3,7 +3,7 @@
       "model": "datachallenges.datachallenge",
       "pk": 1,
       "fields": {
-        "name": "George Mason University",
+        "name": "National NLP Clinical Challenges (n2c2)",
         "institution": "",
         "description": "Long description here.",
         "short_description": "Short description here.",

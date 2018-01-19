@@ -26,6 +26,9 @@ def profile(request, template_name='profile/profile.html'):
     if user_jwt is None or validate_jwt(request) is None:
         logout_redirect(request)
 
+    # TODO Does this user have MANAGE permissions on any item?
+    is_manager = user_has_manage_permission(request, 'N2C2')
+
     # The JWT token that will get passed in API calls
     jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
@@ -49,6 +52,7 @@ def profile(request, template_name='profile/profile.html'):
             # Generate and render the form.
             return render(request, template_name, {'form': form,
                                                    'user': user,
+                                                   'is_manager': is_manager,
                                                    'new_user': False,
                                                    'user_logged_in': user_logged_in})
         else:
@@ -81,10 +85,37 @@ def profile(request, template_name='profile/profile.html'):
         # Generate and render the form.
         return render(request, template_name, {'form': form,
                                                'user': user,
+                                                'is_manager': is_manager,
                                                'new_user': new_user,
                                                'user_logged_in': user_logged_in,
                                                'recaptcha_client_id': settings.RECAPTCHA_CLIENT_ID})
 
+# Check if this user has SciAuthZ manage permissions on the given item
+def user_has_manage_permission(request, item):
+
+    is_manager = False
+
+    user = request.user
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+    # If the JWT has expired or the user doesn't have one, force the user to login again
+    if user_jwt is None or validate_jwt(request) is None:
+        logout_redirect(request)
+
+    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
+
+    # Confirm user is a manager of the given project
+    permissions_url = settings.USER_PERMISSIONS_URL + "?item=" + item + "&email=" + user.email
+    user_permissions = requests.get(permissions_url, headers=jwt_headers, verify=False).json()
+    # logger.debug('[HYPATIO][DEBUG] permissions_url: ' + permissions_url)
+    # logger.debug('[HYPATIO][DEBUG] user_permissions: ' + json.dumps(user_permissions))
+
+    if user_permissions is not None and 'results' in user_permissions:
+        for perm in user_permissions['results']:
+            if perm['permission'] == "MANAGE":
+                is_manager = True
+
+    return is_manager                                            
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -93,7 +124,6 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
-
 
 def recaptcha_check(request):
     """
