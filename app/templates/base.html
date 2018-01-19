@@ -6,15 +6,19 @@
 <html>
     <head>
         <!-- Latest compiled and minified CSS -->
+
         <script src="https://code.jquery.com/jquery-3.1.1.min.js"
                 integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
         
         {% load bootstrap3 %}
         {% bootstrap_css %}
         {% bootstrap_javascript %}
+        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="{% static 'animate.css' %}" />
 
-        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
         <script type='text/javascript' src="{% static 'bootstrap-notify.min.js' %}"></script>
 
         <script type="application/javascript">
@@ -106,9 +110,9 @@
                     });
                     return false;
                 });
-    
+
             });
-    
+
         </script>
 
         {% block headscripts %}
@@ -171,7 +175,7 @@
                         {% else %}
 
                         <li>
-                            <a href="{{ account_server_url }}?next={{ ssl_setting }}://{{ request.META.HTTP_HOST }}">
+                            <a href="{{ login_url }}">
                                 <span class="glyphicon glyphicon-user"></span>&nbsp;
                                 <strong>Register / Sign In</strong>
                             </a>
@@ -210,4 +214,6 @@
         {% block footscripts %}
         {% endblock %}
     </body>
+    {# Allow for some javascript to be added per page #}
+    {% block javascript %}{% endblock %}
 </html>
