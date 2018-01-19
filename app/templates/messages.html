@@ -1,0 +1,32 @@
+{% load bootstrap4 %}
+
+{% if messages %}
+<script type="application/javascript">
+$(document).ready(function() {
+{% for message in messages %}
+    // Get the type
+    {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+        var type = 'danger';
+        var icon = 'remove';
+    {% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+        var type = 'success';
+        var icon = 'ok';
+    {% elif message.level == DEFAULT_MESSAGE_LEVELS.INFO %}
+        var type = 'primary';
+        var icon = 'info-sign';
+    {% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
+        var type = 'warning';
+        var icon = 'alert';
+    {% elif message.level == DEFAULT_MESSAGE_LEVELS.DEBUG %}
+        var type = 'info';
+        var icon = 'bullhorn';
+    {% else %}
+        var type = 'info';
+        var icon = 'info-sign';
+    {% endif %}
+    // Show the message.
+    notify(type, '{{ message }}', 'glyphicon glyphicon-' + icon);
+{% endfor %}
+});
+</script>
+{% endif %}

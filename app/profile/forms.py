@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.safestring import mark_safe
 
 class RegistrationForm(forms.Form):
 
@@ -31,3 +32,10 @@ class RegistrationForm(forms.Form):
         if not new_registration:
             self.fields['first_name'].widget = forms.TextInput(attrs={'readonly':'readonly'})
             self.fields['last_name'].widget = forms.TextInput(attrs={'readonly':'readonly'})
+
+        # Check for email verified.
+        if self.initial.get('email_confirmed', False):
+
+            # Mark it as such.
+            self.fields['email'].help_text = mark_safe('<div style="margin-top: 8px;"><span class="label label-success"><span class="glyphicon glyphicon-ok"></span> Verified!</span></div>')
+
