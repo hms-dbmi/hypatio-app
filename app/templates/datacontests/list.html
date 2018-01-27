@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block headscripts %}
+{% endblock %}
+
+{% block title %}Data Contests{% endblock %}
+{% block subtitle %}Click on a contest below to learn more{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+        {% for data_contest in data_contests %}
+            {% include "datacontests/blurb.html" with contest_counter=forloop.counter0 %}
+            <br/>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

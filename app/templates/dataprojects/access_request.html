@@ -1,4 +1,4 @@
-{% load dataprojects_extras %}
+{% load projects_extras %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -14,18 +14,18 @@
 
     <div id="dua_options">
         <p>Please select an available Data Use Agreement to sign:</p>
-        {% for dua in data_use_agreements %}
-            <button type="button" class="btn btn-primary dua_form_select" data-dua-form-id="{{ dua.id }}">{{ dua.name }}</button>            
+        {% for agreement_form in agreement_forms %}
+            <button type="button" class="btn btn-primary dua_form_select" data-agreement-form-id="{{ agreement_form.id }}">{{ agreement_form.name }}</button>            
         {% endfor %}
     </div>
 
-    <div id="dua_forms">
-    {% for dua in data_use_agreements %}
-        <div class="dua_form" data-dua-form-id="{{ dua.id }}" style="display:none;">
-            {{ dua.agreement_form_file|get_dua_form_file_contents | safe }}
+    <!-- <div id="dua_forms">
+    {# {% for dua in data_use_agreements %} #}
+        <div class="dua_form" data-agreement-form-id="{{ dua.id }}" style="display:none;">
+            {# {{ dua.agreement_form_file|get_dua_form_file_contents | safe }} #}
         </div>
-    {% endfor %}
-    </div>
+    {# {% endfor %} #}
+    </div> -->
 
     <input type="hidden" id="dua_id" name="dua_id" value="" />
     <input type="hidden" id="agreement_text" name="agreement_text" value="" />
@@ -41,13 +41,13 @@
 <script type="application/javascript">
     // Display the DUA form if a user has selected one to complete
     $('.dua_form_select').click(function() {
-        var dua_id = $(this).attr("data-dua-form-id");
+        var dua_id = $(this).attr("data-agreement-form-id");
 
         // Set the dua_id input value
         $('#dua_id').val(dua_id);
         
         // Display the form and submit button
-        $('.dua_form[data-dua-form-id="' + dua_id + '"]').show();
+        $('.dua_form[data-agreement-form-id="' + dua_id + '"]').show();
         $('#submit_form').show();
 
         // Hide the DUA form select buttons
@@ -65,7 +65,7 @@
         var dua_id = $('#dua_id').val();
 
         // Get the div element holding the DUA form
-        var dua_form = $(this).find(".dua_form[data-dua-form-id='" + dua_id + "']");
+        var dua_form = $(this).find(".dua_form[data-agreement-form-id='" + dua_id + "']");
 
         // Replace each input field within the dua form with its value, so we have one complete dua form as a string
         dua_form.find("input").each(function() {

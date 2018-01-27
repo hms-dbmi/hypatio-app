@@ -3,7 +3,7 @@
 {% block headscripts %}
 {% endblock %}
 
-{% block title %}Manage Data Challenges{% endblock %}
+{% block title %}Manage Data Contests{% endblock %}
 {% block subtitle %}Temporary page to manage N2C2{% endblock %}
 
 {% block content %}    
@@ -68,7 +68,7 @@
             csrfmiddlewaretoken: '{{ csrf_token }}',
         };
         
-        $.post("/datachallenges/grantviewpermissions", request_data)
+        $.post("/projects/grantviewpermissions", request_data)
             .done(function() {
                 // Refresh the page so the user does not see this button again
                 setTimeout(function(){

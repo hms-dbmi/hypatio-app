@@ -1,0 +1,20 @@
+<div class="panel panel-default">
+    <div class="panel-heading" role="tab" id="heading{{ contest_counter }}">
+        <h4 class="panel-title">
+            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse{{ contest_counter }}" aria-expanded="false"
+               aria-controls="collapse{{ contest_counter }}">
+                <span style="font-size:24px; font-weight: bold; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">{{ data_contest.name }}</span>
+                <br />
+                <br />
+                {{ data_contest.short_description }}
+            </a>
+        </h4>
+    </div>
+    <div id="collapse{{ contest_counter }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading{{ contest_counter }}">
+        <div class="panel-body">
+            {% autoescape off %}
+                {{ data_contest.description }}
+            {% endautoescape %}
+        </div>
+    </div>
+</div>
