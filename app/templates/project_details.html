@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block headscripts %}
+{% endblock %}
+
+{% block title %}{{ project.project_key }}{% endblock %}
+{% block subtitle %}{{ project.short_description }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Description</a>
+                </h2>
+            </div>
+            <div class="panel-body">
+                {% autoescape off %}
+                {{ project.description }}
+                {% endautoescape %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+    {% if not access_granted %}    
+        <div class="alert alert-warning alert-dismissible" role="alert">
+            To compete in this contest, please complete the following agreement forms and start or join a team. Once you have completed those steps, the contest manager can elect to grant you access.
+        </div>
+        
+        <div class="panel-group" id="accordion">
+
+            {% for agreement_form in agreement_forms %}
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="heading-form-{{forloop.counter}}">
+                    <h2 class="panel-title">
+                        <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-form-{{forloop.counter}}" aria-expanded="true" aria-controls="collapse-form-{{forloop.counter}}">
+                            Form: {{ agreement_form.name}}
+                        </a>
+                    </h2>
+                </div>
+                <div id="collapse-form-{{forloop.counter}}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="heading-form-{{forloop.counter}}">
+                    <div class="panel-body">
+                        {{ agreement_form.form_html.name }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="heading-team">
+                    <h2 class="panel-title">
+                        <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-team" aria-expanded="true" aria-controls="collapse-team">
+                            Your Team
+                        </a>
+                    </h2>
+                </div>
+                <div id="collapse-team" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="heading-team">
+                    <div class="panel-body">
+                        Team stuff here.
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    {% else %}
+        <div class="alert alert-success alert-dismissible" role="alert">
+            Congratulations! You are approved for access to this contest.
+        </div>
+    {% endif %}
+    </div>
+</div>
+{% endblock %}

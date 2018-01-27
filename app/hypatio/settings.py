@@ -46,9 +46,8 @@ INSTALLED_APPS = [
     'jquery',
     'bootstrap3',
     'contact',
-    'datachallenges',
-    'dataprojects',
     'profile',
+    'projects',
     'pyauth0jwt',
     'raven.contrib.django.raven_compat',
 ]
@@ -185,6 +184,11 @@ STATICFILES_FINDERS = (
 )
 
 DATA_USE_AGREEMENT_FORM_DIR = STATIC_ROOT + '/dua_forms'
+
+##########
+# MEDIA FILE CONFIGURATION
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ##########
 

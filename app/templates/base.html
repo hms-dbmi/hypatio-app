@@ -18,6 +18,7 @@
         
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="{% static 'animate.css' %}" />
+        <link rel="stylesheet" href="{% static 'custom.css' %}" />
 
         <script type='text/javascript' src="{% static 'bootstrap-notify.min.js' %}"></script>
 
@@ -141,8 +142,8 @@
                                 <span class="glyphicon glyphicon-list"></span> Project Type <span class="caret"></span></a>
                             <ul class="dropdown-menu" aria-labelledby="download">
                                 <li>
-                                    <a href="/dataprojects/">Data Projects</a>
-                                    <a href="/datachallenges/">Data Challenges</a>
+                                    <a href="/projects/list_data_projects">Data Projects</a>
+                                    <a href="/projects/list_data_contests">Data Contests</a>
                                 </li>
                             </ul>
                         </li>
@@ -161,10 +162,10 @@
                                 
                                 {% if is_manager %}
                                     <li role="separator" class="divider"></li>
-                                    <li><a href="/manageprojects">Manage Projects</a></li>
+                                    <li><a href="/projects/managedataprojects">Manage Projects</a></li>
                                     
                                     <li role="separator" class="divider"></li>
-                                    <li><a href="/datachallenges/managecontests">Manage Contests</a></li>
+                                    <li><a href="/projects/managecontests">Manage Contests</a></li>
                                 {% endif %}
                                 
                                 <li role="separator" class="divider"></li>
