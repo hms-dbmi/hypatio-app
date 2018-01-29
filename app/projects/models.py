@@ -10,6 +10,7 @@ def get_agreement_form_upload_path(instance, filename):
     file_extension = filename.split('.')[-1]
     return '%s/%s.%s' % (form_directory, file_name, file_extension)
 
+
 class AgreementForm(models.Model):
     """
     This represents the type of forms that a user might need to sign to be granted access to
@@ -21,16 +22,8 @@ class AgreementForm(models.Model):
     form_html = models.FileField(upload_to=get_agreement_form_upload_path)
 
     def __str__(self):
-        return '%s -- %s' % (self.name, self.form_html.name)
+        return '%s' % (self.name)
 
-class SignedAgreementForm(models.Model):
-    """
-    This represents the fully signed agreement form.
-    """
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    agreement_form = models.ForeignKey(AgreementForm, on_delete=models.CASCADE)
-    date_signed = models.DateTimeField(auto_now_add=True)
-    agreement_text = models.TextField(blank=False)
 
 class DataProject(models.Model):
     """
@@ -54,6 +47,17 @@ class DataProject(models.Model):
         return '%s %s' % (self.project_key, self.name)
 
 
+class SignedAgreementForm(models.Model):
+    """
+    This represents the fully signed agreement form.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    agreement_form = models.ForeignKey(AgreementForm, on_delete=models.CASCADE)
+    project = models.ForeignKey(DataProject)
+    date_signed = models.DateTimeField(auto_now_add=True)
+    agreement_text = models.TextField(blank=False)
+
+
 class Team(models.Model):
     principal_investigator = models.OneToOneField(User)
     data_project = models.OneToOneField(DataProject)
@@ -70,3 +74,6 @@ class Participant(models.Model):
     @property
     def is_on_team(self):
         return self.team is None
+
+    def get_data_challenges(self):
+        return ",".join([str(p) for p in self.data_challenge.all()])

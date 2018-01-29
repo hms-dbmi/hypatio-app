@@ -183,8 +183,6 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
-DATA_USE_AGREEMENT_FORM_DIR = STATIC_ROOT + '/dua_forms'
-
 ##########
 # MEDIA FILE CONFIGURATION
 MEDIA_URL = '/media/'

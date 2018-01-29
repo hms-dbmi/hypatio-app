@@ -5,6 +5,7 @@ from .views import list_data_contests
 from .views import request_access
 from .views import submit_request
 from .views import manage_contests
+from .views import save_signed_agreement_form
 from .views import grant_access_with_view_permissions
 from .views import project_details
 from .views import signout
@@ -17,6 +18,7 @@ urlpatterns = (
     url(r'^submit_request/$', submit_request),
     url(r'^managecontests/$', manage_contests),
     url(r'^grantviewpermissions', grant_access_with_view_permissions),
+    url(r'^save_signed_agreement_form', save_signed_agreement_form),
     url(r'^signout/$', signout),
     url(r'^(?P<project_key>[^/]+)/$', project_details)
 )
