@@ -52,3 +52,21 @@ class DataProject(models.Model):
 
     def __str__(self):
         return '%s %s' % (self.project_key, self.name)
+
+
+class Team(models.Model):
+    principal_investigator = models.OneToOneField(User)
+    data_project = models.OneToOneField(DataProject)
+
+    def __str__(self):
+        return '%s' % self.principal_investigator.email
+
+
+class Participant(models.Model):
+    user = models.OneToOneField(User)
+    data_challenge = models.ManyToManyField(DataProject)
+    team = models.ForeignKey(Team)
+
+    @property
+    def is_on_team(self):
+        return self.team is None
