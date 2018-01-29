@@ -1,9 +1,16 @@
 .panel-heading a:after {
     font-family:'Glyphicons Halflings';
-    content:"\e114";
+    content:"\e014";
     float: right;
-    color: grey;
+    color: darkred;
 }
 .panel-heading a.collapsed:after {
-    content:"\e249";
+    content:"\e014";
+}
+/* Displays when a form is already complete */
+.completed-form-header span:after {
+    font-family:'Glyphicons Halflings';
+    content:"\e013";
+    float: right;
+    color: darkgreen;
 }

@@ -9,12 +9,18 @@ from django.conf import settings
 from django.contrib.auth import logout
 from django.shortcuts import render
 from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404
+
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import validate_jwt
 from pyauth0jwt.auth0authenticate import logout_redirect
 
-from .models import DataProject, Participant, Team
+from .models import DataProject
+from .models import Participant
+from .models import Team
+from .models import AgreementForm
+from .models import SignedAgreementForm
 
 from profile.views import user_has_manage_permission
 
@@ -49,6 +55,25 @@ def request_access(request, template_name='dataprojects/access_request.html'):
 
     return render(request, template_name, {"project_key": request.POST['project_key'],
                                            "agreement_forms": agreement_forms})
+
+@user_auth_and_jwt
+def save_signed_agreement_form(request):
+
+    agreement_form_id = request.POST['agreement_form_id']
+    project_key = request.POST['project_key']
+    agreement_text = request.POST['agreement_text']
+
+    agreement_form = AgreementForm.objects.get(id=agreement_form_id)
+    project = DataProject.objects.get(project_key=project_key)
+
+    signed_agreement_form = SignedAgreementForm(user=request.user,
+                                                agreement_form=agreement_form,
+                                                project=project,
+                                                date_signed=datetime.now(),
+                                                agreement_text=agreement_text)
+    signed_agreement_form.save()
+
+    return HttpResponse(200)
 
 @user_auth_and_jwt
 def submit_request(request):
@@ -391,14 +416,28 @@ def grant_access_with_view_permissions(request):
 @user_auth_and_jwt
 def project_details(request, project_key, template_name='project_details.html'):
 
-    project = DataProject.objects.get(project_key=project_key)
+    project = get_object_or_404(DataProject, project_key=project_key)
+    
     agreement_forms = project.agreement_forms.all()
+    agreement_forms_list = []
+    
+    # Check to see if any of the necessary agreement forms have already been signed by the user
+    for agreement_form in agreement_forms:
+        signed_agreement_form = SignedAgreementForm.objects.filter(project=project,
+                                                                   user=request.user,
+                                                                   agreement_form=agreement_form)
+
+        if signed_agreement_form.count() > 0:
+            already_signed = True
+        else:
+            already_signed = False
+
+        agreement_forms_list.append({'agreement_form_name': agreement_form.name,
+                                     'agreement_form_id': agreement_form.id,
+                                     'agreement_form_file': agreement_form.form_html.name,
+                                     'already_signed': already_signed})
 
     access_granted = False
-
-    if project is None:
-        # TODO Hypatio needs a 404
-        return HttpResponse(404)
 
     try:
         participant = Participant.objects.get(user=request.user)
@@ -411,7 +450,7 @@ def project_details(request, project_key, template_name='project_details.html'):
         teams = None
 
     return render(request, template_name, {"project": project,
-                                           "agreement_forms": agreement_forms,
+                                           "agreement_forms_list": agreement_forms_list,
                                            "participant": participant,
                                            "teams": teams,
                                            "access_granted": access_granted})

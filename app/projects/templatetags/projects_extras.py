@@ -7,8 +7,8 @@ import os
 
 register = template.Library()
 
-# @register.filter
-# def get_dua_form_file_contents(dua_form_file):
+@register.filter
+def get_agreement_form_file_contents(agreement_form_file_name):
 
-#     form_path = os.path.join(settings.DATA_USE_AGREEMENT_FORM_DIR, dua_form_file)
-#     return open(form_path, 'r').read()
+    form_path = os.path.join(settings.MEDIA_ROOT, agreement_form_file_name)
+    return open(form_path, 'r').read()
