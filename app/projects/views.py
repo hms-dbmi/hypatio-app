@@ -14,7 +14,7 @@ from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import validate_jwt
 from pyauth0jwt.auth0authenticate import logout_redirect
 
-from .models import DataProject
+from .models import DataProject, Participant, Team
 
 from profile.views import user_has_manage_permission
 
@@ -23,9 +23,13 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
 
+from django.core.exceptions import ObjectDoesNotExist
+
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from socket import gaierror
+
+
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -396,6 +400,18 @@ def project_details(request, project_key, template_name='project_details.html'):
         # TODO Hypatio needs a 404
         return HttpResponse(404)
 
+    try:
+        participant = Participant.objects.get(user=request.user)
+    except ObjectDoesNotExist:
+        participant = None
+
+    try:
+        teams = Team.objects.get(data_project__project_key=project_key)
+    except ObjectDoesNotExist:
+        teams = None
+
     return render(request, template_name, {"project": project,
                                            "agreement_forms": agreement_forms,
+                                           "participant": participant,
+                                           "teams": teams,
                                            "access_granted": access_granted})
