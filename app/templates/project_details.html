@@ -89,6 +89,33 @@
                     </div>
                 </div>
             </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading project-registration-step" role="tab" id="heading-acess">
+                    <h2 class="panel-title">
+                        <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-access" aria-expanded="true" aria-controls="collapse-access">
+                            Access Request Status
+                        </a>
+                    </h2>
+                </div>
+                <div id="collapse-access" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-access">
+                    <div class="panel-body">
+                    {% if user_access_request_granted %}
+                        ACCESS GRANTED...
+                    {% elif user_requested_access %}
+                        ACCESS REQUESTED, PENDING APPROVAL FROM MANAGER...
+                    {% else %}    
+                        <p><i>Temporary method, eventually this request should be triggered automatically once the prior steps are all complete:</i></p>
+                        <form name="user_permission_request_form" action="/submit_user_permission_request/" method="post">
+                            <input type="hidden" id="project_key" name="project_key" value="{{ project.project_key }}" />
+                            <input name="submit_user_permission_request" id="submit_user_permission_request" type="submit" class="btn btn-primary" value="Request Access" />
+                            {% csrf_token %}
+                        </form>
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
     
     {% else %}
         <div class="alert alert-success alert-dismissible" role="alert">
@@ -132,6 +159,28 @@
             },2000);
         }).fail(function() {
             submit_button.replaceWith("<h3><span class='label label-danger'>Form save failed. Please try again in a few minutes.</span></h3>");            
+        });
+    });
+</script>
+
+<script type="application/javascript">
+    $('form[name=user_permission_request_form]').submit(function(e){
+        e.preventDefault();
+
+        var submit_button = $(this).find(".submit_user_permission_request");
+
+        $.post($(this).attr('action'), $(this).serialize(), function(res){
+            // $("#loading").hide();
+        }).done(function() {
+            // Replace the submit button with text informing the user that the form was saved
+            submit_button.replaceWith("<h3><span class='label label-success'>Request submitted! Refreshing page...</span></h3>");          
+            
+            // Refresh the page so the user does not fill form out again
+            setTimeout(function(){
+                location.reload();
+            },2000);
+        }).fail(function() {
+            submit_button.replaceWith("<h3><span class='label label-danger'>Request failed. Please try again in a few minutes.</span></h3>");            
         });
     });
 </script>

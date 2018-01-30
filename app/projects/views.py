@@ -72,6 +72,21 @@ def save_signed_agreement_form(request):
 
     return HttpResponse(200)
 
+@user_auth_and_jwt
+def submit_user_permission_request(request):
+
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
+
+    data_request = {"user": request.user.email,
+                    "item": request.POST['project_key']}
+
+    # Send the authorization request to SciAuthZ
+    create_auth_request_url = settings.AUTHORIZATION_REQUEST_URL
+    requests.post(create_auth_request_url, headers=jwt_headers, data=json.dumps(data_request), verify=False)
+
+    return HttpResponse(200)
+
 # TODO DELETE
 @user_auth_and_jwt
 def submit_request(request):
@@ -217,7 +232,6 @@ def list_data_contests(request, template_name='datacontests/list.html'):
         # The JWT token that will get passed in API calls
         jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
-    logger.debug('HERE')
     # Build the dictionary with all project and permission information needed
     for data_contest in all_data_contests:
         logger.debug(data_contest.name)
@@ -388,7 +402,11 @@ def project_details(request, project_key, template_name='project_details.html'):
     agreement_forms_list = []
     participant = None
     teams = None
-    access_granted = False
+    access_granted = False # TODO
+    person_has_team = False # TODO
+    is_manager = False
+    user_requested_access = False
+    user_access_request_granted = False
 
     if not request.user.is_authenticated():
         user = None
@@ -396,6 +414,11 @@ def project_details(request, project_key, template_name='project_details.html'):
     else:
         user = request.user
         user_logged_in = True
+        is_manager = user_has_manage_permission(request, project_key)
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+        # The JWT token that will get passed in API calls
+        jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
         agreement_forms = project.agreement_forms.all()
 
@@ -425,9 +448,26 @@ def project_details(request, project_key, template_name='project_details.html'):
         except ObjectDoesNotExist:
             teams = None
 
+         # Get all of the user's permission requests
+        access_requests_url = settings.AUTHORIZATION_REQUEST_URL + "?email=" + user.email
+        logger.debug('[HYPATIO][DEBUG] access_requests_url: ' + access_requests_url)
+
+        user_access_requests = requests.get(access_requests_url, headers=jwt_headers, verify=False).json()
+        logger.debug('[HYPATIO][DEBUG] User Permission Requests: ' + json.dumps(user_access_requests))
+
+        if user_access_requests is not None and 'results' in user_access_requests:
+            for access_request in user_access_requests['results']:
+                if access_request['item'] == project_key:
+                    user_requested_access = True
+                    user_access_request_granted = access_request['request_granted']
+
     return render(request, template_name, {"project": project,
                                            "agreement_forms_list": agreement_forms_list,
                                            "participant": participant,
                                            "teams": teams,
+                                           "person_has_team": person_has_team,
                                            "access_granted": access_granted,
-                                           "user_logged_in": user_logged_in})
+                                           "is_manager": is_manager,
+                                           "user_logged_in": user_logged_in,
+                                           "user_requested_access": user_requested_access,
+                                           "user_access_request_granted": user_access_request_granted})
