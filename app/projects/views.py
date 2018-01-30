@@ -2,7 +2,6 @@ import json
 import logging
 import sys
 import requests
-import furl
 from datetime import datetime
 
 from django.conf import settings
@@ -34,8 +33,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from socket import gaierror
-
-
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -114,20 +111,6 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
 
     is_manager = False
 
-    # Build the login URL
-    login_url = furl.furl(settings.ACCOUNT_SERVER_URL)
-
-    # Add the next URL
-    login_url.args.add('next', request.build_absolute_uri())
-
-    # Add project, if any
-    project = getattr(settings, 'PROJECT', None)
-    if project is not None:
-        login_url.args.add('project', project)
-
-    # We want email verification by default so pass that success url too
-    login_url.args.add('email_confirm_success_url', settings.EMAIL_CONFIRM_SUCCESS_URL)
-
     if not request.user.is_authenticated():
         user = None
         user_logged_in = False
@@ -204,7 +187,6 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
                                            "user": user,
                                            "ssl_setting": settings.SSL_SETTING,
                                            "is_manager": is_manager,
-                                           "login_url": login_url.url,
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
 
@@ -215,20 +197,6 @@ def list_data_contests(request, template_name='datacontests/list.html'):
     data_contests = []
 
     is_manager = False
-
-    # Build the login URL
-    login_url = furl.furl(settings.ACCOUNT_SERVER_URL)
-
-    # Add the next URL
-    login_url.args.add('next', request.build_absolute_uri())
-
-    # Add project, if any
-    project = getattr(settings, 'PROJECT', None)
-    if project is not None:
-        login_url.args.add('project', project)
-
-    # We want email verification by default so pass that success url too
-    login_url.args.add('email_confirm_success_url', settings.EMAIL_CONFIRM_SUCCESS_URL)
 
     if not request.user.is_authenticated():
         user = None
@@ -267,7 +235,6 @@ def list_data_contests(request, template_name='datacontests/list.html'):
                                            "user": user,
                                            "ssl_setting": settings.SSL_SETTING,
                                            "is_manager": is_manager,
-                                           "login_url": login_url.url,
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
 
@@ -413,44 +380,53 @@ def grant_access_with_view_permissions(request):
 
     return HttpResponse(200)
 
-@user_auth_and_jwt
+@public_user_auth_and_jwt
 def project_details(request, project_key, template_name='project_details.html'):
 
     project = get_object_or_404(DataProject, project_key=project_key)
-    
-    agreement_forms = project.agreement_forms.all()
     agreement_forms_list = []
-    
-    # Check to see if any of the necessary agreement forms have already been signed by the user
-    for agreement_form in agreement_forms:
-        signed_agreement_form = SignedAgreementForm.objects.filter(project=project,
-                                                                   user=request.user,
-                                                                   agreement_form=agreement_form)
-
-        if signed_agreement_form.count() > 0:
-            already_signed = True
-        else:
-            already_signed = False
-
-        agreement_forms_list.append({'agreement_form_name': agreement_form.name,
-                                     'agreement_form_id': agreement_form.id,
-                                     'agreement_form_file': agreement_form.form_html.name,
-                                     'already_signed': already_signed})
-
+    participant = None
+    teams = None
     access_granted = False
 
-    try:
-        participant = Participant.objects.get(user=request.user)
-    except ObjectDoesNotExist:
-        participant = None
+    if not request.user.is_authenticated():
+        user = None
+        user_logged_in = False
+    else:
+        user = request.user
+        user_logged_in = True
 
-    try:
-        teams = Team.objects.get(data_project__project_key=project_key)
-    except ObjectDoesNotExist:
-        teams = None
+        agreement_forms = project.agreement_forms.all()
+
+        # Check to see if any of the necessary agreement forms have already been signed by the user
+        for agreement_form in agreement_forms:
+            signed_agreement_form = SignedAgreementForm.objects.filter(project=project,
+                                                                       user=user,
+                                                                       agreement_form=agreement_form)
+
+            if signed_agreement_form.count() > 0:
+                already_signed = True
+            else:
+                already_signed = False
+
+            agreement_forms_list.append({'agreement_form_name': agreement_form.name,
+                                         'agreement_form_id': agreement_form.id,
+                                         'agreement_form_file': agreement_form.form_html.name,
+                                         'already_signed': already_signed})
+
+        try:
+            participant = Participant.objects.get(user=user)
+        except ObjectDoesNotExist:
+            participant = None
+
+        try:
+            teams = Team.objects.get(data_project__project_key=project_key)
+        except ObjectDoesNotExist:
+            teams = None
 
     return render(request, template_name, {"project": project,
                                            "agreement_forms_list": agreement_forms_list,
                                            "participant": participant,
                                            "teams": teams,
-                                           "access_granted": access_granted})
+                                           "access_granted": access_granted,
+                                           "user_logged_in": user_logged_in})

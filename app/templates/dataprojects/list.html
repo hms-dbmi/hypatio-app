@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load projects_extras %}
 
 {% block headscripts %}
 <script>
@@ -19,12 +18,14 @@
 {% block subtitle %}Click on a project below to learn more{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-        {% for data_project in data_projects %}
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+{% for data_project in data_projects %}
+    <div class="row">
+        <div class="col-md-12">
             {% include "dataprojects/blurb.html" with project_counter=forloop.counter0 %}
             <br/>
-        {% endfor %}
+        </div>
     </div>
+{% endfor %}
 </div>
 {% endblock %}
