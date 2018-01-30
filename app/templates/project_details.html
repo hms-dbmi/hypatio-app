@@ -11,7 +11,7 @@
 <div class="row">
     
     <div class="col-md-6">
-        <div class="panel panel-default">
+        <div class="panel panel-primary">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Description</a>
                 </h2>
@@ -25,7 +25,11 @@
     </div>
 
     <div class="col-md-6">
-    {% if not access_granted %}    
+    {% if not user_logged_in %}
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            To compete in this contest please first <a href="{{ request.build_absolute_uri|get_login_url }}">login or register</a>.
+        </div>
+    {% elif not access_granted %}    
         <div class="alert alert-warning alert-dismissible" role="alert">
             To compete in this contest, please complete the following agreement forms and start or join a team. Once you have completed those steps, the contest manager can elect to grant you access.
         </div>
@@ -34,7 +38,7 @@
 
             {% for agreement_form in agreement_forms_list %}
             <div class="panel panel-default">
-                <div class="panel-heading" role="tab" id="heading-form-{{forloop.counter}}">
+                <div class="panel-heading project-registration-step-panel-heading" role="tab" id="heading-form-{{forloop.counter}}">
                     <h2 class="panel-title">
                     {% if not agreement_form.already_signed %}
                         <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-form-{{forloop.counter}}" aria-expanded="true" aria-controls="collapse-form-{{forloop.counter}}">
@@ -72,7 +76,7 @@
             {% endfor %}
             
             <div class="panel panel-default">
-                <div class="panel-heading" role="tab" id="heading-team">
+                <div class="panel-heading project-registration-step-panel-heading" role="tab" id="heading-team">
                     <h2 class="panel-title">
                         <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-team" aria-expanded="true" aria-controls="collapse-team">
                             Your Team

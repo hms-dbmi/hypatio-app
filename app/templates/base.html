@@ -2,6 +2,7 @@
 
 {% load static %}
 {% load contact_extras %}
+{% load projects_extras %}
 
 <html>
     <head>
@@ -125,7 +126,7 @@
         <div class="navbar navbar-default navbar-fixed-top" role="navigation" id="topnavbar">
             <div class="container">
                 <div class="navbar-header">
-                    <a href="#" class="navbar-brand">DBMI Portal</a>
+                    <a href="/" class="navbar-brand">DBMI Portal</a>
                     <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
@@ -169,14 +170,14 @@
                                 {% endif %}
                                 
                                 <li role="separator" class="divider"></li>
-                                <li><a href="/dataprojects/signout">Sign Out</a></li>
+                                <li><a href="/signout">Sign Out</a></li>
                             </ul>
                         </li>
 
                         {% else %}
 
                         <li>
-                            <a href="{{ login_url }}">
+                            <a href="{{ request.build_absolute_uri|get_login_url }}">
                                 <span class="glyphicon glyphicon-user"></span>&nbsp;
                                 <strong>Register / Sign In</strong>
                             </a>
@@ -190,17 +191,17 @@
         </div>
     
         <div class="container">
-            <div class="row">
-                <div class="page-header" id="banner">
-                    <div class="row">
-                        <div class="col-lg-8 col-md-7 col-sm-6">
-                            <h1>{% block title %}{% endblock %}</h1>
-                            <p class="lead">{% block subtitle %}{% endblock %}</p>
-                        </div>
-            
-                        <div class="row">
-                            <div class="col-xs-12" style="text-align: right; font-size: 20px;">{% modal_contact_form_link 'Need help? Contact us!' %}</div>
-                        </div>
+            <div class="page-header" id="banner">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h1>{% block title %}{% endblock %}</h1>
+                        <p class="lead">{% block subtitle %}{% endblock %}</p>
+                    </div>
+                </div>
+                    
+                <div class="row">
+                    <div class="col-md-12">
+                        <div style="text-align: right; font-size: 20px;">{% modal_contact_form_link 'Need help? Contact us!' %}</div>
                     </div>
                 </div>
             </div>

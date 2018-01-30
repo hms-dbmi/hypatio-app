@@ -34,7 +34,7 @@ class DataProject(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name of project", unique=True)
     project_key = models.CharField(max_length=100, blank=True, null=True, verbose_name="Project Key", unique=True)
     institution = models.CharField(max_length=255, blank=True, null=True, verbose_name="Institution")
-    description = models.CharField(max_length=4000, blank=True, null=True, verbose_name="Description")
+    description = models.TextField(blank=True, null=True, verbose_name="Description")
     short_description = models.CharField(max_length=255, blank=True, null=True, verbose_name="Short Description")
     permission_scheme = models.CharField(max_length=100, default="PRIVATE", verbose_name="Permission Scheme")
     agreement_forms_required = models.BooleanField(default=True)
