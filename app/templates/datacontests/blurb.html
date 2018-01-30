@@ -15,6 +15,10 @@
             {% autoescape off %}
                 {{ data_contest.description }}
             {% endautoescape %}
+
+            <div>       
+                <a class='btn btn-primary' role='button' href='/projects/{{ data_contest.project_key }}/'>Click here for more details</a>
+            </div> 
         </div>
     </div>
 </div>
