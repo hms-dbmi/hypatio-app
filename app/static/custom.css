@@ -1,10 +1,10 @@
-.project-registration-step-panel-heading a:after {
+.panel-heading.project-registration-step a:after {
     font-family:'Glyphicons Halflings';
     content:"\e014";
     float: right;
     color: darkred;
 }
-.project-registration-step-panel-heading a.collapsed:after {
+.panel-heading.project-registration-step a.collapsed:after {
     content:"\e014";
 }
 

@@ -38,7 +38,7 @@
 
             {% for agreement_form in agreement_forms_list %}
             <div class="panel panel-default">
-                <div class="panel-heading project-registration-step-panel-heading" role="tab" id="heading-form-{{forloop.counter}}">
+                <div class="panel-heading project-registration-step" role="tab" id="heading-form-{{forloop.counter}}">
                     <h2 class="panel-title">
                     {% if not agreement_form.already_signed %}
                         <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-form-{{forloop.counter}}" aria-expanded="true" aria-controls="collapse-form-{{forloop.counter}}">
@@ -76,7 +76,7 @@
             {% endfor %}
             
             <div class="panel panel-default">
-                <div class="panel-heading project-registration-step-panel-heading" role="tab" id="heading-team">
+                <div class="panel-heading project-registration-step" role="tab" id="heading-team">
                     <h2 class="panel-title">
                         <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-team" aria-expanded="true" aria-controls="collapse-team">
                             Your Team
@@ -89,7 +89,6 @@
                     </div>
                 </div>
             </div>
-        </div>
     
     {% else %}
         <div class="alert alert-success alert-dismissible" role="alert">
@@ -132,7 +131,7 @@
                 location.reload();
             },2000);
         }).fail(function() {
-            submit_button.replaceWith("<h3><span class='label label-danger'>Form save failed. Please refresh page and try again.</span></h3>");            
+            submit_button.replaceWith("<h3><span class='label label-danger'>Form save failed. Please try again in a few minutes.</span></h3>");            
         });
     });
 </script>

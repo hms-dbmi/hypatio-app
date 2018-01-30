@@ -72,6 +72,7 @@ def save_signed_agreement_form(request):
 
     return HttpResponse(200)
 
+# TODO DELETE
 @user_auth_and_jwt
 def submit_request(request):
 
@@ -79,7 +80,7 @@ def submit_request(request):
     jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
     # TODO replace with newer models.
-    
+
     # dua = DataUseAgreement.objects.get(id=request.POST['dua_id'])
 
     # date_requested = datetime.now().isoformat()
@@ -124,7 +125,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
             logout_redirect(request)
 
         # TODO Does this user have MANAGE permissions on any item?
-        is_manager = user_has_manage_permission(request, 'N2C2')
+        is_manager = user_has_manage_permission(request, 'n2c2-t1')
 
         # The JWT token that will get passed in API calls
         jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
@@ -211,7 +212,7 @@ def list_data_contests(request, template_name='datacontests/list.html'):
             logout_redirect(request)
 
         # TODO Does this user have MANAGE permissions on any item?
-        is_manager = user_has_manage_permission(request, 'N2C2')
+        is_manager = user_has_manage_permission(request, 'n2c2-t1')
 
         # The JWT token that will get passed in API calls
         jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
@@ -245,7 +246,7 @@ def manage_contests(request, template_name='datacontests/managecontests.html'):
     data_contests = []
 
     # TODO eventually this shouldn't be hard coded for n2c2
-    data_contest = "N2C2"
+    data_contest = "n2c2-t1"
 
     # This dictionary will hold all user requests and permissions
     user_details = {}
