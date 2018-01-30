@@ -75,6 +75,8 @@
             </div>
             {% endfor %}
             
+            {# Only display this step if this is a contest #}
+            {% if project.is_contest %}
             <div class="panel panel-default">
                 <div class="panel-heading project-registration-step" role="tab" id="heading-team">
                     <h2 class="panel-title">
@@ -89,6 +91,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
 
             <div class="panel panel-default">
                 <div class="panel-heading project-registration-step" role="tab" id="heading-acess">
@@ -167,7 +170,7 @@
     $('form[name=user_permission_request_form]').submit(function(e){
         e.preventDefault();
 
-        var submit_button = $(this).find(".submit_user_permission_request");
+        var submit_button = $(this).find("#submit_user_permission_request");
 
         $.post($(this).attr('action'), $(this).serialize(), function(res){
             // $("#loading").hide();
