@@ -81,7 +81,7 @@
                 </div>
                 <div id="collapse-team" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-team">
                     <div class="panel-body">
-                        Team stuff here.
+                        {% include "datacontests/manageteam.html" with participant=participant teams=teams %}
                     </div>
                 </div>
             </div>
