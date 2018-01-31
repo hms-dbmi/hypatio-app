@@ -1,11 +1,10 @@
 {% extends 'base.html' %}
-{% load dataprojects_extras %}
 
 {% block headscripts %}
 <script>
     function spawn_modal_access_popup(div_id, project_key)
     {
-        jQuery( "#request_access_div_" +  div_id).load("/dataprojects/request_access/", {"project_key": project_key, 'csrfmiddlewaretoken': '{{ csrf_token }}'})
+        jQuery( "#request_access_div_" +  div_id).load("/projects/request_access/", {"project_key": project_key, 'csrfmiddlewaretoken': '{{ csrf_token }}'})
             .dialog({
                 width: 600,
                 height: 500,
@@ -18,11 +17,15 @@
 {% block title %}Data Projects{% endblock %}
 {% block subtitle %}Click on a project below to learn more{% endblock %}
 
-{% block content %}    
-    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-        {% for data_project in data_projects %}
+{% block content %}
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+{% for data_project in data_projects %}
+    <div class="row">
+        <div class="col-md-12">
             {% include "dataprojects/blurb.html" with project_counter=forloop.counter0 %}
             <br/>
-        {% endfor %}
+        </div>
     </div>
+{% endfor %}
+</div>
 {% endblock %}

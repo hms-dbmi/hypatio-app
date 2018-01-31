@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load projects_extras %}
+
+{% block headscripts %}
+{% endblock %}
+
+{% block title %}{{ project.name }}{% endblock %}
+{% block subtitle %}{{ project.short_description }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    
+    <div class="col-md-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Description</a>
+                </h2>
+            </div>
+            <div class="panel-body">
+                {% autoescape off %}
+                {{ project.description }}
+                {% endautoescape %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+    {% if not user_logged_in %}
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            To compete in this contest please first <a href="{{ request.build_absolute_uri|get_login_url }}">login or register</a>.
+        </div>
+    {% elif not access_granted %}    
+        <div class="alert alert-warning alert-dismissible" role="alert">
+            To compete in this contest, please complete the following agreement forms and start or join a team. Once you have completed those steps, the contest manager can elect to grant you access.
+        </div>
+        
+        <div class="panel-group" id="accordion">
+
+            {% for agreement_form in agreement_forms_list %}
+            <div class="panel panel-default">
+                <div class="panel-heading project-registration-step" role="tab" id="heading-form-{{forloop.counter}}">
+                    <h2 class="panel-title">
+                    {% if not agreement_form.already_signed %}
+                        <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-form-{{forloop.counter}}" aria-expanded="true" aria-controls="collapse-form-{{forloop.counter}}">
+                            Form: {{ agreement_form.agreement_form_name}}
+                        </a>
+                    {% else %}
+                        <div class="completed-form-header">
+                            <span>Form: {{ agreement_form.agreement_form_name}}</span>
+                        </div>
+                    {% endif %}
+                    </h2>
+                </div>
+                <div id="collapse-form-{{forloop.counter}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-form-{{forloop.counter}}">
+                    <div class="panel-body">
+                        {% if not agreement_form.already_signed %}
+                        <form name="agreement_form_container" action="/save_signed_agreement_form/" method="post">
+                            <div class="agreement_form_contents">
+                                {{ agreement_form.agreement_form_file|get_agreement_form_file_contents | safe }}
+                            </div>
+
+                            <input type="hidden" class="project_key" name="project_key" value="{{ project.project_key }}" />
+                            <input type="hidden" class="agreement_form_id" name="agreement_form_id" value="{{ agreement_form.agreement_form_id }}" />
+                            <input type="hidden" class="agreement_text" name="agreement_text" value="" />
+    
+                            <div class="submit_form">
+                                <input name="submit_form" type="submit" class="btn btn-primary" value="Submit for approval" />
+                            </div>
+
+                            {% csrf_token %}
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            {# Only display this step if this is a contest #}
+            {% if project.is_contest %}
+            <div class="panel panel-default">
+                <div class="panel-heading project-registration-step" role="tab" id="heading-team">
+                    <h2 class="panel-title">
+                        <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-team" aria-expanded="true" aria-controls="collapse-team">
+                            Your Team
+                        </a>
+                    </h2>
+                </div>
+                <div id="collapse-team" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-team">
+                    <div class="panel-body">
+                        {% include "datacontests/manageteam.html" with participant=participant teams=teams %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="panel panel-default">
+                <div class="panel-heading project-registration-step" role="tab" id="heading-acess">
+                    <h2 class="panel-title">
+                        <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-access" aria-expanded="true" aria-controls="collapse-access">
+                            Access Request Status
+                        </a>
+                    </h2>
+                </div>
+                <div id="collapse-access" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-access">
+                    <div class="panel-body">
+                    {% if user_access_request_granted %}
+                        ACCESS GRANTED...
+                    {% elif user_requested_access %}
+                        ACCESS REQUESTED, PENDING APPROVAL FROM MANAGER...
+                    {% else %}    
+                        <p><i>Temporary method, eventually this request should be triggered automatically once the prior steps are all complete:</i></p>
+                        <form name="user_permission_request_form" action="/submit_user_permission_request/" method="post">
+                            <input type="hidden" id="project_key" name="project_key" value="{{ project.project_key }}" />
+                            <input name="submit_user_permission_request" id="submit_user_permission_request" type="submit" class="btn btn-primary" value="Request Access" />
+                            {% csrf_token %}
+                        </form>
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    {% else %}
+        <div class="alert alert-success alert-dismissible" role="alert">
+            Congratulations! You are approved for access to this contest.
+        </div>
+    {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block footerscripts %}
+<script type="application/javascript">
+    $('form[name=agreement_form_container]').submit(function(e){
+        e.preventDefault();
+
+        // Grab the div element holding the agreement form and the user's inputs
+        var agreement_form_contents = $(this).find(".agreement_form_contents");
+
+        // Replace each input field within the form with its value, so we have one complete agreement form as a string
+        agreement_form_contents.find("input").each(function() {
+            $(this).replaceWith($(this).val());
+        });
+
+        // Find the div element where we want to paste the string containing the completed form
+        var agreement_text_container = $(this).find(".agreement_text");
+
+        // Move the content of the agreement_form block into an input in order to be captured by jQuery serialize
+        agreement_text_container.val(agreement_form_contents.text());
+
+        var submit_button = $(this).find(".submit_form");
+
+        $.post($(this).attr('action'), $(this).serialize(), function(res){
+            // $("#loading").hide();
+        }).done(function() {
+            // Replace the submit button with text informing the user that the form was saved
+            submit_button.replaceWith("<h3><span class='label label-success'>Form saved! Refreshing page...</span></h3>");          
+            
+            // Refresh the page so the user does not fill form out again
+            setTimeout(function(){
+                location.reload();
+            },2000);
+        }).fail(function() {
+            submit_button.replaceWith("<h3><span class='label label-danger'>Form save failed. Please try again in a few minutes.</span></h3>");            
+        });
+    });
+</script>
+
+<script type="application/javascript">
+    $('form[name=user_permission_request_form]').submit(function(e){
+        e.preventDefault();
+
+        var submit_button = $(this).find("#submit_user_permission_request");
+
+        $.post($(this).attr('action'), $(this).serialize(), function(res){
+            // $("#loading").hide();
+        }).done(function() {
+            // Replace the submit button with text informing the user that the form was saved
+            submit_button.replaceWith("<h3><span class='label label-success'>Request submitted! Refreshing page...</span></h3>");          
+            
+            // Refresh the page so the user does not fill form out again
+            setTimeout(function(){
+                location.reload();
+            },2000);
+        }).fail(function() {
+            submit_button.replaceWith("<h3><span class='label label-danger'>Request failed. Please try again in a few minutes.</span></h3>");            
+        });
+    });
+</script>
+{% endblock %}

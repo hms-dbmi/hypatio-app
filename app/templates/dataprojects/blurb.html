@@ -1,5 +1,3 @@
-{% load dataprojects_extras %}
-
 <div class="panel panel-default">
     <div class="panel-heading" role="tab" id="heading{{ project_counter }}">
         <h4 class="panel-title">
@@ -15,34 +13,23 @@
     <div id="collapse{{ project_counter }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading{{ project_counter }}">
         <div class="panel-body">
             {% autoescape off %}
-                {{ data_project.description }}
+            {{ data_project.description }}
             {% endautoescape %}
 
             {% if not user_logged_in %}
-                <div>
-                    <span style="font-size: 1.5em;">
-                        Please Register or Sign in before attempting to access this data resource.
-                    </span>
-                    <br />
-                    <br />
+            <div>
+                <span style="font-size: 1.5em;">
+                    Please Register or Sign in before attempting to access this data resource.
+                </span>
+                <br />
+                <br />
 
-                    <a class='btn btn-primary' href='{{ account_server_url }}?next={{ ssl_setting }}://{{ request.META.HTTP_HOST }}' role='button'>Register / Sign In</a>
-
-                </div>
+                <a class='btn btn-primary' href='{{ account_server_url }}?next={{ ssl_setting }}://{{ request.META.HTTP_HOST }}' role='button'>Register / Sign In</a>
+            </div>
             {% else %}   
-                <div>       
-                {% if data_project.permission_scheme == "PUBLIC" %}
-                    <a class='btn btn-success' href='{{ data_project.project_url }}' role='button'>Click here to access the {{ data_project.name }}</a>
-                {% elif data_project.permission_scheme == "PRIVATE" and data_project.user_has_view_permissions %}
-                    <a class='btn btn-success' href='{{ data_project.project_url }}' role='button'>Click here to access the {{ data_project.name }}</a>                
-                {% elif data_project.permission_scheme == "PRIVATE" and data_project.user_requested_access %}
-                    <span style="font-size: 1.5em; color: red">
-                        You've already requested access to this project on {{ data_project.user_requested_access_on }}, please wait for your access to be granted.
-                    </span>
-                {% else %}
-                    <a class='btn btn-primary' role='button' onclick="spawn_modal_access_popup({{ project_counter }}, '{{ data_project.project_key }}')">Click here to request access to the {{ data_project.name }}</a>
-                {% endif %}
-                </div>               
+            <div>       
+                <a class='btn btn-primary' role='button' href='/projects/{{ data_project.project_key }}/'>Click here for more details</a>
+            </div>               
             {% endif %}
         </div>
     </div>
