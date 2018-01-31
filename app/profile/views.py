@@ -27,7 +27,7 @@ def profile(request, template_name='profile/profile.html'):
         logout_redirect(request)
 
     # TODO Does this user have MANAGE permissions on any item?
-    is_manager = user_has_manage_permission(request, 'N2C2')
+    is_manager = user_has_manage_permission(request, 'n2c2-t1')
 
     # The JWT token that will get passed in API calls
     jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}

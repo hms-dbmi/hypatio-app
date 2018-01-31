@@ -1,0 +1,24 @@
+.panel-heading.project-registration-step a:after {
+    font-family:'Glyphicons Halflings';
+    content:"\e014";
+    float: right;
+    color: darkred;
+}
+.panel-heading.project-registration-step a.collapsed:after {
+    content:"\e014";
+}
+
+/* Displays when a form is already complete */
+.completed-form-header span:after {
+    font-family:'Glyphicons Halflings';
+    content:"\e013";
+    float: right;
+    color: darkgreen;
+}
+
+.hms-logo-nav img {
+    max-width: 70%;
+    max-height: 70%;
+    padding-top: 30px;
+    float: right;
+}
