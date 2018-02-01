@@ -85,10 +85,9 @@ def profile(request, template_name='profile/profile.html'):
         # Generate and render the form.
         return render(request, template_name, {'form': form,
                                                'user': user,
-                                                'is_manager': is_manager,
+                                               'is_manager': is_manager,
                                                'new_user': new_user,
-                                               'user_logged_in': user_logged_in,
-                                               'recaptcha_client_id': settings.RECAPTCHA_CLIENT_ID})
+                                               'user_logged_in': user_logged_in})
 
 # Check if this user has SciAuthZ manage permissions on the given item
 def user_has_manage_permission(request, item):

@@ -22,6 +22,7 @@ from .models import AgreementForm
 from .models import SignedAgreementForm
 
 from profile.views import user_has_manage_permission
+from profile.forms import RegistrationForm
 
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
@@ -399,15 +400,19 @@ def grant_access_with_view_permissions(request):
 def project_details(request, project_key, template_name='project_details.html'):
 
     project = get_object_or_404(DataProject, project_key=project_key)
+
     agreement_forms_list = []
     participant = None
     teams = None
-    access_granted = False # TODO
-    person_has_team = False # TODO
     is_manager = False
     user_requested_access = False
     user_access_request_granted = False
+    email_verified = False
+    profile_completed = False
 
+    access_granted = False # TODO
+    person_has_team = False # TODO
+    
     if not request.user.is_authenticated():
         user = None
         user_logged_in = False
@@ -419,6 +424,17 @@ def project_details(request, project_key, template_name='project_details.html'):
 
         # The JWT token that will get passed in API calls
         jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
+
+        # Make a request to SciReg to grab email verification and profile information
+        profile_registration_url = settings.SCIREG_SERVER_URL + '/api/register/'
+        profile_registration_info = requests.get(profile_registration_url, headers=jwt_headers, verify=False).json()
+
+        if profile_registration_info['count'] != 0:
+            profile_registration_info = profile_registration_info["results"][0]
+
+            registration_form = RegistrationForm(profile_registration_info)
+            profile_completed = registration_form.is_valid()
+            email_verified = registration_form.cleaned_data['email_confirmed']
 
         agreement_forms = project.agreement_forms.all()
 
@@ -470,4 +486,6 @@ def project_details(request, project_key, template_name='project_details.html'):
                                            "is_manager": is_manager,
                                            "user_logged_in": user_logged_in,
                                            "user_requested_access": user_requested_access,
-                                           "user_access_request_granted": user_access_request_granted})
+                                           "user_access_request_granted": user_access_request_granted,
+                                           "email_verified": email_verified,
+                                           "profile_completed": profile_completed})
