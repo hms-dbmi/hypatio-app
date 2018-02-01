@@ -3,11 +3,26 @@ from django.utils.safestring import mark_safe
 
 class RegistrationForm(forms.Form):
 
+    ACADEMIC = 'AC'
+    INDUSTRY = 'IN'
+    NONE = ''
+
+    AFFILIATION_CHOICES = (
+        (ACADEMIC, 'Academic'),
+        (INDUSTRY, 'Industry'),
+        (NONE, 'None')
+    )
+
     id = forms.CharField(label='ID', max_length=255, required=False, widget=forms.TextInput(attrs={'readonly':'readonly', 'type':'hidden'}))
 
     first_name = forms.CharField(label='First Name', max_length=255, required=True)
     last_name = forms.CharField(label='Last Name', max_length=255, required=True)
     email = forms.EmailField(label='Email', max_length=255, required=True, widget=forms.TextInput(attrs={'readonly':'readonly'}))
+    alternate_email = forms.EmailField(label='Alternate Email', max_length=255, required=False)
+
+    affiliation_type = forms.ChoiceField(label='Institution Type', required=False, choices=AFFILIATION_CHOICES)
+    institution = forms.CharField(label='Institution', max_length=255, required=True)
+    professional_title = forms.CharField(label='Professional Title', max_length=255, required=True)
 
     street_address1 = forms.CharField(label="Street Address 1", max_length=255, required=True)
     street_address2 = forms.CharField(label="Street Address 2", max_length=255, initial="", required=False)
