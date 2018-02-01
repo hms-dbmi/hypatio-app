@@ -59,8 +59,13 @@
                     <form role="form" method="post">
                         {% csrf_token %}
 
-                        {% bootstrap_form_errors form type='non_fields' %}
-                        {% bootstrap_form form %}
+                        {% for field in form %}
+                        <div>
+                            {% bootstrap_field field required_css_class="required-profile-field" %}
+                        </div>
+                        {% endfor %}
+
+                        <p class="required-field-tip"><small>* indicates a required field, any other field is optional</small></p>
 
                         {% buttons submit='Update' reset="Cancel" %}{% endbuttons %}
                     </form>
