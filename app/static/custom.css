@@ -1,3 +1,4 @@
+/* Adds the red X and green checkmark on the project steps */
 .panel-heading.project-registration-step a:after {
     font-family:'Glyphicons Halflings';
     content:"\e014";
@@ -16,9 +17,21 @@
     color: darkgreen;
 }
 
+/* Stylizes the HMS logo */
 .hms-logo-nav img {
     max-width: 70%;
     max-height: 70%;
     padding-top: 30px;
     float: right;
+}
+
+/* Adds the asterisks next to required fields on the form */
+.form-group.required-profile-field .control-label:after {
+    content:" *";
+    color:rgb(153, 8, 8);
+}
+
+/* Colors the asterisks detail on the form red */
+.required-field-tip {
+    color: rgb(153, 8, 8);
 }
