@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import User
 
+
 def get_agreement_form_upload_path(instance, filename):
 
     form_directory = 'agreementforms/'
@@ -60,7 +61,7 @@ class SignedAgreementForm(models.Model):
 
 class Team(models.Model):
     principal_investigator = models.OneToOneField(User)
-    data_project = models.OneToOneField(DataProject)
+    data_project = models.ForeignKey(DataProject)
 
     def __str__(self):
         return '%s' % self.principal_investigator.email
@@ -69,11 +70,15 @@ class Team(models.Model):
 class Participant(models.Model):
     user = models.OneToOneField(User)
     data_challenge = models.ManyToManyField(DataProject)
-    team = models.ForeignKey(Team)
+    team = models.ForeignKey(Team, null=True, blank=True)
+    team_wait_on_pi_email = models.CharField(max_length=100, blank=True, null=True)
+    team_wait_on_pi = models.BooleanField(default=False)
+    team_pending = models.BooleanField(default=False)
+    team_approved = models.BooleanField(default=False)
 
     @property
     def is_on_team(self):
-        return self.team is None
+        return self.team is not None and self.team_approved
 
     def get_data_challenges(self):
         return ",".join([str(p) for p in self.data_challenge.all()])

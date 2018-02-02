@@ -460,7 +460,7 @@ def project_details(request, project_key, template_name='project_details.html'):
             participant = None
 
         try:
-            teams = Team.objects.get(data_project__project_key=project_key)
+            teams = Team.objects.filter(data_project__project_key=project_key)
         except ObjectDoesNotExist:
             teams = None
 
@@ -489,3 +489,7 @@ def project_details(request, project_key, template_name='project_details.html'):
                                            "user_access_request_granted": user_access_request_granted,
                                            "email_verified": email_verified,
                                            "profile_completed": profile_completed})
+
+
+
+
