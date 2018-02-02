@@ -9,6 +9,9 @@ from .views import save_signed_agreement_form
 from .views import grant_access_with_view_permissions
 from .views import project_details
 from .views import signout
+from .views_teams import join_team
+from .views_teams import create_team_from_pi
+from .views_teams import team_signup_form
 
 urlpatterns = (
     url(r'^$', list_data_projects),
@@ -20,5 +23,8 @@ urlpatterns = (
     url(r'^grantviewpermissions', grant_access_with_view_permissions),
     url(r'^save_signed_agreement_form', save_signed_agreement_form),
     url(r'^signout/$', signout),
+    url(r'^join_team/$', join_team),
+    url(r'^create_team_from_pi/$', create_team_from_pi),
+    url(r'^team_signup_form/(P<project_key>[^/]+)/$', team_signup_form),
     url(r'^(?P<project_key>[^/]+)/$', project_details)
 )
