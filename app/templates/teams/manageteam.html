@@ -1,11 +1,83 @@
-Unstaged changes after reset:
-M	app/db.sqlite3
-D	app/hypatio/__init__.py
-M	app/projects/models.py
-M	app/projects/urls.py
-U	app/projects/views.py
-M	app/templates/base.html
-D	app/templates/datacontests/manageteam.html
-M	app/templates/project_details.html
-M	app/templates/teams/manageteam.html
-M	gunicorn-nginx-entry.sh
+{% if participant.team_wait_on_pi %}
+    You are on waiting on a PI to create the team : {{ participant.team_wait_on_pi_email }}
+{%  elif participant.team_pending %}
+    You are on waiting for a PI to approve your joining of a team : {{ participant.team }}
+{%  elif participant.team_approved %}
+    You are approved on team : {{ participant.team }}
+{% else %}
+    You have not yet joined a team. Please select your PI from the list below.
+    <br />
+    <br />
+
+        <form action="/projects/join_team/" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="team_list">Team PI List:</label>
+              <select class="form-control" name="join_pi">
+                  {% for team in teams %}
+                    <option value="{{ team }}">{{ team }}</option>
+                  {% endfor %}
+              </select>
+            </div>
+
+            <h5>Don't see your PI?</h5>
+
+            They might not have registered yet. Enter their e-mail address below and you'll be added to the team when
+            they register.
+
+            <br />
+            <br />
+
+
+            <input class="form-control" type="email" name="join_email" />
+            <br />
+            <br />
+            <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
+            <button class="btn btn-primary" type="submit">Join Team</button>
+        </form>
+
+        <br />
+        <br />
+    <h4>PI Leading a team?</h4>
+
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#new_pi_modal">Create team as Principal Investigator</button>
+
+    <div class="modal fade" id="new_pi_modal" tabindex="-1" role="dialog" aria-labelledby="new_pi_modalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="new_pi_modalLabel">Create Team Confirmation</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+           Are you sure you want to create a new team and become the PI for that team?
+          </div>
+          <div class="modal-footer">
+              <form action="/projects/create_team_from_pi/" method="post">
+                  {% csrf_token %}
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+
+                <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
+                <button type="submit" class="btn btn-primary">Sign me up!</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% endif %}
+
+
+{#SciAuth -> SciReg -> Legal Documents -> Team Afilliation -> Select Principal Investigator#}
+{##}
+{#If no team,#}
+{##}
+{#Offer option to create or join#}
+{##}
+{#Join lists registered PIs for this challenge#}
+{##}
+{#Create adds you as PI and you gain screen listing team members#}
+
+
