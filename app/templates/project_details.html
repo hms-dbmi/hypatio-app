@@ -106,8 +106,10 @@
                             <input type="hidden" class="agreement_form_id" name="agreement_form_id" value="{{ agreement_form.agreement_form_id }}" />
                             <input type="hidden" class="agreement_text" name="agreement_text" value="" />
     
+                            <hr>
+
                             <div class="submit_form">
-                                <input name="submit_form" type="submit" class="btn btn-primary" value="Submit for approval" />
+                                <input name="submit_form" type="submit" class="btn btn-primary" value="Submit" />
                             </div>
 
                             {% csrf_token %}
@@ -177,12 +179,24 @@
     $('form[name=agreement_form_container]').submit(function(e){
         e.preventDefault();
 
-        // Grab the div element holding the agreement form and the user's inputs
-        var agreement_form_contents = $(this).find(".agreement_form_contents");
+        // Grab the div element holding the agreement form and the user's inputs. The form file should have
+        // wrapped in a <div class="form-content"> all the form except for any JavaScript so that no JS gets
+        // included in the saved form string.
+        var agreement_form_contents = $(this).find(".agreement_form_contents").find(".form-content");
 
         // Replace each input field within the form with its value, so we have one complete agreement form as a string
         agreement_form_contents.find("input").each(function() {
-            $(this).replaceWith($(this).val());
+
+            // For a radio or checkbox, checked inputs should turn into X's
+            if ($(this).is(':radio') || $(this).is(':checkbox')) {
+                if ($(this).is(':checked')) {
+                    $(this).replaceWith("[X]");
+                } else {
+                    $(this).replaceWith("[ ]");
+                }
+            } else {
+                $(this).replaceWith($(this).val());
+            }
         });
 
         // Find the div element where we want to paste the string containing the completed form
