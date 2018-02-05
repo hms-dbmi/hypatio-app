@@ -411,8 +411,9 @@ def project_details(request, project_key, template_name='project_details.html'):
     profile_completed = False
 
     access_granted = False # TODO
-    person_has_team = False # TODO
-    
+    pi_team = None
+    pi_team_members = None
+
     if not request.user.is_authenticated():
         user = None
         user_logged_in = False
@@ -464,7 +465,14 @@ def project_details(request, project_key, template_name='project_details.html'):
         except ObjectDoesNotExist:
             teams = None
 
-         # Get all of the user's permission requests
+        # If the user is PI of a team, send the team to the template.
+        try:
+            pi_team = Team.objects.filter(data_project__project_key=project_key, principal_investigator=request.user)
+            pi_team_members = Participant.objects.filter(team=pi_team)
+        except ObjectDoesNotExist:
+            pi_team = None
+
+        # Get all of the user's permission requests
         access_requests_url = settings.AUTHORIZATION_REQUEST_URL + "?email=" + user.email
         logger.debug('[HYPATIO][DEBUG] access_requests_url: ' + access_requests_url)
 
@@ -481,7 +489,8 @@ def project_details(request, project_key, template_name='project_details.html'):
                                            "agreement_forms_list": agreement_forms_list,
                                            "participant": participant,
                                            "teams": teams,
-                                           "person_has_team": person_has_team,
+                                           "pi_team": pi_team,
+                                           "pi_team_members": pi_team_members,
                                            "access_granted": access_granted,
                                            "is_manager": is_manager,
                                            "user_logged_in": user_logged_in,

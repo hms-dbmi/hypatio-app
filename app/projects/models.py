@@ -82,3 +82,20 @@ class Participant(models.Model):
 
     def get_data_challenges(self):
         return ",".join([str(p) for p in self.data_challenge.all()])
+
+    def assign_pending(self, team):
+        self.set_pending()
+        self.team = team
+
+    def assign_approved(self, team):
+        self.set_approved()
+        self.team = team
+
+    def set_pending(self):
+        self.team_pending = True
+        self.team_wait_on_pi = self.team_approved = False
+
+    def set_approved(self):
+        self.team_approved = True
+        self.team_wait_on_pi = self.team_pending = False
+

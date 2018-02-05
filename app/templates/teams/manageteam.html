@@ -3,7 +3,23 @@
 {%  elif participant.team_pending %}
     You are on waiting for a PI to approve your joining of a team : {{ participant.team }}
 {%  elif participant.team_approved %}
-    You are approved on team : {{ participant.team }}
+    {% if pi_team %}
+        You are PI of a team. <br />
+
+        <table>
+        {% for participant in pi_team_members %}
+            <tr>
+                <td>{{ participant.user.email }}</td>
+                <td>{{ participant.team_pending }}</td>
+                <td>{{ participant.team_approved }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+
+
+    {% else %}
+        You are approved on team : {{ participant.team }}
+    {% endif %}
 {% else %}
     You have not yet joined a team. Please select your PI from the list below.
     <br />
