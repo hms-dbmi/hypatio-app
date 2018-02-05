@@ -68,10 +68,15 @@ def create_team_from_pi(request):
 
     # Assign yourself to team.
     participant = Participant.objects.get(user=request.user)
-    participant.team = new_team
-    participant.team_wait_on_pi = False
-    participant.team_pending = False
-    participant.team_approved = True
+    participant.assign_approved(new_team)
     participant.save()
 
+    # Find anyone whose waiting on this PI and link them to the new team.
+    waiting_participants = Participant.objects.filter(team_wait_on_pi_email=request.user.email)
+
+    for participant in waiting_participants:
+        participant.assign_pending(new_team)
+        participant.save()
+
     return redirect('/projects/' + project_key + '/')
+
