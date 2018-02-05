@@ -18,7 +18,7 @@ class TeamAdmin(admin.ModelAdmin):
     list_display = ('principal_investigator', 'data_project')
 
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ('user', 'get_data_challenges', 'team')
+    list_display = ('user', 'data_challenge', 'team')
 
 admin.site.register(DataProject, DataprojectAdmin)
 admin.site.register(AgreementForm, AgreementformAdmin)

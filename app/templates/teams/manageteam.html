@@ -1,9 +1,58 @@
 {% if participant.team_wait_on_pi %}
-    You are on waiting on a PI to create the team : {{ participant.team_wait_on_pi_email }}
+    No action needed at this time. We are waiting for your PI {{ participant.team_wait_on_pi_email }} to create a team.
 {%  elif participant.team_pending %}
-    You are on waiting for a PI to approve your joining of a team : {{ participant.team }}
+    No action needed at this time. We are waiting for your PI {{ participant.team_wait_on_pi_email }} to approve your request to join the team.
 {%  elif participant.team_approved %}
-    You are approved on team : {{ participant.team }}
+    {% if is_pi %}
+        {% if pi_team_has_pending_members %}
+        <div class="alert alert-warning" role="alert">
+            You are the PI of this team. Please review the list of team members below for any membership requests to approve or reject. If there is someone you would like to join your team, have them create an account here on the DBMI Portal and visit this page.
+        </div>
+        {% else %}
+        <div class="alert alert-success" role="alert">
+            Your are the PI of this team. If all members of your team have already registered and are listed below, please click the Finalize button below to lock in your team for the challenge.
+        </div>
+        {% endif %}
+
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Membership</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for participant in pi_team_members %}
+                <tr>
+                    <td>{{ participant.user.email }}</td>
+                    <td>
+                    {% if participant.team_approved %}
+                        Approved
+                    {% elif participant.team_pending %}
+                        <button type="button" class="btn btn-success btn-xs pi-team-approve" data-project="{{ project.project_key }}" data-participant="{{ participant.user.email }}">
+                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Approve
+                        </button>
+
+                        <button type="button" class="btn btn-danger btn-xs pi-team-reject" data-pi-team="" data-participant="">
+                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Reject
+                        </button>
+                    {% else %}
+                        Error
+                    {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if not pi_team_has_pending_members %}
+        <button type="button" class="btn btn-danger" data-project="{{ project.project_key }}" data-participant="{{ participant.user.email }}">
+            <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> Finalize
+        </button>
+        {% endif %}
+    {% else %}
+        You are approved on team : {{ participant.team }}
+    {% endif %}
 {% else %}
     You have not yet joined a team. Please select your PI from the list below.
     <br />
@@ -13,8 +62,8 @@
             {% csrf_token %}
             <div class="form-group">
               <label for="team_list">Team PI List:</label>
-              <select class="form-control" name="join_pi">
-                  {% for team in teams %}
+              <select class="form-control" name="existing_pi_team_to_join">
+                  {% for team in all_teams %}
                     <option value="{{ team }}">{{ team }}</option>
                   {% endfor %}
               </select>
@@ -29,7 +78,7 @@
             <br />
 
 
-            <input class="form-control" type="email" name="join_email" />
+            <input class="form-control" type="email" name="pi_to_wait_for" />
             <br />
             <br />
             <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
@@ -69,15 +118,51 @@
 
 {% endif %}
 
+<script type="application/javascript">
+    $('.pi-team-approve').click(function(){
+        var project_key = $(this).data("project");
+        var participant = $(this).data("participant");
 
-{#SciAuth -> SciReg -> Legal Documents -> Team Afilliation -> Select Principal Investigator#}
-{##}
-{#If no team,#}
-{##}
-{#Offer option to create or join#}
-{##}
-{#Join lists registered PIs for this challenge#}
-{##}
-{#Create adds you as PI and you gain screen listing team members#}
+        var request_data = {
+            project_key: project_key,
+            participant: participant,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        };
+        
+        $.post("/projects/approve_team_join/", request_data)
+            .done(function() {
+                // Refresh the page so the user does not see this button again
+                setTimeout(function(){
+                    location.reload();
+                },0);
+            }).fail(function() {
+                // TODO Fail message needed    
+            });
+    });
+</script>
 
+<script type="application/javascript">
+    $('.pi-team-reject').click(function(){
+        var project_key = $(this).data("project");
+        var participant = $(this).data("participant");
 
+        var request_data = {
+            project_key: project_key,
+            participant: participant,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        };
+
+        // TODO
+        alert('Feature not implemented yet.')
+        
+        // $.post("/projects/approve_team_join/", request_data)
+        //     .done(function() {
+        //         // Refresh the page so the user does not see this button again
+        //         setTimeout(function(){
+        //             location.reload();
+        //         },0);
+        //     }).fail(function() {
+        //         // TODO Fail message needed    
+        //     });
+    });
+</script>
