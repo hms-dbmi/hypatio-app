@@ -2,8 +2,9 @@ import logging
 
 from django.shortcuts import render
 from django.shortcuts import redirect
-
+from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import User
 
 from .models import DataProject
 from .models import Participant
@@ -13,26 +14,51 @@ from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 
 logger = logging.getLogger(__name__)
 
+@user_auth_and_jwt
+def approve_team_join(request):
+    project_key = request.POST.get("project_key")
+    participant_email = request.POST.get("participant")
+
+    project = DataProject.objects.get(project_key=project_key)
+
+    try:
+        team = Team.objects.get(principal_investigator=request.user,
+                                data_project=project)
+    except ObjectDoesNotExist:
+        team = None
+
+    try:
+        participant_user = User.objects.get(email=participant_email)
+        participant = Participant.objects.get(user=participant_user,
+                                              data_challenge=project)
+    except ObjectDoesNotExist:
+        participant = None
+
+    participant.assign_approved(team)
+    participant.save()
+
+    return HttpResponse(200)
 
 @user_auth_and_jwt
 def join_team(request):
     project_key = request.POST.get("project_key")
+    project = DataProject.objects.get(project_key=project_key)
 
-    join_team_pi = request.POST.get("join_pi")
+    existing_pi_team_to_join = request.POST.get("existing_pi_team_to_join")
+    pi_to_wait_for = request.POST.get("pi_to_wait_for")
 
     try:
         participant = Participant.objects.get(user=request.user)
     except ObjectDoesNotExist:
-        participant = None
+        participant = create_participant(request.user, project)
 
-    if request.POST.get("join_email") != "":
-        participant.team_wait_on_pi_email = request.POST.get("join_email")
+    if pi_to_wait_for != "":
+        participant.team_wait_on_pi_email = pi_to_wait_for
         participant.team_wait_on_pi = True
-
         participant.save()
-    elif request.POST.get("join_pi") != "":
+    elif existing_pi_team_to_join != "":
         try:
-            team = Team.objects.get(principal_investigator__email=join_team_pi)
+            team = Team.objects.get(principal_investigator__email=existing_pi_team_to_join)
         except ObjectDoesNotExist:
             team = None
 
@@ -43,6 +69,7 @@ def join_team(request):
     return redirect('/projects/' + request.POST.get('project_key') + '/')
 
 
+# TODO What is this used for?
 @user_auth_and_jwt
 def team_signup_form(request, project_key):
 
@@ -62,12 +89,18 @@ def team_signup_form(request, project_key):
 
 @user_auth_and_jwt
 def create_team_from_pi(request):
+    """Creates a new team with the given user as its principal investigator.
+    """
+
     project_key = request.POST.get("project_key")
     project = DataProject.objects.get(project_key=project_key)
     new_team = Team.objects.create(principal_investigator=request.user, data_project=project)
 
-    # Assign yourself to team.
-    participant = Participant.objects.get(user=request.user)
+    try:
+        participant = Participant.objects.get(user=request.user, data_challenge=project)
+    except ObjectDoesNotExist:
+        participant = create_participant(request.user, project)
+
     participant.assign_approved(new_team)
     participant.save()
 
@@ -80,3 +113,13 @@ def create_team_from_pi(request):
 
     return redirect('/projects/' + project_key + '/')
 
+
+def create_participant(user, project):
+    """ Creates a participant object and returns it.
+    """
+
+    participant = Participant(user=user,
+                              data_challenge=project)
+    participant.save()
+
+    return participant
