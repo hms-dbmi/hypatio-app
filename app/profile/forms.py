@@ -45,11 +45,12 @@ class RegistrationForm(forms.Form):
 
         super().__init__(*args, **kwargs)
 
+        # TODO this is not working on firefox?
         # If this field already has a value, it should not be changed
-        if self.initial.get('first_name', '') != '':
-            self.fields['first_name'].widget = forms.TextInput(attrs={'readonly':'readonly'})
-        if self.initial.get('last_name', '') != '':
-            self.fields['last_name'].widget = forms.TextInput(attrs={'readonly':'readonly'})
+        # if self.initial.get('first_name', '') != '':
+        #     self.fields['first_name'].widget = forms.TextInput(attrs={'readonly':'readonly'})
+        # if self.initial.get('last_name', '') != '':
+        #     self.fields['last_name'].widget = forms.TextInput(attrs={'readonly':'readonly'})
 
         # If the email is confirmed, mark it as such on the profile
         if self.initial.get('email_confirmed', False):
