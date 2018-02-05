@@ -125,6 +125,10 @@
             <div class="panel panel-default">
                 <div class="panel-heading project-registration-step" role="tab" id="heading-team">
                     <h2 class="panel-title">
+                        {# TODO: If PI with pending approvals, then red X #}
+                        {# TODO: If PI with all members approved and team status of activated, then green check #}
+                        {# TODO: If team member pending approval, then red X #}
+                        {# TODO: If team member with approval, then green check #}
                         <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-team" aria-expanded="true" aria-controls="collapse-team">
                             Your Team
                         </a>
@@ -210,13 +214,10 @@
         $.post($(this).attr('action'), $(this).serialize(), function(res){
             // $("#loading").hide();
         }).done(function() {
-            // Replace the submit button with text informing the user that the form was saved
-            submit_button.replaceWith("<h3><span class='label label-success'>Form saved! Refreshing page...</span></h3>");          
-            
-            // Refresh the page so the user does not fill form out again
+            // Refresh the page so the user does not see this button again
             setTimeout(function(){
                 location.reload();
-            },2000);
+            },0);
         }).fail(function() {
             submit_button.replaceWith("<h3><span class='label label-danger'>Form save failed. Please try again in a few minutes.</span></h3>");            
         });
@@ -232,13 +233,10 @@
         $.post($(this).attr('action'), $(this).serialize(), function(res){
             // $("#loading").hide();
         }).done(function() {
-            // Replace the submit button with text informing the user that the form was saved
-            submit_button.replaceWith("<h3><span class='label label-success'>Request submitted! Refreshing page...</span></h3>");          
-            
-            // Refresh the page so the user does not fill form out again
+            // Refresh the page so the user does not see this button again
             setTimeout(function(){
                 location.reload();
-            },2000);
+            },0);
         }).fail(function() {
             submit_button.replaceWith("<h3><span class='label label-danger'>Request failed. Please try again in a few minutes.</span></h3>");            
         });

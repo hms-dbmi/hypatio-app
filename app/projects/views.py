@@ -401,18 +401,20 @@ def project_details(request, project_key, template_name='project_details.html'):
 
     project = get_object_or_404(DataProject, project_key=project_key)
 
+    # TODO cleanup and eliminate some of these where possible
     agreement_forms_list = []
     participant = None
-    teams = None
+    all_teams = None
     is_manager = False
     user_requested_access = False
     user_access_request_granted = False
     email_verified = False
     profile_completed = False
-
     access_granted = False # TODO
     pi_team = None
     pi_team_members = None
+    pi_team_has_pending_members = None
+    is_pi = False
 
     if not request.user.is_authenticated():
         user = None
@@ -461,16 +463,20 @@ def project_details(request, project_key, template_name='project_details.html'):
             participant = None
 
         try:
-            teams = Team.objects.filter(data_project__project_key=project_key)
+            all_teams = Team.objects.filter(data_project__project_key=project_key)
         except ObjectDoesNotExist:
-            teams = None
+            all_teams = None
 
         # If the user is PI of a team, send the team to the template.
         try:
+            # TODO: Ensure this only returns one team?
             pi_team = Team.objects.filter(data_project__project_key=project_key, principal_investigator=request.user)
             pi_team_members = Participant.objects.filter(team=pi_team)
+            pi_team_has_pending_members = pi_team_members.filter(team_approved=False)
+            is_pi = True
         except ObjectDoesNotExist:
             pi_team = None
+            is_pi = False
 
         # Get all of the user's permission requests
         access_requests_url = settings.AUTHORIZATION_REQUEST_URL + "?email=" + user.email
@@ -488,9 +494,11 @@ def project_details(request, project_key, template_name='project_details.html'):
     return render(request, template_name, {"project": project,
                                            "agreement_forms_list": agreement_forms_list,
                                            "participant": participant,
-                                           "teams": teams,
+                                           "all_teams": all_teams,
                                            "pi_team": pi_team,
+                                           "is_pi": is_pi,
                                            "pi_team_members": pi_team_members,
+                                           "pi_team_has_pending_members": pi_team_has_pending_members,
                                            "access_granted": access_granted,
                                            "is_manager": is_manager,
                                            "user_logged_in": user_logged_in,
