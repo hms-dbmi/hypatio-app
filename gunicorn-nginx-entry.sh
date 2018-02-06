@@ -1,5 +1,6 @@
 #!/bin/bash
 
+ALLOWED_HOSTS=$(aws ssm get-parameters --names $PS_PATH.allowed_hosts --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 DJANGO_SECRET=$(aws ssm get-parameters --names $PS_PATH.django_secret --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 AUTH0_DOMAIN_VAULT=$(aws ssm get-parameters --names $PS_PATH.auth0_domain --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 AUTH0_CLIENT_ID_VAULT=$(aws ssm get-parameters --names $PS_PATH.auth0_client_id --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
@@ -19,6 +20,7 @@ EMAIL_HOST_PASSWORD=$(aws ssm get-parameters --names $PS_PATH.email_host_passwor
 EMAIL_PORT=$(aws ssm get-parameters --names $PS_PATH.email_port --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 
 export COOKIE_DOMAIN
+export ALLOWED_HOSTS=$ALLOWED_HOSTS
 export SECRET_KEY=$DJANGO_SECRET
 export AUTH0_DOMAIN=$AUTH0_DOMAIN_VAULT
 export AUTH0_CLIENT_ID=$AUTH0_CLIENT_ID_VAULT
@@ -65,6 +67,7 @@ if [ ! -d static ]; then
   mkdir static
 fi
 python manage.py collectstatic --no-input
+python manage.py loaddata projects # Remove before going into master
 
 /etc/init.d/nginx restart
 
