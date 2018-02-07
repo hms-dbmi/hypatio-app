@@ -415,6 +415,7 @@ def project_details(request, project_key, template_name='project_details.html'):
     pi_team_members = None
     pi_team_has_pending_members = None
     is_pi = False
+    institution = project.institution
 
     if not request.user.is_authenticated():
         user = None
@@ -505,7 +506,8 @@ def project_details(request, project_key, template_name='project_details.html'):
                                            "user_requested_access": user_requested_access,
                                            "user_access_request_granted": user_access_request_granted,
                                            "email_verified": email_verified,
-                                           "profile_completed": profile_completed})
+                                           "profile_completed": profile_completed,
+                                           "institution": institution})
 
 
 

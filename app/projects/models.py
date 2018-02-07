@@ -12,6 +12,25 @@ def get_agreement_form_upload_path(instance, filename):
     return '%s/%s.%s' % (form_directory, file_name, file_extension)
 
 
+def get_institution_logo_upload_path(instance, filename):
+
+    form_directory = 'institutionlogos/'
+    file_name = uuid.uuid4()
+    file_extension = filename.split('.')[-1]
+    return '%s/%s.%s' % (form_directory, file_name, file_extension)
+
+
+class Institution(models.Model):
+    """
+    This represents an institution such as a university that might be co-sponsoring a challenge.
+    """
+    name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
+    logo = models.ImageField(upload_to=get_institution_logo_upload_path, blank=True, null=True)
+
+    def __str__(self):
+        return '%s' % (self.name)
+
+
 class AgreementForm(models.Model):
     """
     This represents the type of forms that a user might need to sign to be granted access to
@@ -34,7 +53,7 @@ class DataProject(models.Model):
     """
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name of project", unique=True)
     project_key = models.CharField(max_length=100, blank=True, null=True, verbose_name="Project Key", unique=True)
-    institution = models.CharField(max_length=255, blank=True, null=True, verbose_name="Institution")
+    institution = models.ForeignKey(Institution, blank=True, null=True, on_delete=models.PROTECT)
     description = models.TextField(blank=True, null=True, verbose_name="Description")
     short_description = models.CharField(max_length=255, blank=True, null=True, verbose_name="Short Description")
     permission_scheme = models.CharField(max_length=100, default="PRIVATE", verbose_name="Permission Scheme")
@@ -52,8 +71,8 @@ class SignedAgreementForm(models.Model):
     """
     This represents the fully signed agreement form.
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    agreement_form = models.ForeignKey(AgreementForm, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    agreement_form = models.ForeignKey(AgreementForm, on_delete=models.PROTECT)
     project = models.ForeignKey(DataProject)
     date_signed = models.DateTimeField(auto_now_add=True)
     agreement_text = models.TextField(blank=False)
