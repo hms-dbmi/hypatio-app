@@ -1,4 +1,4 @@
-Django==1.10.1
+Django==1.11
 django-bootstrap3==9.0.0
 django-countries==5.1.1
 django-jquery==3.1.0
