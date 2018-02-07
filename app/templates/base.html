@@ -200,7 +200,7 @@
                     <div class="col-md-6 hms-logo-nav hidden-xs hidden-sm">
                         {% if institution %}
                         <div class="col-md-6">
-                            <img src="{{ institution.logo.url }}">
+                            <img src="{% static institution.logo %}">
                         </div>
                         {% endif %}
                         <div class="col-md-offset-6">
