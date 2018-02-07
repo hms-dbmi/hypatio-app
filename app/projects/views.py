@@ -402,6 +402,7 @@ def project_details(request, project_key, template_name='project_details.html'):
     project = get_object_or_404(DataProject, project_key=project_key)
 
     # TODO cleanup and eliminate some of these where possible
+    registration_form = None
     agreement_forms_list = []
     participant = None
     all_teams = None
@@ -410,12 +411,13 @@ def project_details(request, project_key, template_name='project_details.html'):
     user_access_request_granted = False
     email_verified = False
     profile_completed = False
-    access_granted = False # TODO
     pi_team = None
     pi_team_members = None
     pi_team_has_pending_members = None
     is_pi = False
     institution = project.institution
+
+    access_granted = False # TODO
 
     if not request.user.is_authenticated():
         user = None
@@ -435,12 +437,23 @@ def project_details(request, project_key, template_name='project_details.html'):
 
         if profile_registration_info['count'] != 0:
             profile_registration_info = profile_registration_info["results"][0]
+            email_verified = profile_registration_info['email_confirmed']
 
-            registration_form = RegistrationForm(profile_registration_info)
-            profile_completed = registration_form.is_valid()
-            email_verified = registration_form.cleaned_data['email_confirmed']
+            # Do not bind the form, otherwise it will present the user with validation markup (green/red stuff) which can be overwhelming
+            registration_form = RegistrationForm(initial=profile_registration_info)
 
-        # Order by -name temporarily so the n2c2 ROC appears before DUA
+            # Check to see if any of the required fields are not populated yet
+            profile_completed = True
+            for field in registration_form.fields:
+                if registration_form.fields[field].required and profile_registration_info[field] == "":
+                    profile_completed = False
+        else:
+            # User does not have a registration in scireg, present them with a blank form to complete and pre-populate the email
+            registration_form = RegistrationForm(initial={'email': user.email}, new_registration=True)
+            email_verified = False
+            profile_completed = False      
+
+        # Order by name descending temporarily so the n2c2 ROC appears before DUA
         agreement_forms = project.agreement_forms.order_by('-name')
 
         # Check to see if any of the necessary agreement forms have already been signed by the user
@@ -508,7 +521,8 @@ def project_details(request, project_key, template_name='project_details.html'):
                                            "user_access_request_granted": user_access_request_granted,
                                            "email_verified": email_verified,
                                            "profile_completed": profile_completed,
-                                           "institution": institution})
+                                           "institution": institution,
+                                           "registration_form": registration_form})
 
 
 
