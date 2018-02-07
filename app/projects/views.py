@@ -440,7 +440,8 @@ def project_details(request, project_key, template_name='project_details.html'):
             profile_completed = registration_form.is_valid()
             email_verified = registration_form.cleaned_data['email_confirmed']
 
-        agreement_forms = project.agreement_forms.all()
+        # Order by -name temporarily so the n2c2 ROC appears before DUA
+        agreement_forms = project.agreement_forms.order_by('-name')
 
         # Check to see if any of the necessary agreement forms have already been signed by the user
         for agreement_form in agreement_forms:
