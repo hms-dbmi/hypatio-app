@@ -401,18 +401,22 @@ def project_details(request, project_key, template_name='project_details.html'):
 
     project = get_object_or_404(DataProject, project_key=project_key)
 
+    # TODO cleanup and eliminate some of these where possible
     agreement_forms_list = []
     participant = None
-    teams = None
+    all_teams = None
     is_manager = False
     user_requested_access = False
     user_access_request_granted = False
     email_verified = False
     profile_completed = False
-
     access_granted = False # TODO
-    person_has_team = False # TODO
-    
+    pi_team = None
+    pi_team_members = None
+    pi_team_has_pending_members = None
+    is_pi = False
+    institution = project.institution
+
     if not request.user.is_authenticated():
         user = None
         user_logged_in = False
@@ -436,7 +440,8 @@ def project_details(request, project_key, template_name='project_details.html'):
             profile_completed = registration_form.is_valid()
             email_verified = registration_form.cleaned_data['email_confirmed']
 
-        agreement_forms = project.agreement_forms.all()
+        # Order by -name temporarily so the n2c2 ROC appears before DUA
+        agreement_forms = project.agreement_forms.order_by('-name')
 
         # Check to see if any of the necessary agreement forms have already been signed by the user
         for agreement_form in agreement_forms:
@@ -460,11 +465,22 @@ def project_details(request, project_key, template_name='project_details.html'):
             participant = None
 
         try:
-            teams = Team.objects.get(data_project__project_key=project_key)
+            all_teams = Team.objects.filter(data_project__project_key=project_key)
         except ObjectDoesNotExist:
-            teams = None
+            all_teams = None
 
-         # Get all of the user's permission requests
+        # If the user is PI of a team, send the team to the template.
+        try:
+            # TODO: Ensure this only returns one team?
+            pi_team = Team.objects.filter(data_project__project_key=project_key, principal_investigator=request.user)
+            pi_team_members = Participant.objects.filter(team=pi_team)
+            pi_team_has_pending_members = pi_team_members.filter(team_approved=False)
+            is_pi = True
+        except ObjectDoesNotExist:
+            pi_team = None
+            is_pi = False
+
+        # Get all of the user's permission requests
         access_requests_url = settings.AUTHORIZATION_REQUEST_URL + "?email=" + user.email
         logger.debug('[HYPATIO][DEBUG] access_requests_url: ' + access_requests_url)
 
@@ -480,12 +496,20 @@ def project_details(request, project_key, template_name='project_details.html'):
     return render(request, template_name, {"project": project,
                                            "agreement_forms_list": agreement_forms_list,
                                            "participant": participant,
-                                           "teams": teams,
-                                           "person_has_team": person_has_team,
+                                           "all_teams": all_teams,
+                                           "pi_team": pi_team,
+                                           "is_pi": is_pi,
+                                           "pi_team_members": pi_team_members,
+                                           "pi_team_has_pending_members": pi_team_has_pending_members,
                                            "access_granted": access_granted,
                                            "is_manager": is_manager,
                                            "user_logged_in": user_logged_in,
                                            "user_requested_access": user_requested_access,
                                            "user_access_request_granted": user_access_request_granted,
                                            "email_verified": email_verified,
-                                           "profile_completed": profile_completed})
+                                           "profile_completed": profile_completed,
+                                           "institution": institution})
+
+
+
+
