@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load projects_extras %}
+{% load bootstrap3 %}
 
 {% block headscripts %}
 {% endblock %}
@@ -74,7 +75,9 @@
                 </div>
                 <div id="collapse-profile" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-profile">
                     <div class="panel-body">
-                        There are a few required fields in your profile that need to be filled out. <a href="{% url 'profile' %}">Click here</a> to go to your profile and complete your registration.
+                        <p>There are a few required fields in your profile that need to be filled out. Please complete the profile registration form below, specifically the fields marked as required. You can go back and edit these fields any time by visiting your <a href="{% url 'profile' %}">profile</a> page.</p>
+                        
+                        {% include 'profile/registration_form.html' %}
                     </div>
                 </div>
             </div>
