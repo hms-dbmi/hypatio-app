@@ -110,9 +110,11 @@ class Participant(models.Model):
     def set_pending(self):
         self.team_pending = True
         self.team_wait_on_pi = False
+        self.team_wait_on_pi_email = None
         self.team_approved = False
 
     def set_approved(self):
         self.team_approved = True
         self.team_wait_on_pi = False
+        self.team_wait_on_pi_email = None
         self.team_pending = False
