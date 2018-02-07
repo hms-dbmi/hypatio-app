@@ -33,7 +33,6 @@ class RegistrationForm(forms.Form):
     country = forms.ChoiceField(sorted(COUNTRIES.items()), label="Country", required=True)
     phone_number = forms.CharField(label="Phone Number", max_length=255, required=False)
 
-    twitter_handle = forms.CharField(label="Twitter Handle", max_length=255, initial="", required=False)
     email_confirmed = forms.BooleanField(label="Email confirmed", initial=False, required=False, widget=forms.TextInput(attrs={'readonly':'readonly', 'type':'hidden'}))
 
     def __init__(self, *args, **kwargs):
