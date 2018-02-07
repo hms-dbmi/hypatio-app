@@ -1,16 +1,16 @@
 {% if participant.team_wait_on_pi %}
     No action needed at this time. We are waiting for your PI {{ participant.team_wait_on_pi_email }} to create a team.
 {%  elif participant.team_pending %}
-    No action needed at this time. We are waiting for your PI {{ participant.team_wait_on_pi_email }} to approve your request to join the team.
+    No action needed at this time. We are waiting for your PI {{ team.principal_investigator }} to approve your request to join the team.
 {%  elif participant.team_approved %}
-    {% if is_pi %}
-        {% if pi_team_has_pending_members %}
+    {% if user_is_pi %}
+        {% if team_has_pending_members %}
         <div class="alert alert-warning" role="alert">
             You are the PI of this team. Please review the list of team members below for any membership requests to approve or reject. If there is someone you would like to join your team, have them create an account here on the DBMI Portal and visit this page.
         </div>
         {% else %}
         <div class="alert alert-success" role="alert">
-            Your are the PI of this team. If all members of your team have already registered and are listed below, please click the Finalize button below to lock in your team for the challenge.
+            You are the PI of this team. If all members of your team have already registered and are listed below, please click the Finalize button below to lock in your team for the challenge.
         </div>
         {% endif %}
 
@@ -22,7 +22,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for participant in pi_team_members %}
+                {% for participant in team_members %}
                 <tr>
                     <td>{{ participant.user.email }}</td>
                     <td>
@@ -51,7 +51,7 @@
         </button>
         {% endif %}
     {% else %}
-        You are approved on team : {{ participant.team }}
+        You are approved on team {{ participant.team }}.
     {% endif %}
 {% else %}
     You have not yet joined a team. Please select your PI from the list below.
