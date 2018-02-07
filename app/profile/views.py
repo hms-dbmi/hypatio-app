@@ -16,44 +16,6 @@ from hypatio import scireg_services
 logger = logging.getLogger(__name__)
 
 @user_auth_and_jwt
-def update_profile(request):
-
-    user = request.user
-    user_logged_in = True
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
-
-    # If the JWT has expired or the user doesn't have one, force the user to login again
-    if user_jwt is None or validate_jwt(request) is None:
-        logout_redirect(request)
-
-    # The JWT token that will get passed in API calls
-    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
-
-    # If there was a POST request, a form was submitted
-    if request.method == 'POST':
-
-        # Process the form
-        registration_form = RegistrationForm(request.POST)
-        if registration_form.is_valid():
-            logger.debug('[HYPATIO][DEBUG] Profile form fields submitted: ' + json.dumps(registration_form.cleaned_data))
-
-            # Create a new registration with a POST
-            if registration_form.cleaned_data['id'] == "":
-                registration_url = settings.SCIREG_SERVER_URL + '/api/register/'
-                requests.post(registration_url, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data), verify=False)
-            # Update an existing registration with a PUT to the specific ID
-            else:
-                registration_url = settings.SCIREG_SERVER_URL + '/api/register/' + registration_form.cleaned_data['id'] + '/'
-                requests.put(registration_url, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data), verify=False)
-
-            return HttpResponse(200)
-        else:
-            logger.debug('[HYPATIO][DEBUG] Profile form errors: ' + form.errors.as_json())
-
-            # TODO Not implemented
-            return HttpResponse(status=500)
-
-@user_auth_and_jwt
 def profile(request, template_name='profile/profile.html'):
 
     user = request.user
@@ -70,31 +32,62 @@ def profile(request, template_name='profile/profile.html'):
     # The JWT token that will get passed in API calls
     jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
-    # Query SciReg to get the user's information
-    registration_url = settings.SCIREG_SERVER_URL + '/api/register/'
-    registration_info = requests.get(registration_url, headers=jwt_headers, verify=False).json()
+    # If there was a POST request, a form was submitted
+    if request.method == 'POST':
 
-    logger.debug('[HYPATIO][DEBUG] Registration info ' + json.dumps(registration_info))
+        # Process the form
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            logger.debug('[HYPATIO][DEBUG] Profile form fields submitted: ' + json.dumps(form.cleaned_data))
 
-    if registration_info['count'] != 0:
-        registration_info = registration_info["results"][0]
-        registration_form = RegistrationForm(initial=registration_info)
+            # Create a new registration with a POST
+            if form.cleaned_data['id'] == "":
+                registration_url = settings.SCIREG_SERVER_URL + '/api/register/'
+                requests.post(registration_url, headers=jwt_headers, data=json.dumps(form.cleaned_data), verify=False)
+            # Update an existing registration with a PUT to the specific ID
+            else:
+                registration_url = settings.SCIREG_SERVER_URL + '/api/register/' + form.cleaned_data['id'] + '/'
+                requests.put(registration_url, headers=jwt_headers, data=json.dumps(form.cleaned_data), verify=False)
 
-        new_user = False
+            # Generate and render the form.
+            return render(request, template_name, {'form': form,
+                                                   'user': user,
+                                                   'is_manager': is_manager,
+                                                   'new_user': False,
+                                                   'user_logged_in': user_logged_in})
+        else:
+            logger.debug('[HYPATIO][DEBUG] Profile form errors: ' + form.errors.as_json())
+
+            # TODO Not implemented
+            return HttpResponse(status=500)
+
     else:
-        # User does not have a registration in scireg, present them with a blank form to complete and prepopulate the email
-        registration_form = RegistrationForm(initial={'email': user.email}, new_registration=True)
-        new_user = True
 
-    # Check for a returning task and set messages accordingly
-    get_task_context_data(request)
+        # Query SciReg to get the user's information
+        registration_url = settings.SCIREG_SERVER_URL + '/api/register/'
+        registration_info = requests.get(registration_url, headers=jwt_headers, verify=False).json()
 
-    # Generate and render the form.
-    return render(request, template_name, {'registration_form': registration_form,
-                                            'user': user,
-                                            'is_manager': is_manager,
-                                            'new_user': new_user,
-                                            'user_logged_in': user_logged_in})
+        logger.debug('[HYPATIO][DEBUG] Registration info ' + json.dumps(registration_info))
+
+        if registration_info['count'] != 0:
+            registration_info = registration_info["results"][0]
+            form = RegistrationForm(initial=registration_info)
+
+            new_user = False
+        else:
+            # User does not have a registration in scireg, present them with a blank form to complete and prepopulate the email
+            form = RegistrationForm(initial={'email': user.email}, new_registration=True)
+            new_user = True
+
+        # Check for a returning task and set messages accordingly
+        get_task_context_data(request)
+
+        # Generate and render the form.
+        return render(request, template_name, {'form': form,
+                                               'user': user,
+                                               'is_manager': is_manager,
+                                               'new_user': new_user,
+                                               'user_logged_in': user_logged_in})
 
 # Check if this user has SciAuthZ manage permissions on the given item
 def user_has_manage_permission(request, item):
