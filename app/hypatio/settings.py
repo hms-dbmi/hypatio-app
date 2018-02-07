@@ -185,6 +185,12 @@ STATICFILES_FINDERS = (
 )
 
 ##########
+# DJANGO-COUNTRIES CONFIGURATION
+COUNTRIES_FLAG_URL = STATIC_URL + 'flags/{code}.gif'
+COUNTRIES_OVERRIDE = {'':''}
+COUNTRIES_FIRST = ['']
+
+##########
 # MEDIA FILE CONFIGURATION
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
