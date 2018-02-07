@@ -193,18 +193,25 @@
         <div class="container">
             <div class="page-header" id="banner">
                 <div class="row">
-                    <div class="col-md-8">
-                        <h1>{% block title %}{% endblock %}</h1>
+                    <div class="col-md-6">
+                        <h2>{% block title %}{% endblock %}</h2>
                         <p class="lead">{% block subtitle %}{% endblock %}</p>
                     </div>
-                    <div class="col-md-4 hms-logo-nav hidden-xs hidden-sm">
-                        <img src="{% static 'hms_logo.jpg' %}">
+                    <div class="col-md-6 hms-logo-nav hidden-xs hidden-sm">
+                        {% if institution %}
+                        <div class="col-md-6">
+                            <img src="{{ institution.logo.url }}">
+                        </div>
+                        {% endif %}
+                        <div class="col-md-offset-6">
+                            <img src="{% static 'hms_dbmi_logo.png' %}">                            
+                        </div>
                     </div>
                 </div>
                     
                 <div class="row">
                     <div class="col-md-12">
-                        <div style="text-align: right; font-size: 20px;">{% modal_contact_form_link 'Need help? Contact us!' %}</div>
+                        <div style="font-size: 20px;">{% modal_contact_form_link 'Need help? Contact us!' %}</div>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,39 @@
+[
+    { "model": "auth.user",
+        "pk": 100,
+        "fields": {
+            "username": "test1",
+            "email": "test1@test.com",
+            "password": "password"
+        }
+    },
+    { "model": "auth.user",
+        "pk": 101,
+        "fields": {
+            "username": "test2",
+            "email": "test2@test.com",
+            "password": "password"
+        }
+    },
+    { "model": "projects.participant",
+        "pk": 100,
+        "fields": {
+            "user": 100,
+            "data_challenge": [6]
+        }
+    },
+    { "model": "projects.participant",
+        "pk": 101,
+        "fields": {
+            "user": 101,
+            "data_challenge": [6]
+        }
+    },
+    { "model": "projects.team",
+        "pk": 100,
+        "fields": {
+            "principal_investigator": 100,
+            "data_project": 6
+        }
+    }
+]
