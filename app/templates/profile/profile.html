@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load bootstrap3 %}
 
 {% block page_title %}Profile{% endblock %}
 
@@ -23,20 +24,32 @@
             <div class="panel panel-default">
                 <div class="panel-heading">User Profile</div>
                 <div class="panel-body">
-                    {% if new_user %}
+                {% if new_user %}
                     <div class="alert alert-warning" role="alert">
                         Welcome to Hypatio! Please complete your registration form below to get started.
                     </div>
-                    {% endif %}
-                    {% if not registration_form.email_confirmed.value %}
+                {% endif %}
+                {% if not form.email_confirmed.value %}
                     <div id="email_confirm" class="alert alert-warning" role="alert">
                         Please click the button below to send a verification e-mail. Google's anti-spam measures might ask you to perform a small task before sending the verification e-mail. <br /><br />
 
                         {% include 'profile/verify_email.html' %}
                     </div>
-                    {% endif %}
+                {% endif %}
+                    
+                    <form role="form" method="post">
+                        {% csrf_token %}
 
-                    {% include 'profile/registration_form.html' %}
+                        {% for field in form %}
+                        <div>
+                            {% bootstrap_field field required_css_class="required-profile-field" %}
+                        </div>
+                        {% endfor %}
+
+                        <p class="required-field-tip"><small>* indicates a required field, any other field is optional</small></p>
+
+                        {% buttons submit='Update' reset="Cancel" %}{% endbuttons %}
+                    </form>
                 </div>
             </div>
         </div>
