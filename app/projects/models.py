@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import FileExtensionValidator
 
 
 def get_agreement_form_upload_path(instance, filename):
@@ -39,7 +40,7 @@ class AgreementForm(models.Model):
     # TODO add form validation to check for html goodness
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
     created = models.DateTimeField(auto_now_add=True)
-    form_html = models.FileField(upload_to=get_agreement_form_upload_path)
+    form_html = models.FileField(upload_to=get_agreement_form_upload_path, validators=[FileExtensionValidator(allowed_extensions=['html'])])
 
     def __str__(self):
         return '%s' % (self.name)
