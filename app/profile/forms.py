@@ -1,6 +1,9 @@
 from django import forms
 from django.utils.safestring import mark_safe
-from django_countries.data import COUNTRIES
+
+from django_countries import countries
+from django_countries.fields import LazyTypedChoiceField
+from django_countries.widgets import CountrySelectWidget
 
 class RegistrationForm(forms.Form):
 
@@ -30,7 +33,7 @@ class RegistrationForm(forms.Form):
     city = forms.CharField(label="City", max_length=255, required=False)
     state = forms.CharField(label="State", max_length=255, required=False)
     zipcode = forms.CharField(label="Zip", max_length=255, required=False)
-    country = forms.ChoiceField(sorted(COUNTRIES.items()), label="Country", required=True)
+    country = LazyTypedChoiceField(choices=countries, widget=CountrySelectWidget())
     phone_number = forms.CharField(label="Phone Number", max_length=255, required=False)
 
     email_confirmed = forms.BooleanField(label="Email confirmed", initial=False, required=False, widget=forms.TextInput(attrs={'readonly':'readonly', 'type':'hidden'}))
