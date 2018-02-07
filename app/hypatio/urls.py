@@ -10,4 +10,4 @@ urlpatterns = [
     url(r'^projects/', include('projects.urls')),
     url(r'^profile/', include('profile.urls')),
     url(r'^', include('projects.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
