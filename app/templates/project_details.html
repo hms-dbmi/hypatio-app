@@ -22,7 +22,7 @@
                 <h2 class="panel-title">Description</a>
                 </h2>
             </div>
-            <div class="panel-body">
+            <div class="panel-body pre-scrollable">
                 {% autoescape off %}
                 {{ project.description }}
                 {% endautoescape %}
@@ -150,7 +150,7 @@
             </div>
             {% endif %}
 
-            <div class="panel panel-default">
+            <!-- <div class="panel panel-default">
                 <div class="panel-heading project-registration-step" role="tab" id="heading-acess">
                     <h2 class="panel-title">
                         <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-access" aria-expanded="true" aria-controls="collapse-access">
@@ -174,7 +174,7 @@
                     {% endif %}
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     
     {% else %}
@@ -222,10 +222,12 @@
         $.post($(this).attr('action'), $(this).serialize(), function(res){
             // $("#loading").hide();
         }).done(function() {
+            notify('success', "Agreement form submitted!", 'thumbs-up');
+
             // Refresh the page so the user does not see this button again
             setTimeout(function(){
-                location.reload();
-            },0);
+                window.location = window.location.pathname
+            },1000);
         }).fail(function() {
             submit_button.replaceWith("<h3><span class='label label-danger'>Form save failed. Please try again in a few minutes.</span></h3>");            
         });
@@ -241,10 +243,12 @@
         $.post($(this).attr('action'), $(this).serialize(), function(res){
             // $("#loading").hide();
         }).done(function() {
+            notify('success', "Permission request submitted!", 'thumbs-up');
+
             // Refresh the page so the user does not see this button again
             setTimeout(function(){
-                location.reload();
-            },0);
+                window.location = window.location.pathname
+            },1000);
         }).fail(function() {
             submit_button.replaceWith("<h3><span class='label label-danger'>Request failed. Please try again in a few minutes.</span></h3>");            
         });
