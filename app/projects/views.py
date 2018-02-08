@@ -22,6 +22,7 @@ from .models import AgreementForm
 from .models import SignedAgreementForm
 
 from profile.views import user_has_manage_permission
+from profile.views import get_task_context_data
 from profile.forms import RegistrationForm
 
 from django.http import HttpResponse
@@ -431,6 +432,9 @@ def project_details(request, project_key, template_name='project_details.html'):
 
         # The JWT token that will get passed in API calls
         jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
+
+        # Check for a returning task and set messages accordingly
+        get_task_context_data(request)
 
         # Make a request to SciReg to grab email verification and profile information
         profile_registration_url = settings.SCIREG_SERVER_URL + '/api/register/'
