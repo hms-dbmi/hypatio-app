@@ -168,7 +168,7 @@ def send_confirmation_email_view(request):
         recaptcha_response = recaptcha_check(request)
 
         if recaptcha_response["status"]:
-            scireg_services.send_confirmation_email(request.COOKIES.get("DBMI_JWT", None))
+            scireg_services.send_confirmation_email(request.COOKIES.get("DBMI_JWT", None), request.POST.get('current_uri'))
             return HttpResponse("SENT")
         else:
             return HttpResponse("FAILED_RECAPTCHA")

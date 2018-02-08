@@ -3,6 +3,9 @@
 <form id="confirm_email_form" method="post">
     {% csrf_token %}
 
+    {# Pass the current URI ultimately onto the email verification button #}
+    <input type="hidden" name="current_uri" value="{{ request.build_absolute_uri }}">
+
     <script src='https://www.google.com/recaptcha/api.js'></script>
 
     <br />
@@ -28,19 +31,16 @@
         // Show the loading animation
         $('#submit_verification_email').button('loading');
 
-        $.post("/profile/send_confirmation_email/",
-            $('#confirm_email_form').serialize(),
-            function( data ) {
+        $.post("/profile/send_confirmation_email/", $('#confirm_email_form').serialize(), function( data ) {
+            if(data == "SENT") {
+                notify('success', "E-Mail Sent.", 'thumbs-up');
 
-                if(data == "SENT") {
-                    notify('success', "E-Mail Sent.", 'thumbs-up');
-
-                    // Update the html.
-                    $('#submit_verification_email').replaceWith('<strong>The confirmation e-mail has been sent! Check your inbox for instructions on how to complete the e-mail verification process<strong>');
-                }
-                else if(data == "FAILED_RECAPTCHA") {notify('danger', "Failed to verify reCAPTCHA, please refresh page and try again.");}
-                else if(data == "INVALID_POST") {notify('danger', "Error processing request.");}
-            })
-    }
+                // Update the html.
+                $('#submit_verification_email').replaceWith('<strong>The confirmation e-mail has been sent! Check your inbox for instructions on how to complete the e-mail verification process<strong>');
+            }
+            else if(data == "FAILED_RECAPTCHA") {notify('danger', "Failed to verify reCAPTCHA, please refresh page and try again.");}
+            else if(data == "INVALID_POST") {notify('danger', "Error processing request.");}
+        });
+    };
 </script>
 {% endblock %}
