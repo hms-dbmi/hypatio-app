@@ -27,7 +27,7 @@ def get_login_url(current_uri):
     if project is not None:
         login_url.args.add('project', project)
 
-    # We want email verification by default so pass that success url too
-    login_url.args.add('email_confirm_success_url', settings.EMAIL_CONFIRM_SUCCESS_URL)
+    # Pass the current URI to SciAuth, which it will use to redirect users who verify their emails
+    login_url.args.add('email_confirm_success_url', current_uri)
 
     return login_url.url
