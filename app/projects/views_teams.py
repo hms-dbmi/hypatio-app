@@ -40,6 +40,23 @@ def approve_team_join(request):
     return HttpResponse(200)
 
 @user_auth_and_jwt
+def reject_team_join(request):
+    project_key = request.POST.get("project_key")
+    participant_email = request.POST.get("participant")
+
+    project = DataProject.objects.get(project_key=project_key)
+
+    try:
+        participant_user = User.objects.get(email=participant_email)
+        participant = Participant.objects.get(user=participant_user,
+                                              data_challenge=project)
+        participant.delete()
+    except ObjectDoesNotExist:
+        participant = None
+
+    return HttpResponse(200)
+
+@user_auth_and_jwt
 def join_team(request):
     project_key = request.POST.get("project_key")
     project = DataProject.objects.get(project_key=project_key)

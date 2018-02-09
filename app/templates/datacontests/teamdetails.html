@@ -148,18 +148,15 @@
             participant: participant,
             csrfmiddlewaretoken: '{{ csrf_token }}',
         };
-
-        // TODO
-        alert('Feature not implemented yet.')
         
-        // $.post("/projects/approve_team_join/", request_data)
-        //     .done(function() {
-        //         // Refresh the page so the user does not see this button again
-        //         setTimeout(function(){
-        //             location.reload();
-        //         },0);
-        //     }).fail(function() {
-        //         // TODO Fail message needed    
-        //     });
+        $.post("/projects/reject_team_join/", request_data)
+            .done(function() {
+                // Refresh the page so the user does not see this button again
+                setTimeout(function(){
+                    location.reload();
+                },0);
+            }).fail(function() {
+                // TODO Fail message needed    
+            });
     });
 </script>
