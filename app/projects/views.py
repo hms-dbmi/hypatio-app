@@ -487,7 +487,7 @@ def project_details(request, project_key, template_name='project_details.html'):
         if participant and team:
             team_members = Participant.objects.filter(team=team)
             team_has_pending_members = team_members.filter(team_approved=False)
-            user_is_pi = team.principal_investigator == request.user
+            user_is_pi = team.team_leader == request.user
 
         try:
             all_teams = Team.objects.filter(data_project__project_key=project_key)

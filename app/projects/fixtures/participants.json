@@ -32,7 +32,7 @@
     { "model": "projects.team",
         "pk": 100,
         "fields": {
-            "principal_investigator": 100,
+            "team_leader": 100,
             "data_project": 6
         }
     }

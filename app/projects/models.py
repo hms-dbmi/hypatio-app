@@ -80,19 +80,19 @@ class SignedAgreementForm(models.Model):
 
 
 class Team(models.Model):
-    principal_investigator = models.OneToOneField(User)
+    team_leader = models.OneToOneField(User)
     data_project = models.ForeignKey(DataProject)
 
     def __str__(self):
-        return '%s' % self.principal_investigator.email
+        return '%s' % self.team_leader.email
 
 
 class Participant(models.Model):
     user = models.OneToOneField(User)
     data_challenge = models.ForeignKey(DataProject)
     team = models.ForeignKey(Team, null=True, blank=True)
-    team_wait_on_pi_email = models.CharField(max_length=100, blank=True, null=True)
-    team_wait_on_pi = models.BooleanField(default=False)
+    team_wait_on_leader_email = models.CharField(max_length=100, blank=True, null=True)
+    team_wait_on_leader = models.BooleanField(default=False)
     team_pending = models.BooleanField(default=False)
     team_approved = models.BooleanField(default=False)
 
@@ -110,12 +110,12 @@ class Participant(models.Model):
 
     def set_pending(self):
         self.team_pending = True
-        self.team_wait_on_pi = False
-        self.team_wait_on_pi_email = None
+        self.team_wait_on_leader = False
+        self.team_wait_on_leader_email = None
         self.team_approved = False
 
     def set_approved(self):
         self.team_approved = True
-        self.team_wait_on_pi = False
-        self.team_wait_on_pi_email = None
+        self.team_wait_on_leader = False
+        self.team_wait_on_leader_email = None
         self.team_pending = False
