@@ -1,20 +1,21 @@
-/* Adds the red X and green checkmark on the project steps */
-.panel-heading.project-registration-step a:after {
+/* Stylizing the steps on a project page */
+.current-step-header span:after {
     font-family:'Glyphicons Halflings';
-    content:"\e014";
+    content:"\270f";
     float: right;
-    color: darkred;
+    color: #1F1C18;
 }
-.panel-heading.project-registration-step a.collapsed:after {
-    content:"\e014";
-}
-
-/* Displays when a form is already complete */
-.completed-form-header span:after {
+.completed-step-header span:after {
     font-family:'Glyphicons Halflings';
     content:"\e013";
     float: right;
     color: darkgreen;
+}
+.blocked-step-header span:after {
+    font-family:'Glyphicons Halflings';
+    content:"\e090";
+    float: right;
+    color: gray;
 }
 
 /* Stylizes the HMS logo */

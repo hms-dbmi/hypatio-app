@@ -412,12 +412,12 @@ def project_details(request, project_key, template_name='project_details.html'):
     user_access_request_granted = False
     email_verified = False
     profile_completed = False
-    access_granted = False # TODO
     team = None
     team_members = None
     team_has_pending_members = None
     user_is_pi = False
     institution = project.institution
+    current_step = None
 
     access_granted = False # TODO
 
@@ -452,11 +452,18 @@ def project_details(request, project_key, template_name='project_details.html'):
             for field in registration_form.fields:
                 if registration_form.fields[field].required and profile_registration_info[field] == "":
                     profile_completed = False
+
         else:
             # User does not have a registration in scireg, present them with a blank form to complete and pre-populate the email
             registration_form = RegistrationForm(initial={'email': user.email}, new_registration=True)
             email_verified = False
-            profile_completed = False      
+            profile_completed = False
+
+        if current_step is None and not email_verified:
+            current_step = "verify_email"
+
+        if current_step is None and not profile_completed:
+            current_step = "complete_profile"
 
         # Order by name descending temporarily so the n2c2 ROC appears before DUA
         agreement_forms = project.agreement_forms.order_by('-name')
@@ -471,6 +478,9 @@ def project_details(request, project_key, template_name='project_details.html'):
                 already_signed = True
             else:
                 already_signed = False
+            
+            if current_step is None and not already_signed:
+                current_step = agreement_form.name
 
             agreement_forms_list.append({'agreement_form_name': agreement_form.name,
                                          'agreement_form_id': agreement_form.id,
@@ -493,6 +503,10 @@ def project_details(request, project_key, template_name='project_details.html'):
             all_teams = Team.objects.filter(data_project__project_key=project_key)
         except ObjectDoesNotExist:
             all_teams = None
+
+        # If all other steps completed, then last step will be team
+        if current_step is None:
+            current_step = "team"
 
         # Get all of the user's permission requests
         access_requests_url = settings.AUTHORIZATION_REQUEST_URL + "?email=" + user.email
@@ -523,7 +537,8 @@ def project_details(request, project_key, template_name='project_details.html'):
                                            "email_verified": email_verified,
                                            "profile_completed": profile_completed,
                                            "institution": institution,
-                                           "registration_form": registration_form})
+                                           "registration_form": registration_form,
+                                           "current_step": current_step})
 
 
 
