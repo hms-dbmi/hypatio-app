@@ -56,40 +56,35 @@
         </div>
     {% endif %}
 {% else %}
-    You have not yet joined a team. Please select your PI from the list below.
-    <br />
-    <br />
+    <div class="alert alert-warning" role="alert">
+        You have not yet joined a team. Please either select your PI from the list below or enter their email to wait for them to create a team. If you are the PI, please click the Create Team button.
+    </div>
 
-        <form action="/projects/join_team/" method="post">
-            {% csrf_token %}
-            <div class="form-group">
-              <label for="team_list">Team PI List:</label>
-              <select class="form-control" name="existing_pi_team_to_join">
-                  {% for team in all_teams %}
-                    <option value="{{ team }}">{{ team }}</option>
-                  {% endfor %}
-              </select>
-            </div>
+    <form action="/projects/join_team/" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="team_list">Current PI team list:</label>
+            <select class="form-control" name="existing_pi_team_to_join">
+                {% for team in all_teams %}
+                <option value="{{ team }}">{{ team }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-            <h5>Don't see your PI?</h5>
-
-            They might not have registered yet. Enter their e-mail address below and you'll be added to the team when
-            they register.
-
-            <br />
-            <br />
-
-
-            <input class="form-control" type="email" name="pi_to_wait_for" />
-            <br />
-            <br />
+        <strong>Don't see your PI?</strong>
+        <p>They might not have registered yet. Enter their e-mail address below and you'll be added to the team when they register. </p>
+        
+        <input class="form-control" type="email" name="pi_to_wait_for" />
+        
+        <div class="form-group">
             <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
-            <button class="btn btn-primary" type="submit">Join Team</button>
-        </form>
+        </div>
+        <button class="btn btn-primary" type="submit">Join Team</button>
+    </form>
 
-        <br />
-        <br />
-    <h4>PI Leading a team?</h4>
+    <hr>
+
+    <h4>Are you a PI leading a team?</h4>
 
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#new_pi_modal">Create team as Principal Investigator</button>
 
