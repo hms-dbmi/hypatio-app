@@ -5,6 +5,7 @@ from .models import SignedAgreementForm
 from .models import Team
 from .models import Participant
 from .models import Institution
+from .models import DataGate
 
 class DataprojectAdmin(admin.ModelAdmin):
     list_display = ('name', 'project_key', 'is_contest', 'project_supervisor') #, 'project_url')
@@ -24,9 +25,13 @@ class ParticipantAdmin(admin.ModelAdmin):
 class InstitutionAdmin(admin.ModelAdmin):
     list_display = ('name', 'logo')
 
+class DataGateAdmin(admin.ModelAdmin):
+    list_display = ('project', 'data_location_type', 'data_location')
+
 admin.site.register(DataProject, DataprojectAdmin)
 admin.site.register(AgreementForm, AgreementformAdmin)
 admin.site.register(SignedAgreementForm, SignedagreementformAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(Institution, InstitutionAdmin)
+admin.site.register(DataGate, DataGateAdmin)

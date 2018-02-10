@@ -7,28 +7,30 @@
 </head>
 <body>
 {% load static %}
-<form name="dua_access_form" action="/submit_request/" method="post">
+<form name="dua_access_form" action="/projects/submit_user_permission_request/" method="post">
     <input type="hidden" id="project_key" name="project_key" value="{{ project_key }}" />
 
-    <div id="dua_options">
-        <p>Please select an available Data Use Agreement to sign:</p>
-        {% for agreement_form in agreement_forms %}
-            <button type="button" class="btn btn-primary dua_form_select" data-agreement-form-id="{{ agreement_form.id }}">{{ agreement_form.name }}</button>            
-        {% endfor %}
-    </div>
-
-    <!-- <div id="dua_forms">
-    {# {% for dua in data_use_agreements %} #}
-        <div class="dua_form" data-agreement-form-id="{{ dua.id }}" style="display:none;">
-            {# {{ dua.agreement_form_file|get_dua_form_file_contents | safe }} #}
+    {% if agreement_forms %}
+        <div id="dua_options">
+            <p>Please select an available Data Use Agreement to sign:</p>
+            {% for agreement_form in agreement_forms %}
+                <button type="button" class="btn btn-primary dua_form_select" data-agreement-form-id="{{ agreement_form.id }}">{{ agreement_form.name }}</button>
+            {% endfor %}
         </div>
-    {# {% endfor %} #}
-    </div> -->
+
+        <input name="submit_form" id="submit_form" type="submit" class="btn btn-default" style="display: none;" value="Submit for approval" />
+
+    {% else %}
+        <div class="contents">
+            In order to gain access to this data an administrator will have to contact you with further steps. Click below to confirm your request. <br /><br />
+
+            <button type="submit" class="btn btn-primary">Request Access</button>
+        </div>
+    {% endif %}
 
     <input type="hidden" id="dua_id" name="dua_id" value="" />
     <input type="hidden" id="agreement_text" name="agreement_text" value="" />
-    
-    <input name="submit_form" id="submit_form" type="submit" class="btn btn-default" style="display: none;" value="Submit for approval" />
+
         
     <img name="loading" id="loading" src="{% static 'gears.svg' %}" style="display:none;">
     <div id="status" style="color: green; font-size: 1.5em;"></div>
@@ -56,7 +58,7 @@
 <script type="application/javascript">
     $('form[name=dua_access_form]').submit(function(e){
         e.preventDefault();
-        
+
         $("#loading").show();
 
         // Get the name of the DUA form that was submitted
@@ -76,14 +78,14 @@
         $.post($(this).attr('action'), $(this).serialize(), function(res){
             $("#loading").hide();
         }).done(function() {
-            $("#status").text("Access request submitted! Refreshing page...");          
-            
+            $("#status").text("Access request submitted! Refreshing page...");
+
             // Refresh the page so the user does not see the Request Access button again
             setTimeout(function(){
                 location.reload();
             },2000);
         }).fail(function() {
-            $("#status").text("Access request failed.");            
+            $("#status").text("Access request failed.");
         });
     });
 </script>
