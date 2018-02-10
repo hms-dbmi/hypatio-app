@@ -15,6 +15,14 @@
             "password": "password"
         }
     },
+    { "model": "auth.user",
+        "pk": 102,
+        "fields": {
+            "username": "test3",
+            "email": "test3@test.com",
+            "password": "password"
+        }
+    },
     { "model": "projects.participant",
         "pk": 100,
         "fields": {
@@ -27,6 +35,15 @@
         "fields": {
             "user": 101,
             "data_challenge": [6]
+        }
+    },
+    { "model": "projects.participant",
+        "pk": 102,
+        "fields": {
+            "user": 102,
+            "data_challenge": [6],
+            "team_wait_on_pi": true,
+            "team_wait_on_pi_email": "mcduffie.michael@gmail.com"
         }
     },
     { "model": "projects.team",
