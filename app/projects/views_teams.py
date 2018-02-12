@@ -22,7 +22,7 @@ def approve_team_join(request):
     project = DataProject.objects.get(project_key=project_key)
 
     try:
-        team = Team.objects.get(principal_investigator=request.user,
+        team = Team.objects.get(team_leader=request.user,
                                 data_project=project)
     except ObjectDoesNotExist:
         team = None
@@ -40,6 +40,23 @@ def approve_team_join(request):
     return HttpResponse(200)
 
 @user_auth_and_jwt
+def reject_team_join(request):
+    project_key = request.POST.get("project_key")
+    participant_email = request.POST.get("participant")
+
+    project = DataProject.objects.get(project_key=project_key)
+
+    try:
+        participant_user = User.objects.get(email=participant_email)
+        participant = Participant.objects.get(user=participant_user,
+                                              data_challenge=project)
+        participant.delete()
+    except ObjectDoesNotExist:
+        participant = None
+
+    return HttpResponse(200)
+
+@user_auth_and_jwt
 def join_team(request):
     project_key = request.POST.get("project_key")
     project = DataProject.objects.get(project_key=project_key)
@@ -53,12 +70,12 @@ def join_team(request):
         participant = create_participant(request.user, project)
 
     if pi_to_wait_for != "":
-        participant.team_wait_on_pi_email = pi_to_wait_for
-        participant.team_wait_on_pi = True
+        participant.team_wait_on_leader_email = pi_to_wait_for
+        participant.team_wait_on_leader = True
         participant.save()
     elif existing_pi_team_to_join != "":
         try:
-            team = Team.objects.get(principal_investigator__email=existing_pi_team_to_join)
+            team = Team.objects.get(team_leader__email=existing_pi_team_to_join)
         except ObjectDoesNotExist:
             team = None
 
@@ -89,12 +106,12 @@ def team_signup_form(request, project_key):
 
 @user_auth_and_jwt
 def create_team_from_pi(request):
-    """Creates a new team with the given user as its principal investigator.
+    """Creates a new team with the given user as its team leader.
     """
 
     project_key = request.POST.get("project_key")
     project = DataProject.objects.get(project_key=project_key)
-    new_team = Team.objects.create(principal_investigator=request.user, data_project=project)
+    new_team = Team.objects.create(team_leader=request.user, data_project=project)
 
     try:
         participant = Participant.objects.get(user=request.user, data_challenge=project)
@@ -104,8 +121,8 @@ def create_team_from_pi(request):
     participant.assign_approved(new_team)
     participant.save()
 
-    # Find anyone whose waiting on this PI and link them to the new team.
-    waiting_participants = Participant.objects.filter(team_wait_on_pi_email=request.user.email)
+    # Find anyone whose waiting on this team leaedear and link them to the new team.
+    waiting_participants = Participant.objects.filter(team_wait_on_leader_email=request.user.email)
 
     for participant in waiting_participants:
         participant.assign_pending(new_team)
