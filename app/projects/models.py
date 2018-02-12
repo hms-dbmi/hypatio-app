@@ -5,6 +5,16 @@ from django.contrib.auth.models import User
 from django.core.validators import FileExtensionValidator
 
 
+FILE_SERVICE_URL = 'FILE_SERVICE_URL'
+EXTERNAL_APP_URL = 'EXTERNAL_APP_URL'
+BLUE = 'BLUE'
+
+DATA_LOCATION_TYPE = (
+    (FILE_SERVICE_URL, 'FileService Signed URL'),
+    (EXTERNAL_APP_URL, 'External Application URL')
+)
+
+
 def get_agreement_form_upload_path(instance, filename):
 
     form_directory = 'agreementforms/'
@@ -63,9 +73,16 @@ class DataProject(models.Model):
     project_supervisor = models.CharField(max_length=255, blank=True, null=True, verbose_name="Project Supervisor")
     # TODO change to a choice field and create an enumerable of options (contest, data project)
     is_contest = models.BooleanField(default=False, blank=False, null=False)
+    visible = models.BooleanField(default=False, blank=False, null=False)
 
     def __str__(self):
         return '%s %s' % (self.project_key, self.name)
+
+
+class DataGate(models.Model):
+    project = models.ForeignKey(DataProject)
+    data_location_type = models.CharField(max_length=15, choices=DATA_LOCATION_TYPE)
+    data_location = models.CharField(max_length=250)
 
 
 class SignedAgreementForm(models.Model):

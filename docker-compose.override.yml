@@ -2,44 +2,44 @@ version: '2.1'
 services:
   hypatio:
     environment:
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=xaFUWTwFzZ2kCyVNwWVfaZYR040XBL+qELBjEn9s
+      - AWS_ACCESS_KEY_ID=AKIAJSH4CELEGJ7GPJGA
       - PS_PATH=secret.dbmi.hypatio.DEV
     build:
-      context: ~/src/apps/hypatio
+      context: ~/Documents/virtualenvironments/hypatio-app
       dockerfile: Dockerfile
     volumes:
-      - ~/src/apps/hypatio/app:/app
+      - ~/Documents/virtualenvironments/hypatio-app/app:/app
   scireg:
     environment:
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=xaFUWTwFzZ2kCyVNwWVfaZYR040XBL+qELBjEn9s
+      - AWS_ACCESS_KEY_ID=AKIAJSH4CELEGJ7GPJGA
       - PS_PATH=secret.dbmi.scireg.DEV
     build:
-      context: ~/src/apps/SciReg
+      context: ~/Documents/virtualenvironments/scireg/SciReg
       dockerfile: Dockerfile
     volumes:
-      - ~/src/apps/SciReg/app:/app
+      - ~/Documents/virtualenvironments/scireg/SciReg/app:/app
   sciauth:
     environment:
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=xaFUWTwFzZ2kCyVNwWVfaZYR040XBL+qELBjEn9s
+      - AWS_ACCESS_KEY_ID=AKIAJSH4CELEGJ7GPJGA
       - PS_PATH=secret.dbmi.sciauth.DEV
     build:
-      context: ~/src/apps/SciAuth
+      context: ~/Documents/virtualenvironments/sciauth/SciAuth
       dockerfile: Dockerfile
     volumes:
-      - ~/src/apps/SciAuth/app:/app
+      - ~/Documents/virtualenvironments/sciauth/SciAuth/app:/app
   sciauthz:
     environment:
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=xaFUWTwFzZ2kCyVNwWVfaZYR040XBL+qELBjEn9s
+      - AWS_ACCESS_KEY_ID=AKIAJSH4CELEGJ7GPJGA
       - PS_PATH=secret.dbmi.sciauthz.DEV
     build:
-      context: ~/src/apps/SciAuthZ
+      context: ~/Documents/virtualenvironments/SciAuthZ
       dockerfile: Dockerfile
     volumes:
-      - ~/src/apps/SciAuthZ/app:/app
+      - ~/Documents/virtualenvironments/SciAuthZ/app:/app
 networks:
   portal:
     driver: bridge
