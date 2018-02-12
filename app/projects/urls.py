@@ -13,6 +13,7 @@ from .views_teams import join_team
 from .views_teams import create_team_from_pi
 from .views_teams import team_signup_form
 from .views_teams import approve_team_join
+from .views_teams import reject_team_join
 
 urlpatterns = (
     url(r'^$', list_data_projects),
@@ -26,6 +27,7 @@ urlpatterns = (
     url(r'^signout/$', signout),
     url(r'^join_team/$', join_team),
     url(r'^approve_team_join/$', approve_team_join),
+    url(r'^reject_team_join/$', reject_team_join),
     url(r'^create_team_from_pi/$', create_team_from_pi),
     url(r'^team_signup_form/(P<project_key>[^/]+)/$', team_signup_form),
     url(r'^(?P<project_key>[^/]+)/$', project_details)

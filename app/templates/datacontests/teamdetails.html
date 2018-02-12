@@ -1,16 +1,16 @@
-{% if participant.team_wait_on_pi %}
-    No action needed at this time. We are waiting for your PI {{ participant.team_wait_on_pi_email }} to create a team.
+{% if participant.team_wait_on_leader %}
+    No action needed at this time. We are waiting for your team leader {{ participant.team_wait_on_leader_email }} to create a team.
 {%  elif participant.team_pending %}
-    No action needed at this time. We are waiting for your PI {{ team.principal_investigator }} to approve your request to join the team.
+    No action needed at this time. We are waiting for your team leader {{ team.team_leader }} to approve your request to join the team.
 {%  elif participant.team_approved %}
     {% if user_is_pi %}
         {% if team_has_pending_members %}
         <div class="alert alert-warning" role="alert">
-            You are the PI of this team. Please review the list of team members below for any membership requests to approve or reject. If there is someone you would like to join your team, have them create an account here on the DBMI Portal and visit this page.
+            You are the leader of this team. Please review the list of team members below for any membership requests to approve or reject. If there is someone you would like to join your team, have them create an account here on the DBMI Portal and visit this page.
         </div>
         {% else %}
         <div class="alert alert-success" role="alert">
-            You are the PI of this team. If all members of your team have already registered and are listed below, please click the Finalize button below to lock in your team for the challenge.
+            You are the leader of this team. If all members of your team have already registered and are listed below, please click the Finalize button below to lock in your team for the challenge.
         </div>
         {% endif %}
 
@@ -29,11 +29,11 @@
                     {% if participant.team_approved %}
                         Approved
                     {% elif participant.team_pending %}
-                        <button type="button" class="btn btn-success btn-xs pi-team-approve" data-project="{{ project.project_key }}" data-participant="{{ participant.user.email }}">
-                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Approve
+                        <button type="button" class="btn btn-success btn-xs accept-participant" data-project="{{ project.project_key }}" data-participant="{{ participant.user.email }}">
+                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Accept
                         </button>
 
-                        <button type="button" class="btn btn-danger btn-xs pi-team-reject" data-pi-team="" data-participant="">
+                        <button type="button" class="btn btn-danger btn-xs reject-participant" data-project="{{ project.project_key }}" data-participant="{{ participant.user.email }}">
                             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Reject
                         </button>
                     {% else %}
@@ -52,46 +52,41 @@
         {% endif %}
     {% else %}
         <div class="alert alert-success alert-dismissible" role="alert">
-            You have been approved to join team {{ participant.team }}. Please wait for your PI to finalize the team.
+            You have been approved to join team {{ participant.team }}. Please wait for your team leader to finalize the team.
         </div>
     {% endif %}
 {% else %}
-    You have not yet joined a team. Please select your PI from the list below.
-    <br />
-    <br />
+    <div class="alert alert-warning" role="alert">
+        You have not yet joined a team. Please either select your team leader from the list below or enter their email to wait for them to create a team. If you are the team leader, please click the Create Team button.
+    </div>
 
-        <form action="/projects/join_team/" method="post">
-            {% csrf_token %}
-            <div class="form-group">
-              <label for="team_list">Team PI List:</label>
-              <select class="form-control" name="existing_pi_team_to_join">
-                  {% for team in all_teams %}
-                    <option value="{{ team }}">{{ team }}</option>
-                  {% endfor %}
-              </select>
-            </div>
+    <form action="/projects/join_team/" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="team_list">Current team leader list:</label>
+            <select class="form-control" name="existing_pi_team_to_join">
+                {% for team in all_teams %}
+                <option value="{{ team }}">{{ team }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-            <h5>Don't see your PI?</h5>
-
-            They might not have registered yet. Enter their e-mail address below and you'll be added to the team when
-            they register.
-
-            <br />
-            <br />
-
-
-            <input class="form-control" type="email" name="pi_to_wait_for" />
-            <br />
-            <br />
+        <strong>Don't see your team leader?</strong>
+        <p>They might not have registered yet. Enter their e-mail address below and you'll be added to the team when they register. </p>
+        
+        <input class="form-control" type="email" name="pi_to_wait_for" />
+        
+        <div class="form-group">
             <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
-            <button class="btn btn-primary" type="submit">Join Team</button>
-        </form>
+        </div>
+        <button class="btn btn-primary" type="submit">Join Team</button>
+    </form>
 
-        <br />
-        <br />
-    <h4>PI Leading a team?</h4>
+    <hr>
 
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#new_pi_modal">Create team as Principal Investigator</button>
+    <h4>Are you leading a team?</h4>
+
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#new_pi_modal">Create Team</button>
 
     <div class="modal fade" id="new_pi_modal" tabindex="-1" role="dialog" aria-labelledby="new_pi_modalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -103,7 +98,7 @@
             </button>
           </div>
           <div class="modal-body">
-           Are you sure you want to create a new team and become the PI for that team?
+           Are you sure you want to create a new team and become the team leader for that team?
           </div>
           <div class="modal-footer">
               <form action="/projects/create_team_from_pi/" method="post">
@@ -121,7 +116,7 @@
 {% endif %}
 
 <script type="application/javascript">
-    $('.pi-team-approve').click(function(){
+    $('.accept-participant').click(function(){
         var project_key = $(this).data("project");
         var participant = $(this).data("participant");
 
@@ -144,7 +139,7 @@
 </script>
 
 <script type="application/javascript">
-    $('.pi-team-reject').click(function(){
+    $('.reject-participant').click(function(){
         var project_key = $(this).data("project");
         var participant = $(this).data("participant");
 
@@ -153,18 +148,15 @@
             participant: participant,
             csrfmiddlewaretoken: '{{ csrf_token }}',
         };
-
-        // TODO
-        alert('Feature not implemented yet.')
         
-        // $.post("/projects/approve_team_join/", request_data)
-        //     .done(function() {
-        //         // Refresh the page so the user does not see this button again
-        //         setTimeout(function(){
-        //             location.reload();
-        //         },0);
-        //     }).fail(function() {
-        //         // TODO Fail message needed    
-        //     });
+        $.post("/projects/reject_team_join/", request_data)
+            .done(function() {
+                // Refresh the page so the user does not see this button again
+                setTimeout(function(){
+                    location.reload();
+                },0);
+            }).fail(function() {
+                // TODO Fail message needed    
+            });
     });
 </script>

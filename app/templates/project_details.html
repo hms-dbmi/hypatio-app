@@ -37,116 +37,102 @@
         </div>
     {% elif not access_granted %}    
         <div class="alert alert-warning alert-dismissible" role="alert">
-            To compete in {{ project.short_description }}, please complete the multi-step registration process below. <strong>Important: All members of your team must complete all registration steps before your account can be activated.</strong>
+            To compete in {{ project.short_description }}, please complete the registration process below one step at a time. <strong>All members of your team must complete all registration steps before your account can be activated.</strong>
         </div>
         
         <div class="panel-group" id="accordion">
 
+            <!-- Verify email -->
             <div class="panel panel-default">
                 <div class="panel-heading project-registration-step" role="tab" id="heading-email">
                     <h2 class="panel-title">
-                    {% if not email_verified %}
-                        <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-email" aria-expanded="true" aria-controls="collapse-email">
-                            Verify Your Email
-                        </a>
-                    {% else %}
-                        <div class="completed-form-header">
+                        <div class="{% if email_verified %}completed-step-header{% elif current_step == 'verify_email' %}current-step-header{% else %}blocked-step-header{% endif %}">
                             <span>Verify Your Email</span>
                         </div>
-                    {% endif %}
                     </h2>
                 </div>
-                <div id="collapse-email" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-email">
-                    <div class="panel-body">
-                        Your primary email on record needs to be verified. Please look in your inbox for the verification email or click below to send another one:
-                        {% include 'profile/verify_email.html' %}
-                    </div>
+                {% if current_step == 'verify_email' %}
+                <div class="panel-body">
+                    Your primary email on record needs to be verified. Please look in your inbox for the verification email or click below to send another one:
+                    {% include 'profile/verify_email.html' %}
                 </div>
+                {% endif %}
             </div>
 
+            <!-- Complete profile -->
             <div class="panel panel-default">
                 <div class="panel-heading project-registration-step" role="tab" id="heading-profile">
                     <h2 class="panel-title">
-                    {% if not profile_completed %}
-                        <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-profile" aria-expanded="true" aria-controls="collapse-profile">
-                            Complete Your Profile
-                        </a>
-                    {% else %}
-                        <div class="completed-form-header">
+                        <div class="{% if profile_completed %}completed-step-header{% elif current_step == 'complete_profile' %}current-step-header{% else %}blocked-step-header{% endif %}">
                             <span>Complete Your Profile</span>
                         </div>
-                    {% endif %}
                     </h2>
                 </div>
-                <div id="collapse-profile" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-profile">
-                    <div class="panel-body">
-                        <p>There are a few required fields in your profile that need to be filled out. Please complete the profile registration form below, specifically the fields marked as required. You can go back and edit these fields any time by visiting your <a href="{% url 'profile' %}">profile</a> page.</p>
+                {% if current_step == 'complete_profile' %}                
+                <div class="panel-body">
+                    <p>There are a few required fields in your profile that need to be filled out. Please complete the profile registration form below, specifically the fields marked as required. You can go back and edit these fields any time by visiting your <a href="{% url 'profile' %}">profile</a> page.</p>
                         
-                        {% include 'profile/registration_form.html' %}
-                    </div>
+                    {% include 'profile/registration_form.html' %}
                 </div>
+                {% endif %}
             </div>
 
+            <!-- Sign forms -->
             {% for agreement_form in agreement_forms_list %}
             <div class="panel panel-default">
                 <div class="panel-heading project-registration-step" role="tab" id="heading-form-{{forloop.counter}}">
                     <h2 class="panel-title">
-                    {% if not agreement_form.already_signed %}
-                        <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-form-{{forloop.counter}}" aria-expanded="true" aria-controls="collapse-form-{{forloop.counter}}">
-                            Form: {{ agreement_form.agreement_form_name}}
-                        </a>
-                    {% else %}
-                        <div class="completed-form-header">
+                        <div class="{% if agreement_form.already_signed %}completed-step-header{% elif current_step == agreement_form.agreement_form_name %}current-step-header{% else %}blocked-step-header{% endif %}">
                             <span>Form: {{ agreement_form.agreement_form_name}}</span>
                         </div>
-                    {% endif %}
                     </h2>
                 </div>
-                <div id="collapse-form-{{forloop.counter}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-form-{{forloop.counter}}">
-                    <div class="panel-body">
-                        {% if not agreement_form.already_signed %}
-                        <form name="agreement_form_container" action="/save_signed_agreement_form/" method="post">
-                            <div class="agreement_form_contents">
-                                {{ agreement_form.agreement_form_file|get_agreement_form_file_contents | safe }}
-                            </div>
+                {% if current_step == agreement_form.agreement_form_name %}                
+                <div class="panel-body">
+                    {% if not agreement_form.already_signed %}
+                    <form name="agreement_form_container" action="/save_signed_agreement_form/" method="post">
+                        <div class="agreement_form_contents">
+                            {{ agreement_form.agreement_form_file|get_agreement_form_file_contents | safe }}
+                        </div>
 
-                            <input type="hidden" class="project_key" name="project_key" value="{{ project.project_key }}" />
-                            <input type="hidden" class="agreement_form_id" name="agreement_form_id" value="{{ agreement_form.agreement_form_id }}" />
-                            <input type="hidden" class="agreement_text" name="agreement_text" value="" />
-    
-                            <hr>
+                        <input type="hidden" class="project_key" name="project_key" value="{{ project.project_key }}" />
+                        <input type="hidden" class="agreement_form_id" name="agreement_form_id" value="{{ agreement_form.agreement_form_id }}" />
+                        <input type="hidden" class="agreement_text" name="agreement_text" value="" />
 
-                            <div class="submit_form">
-                                <input name="submit_form" type="submit" class="btn btn-primary" value="Submit" />
-                            </div>
+                        <hr>
 
-                            {% csrf_token %}
-                        </form>
-                        {% endif %}
-                    </div>
+                        <div class="submit_form">
+                            <input name="submit_form" type="submit" class="btn btn-primary" value="Submit" />
+                        </div>
+
+                        {% csrf_token %}
+                    </form>
+                    {% endif %}
                 </div>
+                {% endif %}
             </div>
             {% endfor %}
             
+            <!-- Join team -->
             {# Only display this step if this is a contest #}
             {% if project.is_contest %}
             <div class="panel panel-default">
                 <div class="panel-heading project-registration-step" role="tab" id="heading-team">
                     <h2 class="panel-title">
-                        {# TODO: If PI with pending approvals, then red X #}
-                        {# TODO: If PI with all members approved and team status of activated, then green check #}
-                        {# TODO: If team member pending approval, then red X #}
+                        {# TODO: If team leader with pending approvals, then current-step #}
+                        {# TODO: If team leader with all members approved and team status of activated, then green check #}
+                        {# TODO: If team member pending approval, then current-step #}
                         {# TODO: If team member with approval, then green check #}
-                        <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-team" aria-expanded="true" aria-controls="collapse-team">
-                            Your Team
-                        </a>
+                        <div class="{% if current_step == 'team' %}current-step-header{% else %}blocked-step-header{% endif %}">
+                            <span>Your Team</span>
+                        </div>
                     </h2>
                 </div>
-                <div id="collapse-team" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-team">
-                    <div class="panel-body">
-                        {% include "datacontests/teamdetails.html" with participant=participant teams=teams project=project pi_team=pi_team pi_team_members=pi_team_members %}
-                    </div>
+                {% if current_step == 'team' %}                
+                <div class="panel-body">
+                    {% include "datacontests/teamdetails.html" with participant=participant teams=teams project=project pi_team=pi_team pi_team_members=pi_team_members %}
                 </div>
+                {% endif %}
             </div>
             {% endif %}
 
