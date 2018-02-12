@@ -3,3 +3,4 @@ app/assets/*
 */.DS_Store
 .DS_Store
 *.log
+app/db.sqlite3
