@@ -4,4 +4,3 @@ app/assets/*
 .DS_Store
 *.log
 app/db.sqlite3
-docker-compose.override.yml
