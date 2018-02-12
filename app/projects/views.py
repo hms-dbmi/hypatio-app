@@ -21,23 +21,17 @@ from .models import Team
 from .models import AgreementForm
 from .models import SignedAgreementForm
 
-from profile.views import user_has_manage_permission
 from profile.views import get_task_context_data
 from profile.forms import RegistrationForm
 
 from django.http import HttpResponse
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-from django.contrib import messages
-
 from django.core.exceptions import ObjectDoesNotExist
 
-from django.template.loader import render_to_string
-from django.core.mail import EmailMultiAlternatives
-from socket import gaierror
+from hypatio.sciauthz_services import SciAuthZ
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
 
 @user_auth_and_jwt
 def signout(request):
@@ -74,54 +68,26 @@ def save_signed_agreement_form(request):
 
     return HttpResponse(200)
 
+
 @user_auth_and_jwt
 def submit_user_permission_request(request):
 
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
+
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
 
     data_request = {"user": request.user.email,
                     "item": request.POST['project_key']}
 
-    # Send the authorization request to SciAuthZ
-    create_auth_request_url = settings.AUTHORIZATION_REQUEST_URL
-    requests.post(create_auth_request_url, headers=jwt_headers, data=json.dumps(data_request), verify=False)
+    sciauthz.current_user_request_access(data_request)
 
     return HttpResponse(200)
 
-# TODO DELETE
-@user_auth_and_jwt
-def submit_request(request):
-
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
-
-    # TODO replace with newer models.
-
-    # dua = DataUseAgreement.objects.get(id=request.POST['dua_id'])
-
-    # date_requested = datetime.now().isoformat()
-
-    # # Save the signed DUA
-    # dua_signed = DataUseAgreementSign(data_use_agreement=dua,
-    #                                   user=request.user,
-    #                                   date_signed=date_requested,
-    #                                   agreement_text=request.POST['agreement_text'])
-    # dua_signed.save()
-
-    # data_request = {"user": request.user.email,
-    #                 "item": request.POST['project_key']}
-
-    # # Send the authorization request to SciAuthZ
-    # create_auth_request_url = settings.AUTHORIZATION_REQUEST_URL
-    # requests.post(create_auth_request_url, headers=jwt_headers, data=json.dumps(data_request), verify=False)
-
-    return HttpResponse(200)
 
 @public_user_auth_and_jwt
 def list_data_projects(request, template_name='dataprojects/list.html'):
 
-    all_data_projects = DataProject.objects.filter(is_contest=False)
+    all_data_projects = DataProject.objects.filter(is_contest=False, visible=True)
 
     data_projects = []
     projects_with_view_permissions = []
@@ -137,19 +103,11 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
         user_logged_in = True
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-        # If the JWT has expired or the user doesn't have one, force the user to login again
-        if user_jwt is None or validate_jwt(request) is None:
-            logout_redirect(request)
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+        is_manager = sciauthz.user_has_manage_permission(request, 'n2c2-t1')
+        user_permissions = sciauthz.current_user_permissions()
+        user_access_requests = sciauthz.current_user_access_requests()
 
-        # TODO Does this user have MANAGE permissions on any item?
-        is_manager = user_has_manage_permission(request, 'n2c2-t1')
-
-        # The JWT token that will get passed in API calls
-        jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
-
-        # Get all of the user's VIEW permissions
-        permissions_url = settings.USER_PERMISSIONS_URL + "?email=" + user.email
-        user_permissions = requests.get(permissions_url, headers=jwt_headers, verify=False).json()
         logger.debug('[HYPATIO][DEBUG] User Permissions: ' + json.dumps(user_permissions))
 
         if user_permissions is not None and 'results' in user_permissions:
@@ -161,9 +119,8 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
 
         # Get all of the user's permission requests
         access_requests_url = settings.AUTHORIZATION_REQUEST_URL + "?email=" + user.email
-        logger.debug('[HYPATIO][DEBUG] access_requests_url: ' + access_requests_url)
 
-        user_access_requests = requests.get(access_requests_url, headers=jwt_headers, verify=False).json()
+        logger.debug('[HYPATIO][DEBUG] access_requests_url: ' + access_requests_url)
         logger.debug('[HYPATIO][DEBUG] User Permission Requests: ' + json.dumps(user_access_requests))
 
         if user_access_requests is not None and 'results' in user_access_requests:
@@ -178,6 +135,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
     # Build the dictionary with all project and permission information needed
     for project in all_data_projects:
 
+        project_data_url = None
         user_has_view_permissions = project.project_key in projects_with_view_permissions
 
         if project.project_key in projects_with_access_requests:
@@ -187,12 +145,17 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
             user_requested_access_on = None
             user_requested_access = False
 
+        datagate = project.datagate_set.first()
+
+        if datagate:
+            project_data_url = datagate.data_location
+
         # Package all the necessary information into one dictionary
         project = {"name": project.name,
                    "short_description": project.short_description,
                    "description": project.description,
                    "project_key": project.project_key,
-                   # "project_url": project.project_url,
+                   "project_url": project_data_url,
                    "permission_scheme": project.permission_scheme,
                    "user_has_view_permissions": user_has_view_permissions,
                    "user_requested_access": user_requested_access,
@@ -224,15 +187,8 @@ def list_data_contests(request, template_name='datacontests/list.html'):
         user_logged_in = True
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-        # If the JWT has expired or the user doesn't have one, force the user to login again
-        if user_jwt is None or validate_jwt(request) is None:
-            logout_redirect(request)
-
-        # TODO Does this user have MANAGE permissions on any item?
-        is_manager = user_has_manage_permission(request, 'n2c2-t1')
-
-        # The JWT token that will get passed in API calls
-        jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+        is_manager = sciauthz.user_has_manage_permission(request, 'n2c2-t1')
 
     # Build the dictionary with all project and permission information needed
     for data_contest in all_data_contests:
@@ -271,12 +227,8 @@ def manage_contests(request, template_name='datacontests/managecontests.html'):
     user_logged_in = True
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-    # If the JWT has expired or the user doesn't have one, force the user to login again
-    if user_jwt is None or validate_jwt(request) is None:
-        logout_redirect(request)
-
-    # Confirm that the user has MANAGE permissions for this item
-    is_manager = user_has_manage_permission(request, data_contest)
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    is_manager = sciauthz.user_has_manage_permission(request, data_contest)
 
     if not is_manager:
         logger.debug('[HYPATIO][DEBUG] User ' + user.email + ' does not have MANAGE permissions for item ' + data_contest + '.')
@@ -362,7 +314,8 @@ def grant_access_with_view_permissions(request):
 
     logger.debug('[HYPATIO][DEBUG] Granting authorization request ' + authorization_request_id + ' and view permissions to ' + person_email + ' for project ' + project + '.')
 
-    is_manager = user_has_manage_permission(request, project)
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    is_manager = sciauthz.user_has_manage_permission(request, project)
 
     if not is_manager:
         logger.debug('[HYPATIO][DEBUG] User ' + user.email + ' does not have MANAGE permissions for item ' + project + '.')
@@ -427,8 +380,10 @@ def project_details(request, project_key, template_name='project_details.html'):
     else:
         user = request.user
         user_logged_in = True
-        is_manager = user_has_manage_permission(request, project_key)
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+        is_manager = sciauthz.user_has_manage_permission(request, project_key)
 
         # The JWT token that will get passed in API calls
         jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}

@@ -2,12 +2,16 @@ import json
 import logging
 import requests
 
+
+
 from django.contrib import messages
 from django.conf import settings
 from django.shortcuts import render
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt, validate_jwt, logout_redirect
 from .forms import RegistrationForm
 from django.http import HttpResponse
+
+from hypatio.sciauthz_services import SciAuthZ
 
 from hypatio import scireg_services
 
@@ -60,12 +64,8 @@ def profile(request, template_name='profile/profile.html'):
     user_logged_in = True
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-    # If the JWT has expired or the user doesn't have one, force the user to login again
-    if user_jwt is None or validate_jwt(request) is None:
-        logout_redirect(request)
-
-    # TODO Does this user have MANAGE permissions on any item?
-    is_manager = user_has_manage_permission(request, 'n2c2-t1')
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    is_manager = sciauthz.user_has_manage_permission(request, 'n2c2-t1')
 
     # The JWT token that will get passed in API calls
     jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
@@ -95,33 +95,6 @@ def profile(request, template_name='profile/profile.html'):
                                             'is_manager': is_manager,
                                             'new_user': new_user,
                                             'user_logged_in': user_logged_in})
-
-# Check if this user has SciAuthZ manage permissions on the given item
-def user_has_manage_permission(request, item):
-
-    is_manager = False
-
-    user = request.user
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
-
-    # If the JWT has expired or the user doesn't have one, force the user to login again
-    if user_jwt is None or validate_jwt(request) is None:
-        logout_redirect(request)
-
-    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
-
-    # Confirm user is a manager of the given project
-    permissions_url = settings.USER_PERMISSIONS_URL + "?item=" + item + "&email=" + user.email
-    user_permissions = requests.get(permissions_url, headers=jwt_headers, verify=False).json()
-    # logger.debug('[HYPATIO][DEBUG] permissions_url: ' + permissions_url)
-    # logger.debug('[HYPATIO][DEBUG] user_permissions: ' + json.dumps(user_permissions))
-
-    if user_permissions is not None and 'results' in user_permissions:
-        for perm in user_permissions['results']:
-            if perm['permission'] == "MANAGE":
-                is_manager = True
-
-    return is_manager                                            
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
