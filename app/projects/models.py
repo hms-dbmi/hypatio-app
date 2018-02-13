@@ -14,6 +14,12 @@ DATA_LOCATION_TYPE = (
     (EXTERNAL_APP_URL, 'External Application URL')
 )
 
+TEAM_STATUS = (
+    ('Pending', 'Pending'),
+    ('Ready', 'Ready to be activated'),
+    ('Active', 'Activated'),
+    ('Deactivated', 'Deactivated')
+)
 
 def get_agreement_form_upload_path(instance, filename):
 
@@ -47,8 +53,8 @@ class AgreementForm(models.Model):
     This represents the type of forms that a user might need to sign to be granted access to
     a data set, such as a data use agreement or rules of conduct. The form file should be an html file.
     """
-    # TODO add form validation to check for html goodness
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
+    short_name = models.CharField(max_length=6, blank=False, null=False)
     created = models.DateTimeField(auto_now_add=True)
     form_html = models.FileField(upload_to=get_agreement_form_upload_path, validators=[FileExtensionValidator(allowed_extensions=['html'])])
 
@@ -99,6 +105,7 @@ class SignedAgreementForm(models.Model):
 class Team(models.Model):
     team_leader = models.OneToOneField(User)
     data_project = models.ForeignKey(DataProject)
+    status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
 
     def __str__(self):
         return '%s' % self.team_leader.email

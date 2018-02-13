@@ -12,7 +12,7 @@
                 integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
         <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
         <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-        
+       
         {% load bootstrap3 %}
         {% bootstrap_css %}
         {% bootstrap_javascript %}
@@ -165,11 +165,12 @@
                                 <li><a href="/profile">Profile</a></li>
                                 
                                 {% if is_manager %}
-                                    <li role="separator" class="divider"></li>
-                                    <li><a href="/projects/managedataprojects">Manage Projects</a></li>
+                                    <!-- <li role="separator" class="divider"></li>
+                                    <li><a href="/projects/managedataprojects">Manage Projects</a></li> -->
                                     
+                                    {# TODO remove the project_key eventually #}
                                     <li role="separator" class="divider"></li>
-                                    <li><a href="/projects/managecontests">Manage Contests</a></li>
+                                    <li><a href="/projects/manage/n2c2-t1/">Manage Contests</a></li>
                                 {% endif %}
                                 
                                 <li role="separator" class="divider"></li>

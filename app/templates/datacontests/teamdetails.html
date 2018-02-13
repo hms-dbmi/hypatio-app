@@ -1,10 +1,17 @@
-{% if participant.team_wait_on_leader %}
-    No action needed at this time. We are waiting for your team leader {{ participant.team_wait_on_leader_email }} to create a team.
-{%  elif participant.team_pending %}
-    No action needed at this time. We are waiting for your team leader {{ team.team_leader }} to approve your request to join the team.
-{%  elif participant.team_approved %}
-    {% if user_is_pi %}
-        {% if team_has_pending_members %}
+{% if user_is_team_leader %}
+    {% if team.status == "Active" %}
+        <div class="alert alert-success" role="alert">
+            Your team has been activated by the contest administrators. Please wait for the data sets to be released.
+        </div>
+    {% elif team.status == "Ready" %}
+        <div class="alert alert-warning" role="alert">
+            You marked your team as finalized. Please wait for a contest administrator to approve your team.
+        </div>
+    {% elif team.status == "Deactivated" %}
+        <div class="alert alert-danger" role="alert">
+            Your team was deactivated by contest administrators.
+        </div>
+    {% elif team_has_pending_members %}
         <div class="alert alert-warning" role="alert">
             You are the leader of this team. Please review the list of team members below for any membership requests to approve or reject. If there is someone you would like to join your team, have them create an account here on the DBMI Portal and visit this page.
         </div>
@@ -12,108 +19,136 @@
         <div class="alert alert-success" role="alert">
             You are the leader of this team. If all members of your team have already registered and are listed below, please click the Finalize button below to lock in your team for the challenge.
         </div>
-        {% endif %}
+    {% endif %}
 
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>Email</th>
-                    <th>Membership</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for participant in team_members %}
-                <tr>
-                    <td>{{ participant.user.email }}</td>
-                    <td>
-                    {% if participant.team_approved %}
-                        Approved
-                    {% elif participant.team_pending %}
-                        <button type="button" class="btn btn-success btn-xs accept-participant" data-project="{{ project.project_key }}" data-participant="{{ participant.user.email }}">
-                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Accept
-                        </button>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Membership</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for participant in team_members %}
+            <tr>
+                <td>{{ participant.user.email }}</td>
+                <td>
+                {% if participant.team_approved %}
+                    Approved
+                {% elif participant.team_pending %}
+                    <button type="button" class="btn btn-success btn-xs accept-participant" data-project="{{ project.project_key }}" data-participant="{{ participant.user.email }}">
+                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Accept
+                    </button>
 
-                        <button type="button" class="btn btn-danger btn-xs reject-participant" data-project="{{ project.project_key }}" data-participant="{{ participant.user.email }}">
-                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Reject
-                        </button>
-                    {% else %}
-                        Error
-                    {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    <button type="button" class="btn btn-danger btn-xs reject-participant" data-project="{{ project.project_key }}" data-participant="{{ participant.user.email }}">
+                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Reject
+                    </button>
+                {% else %}
+                    Error
+                {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-        {% if not pi_team_has_pending_members %}
-        <button type="button" class="btn btn-danger" data-project="{{ project.project_key }}" data-participant="{{ participant.user.email }}">
-            <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> Finalize
-        </button>
-        {% endif %}
-    {% else %}
+    {% if team.status == "Pending" and not team_has_pending_members %}
+    <button type="button" class="btn btn-danger finalize-team" data-project="{{ project.project_key }}" data-team="{{ team.team_leader.email }}">
+        <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> Finalize
+    </button>
+    {% endif %}
+{% else %}
+    {% if participant.team_wait_on_leader %}
+        No action needed at this time. We are waiting for your team leader {{ participant.team_wait_on_leader_email }} to create a team.
+    {%  elif participant.team_pending %}
+        No action needed at this time. We are waiting for your team leader {{ team.team_leader }} to approve your request to join the team.
+    {%  elif participant.team_approved %}
         <div class="alert alert-success alert-dismissible" role="alert">
             You have been approved to join team {{ participant.team }}. Please wait for your team leader to finalize the team.
         </div>
-    {% endif %}
-{% else %}
-    <div class="alert alert-warning" role="alert">
-        You have not yet joined a team. Please either select your team leader from the list below or enter their email to wait for them to create a team. If you are the team leader, please click the Create Team button.
-    </div>
-
-    <form action="/projects/join_team/" method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="team_list">Current team leader list:</label>
-            <select class="form-control" name="existing_pi_team_to_join">
-                {% for team in all_teams %}
-                <option value="{{ team }}">{{ team }}</option>
-                {% endfor %}
-            </select>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            You have not yet joined a team. Please either select your team leader from the list below or enter their email to wait for them to create a team. If you are the team leader, please click the Create Team button.
         </div>
 
-        <strong>Don't see your team leader?</strong>
-        <p>They might not have registered yet. Enter their e-mail address below and you'll be added to the team when they register. </p>
-        
-        <input class="form-control" type="email" name="pi_to_wait_for" />
-        
-        <div class="form-group">
-            <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
-        </div>
-        <button class="btn btn-primary" type="submit">Join Team</button>
-    </form>
+        <form action="/projects/join_team/" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="team_list">Current team leader list:</label>
+                <select class="form-control" name="existing_pi_team_to_join">
+                    {% for team in all_teams %}
+                    <option value="{{ team }}">{{ team }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-    <hr>
-
-    <h4>Are you leading a team?</h4>
-
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#new_pi_modal">Create Team</button>
-
-    <div class="modal fade" id="new_pi_modal" tabindex="-1" role="dialog" aria-labelledby="new_pi_modalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="new_pi_modalLabel">Create Team Confirmation</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-           Are you sure you want to create a new team and become the team leader for that team?
-          </div>
-          <div class="modal-footer">
-              <form action="/projects/create_team_from_pi/" method="post">
-                  {% csrf_token %}
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-
+            <strong>Don't see your team leader?</strong>
+            <p>They might not have registered yet. Enter their e-mail address below and you'll be added to the team when they register. </p>
+            
+            <input class="form-control" type="email" name="pi_to_wait_for" />
+            
+            <div class="form-group">
                 <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
-                <button type="submit" class="btn btn-primary">Sign me up!</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Join Team</button>
+        </form>
 
+        <hr>
+
+        <h4>Are you leading a team?</h4>
+
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#new_pi_modal">Create Team</button>
+
+        <div class="modal fade" id="new_pi_modal" tabindex="-1" role="dialog" aria-labelledby="new_pi_modalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="new_pi_modalLabel">Create Team Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+            Are you sure you want to create a new team and become the team leader for that team?
+            </div>
+            <div class="modal-footer">
+                <form action="/projects/create_team_from_pi/" method="post">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+
+                    <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
+                    <button type="submit" class="btn btn-primary">Sign me up!</button>
+                </form>
+            </div>
+            </div>
+        </div>
+        </div>
+    {% endif %}
 {% endif %}
+
+{% block footerscripts %}
+<script type="application/javascript">
+    $('.finalize-team').click(function(){
+        var project_key = $(this).data("project");
+        var team = $(this).data("team");
+
+        var request_data = {
+            project_key: project_key,
+            team: team,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        };
+
+        $.post("/projects/finalize_team/", request_data)
+            .done(function() {
+                // Refresh the page so the user does not see this button again
+                setTimeout(function(){
+                    location.reload();
+                },0);
+            }).fail(function() {
+                // TODO Fail message needed    
+            });
+    });
+</script>
 
 <script type="application/javascript">
     $('.accept-participant').click(function(){
@@ -160,3 +195,4 @@
             });
     });
 </script>
+{% endblock %}

@@ -15,6 +15,51 @@ from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 logger = logging.getLogger(__name__)
 
 @user_auth_and_jwt
+def deactivate_team(request):
+    project_key = request.POST.get("project")
+    team = request.POST.get("team")
+
+    project = DataProject.objects.get(project_key=project_key)
+    team = Team.objects.get(team_leader__email=team, data_project=project)
+
+    team.status = 'Deactivated'
+    team.save()
+
+    # TODO: Need to revoke VIEW permissions to all team members
+    # ...
+    
+    return HttpResponse(200)
+
+@user_auth_and_jwt
+def activate_team(request):
+    project_key = request.POST.get("project")
+    team = request.POST.get("team")
+
+    project = DataProject.objects.get(project_key=project_key)
+    team = Team.objects.get(team_leader__email=team, data_project=project)
+
+    team.status = 'Active'
+    team.save()
+
+    # TODO: Need to grant VIEW permissions to all team members
+    # ...
+
+    return HttpResponse(200)
+
+@user_auth_and_jwt
+def finalize_team(request):
+    project_key = request.POST.get("project_key")
+    team = request.POST.get("team")
+
+    project = DataProject.objects.get(project_key=project_key)
+    team = Team.objects.get(team_leader__email=team, data_project=project)
+
+    team.status = 'Ready'
+    team.save()
+
+    return HttpResponse(200)
+
+@user_auth_and_jwt
 def approve_team_join(request):
     project_key = request.POST.get("project_key")
     participant_email = request.POST.get("participant")
