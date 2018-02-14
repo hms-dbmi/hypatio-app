@@ -35,12 +35,13 @@
                             {% if team.status == "Pending" %}
                                 Pending
                             {% elif team.status == "Ready" %}
-                                <span class="label label-success">Ready to Activate</span></td>
+                                <span class="label label-success">Ready to Activate</span>
                             {% elif team.status == "Active" %}
                                 Active
                             {% elif team.status == "Deactivated" %}
                                 Deactivated
                             {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                     </tbody>
