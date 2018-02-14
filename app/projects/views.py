@@ -6,6 +6,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth import logout
+from django.db.models import Count
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.shortcuts import get_object_or_404
@@ -68,7 +69,6 @@ def save_signed_agreement_form(request):
 
     return HttpResponse(200)
 
-
 @user_auth_and_jwt
 def submit_user_permission_request(request):
 
@@ -82,7 +82,6 @@ def submit_user_permission_request(request):
     sciauthz.current_user_request_access(data_request)
 
     return HttpResponse(200)
-
 
 @public_user_auth_and_jwt
 def list_data_projects(request, template_name='dataprojects/list.html'):
@@ -212,13 +211,52 @@ def list_data_contests(request, template_name='datacontests/list.html'):
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
 
 @user_auth_and_jwt
-def manage_contests(request, template_name='datacontests/managecontests.html'):
+def view_team_management(request, template_name='datacontests/manageteams.html'):
+    """
+    Populates the team management modal popup on the contest management screen.
+    """
 
-    all_data_contests = DataProject.objects.filter(is_contest=True)
-    data_contests = []
+    project_key = request.GET["project"]
+    team_leader = request.GET["team"]
 
-    # TODO eventually this shouldn't be hard coded for n2c2
-    data_contest = "n2c2-t1"
+    project = DataProject.objects.get(project_key=project_key)
+    team = Team.objects.get(data_project=project, team_leader__email=team_leader)
+    num_required_forms = project.agreement_forms.count()
+
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
+
+    # Collect all the team member information needed
+    team_members = []
+
+    for member in team.participant_set.all():
+        email = member.user.email
+
+        # Make a request to SciReg for a specific person's user information
+        user_info_json = requests.get(settings.SCIREG_REGISTRATION_URL + "?email=" + email, headers=jwt_headers, verify=False).json()
+        if user_info_json['count'] != 0:
+            user_info = user_info_json["results"][0]
+        else:
+            user_info = None
+        
+        signed_agreement_forms = SignedAgreementForm.objects.filter(user__email=email, project=project)
+
+        team_members.append({
+            'email': email,
+            'user_info': user_info,
+            'signed_agreement_forms': signed_agreement_forms,
+            'participant': member
+        })
+
+    return render(request, template_name, context={"project": project,
+                                                   "team": team,
+                                                   "team_members": team_members,
+                                                   "num_required_forms": num_required_forms})
+
+@user_auth_and_jwt
+def manage_contest(request, project_key, template_name='datacontests/managecontests.html'):
+
+    project = DataProject.objects.get(project_key=project_key)
 
     # This dictionary will hold all user requests and permissions
     user_details = {}
@@ -228,77 +266,34 @@ def manage_contests(request, template_name='datacontests/managecontests.html'):
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-    is_manager = sciauthz.user_has_manage_permission(request, data_contest)
+    is_manager = sciauthz.user_has_manage_permission(request, project_key)
 
     if not is_manager:
-        logger.debug('[HYPATIO][DEBUG] User ' + user.email + ' does not have MANAGE permissions for item ' + data_contest + '.')
+        logger.debug('[HYPATIO][DEBUG] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
         return HttpResponse(403)
 
-    # The JWT token that will get passed in API calls
-    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
+    teams = Team.objects.filter(data_project=project)
 
-    authorization_request_url = settings.AUTHORIZATION_REQUEST_URL + "?item=" + data_contest
-    logger.debug('[HYPATIO][DEBUG] authorization_request_url: ' + authorization_request_url)
-
-    # Query SciAuthZ for all access requests to this contest
-    authorization_requests = requests.get(authorization_request_url, headers=jwt_headers, verify=False).json()
-    logger.debug('[HYPATIO][DEBUG] Item Permission Requests: ' + json.dumps(authorization_requests))
-
-    if authorization_requests is not None and 'results' in authorization_requests:
-        authorization_requests_json = authorization_requests['results']
-
-        for authorization_request in authorization_requests_json:
-
-            date_requested = ""
-            date_request_granted = ""
-
-            if authorization_request['date_requested'] is not None:
-                date_requested = datetime.strftime(datetime.strptime(authorization_request['date_requested'], "%Y-%m-%dT%H:%M:%S"), "%b %d %Y, %H:%M:%S")
-
-            if authorization_request['date_request_granted'] is not None:
-                date_request_granted = datetime.strftime(datetime.strptime(authorization_request['date_request_granted'], "%Y-%m-%dT%H:%M:%S"), "%b %d %Y, %H:%M:%S")
-
-            # Store the permission request in a dictionary and include a blank permissions key to be added later
-            user_detail = {'personal_information': {'first_name': '',
-                                                    'last_name': ''},
-                           'authorization_request': {'date_requested': date_requested,
-                                                     'request_granted': authorization_request['request_granted'],
-                                                     'date_request_granted': date_request_granted,
-                                                     'request_id': authorization_request['id']},
-                           'permissions': []}
-
-            # Add a key to the user details dictionary with the user email as the key and permis
-            user_details[authorization_request['user']] = user_detail
-
-    # Query SciAuthZ for all permissions to this contest
-    permissions_url = settings.USER_PERMISSIONS_URL + "?item=" + data_contest
-    user_permissions = requests.get(permissions_url, headers=jwt_headers, verify=False).json()
-    logger.debug('[HYPATIO][DEBUG] User Permissions: ' + json.dumps(user_permissions))
-
-    if user_permissions is not None and 'results' in user_permissions:
-        user_permissions = user_permissions["results"]
-
-        for permission in user_permissions:
-
-            # If this user is not already in the user detail dictionary, add them (user does not have a permission request apparently)
-            if permission['user'] not in user_details:
-                user_details[permission['user']] = {'personal_information': {'first_name': '',
-                                                                             'last_name': ''},
-                                                    'authorization_request': {},
-                                                    'permissions': []}
-
-            # Add this permission to the user details dictionary
-            user_details[permission['user']]['permissions'].append(permission['permission'])
-
-    logger.debug('[HYPATIO][DEBUG] user_details: ' + json.dumps(user_details))
+    # Simple statistics for display
+    total_teams = teams.count()
+    total_participants = Participant.objects.filter(data_challenge=project).count()   
+    countries_represented = '?' # TODO
+    total_submissions = 0 # TODO
+    teams_with_any_submission = 0 # TODO
 
     return render(request, template_name, {"user_logged_in": user_logged_in,
                                            "user": user,
                                            "ssl_setting": settings.SSL_SETTING,
                                            "is_manager": is_manager,
-                                           "user_details": user_details,
-                                           "project": data_contest})
+                                           "project": project,
+                                           "teams": teams,
+                                           "total_teams": total_teams,
+                                           "total_participants": total_participants,
+                                           "countries_represented": countries_represented,
+                                           "total_submissions": total_submissions,
+                                           "teams_with_any_submission": teams_with_any_submission})
 
+# TODO remove this: activate_team view should now do this
 @user_auth_and_jwt
 def grant_access_with_view_permissions(request):
 
@@ -368,7 +363,7 @@ def project_details(request, project_key, template_name='project_details.html'):
     team = None
     team_members = None
     team_has_pending_members = None
-    user_is_pi = False
+    user_is_team_leader = False
     institution = project.institution
     current_step = None
 
@@ -392,8 +387,7 @@ def project_details(request, project_key, template_name='project_details.html'):
         get_task_context_data(request)
 
         # Make a request to SciReg to grab email verification and profile information
-        profile_registration_url = settings.SCIREG_SERVER_URL + '/api/register/'
-        profile_registration_info = requests.get(profile_registration_url, headers=jwt_headers, verify=False).json()
+        profile_registration_info = requests.get(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, verify=False).json()
 
         if profile_registration_info['count'] != 0:
             profile_registration_info = profile_registration_info["results"][0]
@@ -452,7 +446,7 @@ def project_details(request, project_key, template_name='project_details.html'):
         if participant and team:
             team_members = Participant.objects.filter(team=team)
             team_has_pending_members = team_members.filter(team_approved=False)
-            user_is_pi = team.team_leader == request.user
+            user_is_team_leader = team.team_leader == request.user
 
         try:
             all_teams = Team.objects.filter(data_project__project_key=project_key)
@@ -481,7 +475,7 @@ def project_details(request, project_key, template_name='project_details.html'):
                                            "participant": participant,
                                            "all_teams": all_teams,
                                            "team": team,
-                                           "user_is_pi": user_is_pi,
+                                           "user_is_team_leader": user_is_team_leader,
                                            "team_members": team_members,
                                            "team_has_pending_members": team_has_pending_members,
                                            "access_granted": access_granted,
@@ -494,7 +488,4 @@ def project_details(request, project_key, template_name='project_details.html'):
                                            "institution": institution,
                                            "registration_form": registration_form,
                                            "current_step": current_step})
-
-
-
 

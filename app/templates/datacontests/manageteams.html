@@ -1,0 +1,138 @@
+{% load countries %}
+
+<div class="row form-group">
+    <div class="col-md-6">
+        <p><strong>Team Leader:</strong> {{ team.team_leader.email }}</p>
+        <p><strong>Team Status:</strong> <span id="team-status">{{ team.status }}</span></p>
+    </div>
+    <div class="col-md-6">
+        <div class="pull-right">
+        {% if team.status == "Ready" %}
+            <button type="button" class="btn btn-success" id="activate-team" data-project="{{ project.project_key }}" data-team="{{ team.team_leader.email }}">Activate Team</button>
+        {% elif team.status == "Active" %}
+            <button type="button" class="btn btn-default" id="deactivate-team" data-project="{{ project.project_key }}" data-team="{{ team.team_leader.email }}">Deactivate Team</button>
+        {% elif team.status == "Deactivated" %}
+            <button type="button" class="btn btn-default" id="activate-team" data-project="{{ project.project_key }}" data-team="{{ team.team_leader.email }}">Reactivate Team</button>
+        {% endif %}            
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <table class="table table-condensed table-bordered table-hover table-responsive">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Location</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Signed Forms</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in team_members %}
+                <tr>
+                    <td>{{ member.user_info.first_name }} {{ member.user_info.last_name }}</td>
+                    <td>
+                    {% get_country member.user_info.country as country %}
+                    {% if country == 'US' and member.user_info.state != "" %}
+                        {{ member.user_info.state }}, USA
+                    {% else %}
+                        {{ country.name }}
+                    {% endif %}
+                        <img src="{{ country.flag }}" class="pull-right" style="margin: 6px 4px 0">
+                    </td>
+                    <td>
+                        {{ member.email }}
+                        <div class="pull-right">
+                            <!-- Country flag here? -->
+                        </div>
+                    </td>
+                    <td>
+                    {% if member.email == team.team_leader.email %}
+                        <span class="label label-primary">Team leader</span>
+                    {% elif member.signed_agreement_forms.count != num_required_forms %}
+                        <span class="label label-warning">Pending forms</span>
+                    {% elif member.participant.team_pending %}
+                        <span class="label label-warning">Pending team leader approval</span>
+                    {% else %}
+                        <span class="label label-success">Active</span>
+                    {% endif %}
+                    </td>
+                    <td>
+                        {% for form in member.signed_agreement_forms %}
+                        <button type="button" class="btn btn-default btn-xs">
+                            {{ form.agreement_form.short_name }}
+                        </button>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Actions <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#">Make team leader</a></li>
+                                <li><a href="#">Remove from team</a></li>
+                                <li><a href="#">Ban from challenge</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="application/javascript">
+    $('#activate-team').click(function() {
+        var team = $(this).attr("data-team");
+        var project = $(this).attr("data-project");
+
+        var request_data = {
+            team: team,
+            project: project,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        };
+
+        $.post("/projects/activate_team/", request_data)
+            .done(function() {
+                $("#activate-team").replaceWith('<h4><span class="label label-warning">Team activated. Refreshing page...</span></h4>');
+
+                // Refresh the page so the user does not see this button again
+                setTimeout(function(){
+                    location.reload();
+                },1500);
+            }).fail(function() {
+                // TODO Fail message needed    
+            });
+    });
+</script>
+
+<script type="application/javascript">
+    $('#deactivate-team').click(function() {
+        var team = $(this).attr("data-team");
+        var project = $(this).attr("data-project");
+
+        var request_data = {
+            team: team,
+            project: project,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        };
+
+        $.post("/projects/deactivate_team/", request_data)
+            .done(function() {
+                $("#deactivate-team").replaceWith('<h4><span class="label label-warning">Team deactivated. Refreshing page...</span></h4>');
+
+                // Refresh the page so the user does not see this button again
+                setTimeout(function(){
+                    location.reload();
+                },1500);
+            }).fail(function() {
+                // TODO Fail message needed    
+            });
+    });
+</script>
