@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'jquery',
     'bootstrap3',
     'contact',
+    'django_countries',
     'profile',
     'projects',
     'pyauth0jwt',
@@ -131,6 +132,8 @@ AUTHZ_BASE = os.environ.get("AUTHZ_BASE", "")
 USER_PERMISSIONS_URL = AUTHZ_BASE + "/user_permission/"
 AUTHORIZATION_REQUEST_URL = AUTHZ_BASE + "/authorization_requests/"
 AUTHORIZATION_REQUEST_GRANT_URL = AUTHZ_BASE + "/authorization_request_change/"
+
+SCIREG_REGISTRATION_URL = SCIREG_SERVER_URL + "/api/register/"
 
 COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN")
 

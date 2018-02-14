@@ -43,17 +43,15 @@ def update_profile(request):
 
             # Create a new registration with a POST
             if registration_form.cleaned_data['id'] == "":
-                registration_url = settings.SCIREG_SERVER_URL + '/api/register/'
-                requests.post(registration_url, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data), verify=False)
+                requests.post(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data), verify=False)
             # Update an existing registration with a PUT to the specific ID
             else:
-                registration_url = settings.SCIREG_SERVER_URL + '/api/register/' + registration_form.cleaned_data['id'] + '/'
+                registration_url = settings.SCIREG_REGISTRATION_URL + registration_form.cleaned_data['id'] + '/'
                 requests.put(registration_url, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data), verify=False)
 
             return HttpResponse(200)
         else:
-            logger.debug('[HYPATIO][DEBUG] Profile form errors: ' + form.errors.as_json())
-
+            # logger.debug('[HYPATIO][DEBUG] Profile form errors: ' + form.errors.as_json())
             # TODO Not implemented
             return HttpResponse(status=500)
 
@@ -71,8 +69,7 @@ def profile(request, template_name='profile/profile.html'):
     jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
     # Query SciReg to get the user's information
-    registration_url = settings.SCIREG_SERVER_URL + '/api/register/'
-    registration_info = requests.get(registration_url, headers=jwt_headers, verify=False).json()
+    registration_info = requests.get(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, verify=False).json()
 
     logger.debug('[HYPATIO][DEBUG] Registration info ' + json.dumps(registration_info))
 

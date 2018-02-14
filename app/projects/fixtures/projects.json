@@ -12,6 +12,7 @@
         "pk": 1,
         "fields": {
             "name": "N2C2 Data Use Agreement",
+            "short_name": "DUA",
             "created": "2018-01-01T00:00:00+00:00",
             "form_html": "agreementforms/c757e275-486f-4c3d-ab52-e295ccb8f45a.html"
         }
@@ -21,6 +22,7 @@
         "pk": 2,
         "fields": {
             "name": "N2C2 Rules of Conduct",
+            "short_name": "ROC",
             "created": "2018-01-01T00:00:00+00:00",
             "form_html": "agreementforms/e3b33c4d-94d2-4738-9d4c-308548943435.html"
         }

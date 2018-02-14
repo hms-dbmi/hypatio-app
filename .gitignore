@@ -4,3 +4,4 @@ app/assets/*
 .DS_Store
 *.log
 app/db.sqlite3
+app/hypatio/local_settings.py
