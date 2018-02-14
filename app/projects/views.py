@@ -354,7 +354,6 @@ def project_details(request, project_key, template_name='project_details.html'):
     registration_form = None
     agreement_forms_list = []
     participant = None
-    all_teams = None
     is_manager = False
     user_requested_access = False
     user_access_request_granted = False
@@ -448,11 +447,6 @@ def project_details(request, project_key, template_name='project_details.html'):
             team_has_pending_members = team_members.filter(team_approved=False)
             user_is_team_leader = team.team_leader == request.user
 
-        try:
-            all_teams = Team.objects.filter(data_project__project_key=project_key)
-        except ObjectDoesNotExist:
-            all_teams = None
-
         # If all other steps completed, then last step will be team
         if current_step is None:
             current_step = "team"
@@ -473,7 +467,6 @@ def project_details(request, project_key, template_name='project_details.html'):
     return render(request, template_name, {"project": project,
                                            "agreement_forms_list": agreement_forms_list,
                                            "participant": participant,
-                                           "all_teams": all_teams,
                                            "team": team,
                                            "user_is_team_leader": user_is_team_leader,
                                            "team_members": team_members,

@@ -102,34 +102,47 @@ def reject_team_join(request):
     return HttpResponse(200)
 
 @user_auth_and_jwt
+def leave_team(request):
+    project_key = request.POST.get("project_key")
+    project = DataProject.objects.get(project_key=project_key)
+
+    team_leader = request.POST.get("team_leader")
+
+    participant = Participant.objects.get(user=request.user)
+    participant.team = None
+    participant.pending = False
+    participant.approved = False
+    participant.team_wait_on_leader_email = None
+    participant.team_wait_on_leader = False
+    participant.save()
+
+    return redirect('/projects/' + request.POST.get('project_key') + '/')
+
+@user_auth_and_jwt
 def join_team(request):
     project_key = request.POST.get("project_key")
     project = DataProject.objects.get(project_key=project_key)
 
-    existing_pi_team_to_join = request.POST.get("existing_pi_team_to_join")
-    pi_to_wait_for = request.POST.get("pi_to_wait_for")
+    team_leader = request.POST.get("team_leader")
 
     try:
         participant = Participant.objects.get(user=request.user)
     except ObjectDoesNotExist:
         participant = create_participant(request.user, project)
 
-    if pi_to_wait_for != "":
-        participant.team_wait_on_leader_email = pi_to_wait_for
-        participant.team_wait_on_leader = True
-        participant.save()
-    elif existing_pi_team_to_join != "":
-        try:
-            team = Team.objects.get(team_leader__email=existing_pi_team_to_join)
-        except ObjectDoesNotExist:
-            team = None
-
+    try:
+        # If this team leader has already created a team, add the person to the team in a pending status
+        team = Team.objects.get(team_leader__email=team_leader)
         participant.team = team
         participant.team_pending = True
         participant.save()
+    except ObjectDoesNotExist:
+        # If this team leader has not yet created a team, mark the person as waiting
+        participant.team_wait_on_leader_email = team_leader
+        participant.team_wait_on_leader = True
+        participant.save()
 
     return redirect('/projects/' + request.POST.get('project_key') + '/')
-
 
 # TODO What is this used for?
 @user_auth_and_jwt
@@ -150,7 +163,7 @@ def team_signup_form(request, project_key):
 
 
 @user_auth_and_jwt
-def create_team_from_pi(request):
+def create_team(request):
     """Creates a new team with the given user as its team leader.
     """
 
