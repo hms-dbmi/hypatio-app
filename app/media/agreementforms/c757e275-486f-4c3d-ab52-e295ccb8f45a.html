@@ -27,11 +27,11 @@
 
     <div class="radio" id="registrant-is">
         <label>
-            <input type="radio" name="registrant-is" value="individual">
+            <input type="radio" name="registrant-is" value="individual" required>
             an individual or academic organization, requesting Data under this Agreement on behalf of himself/herself or the academic organization<br>
         </label>
         <label>
-            <input type="radio" name="registrant-is" value="corporation">
+            <input type="radio" name="registrant-is" value="corporation" required>
             a corporation, requesting Data under this Agreement on behalf of itself and its agents and employees
         </label>
     </div>
@@ -108,19 +108,19 @@
 
     <div class="form-group">
         <label for="electronic-signature">Electronic Signature (Full Name)</label>
-        <input type="text" class="form-control" id="electronic-signature">
+        <input type="text" class="form-control" id="electronic-signature" required>
     </div>
     <div class="form-group">
         <label for="professional-title">Professional Title</label>
-        <input type="text" class="form-control" id="professional-title">
+        <input type="text" class="form-control" id="professional-title" required>
     </div>
     <div class="form-group">
         <label for="date">Date</label>
-        <input type="date" class="form-control" id="date">
+        <input type="date" class="form-control" id="date" required>
     </div>
 
     <label class="checkbox-inline">
-        <input type="checkbox" id="i-agree" value="Yes"> I agree to the terms and conditions above. By clicking the "I Agree" checkbox I certify that this is my legal signature.
+        <input type="checkbox" id="i-agree" value="Yes" required> I agree to the terms and conditions above. By clicking the "I Agree" checkbox I certify that this is my legal signature.
     </label>
 </div>
 
@@ -133,11 +133,19 @@
             if (selected_value == "individual") {
                 $('#academic-questions').show();
                 $('#corporation-questions').hide();
+
+                $("#academic-questions :input").prop('required',true);
+                $("#corporation-questions :input").prop('required',false);
+                $("#corporation-questions :input").val('');
             }
 
             if (selected_value == "corporation") {
                 $('#academic-questions').hide();
                 $('#corporation-questions').show();
+
+                $("#academic-questions :input").prop('required',false);
+                $("#academic-questions :input").val('');                
+                $("#corporation-questions :input").prop('required',true);
             }
         });
     });

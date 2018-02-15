@@ -67,7 +67,6 @@ if [ ! -d static ]; then
   mkdir static
 fi
 python manage.py collectstatic --no-input
-python manage.py loaddata projects # Remove before going into master
 
 /etc/init.d/nginx restart
 
