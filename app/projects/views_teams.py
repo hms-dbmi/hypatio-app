@@ -5,6 +5,9 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
+from django.conf import settings
+
+from hypatio.sciauthz_services import SciAuthZ
 
 from .models import DataProject
 from .models import Participant
@@ -141,6 +144,12 @@ def join_team(request):
         participant.team_wait_on_leader_email = team_leader
         participant.team_wait_on_leader = True
         participant.save()
+
+    logger.debug('[HYPATIO][join_team] - Creating Profile Permissions')
+
+    # Create record to allow leader access to profile.
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+    sciauthz.create_profile_permission(team_leader)
 
     return redirect('/projects/' + request.POST.get('project_key') + '/')
 
