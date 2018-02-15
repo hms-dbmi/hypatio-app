@@ -83,6 +83,24 @@ def submit_user_permission_request(request):
 
     return HttpResponse(200)
 
+@user_auth_and_jwt
+def download_signed_form(request):
+
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+    project_key = request.GET['project_key']
+    signed_agreement_form_id = request.GET['signed_form_id']
+
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    is_manager = sciauthz.user_has_manage_permission(request, project_key)
+
+    if is_manager:
+        project = get_object_or_404(DataProject, project_key=project_key)
+        signed_agreement_form = get_object_or_404(SignedAgreementForm, id=signed_agreement_form_id, project=project)
+        return HttpResponse(signed_agreement_form.agreement_text, content_type='text/plain')
+    else:
+        return HttpResponse(403)
+
 @public_user_auth_and_jwt
 def list_data_projects(request, template_name='dataprojects/list.html'):
 
