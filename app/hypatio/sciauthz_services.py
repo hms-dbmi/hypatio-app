@@ -2,7 +2,9 @@ from json import JSONDecodeError
 
 import requests
 import json
+import logging
 
+logger = logging.getLogger(__name__)
 
 class SciAuthZ:
     USER_PERMISSIONS_URL = None
@@ -17,9 +19,12 @@ class SciAuthZ:
         user_permissions_url = authz_base + "/user_permission/"
         authorization_request_url = authz_base + "/authorization_requests/"
         authorization_request_grant_url = authz_base + "/authorization_request_change/"
+        create_profile_permission = authz_base + "/user_permission/create_registration_permission_record/"
 
         self.USER_PERMISSIONS_URL = user_permissions_url
         self.AUTHORIZATION_REQUEST_URL = authorization_request_url
+        self.CREATE_PROFILE_PERMISSION = create_profile_permission
+
         jwt_headers = {"Authorization": "JWT " + jwt, 'Content-Type': 'application/json'}
 
         self.JWT_HEADERS = jwt_headers
@@ -71,3 +76,14 @@ class SciAuthZ:
             user_access_request = None
 
         return user_access_request
+
+    def create_profile_permission(self, grantee_email):
+        logger.debug('[HYPATIO][create_profile_permission] - Creating Profile Permissions')
+
+        modified_headers = self.JWT_HEADERS
+
+        modified_headers['Content-Type'] = 'application/x-www-form-urlencoded'
+
+        profile_permission = requests.post(self.CREATE_PROFILE_PERMISSION, headers=modified_headers, data={"grantee_email": grantee_email}, verify=self.VERIFY_REQUEST)
+
+        return profile_permission
