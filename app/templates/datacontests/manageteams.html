@@ -63,9 +63,9 @@
                     </td>
                     <td>
                         {% for form in member.signed_agreement_forms %}
-                        <button type="button" class="btn btn-default btn-xs">
+                        <a class="btn btn-default btn-xs download-signed-form" href="/projects/download_signed_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" role="button">
                             {{ form.agreement_form.short_name }}
-                        </button>
+                        </a>
                         {% endfor %}
                     </td>
                     <td>
