@@ -59,7 +59,16 @@
     {% endif %}
 {% else %}
     {% if participant.team_wait_on_leader %}
-        No action needed at this time. We are waiting for your team leader {{ participant.team_wait_on_leader_email }} to create a team.
+        <p>No action needed at this time. We are waiting for your team leader <span class="label label-default">{{ participant.team_wait_on_leader_email }}</span> to create a team and approve your access. </p>
+        <hr>
+        <p>Is your team leader using a different email address? Click the button below to return to the team join step.</p>
+
+        <form action="/projects/leave_team/" method="post">
+            {% csrf_token %}
+            <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
+            <button class="btn btn-default btn-sm" type="submit">Restart Team Setup</button>
+        </form>
+
     {%  elif participant.team_pending %}
         No action needed at this time. We are waiting for your team leader {{ team.team_leader }} to approve your request to join the team.
     {%  elif participant.team_approved %}
@@ -68,60 +77,56 @@
         </div>
     {% else %}
         <div class="alert alert-warning" role="alert">
-            You have not yet joined a team. Please either select your team leader from the list below or enter their email to wait for them to create a team. If you are the team leader, please click the Create Team button.
+            You have not yet joined a team. Please either join a team or create one. To join an existing team, enter the email address of your team leader. To create a team as its team leader, please click the Create Team button below. <strong>Note: student participants must have at least one faculty member on their team, and the faculty member should be the team leader.</strong>
         </div>
 
-        <form action="/projects/join_team/" method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="team_list">Current team leader list:</label>
-                <select class="form-control" name="existing_pi_team_to_join">
-                    {% for team in all_teams %}
-                    <option value="{{ team }}">{{ team }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+        <div class="row">
+            <div class="col-md-8">
+                <h4>Joining a team?</h4>
 
-            <strong>Don't see your team leader?</strong>
-            <p>They might not have registered yet. Enter their e-mail address below and you'll be added to the team when they register. </p>
-            
-            <input class="form-control" type="email" name="pi_to_wait_for" />
-            
-            <div class="form-group">
-                <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
-            </div>
-            <button class="btn btn-primary" type="submit">Join Team</button>
-        </form>
-
-        <hr>
-
-        <h4>Are you leading a team?</h4>
-
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#new_pi_modal">Create Team</button>
-
-        <div class="modal fade" id="new_pi_modal" tabindex="-1" role="dialog" aria-labelledby="new_pi_modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="new_pi_modalLabel">Create Team Confirmation</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-            Are you sure you want to create a new team and become the team leader for that team?
-            </div>
-            <div class="modal-footer">
-                <form action="/projects/create_team_from_pi/" method="post">
+                <form action="/projects/join_team/" method="post">
                     {% csrf_token %}
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
 
                     <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
-                    <button type="submit" class="btn btn-primary">Sign me up!</button>
+
+                    <div class="input-group">
+                        <input class="form-control" type="email" name="team_leader" placeholder="Team leader's email..." required/>
+                        <span class="input-group-btn">
+                            <button class="btn btn-primary" type="submit">Join Team</button>
+                        </span>
+                    </div>
                 </form>
             </div>
+            
+            <div class="col-md-4">
+                <h4>Leading a team?</h4>
+                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#new_team_modal">Create Team</button>
             </div>
         </div>
+
+        <div class="modal fade" id="new_team_modal" tabindex="-1" role="dialog" aria-labelledby="new_team_modalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="new_team_modalLabel">Create Team Confirmation</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to create a new team and become its team leader?
+                    </div>
+                    <div class="modal-footer">
+                        <form action="/projects/create_team/" method="post">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+
+                            <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
+                            <button type="submit" class="btn btn-primary">Sign me up!</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     {% endif %}
 {% endif %}
