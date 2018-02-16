@@ -135,7 +135,7 @@ def join_team(request):
 
     try:
         # If this team leader has already created a team, add the person to the team in a pending status
-        team = Team.objects.get(team_leader__email=team_leader)
+        team = Team.objects.get(team_leader__email__iexact=team_leader)
         participant.team = team
         participant.team_pending = True
         participant.save()
