@@ -120,6 +120,10 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
         user_logged_in = True
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
+        # If for some reason they have a session but not JWT, force them to log in again.
+        if user_jwt is None or validate_jwt(request) is None:
+            return logout_redirect(request)
+
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
         is_manager = sciauthz.user_has_manage_permission(request, 'n2c2-t1')
         user_permissions = sciauthz.current_user_permissions()
@@ -203,6 +207,10 @@ def list_data_contests(request, template_name='datacontests/list.html'):
         user = request.user
         user_logged_in = True
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+        # If for some reason they have a session but not JWT, force them to log in again.
+        if user_jwt is None or validate_jwt(request) is None:
+            return logout_redirect(request)
 
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
         is_manager = sciauthz.user_has_manage_permission(request, 'n2c2-t1')
@@ -393,6 +401,10 @@ def project_details(request, project_key, template_name='project_details.html'):
         user = request.user
         user_logged_in = True
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+        # If for some reason they have a session but not JWT, force them to log in again.
+        if user_jwt is None or validate_jwt(request) is None:
+            return logout_redirect(request)
 
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
         is_manager = sciauthz.user_has_manage_permission(request, project_key)
