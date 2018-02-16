@@ -30,7 +30,9 @@ SECRET_KEY = os.environ.get("SECRET_KEY", get_random_string(50, chars))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['.dbmi.hms.harvard.edu']
+PROJECT = 'hypatio'
+
+ALLOWED_HOSTS = [os.environ.get("ALLOWED_HOSTS")]
 
 # Application definition
 
@@ -43,8 +45,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'jquery',
     'bootstrap3',
-    'dataprojects',
+    'contact',
+    'django_countries',
+    'profile',
+    'projects',
     'pyauth0jwt',
+    'raven.contrib.django.raven_compat',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -84,11 +90,14 @@ WSGI_APPLICATION = 'hypatio.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'hypatio',
+        'USER': os.environ.get("MYSQL_USERNAME"),
+        'PASSWORD': os.environ.get("MYSQL_PASSWORD"),
+        'HOST': os.environ.get("MYSQL_HOST"),
+        'PORT': os.environ.get("MYSQL_PORT"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -114,19 +123,17 @@ AUTH0_SECRET = os.environ.get("AUTH0_SECRET")
 AUTH0_SUCCESS_URL = os.environ.get("AUTH0_SUCCESS_URL")
 AUTH0_LOGOUT_URL = os.environ.get("AUTH0_LOGOUT_URL","")
 
-
 AUTHENTICATION_BACKENDS = ['pyauth0jwt.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend']
 
 ACCOUNT_SERVER_URL = os.environ.get("ACCOUNT_SERVER_URL")
 SCIREG_SERVER_URL = os.environ.get("SCIREG_SERVER_URL")
 AUTHZ_BASE = os.environ.get("AUTHZ_BASE", "")
 
-PERMISSION_SERVER = AUTHZ_BASE + "/user_permission/"
-PROJECT_PERMISSION_URL = AUTHZ_BASE + "/authorizable_projects/"
-PROJECT_SETUP_URL = AUTHZ_BASE + "/project_setup/"
-CREATE_REQUEST_URL = AUTHZ_BASE + "/authorization_requests/"
-CREATE_DUA_SIGN = AUTHZ_BASE + "/dua_sign/"
-GET_ACCESS_REQUESTS = AUTHZ_BASE + "/authorization_requests/"
+USER_PERMISSIONS_URL = AUTHZ_BASE + "/user_permission/"
+AUTHORIZATION_REQUEST_URL = AUTHZ_BASE + "/authorization_requests/"
+AUTHORIZATION_REQUEST_GRANT_URL = AUTHZ_BASE + "/authorization_request_change/"
+
+SCIREG_REGISTRATION_URL = SCIREG_SERVER_URL + "/api/register/"
 
 COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN")
 
@@ -134,6 +141,11 @@ SSL_SETTING = "https"
 
 CONTACT_FORM_RECIPIENTS="dbmi_tech_core@hms.harvard.edu"
 DEFAULT_FROM_EMAIL="dbmi_tech_core@hms.harvard.edu"
+
+RECAPTCHA_KEY = os.environ.get('RECAPTCHA_KEY')
+RECAPTCHA_CLIENT_ID = os.environ.get('RECAPTCHA_CLIENT_ID')
+
+EMAIL_CONFIRM_SUCCESS_URL = os.environ.get('EMAIL_CONFIRM_SUCCESS_URL')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
@@ -167,12 +179,25 @@ STATIC_URL = '/static/'
 # THIS IS WHERE FILES ARE COLLECTED FROM
 STATICFILES_DIRS = (
     normpath(join(DJANGO_ROOT, 'static')),
+    normpath(join(DJANGO_ROOT, 'media'))
 )
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
+
+##########
+# DJANGO-COUNTRIES CONFIGURATION
+COUNTRIES_FLAG_URL = STATIC_URL + 'flags/{code}.gif'
+COUNTRIES_OVERRIDE = {'':''}
+COUNTRIES_FIRST = ['']
+
+##########
+# MEDIA FILE CONFIGURATION
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 ##########
 
 EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
@@ -211,6 +236,13 @@ LOGGING = {
             'propagate': True,
         },
     },
+}
+
+RAVEN_CONFIG = {
+    'dsn': os.environ.get("RAVEN_URL", ""),
+    # If you are using git, you can also automatically configure the
+    # release based on the git info.
+    'release': '1',
 }
 
 try:

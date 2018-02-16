@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Profile{% endblock %}
+
+{% block title %}
+{% if new_user %}
+    New User
+{% else %}
+    {{ form.first_name.value }} {{ form.last_name.value }}
+{% endif %}
+{% endblock %}
+
+{% block subtitle %}Review and update your profile{% endblock %}
+
+{% block content %}
+
+    {% if messages %}
+        {% include 'messages.html' %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">User Profile</div>
+                <div class="panel-body">
+                    {% if new_user %}
+                    <div class="alert alert-warning" role="alert">
+                        Welcome to Hypatio! Please complete your registration form below to get started.
+                    </div>
+                    {% endif %}
+                    {% if not registration_form.email_confirmed.value %}
+                    <div id="email_confirm" class="alert alert-warning" role="alert">
+                        Please click the button below to send a verification e-mail. Google's anti-spam measures might ask you to perform a small task before sending the verification e-mail. <br /><br />
+
+                        {% include 'profile/verify_email.html' %}
+                    </div>
+                    {% endif %}
+
+                    {% include 'profile/registration_form.html' %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">Data Contests</div>
+                <div class="panel-body">
+                    Coming soon
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
