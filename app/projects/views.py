@@ -259,7 +259,8 @@ def view_team_management(request, template_name='datacontests/manageteams.html')
         email = member.user.email
 
         # Make a request to SciReg for a specific person's user information
-        user_info_json = requests.get(settings.SCIREG_REGISTRATION_URL + "?email=" + email, headers=jwt_headers, verify=False).json()
+        payload = {'email': email}
+        user_info_json = requests.get(settings.SCIREG_REGISTRATION_URL, params=payload, headers=jwt_headers, verify=False).json()
         if user_info_json['count'] != 0:
             user_info = user_info_json["results"][0]
         else:
