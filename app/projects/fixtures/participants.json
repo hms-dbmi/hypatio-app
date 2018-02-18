@@ -27,23 +27,23 @@
         "pk": 100,
         "fields": {
             "user": 100,
-            "data_challenge": [6]
+            "data_challenge": 6
         }
     },
     { "model": "projects.participant",
         "pk": 101,
         "fields": {
             "user": 101,
-            "data_challenge": [6]
+            "data_challenge": 6
         }
     },
     { "model": "projects.participant",
         "pk": 102,
         "fields": {
             "user": 102,
-            "data_challenge": [6],
-            "team_wait_on_pi": true,
-            "team_wait_on_pi_email": "mcduffie.michael@gmail.com"
+            "data_challenge": 6,
+            "team_wait_on_leader": true,
+            "team_wait_on_leader_email": "mcduffie.michael@gmail.com"
         }
     },
     { "model": "projects.team",
