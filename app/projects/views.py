@@ -29,6 +29,8 @@ from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 from hypatio.sciauthz_services import SciAuthZ
+from hypatio.scireg_services import get_user_profile
+
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -250,7 +252,6 @@ def view_team_management(request, template_name='datacontests/manageteams.html')
     num_required_forms = project.agreement_forms.count()
 
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
     # Collect all the team member information needed
     team_members = []
@@ -259,8 +260,8 @@ def view_team_management(request, template_name='datacontests/manageteams.html')
         email = member.user.email
 
         # Make a request to SciReg for a specific person's user information
-        payload = {'email': email}
-        user_info_json = requests.get(settings.SCIREG_REGISTRATION_URL, params=payload, headers=jwt_headers, verify=False).json()
+        user_info_json = get_user_profile(user_jwt, email, project_key)
+
         if user_info_json['count'] != 0:
             user_info = user_info_json["results"][0]
         else:
