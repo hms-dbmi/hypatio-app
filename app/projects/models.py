@@ -87,7 +87,7 @@ class DataProject(models.Model):
 
 class DataGate(models.Model):
     project = models.ForeignKey(DataProject)
-    data_location_type = models.CharField(max_length=15, choices=DATA_LOCATION_TYPE)
+    data_location_type = models.CharField(max_length=50, choices=DATA_LOCATION_TYPE)
     data_location = models.CharField(max_length=250)
 
 
