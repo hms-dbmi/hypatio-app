@@ -32,14 +32,26 @@
 
     <div class="col-md-6">
     {% if not user_logged_in %}
-        <div class="alert alert-danger" role="alert">
-            To compete in {{ project.short_description }} please first <a href="{{ request.build_absolute_uri|get_login_url }}">login or register</a>.
-        </div>
-    {% elif not access_granted %}    
-        <div class="alert alert-info" role="alert">
-            To compete in {{ project.short_description }}, please complete the registration process below one step at a time. <strong>All members of your team must complete all registration steps before your account can be activated.</strong>
-        </div>
-        
+        {% if project.is_contest %}
+            <div class="alert alert-danger" role="alert">
+                To compete in {{ project.short_description }} please first <a href="{{ request.build_absolute_uri|get_login_url }}">login or register</a>.
+            </div>
+        {% else %}
+            <div class="alert alert-danger" role="alert">
+                To request access to this dataset please first <a href="{{ request.build_absolute_uri|get_login_url }}">login or register</a>.
+            </div>
+        {% endif %}
+    {% elif not access_granted %}
+        {% if project.is_contest %}
+            <div class="alert alert-info" role="alert">
+                To compete in {{ project.short_description }}, please complete the registration process below one step at a time. <strong>All members of your team must complete all registration steps before your account can be activated.</strong>
+            </div>
+        {% else %}
+            <div class="alert alert-danger" role="alert">
+                To request access to this dataset please complete registration steps below</a>.
+            </div>
+        {% endif %}
+
         <div class="panel-group" id="accordion">
 
             <!-- Verify email -->
