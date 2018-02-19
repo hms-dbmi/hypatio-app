@@ -197,7 +197,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
 @public_user_auth_and_jwt
 def list_data_contests(request, template_name='datacontests/list.html'):
 
-    all_data_contests = DataProject.objects.filter(is_contest=True)
+    all_data_contests = DataProject.objects.filter(is_contest=True, visible=True)
     data_contests = []
 
     is_manager = False
@@ -206,6 +206,7 @@ def list_data_contests(request, template_name='datacontests/list.html'):
         user = None
         user_logged_in = False
     else:
+
         user = request.user
         user_logged_in = True
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
@@ -213,6 +214,9 @@ def list_data_contests(request, template_name='datacontests/list.html'):
         # If for some reason they have a session but not JWT, force them to log in again.
         if user_jwt is None or validate_jwt(request) is None:
             return logout_redirect(request)
+
+        if request.user.is_superuser:
+            all_data_contests = DataProject.objects.filter(is_contest=True)
 
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
         is_manager = sciauthz.user_has_manage_permission(request, 'n2c2-t1')
@@ -376,8 +380,6 @@ def grant_access_with_view_permissions(request):
 @public_user_auth_and_jwt
 def project_details(request, project_key, template_name='project_details.html'):
 
-    project = get_object_or_404(DataProject, project_key=project_key)
-
     # TODO cleanup and eliminate some of these where possible
     registration_form = None
     agreement_forms_list = []
@@ -391,7 +393,7 @@ def project_details(request, project_key, template_name='project_details.html'):
     team_members = None
     team_has_pending_members = None
     user_is_team_leader = False
-    institution = project.institution
+
     current_step = None
 
     access_granted = False # TODO
@@ -399,8 +401,17 @@ def project_details(request, project_key, template_name='project_details.html'):
     if not request.user.is_authenticated():
         user = None
         user_logged_in = False
+
+        project = get_object_or_404(DataProject, project_key=project_key, visible=True)
+
     else:
         user = request.user
+
+        if user.is_superuser:
+            project = get_object_or_404(DataProject, project_key=project_key)
+        else:
+            project = get_object_or_404(DataProject, project_key=project_key, visible=True)
+
         user_logged_in = True
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
@@ -495,6 +506,8 @@ def project_details(request, project_key, template_name='project_details.html'):
                 if access_request['item'] == project_key:
                     user_requested_access = True
                     user_access_request_granted = access_request['request_granted']
+
+    institution = project.institution
 
     return render(request, template_name, {"project": project,
                                            "agreement_forms_list": agreement_forms_list,
