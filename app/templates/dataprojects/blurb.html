@@ -30,11 +30,13 @@
             </div>
             {% else %}
 
-                 <div>
-                     <a class='btn btn-primary' role='button' href='/projects/{{ data_project.project_key }}/'>Detailed Project Page</a>
-                     <br />
-                     <br />
-                </div>
+                {% if data_project.is_contest %}
+                     <div>
+                         <a class='btn btn-primary' role='button' href='/projects/{{ data_project.project_key }}/'>Detailed Project Page</a>
+                         <br />
+                         <br />
+                    </div>
+                {% endif %}
 
                 {% if data_project.permission_scheme == "PUBLIC" %}
                     <div>
