@@ -1,15 +1,15 @@
 {% if user_is_team_leader %}
     {% if team.status == "Active" %}
         <div class="alert alert-success" role="alert">
-            Your team has been activated by the contest administrators. Please wait for the data sets to be released.
+            Your team has been activated by the challenge administrators. Please wait for the data sets to be released.
         </div>
     {% elif team.status == "Ready" %}
         <div class="alert alert-warning" role="alert">
-            You marked your team as finalized. Please wait for a contest administrator to approve your team.
+            You marked your team as finalized. Please wait for a challenge administrator to approve your team.
         </div>
     {% elif team.status == "Deactivated" %}
         <div class="alert alert-danger" role="alert">
-            Your team was deactivated by contest administrators.
+            Your team was deactivated by challenge administrators.
         </div>
     {% elif team_has_pending_members %}
         <div class="alert alert-warning" role="alert">
