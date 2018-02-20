@@ -1,0 +1,7 @@
+app/assets/*
+*.pyc
+*/.DS_Store
+.DS_Store
+*.log
+app/db.sqlite3
+app/hypatio/local_settings.py
