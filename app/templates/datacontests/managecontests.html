@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block headscripts %}
+<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
+{% endblock %}
+
+{% block title %}{{ project.project_key }} Management{% endblock %}
+{% block subtitle %}{{ project.short_description }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-9">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Team List</h2>
+            </div>
+            <div class="panel-body">
+                <table id="team-table" class="table table-bordered table-hover table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Team</th>
+                            <th>Members</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for team in teams %}
+                        <tr data-toggle="modal" data-target="#team_management_modal" data-project="{{ project.project_key }}" data-team="{{ team }}">
+                            <td>{{ team }}</td>
+                            <td>{{ team.participant_set.all.count }}</td>
+                            <td>
+                            {% if team.status == "Pending" %}
+                                Pending
+                            {% elif team.status == "Ready" %}
+                                <span class="label label-success">Ready to Activate</span>
+                            {% elif team.status == "Active" %}
+                                Active
+                            {% elif team.status == "Deactivated" %}
+                                Deactivated
+                            {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Challenge Statistics</h2>
+            </div>
+            <div class="panel-body">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <span class="badge">{{ total_teams }}</span> 
+                        Teams
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge">{{ total_participants }}</span> 
+                        Total Participants
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge">{{ countries_represented }}</span> 
+                        Countries Represented
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge">{{ total_submissions }}</span> 
+                        Total Submissions
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge">{{ teams_with_any_submission }}</span> 
+                        Teams With Submissions
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-example-modal-lg" id="team_management_modal" tabindex="-1" role="dialog" aria-labelledby="team_management_modal_label">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="team_management_modal_label">Team Management</h4>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footerscripts %}
+<script type="application/javascript">
+    // Turn the team table into a DataTable
+    $(document).ready(function() {
+        $('#team-table').DataTable();
+    });
+</script>
+
+<script type="application/javascript">
+    // Update the team management modal when it is opened
+    $(document).ready(function() {
+        $('#team_management_modal').modal({
+            keyboard: true,
+            show: false
+        }).on('show.bs.modal', function (event) {
+            // Grab key information from the clicked row
+            var modal = $(this);
+            var link = $(event.relatedTarget);
+            var project = link.data('project');
+            var team = link.data('team');
+
+            // Make an AJAX call that returns the contents of the modal
+            $.ajax({
+                type: "GET",
+                url: "/projects/view_team_management/",
+                data: {
+                    team: team,
+                    project: project,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function (data) {
+                    $(modal).find('.modal-body').html(data);
+                },
+                error: function() {
+                    notify('danger', 'An error occurred during the request', 'glyphicon glyphicon-remove');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

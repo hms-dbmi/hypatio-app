@@ -1,0 +1,34 @@
+{% load bootstrap3 %}
+
+<form role="form" name='profile-update' method="post" action="/profile/update/">
+    {% csrf_token %}
+
+    {% for field in registration_form %}
+    <div>
+        {% bootstrap_field field required_css_class="required-profile-field" %}
+    </div>
+    {% endfor %}
+
+    <p class="required-field-tip"><small>* indicates a required field, any other field is optional</small></p>
+
+    {% buttons submit='Update' reset="Cancel" %}{% endbuttons %}
+</form>
+
+{% block javascript %}
+<script type="application/javascript">
+    $('form[name=profile-update]').submit(function(e){
+        e.preventDefault();
+
+        $.post($(this).attr('action'), $(this).serialize(), function(res){
+            // $("#loading").hide();
+        }).done(function() {
+            notify('success', "Registration updated!", 'thumbs-up');
+            
+            // Refresh the page, especially important for the project page to refresh
+            setTimeout(function(){
+                window.location = window.location.pathname
+            },1000);
+        });
+    });
+</script>
+{% endblock %}

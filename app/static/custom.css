@@ -1,0 +1,38 @@
+/* Stylizing the steps on a project page */
+.current-step-header span:after {
+    font-family:'Glyphicons Halflings';
+    content:"\270f";
+    float: right;
+    color: #1F1C18;
+}
+.completed-step-header span:after {
+    font-family:'Glyphicons Halflings';
+    content:"\e013";
+    float: right;
+    color: darkgreen;
+}
+.blocked-step-header span:after {
+    font-family:'Glyphicons Halflings';
+    content:"\e090";
+    float: right;
+    color: gray;
+}
+
+/* Stylizes the HMS logo */
+.hms-logo-nav img {
+    max-width: 100%;
+    max-height: 100%;
+    padding-top: 30px;
+    float: right;
+}
+
+/* Adds the asterisks next to required fields on the form */
+.form-group.required-profile-field .control-label:after {
+    content:" *";
+    color:rgb(153, 8, 8);
+}
+
+/* Colors the asterisks detail on the form red */
+.required-field-tip {
+    color: rgb(153, 8, 8);
+}
