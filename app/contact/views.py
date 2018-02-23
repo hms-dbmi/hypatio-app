@@ -21,12 +21,12 @@ def contact_form(request):
 
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
-        logger.debug("[P2M2][DEBUG][contact_form] Processing contact form  - " + str(request.user.id))
+        logger.debug("[HYPATIO][DEBUG][contact_form] Processing contact form  - " + str(request.user.id))
 
         # Process the form.
         form = ContactForm(request.POST)
         if form.is_valid():
-            logger.debug("[P2M2][DEBUG][contact_form] Form is valid - " + str(request.user.id))
+            logger.debug("[HYPATIO][DEBUG][contact_form] Form is valid - " + str(request.user.id))
 
             # Form the context.
             context = {
@@ -39,7 +39,7 @@ def contact_form(request):
             recipients = settings.CONTACT_FORM_RECIPIENTS.split(',')
 
             # Send it out.
-            success = email_send(subject='Hypatio Contact Form Inquiry',
+            success = email_send(subject='DBMI Portal Contact Form Inquiry',
                                  recipients=recipients,
                                  email_template='email_contact',
                                  extra=context)
@@ -55,7 +55,7 @@ def contact_form(request):
                     messages.error(request, 'An unexpected error occurred, please try again')
                 return HttpResponseRedirect(reverse('dashboard:dashboard'))
         else:
-            logger.error("[P2M2][ERROR][contact_form] Form is invalid! - " + str(request.user.id))
+            logger.error("[HYPATIO][ERROR][contact_form] Form is invalid! - " + str(request.user.id))
 
             # Check how the request was made.
             if request.is_ajax():
@@ -67,7 +67,7 @@ def contact_form(request):
     # if a GET (or any other method) we'll create a blank form
     else:
         if not request.user.is_anonymous:
-            logger.debug("[P2M2][DEBUG][contact_form] Generating contact form  - " + str(request.user.id))
+            logger.debug("[HYPATIO][DEBUG][contact_form] Generating contact form  - " + str(request.user.id))
 
             # Set initial values.
             initial = {
@@ -93,7 +93,7 @@ def email_send(subject=None, recipients=None, email_template=None, extra=None):
     msg_html = render_to_string('email/%s.html' % email_template, extra)
     msg_plain = render_to_string('email/%s.txt' % email_template, extra)
 
-    logger.debug("[P2M2][DEBUG][email_send] About to send e-mail.")
+    logger.debug("[HYPATIO][DEBUG][email_send] About to send e-mail.")
 
     try:
         msg = EmailMultiAlternatives(subject=subject,
@@ -106,6 +106,6 @@ def email_send(subject=None, recipients=None, email_template=None, extra=None):
         print(ex)
         sent_without_error = False
 
-    logger.debug("[P2M2][DEBUG][email_send] E-Mail Status - " + str(sent_without_error))
+    logger.debug("[HYPATIO][DEBUG][email_send] E-Mail Status - " + str(sent_without_error))
 
     return sent_without_error

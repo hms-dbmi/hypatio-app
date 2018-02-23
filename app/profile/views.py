@@ -119,7 +119,7 @@ def recaptcha_check(request):
         'remoteip': get_client_ip(request)
     }
 
-    logger.debug("[P2M2][DEBUG][recaptcha_check] Sending Captcha results to google - " + str(request.user.id))
+    logger.debug("[HYPATIO][DEBUG][recaptcha_check] Sending Captcha results to google - " + str(request.user.id))
 
     verify_rs = requests.get(url, params=params, verify=True)
     verify_rs = verify_rs.json()
@@ -130,7 +130,7 @@ def recaptcha_check(request):
 
 @user_auth_and_jwt
 def send_confirmation_email_view(request):
-    logger.debug("[P2M2][DEBUG][send_confirmation_email_view] Sending user verification e-mail - " + str(request.user.id))
+    logger.debug("[HYPATIO][DEBUG][send_confirmation_email_view] Sending user verification e-mail - " + str(request.user.id))
 
     if request.method == 'POST':
 
