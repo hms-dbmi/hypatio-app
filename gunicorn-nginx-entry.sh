@@ -1,5 +1,6 @@
 #!/bin/bash
 
+SITE_URL=$(aws ssm get-parameters --names $PS_PATH.site_url --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 ALLOWED_HOSTS=$(aws ssm get-parameters --names $PS_PATH.allowed_hosts --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 DJANGO_SECRET=$(aws ssm get-parameters --names $PS_PATH.django_secret --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 AUTH0_DOMAIN_VAULT=$(aws ssm get-parameters --names $PS_PATH.auth0_domain --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
@@ -20,6 +21,7 @@ EMAIL_HOST_PASSWORD=$(aws ssm get-parameters --names $PS_PATH.email_host_passwor
 EMAIL_PORT=$(aws ssm get-parameters --names $PS_PATH.email_port --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 
 export COOKIE_DOMAIN
+export SITE_URL=$SITE_URL
 export ALLOWED_HOSTS=$ALLOWED_HOSTS
 export SECRET_KEY=$DJANGO_SECRET
 export AUTH0_DOMAIN=$AUTH0_DOMAIN_VAULT

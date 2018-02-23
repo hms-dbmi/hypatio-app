@@ -39,9 +39,9 @@ def contact_form(request):
             recipients = settings.CONTACT_FORM_RECIPIENTS.split(',')
 
             # Send it out.
-            success = email_send(subject='PPM Contact Form Inquiry',
+            success = email_send(subject='Hypatio Contact Form Inquiry',
                                  recipients=recipients,
-                                 message='email_contact',
+                                 email_template='email_contact',
                                  extra=context)
 
             # Check how the request was made.
@@ -83,32 +83,29 @@ def contact_form(request):
         form = ContactForm(initial=initial)
         return render(request, 'contact/contact.html', {'contact_form': form})
 
-def email_send(subject=None, recipients=None, message=None, extra=None):
+def email_send(subject=None, recipients=None, email_template=None, extra=None):
     """
-    Send an e-mail to a list of participants with the given subject and message.
+    Send an e-mail to a list of recipients with the given subject and email_template.
     Extra is dictionary of variables to be swapped into the template.
     """
-    for r in recipients:
-        sent_without_error = True
+    sent_without_error = True
 
-        extra["user_email"] = r
+    msg_html = render_to_string('email/%s.html' % email_template, extra)
+    msg_plain = render_to_string('email/%s.txt' % email_template, extra)
 
-        msg_html = render_to_string('email/%s.html' % message, extra)
-        msg_plain = render_to_string('email/%s.txt' % message, extra)
+    logger.debug("[P2M2][DEBUG][email_send] About to send e-mail.")
 
-        logger.debug("[P2M2][DEBUG][email_send] About to send e-mail.")
+    try:
+        msg = EmailMultiAlternatives(subject=subject,
+                                     body=msg_plain,
+                                     from_email=settings.DEFAULT_FROM_EMAIL,
+                                     to=recipients)
+        msg.attach_alternative(msg_html, "text/html")
+        msg.send()
+    except Exception as ex:
+        print(ex)
+        sent_without_error = False
 
-        try:
-            msg = EmailMultiAlternatives(subject, msg_plain, settings.DEFAULT_FROM_EMAIL, [r])
-            msg.attach_alternative(msg_html, "text/html")
-            msg.send()
-        except gaierror:
-            logger.error("[P2M2][DEBUG][email_send] Could not send mail! Possible bad server connection.")
-            sent_without_error = False
-        except Exception as ex:
-            print(ex)
-            sent_without_error = False
-
-        logger.debug("[P2M2][DEBUG][email_send] E-Mail Status - " + str(sent_without_error))
+    logger.debug("[P2M2][DEBUG][email_send] E-Mail Status - " + str(sent_without_error))
 
     return sent_without_error

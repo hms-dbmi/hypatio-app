@@ -526,4 +526,3 @@ def project_details(request, project_key, template_name='project_details.html'):
                                            "institution": institution,
                                            "registration_form": registration_form,
                                            "current_step": current_step})
-
