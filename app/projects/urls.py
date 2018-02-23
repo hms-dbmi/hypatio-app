@@ -26,7 +26,7 @@ urlpatterns = (
     url(r'^list_data_contests/$', list_data_contests),
     url(r'^request_access/$', request_access),
     url(r'^submit_user_permission_request/$', submit_user_permission_request),
-    url(r'^manage/(?P<project_key>[^/]+)/$', manage_contest),
+    url(r'^manage/(?P<project_key>[^/]+)/$', manage_contest, name='manage_contest'),
     url(r'^view_team_management/$', view_team_management),
     url(r'^save_signed_agreement_form', save_signed_agreement_form),
     url(r'^signout/$', signout),
