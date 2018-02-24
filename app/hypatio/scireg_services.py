@@ -16,7 +16,7 @@ def build_headers_with_jwt(user_jwt):
 def send_confirmation_email(user_jwt, current_uri):
     send_confirm_email_url = settings.SCIREG_REGISTRATION_URL + 'send_confirmation_email/'
 
-    logger.debug("[P2M2][DEBUG][send_confirmation_email] - Sending user confirmation e-mail to " + send_confirm_email_url)
+    logger.debug("[HYPATIO][DEBUG][send_confirmation_email] - Sending user confirmation e-mail to " + send_confirm_email_url)
 
     email_confirm_data = {
         'success_url': current_uri,
