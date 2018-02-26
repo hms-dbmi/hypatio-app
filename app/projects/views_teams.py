@@ -160,6 +160,18 @@ def join_team(request):
         participant.team_wait_on_leader_email = team_leader
         participant.team_wait_on_leader = True
         participant.save()
+        team = None
+
+    # Send email to team leader informing them of a pending member
+    if team is not None:
+        context = {'member_email': request.user.email,
+                   'project': project,
+                   'site_url': settings.SITE_URL}
+
+        email_success = email_send(subject='DBMI Portal - Finalized Team',
+                                   recipients=[team_leader],
+                                   email_template='email_pending_member_notification',
+                                   extra=context)
 
     logger.debug('[HYPATIO][join_team] - Creating Profile Permissions')
 
