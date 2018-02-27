@@ -4,17 +4,29 @@
 
 <div class="panel-group" id="accordion">
 
+    {% for file in data_files %}
     <div class="panel panel-default">
         <div class="panel-heading training-data-step" role="tab" id="heading-training-data">
             <h2 class="panel-title">
-                <div class="">
-                    <span>Training Data</span>
+                <div class="{% if not file.enabled %}blocked-step-header{% endif %}">
+                    <span>{{ file.long_name }}</span>
                 </div>
             </h2>
         </div>
+        {% if file.enabled %}
         <div class="panel-body">
-            <a href="/download_dataset/?file_id=1" class="btn btn-default" role="button">Click to download</a>
+            <p>{{ file.description }}</p>
+
+            <p><strong><small>Disclaimer here... Something about not sending this to other people and that you are agreeing to compete in this contest if you download. Your download is logged.</small></strong></p>
+
+            <button type="button" class="btn btn-primary" id="download-file-button" data-file-id="{{ file_id }}">Download</button>        
         </div>
+        {% endif %}
     </div>
+    {% endfor %}
 
 </div>
+
+<script type="application/javascript">
+
+</script>
