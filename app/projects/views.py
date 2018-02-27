@@ -393,10 +393,8 @@ def project_details(request, project_key, template_name='project_details.html'):
     team_members = None
     team_has_pending_members = None
     user_is_team_leader = False
-
+    access_granted = False
     current_step = None
-
-    access_granted = False # TODO
 
     if not request.user.is_authenticated():
         user = None
@@ -489,6 +487,9 @@ def project_details(request, project_key, template_name='project_details.html'):
             team_members = Participant.objects.filter(team=team)
             team_has_pending_members = team_members.filter(team_approved=False)
             user_is_team_leader = team.team_leader == request.user
+
+        if team and team.status == 'Active':
+            access_granted = True
 
         # If all other steps completed, then last step will be team
         if current_step is None:
