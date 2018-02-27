@@ -101,7 +101,12 @@ class SciAuthZ:
             user_permissions = {"count": 0}
 
         if user_permissions["count"] > 0:
-            print(user_permissions)
-            return user_permissions["results"][0]["permission"] == value
+
+            # A user may have multiple permissions, check if one of them is the one we're looking for
+            for permission in user_permissions["results"]:
+                if permission["permission"] == value:
+                    return True
+
+            return False
         else:
             return False

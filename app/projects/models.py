@@ -154,6 +154,6 @@ class HostedFile(models.Model):
 
 
 class HostedFileDownload(models.Model):
-    user = models.OneToOneField(User)
-    hosted_file = models.OneToOneField(HostedFile)
+    user = models.ForeignKey(User)
+    hosted_file = models.ForeignKey(HostedFile)
     download_date = models.DateTimeField(auto_now_add=True)
