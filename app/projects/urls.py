@@ -20,6 +20,8 @@ from .views_teams import finalize_team
 from .views_teams import activate_team
 from .views_teams import deactivate_team
 
+from .views_files import download_dataset
+
 urlpatterns = (
     url(r'^$', list_data_projects),
     url(r'^list_data_projects/$', list_data_projects),
@@ -40,5 +42,6 @@ urlpatterns = (
     url(r'^deactivate_team/$', deactivate_team),
     url(r'^team_signup_form/(P<project_key>[^/]+)/$', team_signup_form),
     url(r'^download_signed_form/$', download_signed_form),
+    url(r'^download_dataset/$', download_dataset),
     url(r'^(?P<project_key>[^/]+)/$', project_details)
 )

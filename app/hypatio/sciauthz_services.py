@@ -2,6 +2,7 @@ from json import JSONDecodeError
 
 import requests
 import json
+import furl
 import logging
 
 logger = logging.getLogger(__name__)
@@ -87,3 +88,20 @@ class SciAuthZ:
         profile_permission = requests.post(self.CREATE_PROFILE_PERMISSION, headers=modified_headers, data={"grantee_email": grantee_email}, verify=self.VERIFY_REQUEST)
 
         return profile_permission
+
+    def user_has_single_permission(self, permission, value):
+
+        f = furl.furl(self.USER_PERMISSIONS_URL)
+        f.args["item"] = permission
+
+        try:
+            user_permissions = requests.get(f.url, headers=self.JWT_HEADERS, verify=self.VERIFY_REQUEST).json()
+        except JSONDecodeError:
+            logger.debug("[SCIAUTHZ][user_has_single_permission] - No Valid permissions returned.")
+            user_permissions = {"count": 0}
+
+        if user_permissions["count"] > 0:
+            print(user_permissions)
+            return user_permissions["results"][0]["permission"] == value
+        else:
+            return False
