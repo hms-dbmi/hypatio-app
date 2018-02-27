@@ -6,6 +6,8 @@ from .models import Team
 from .models import Participant
 from .models import Institution
 from .models import DataGate
+from .models import HostedFile
+from .models import HostedFileDownload
 
 class DataprojectAdmin(admin.ModelAdmin):
     list_display = ('name', 'project_key', 'is_contest', 'project_supervisor') #, 'project_url')
@@ -28,6 +30,12 @@ class InstitutionAdmin(admin.ModelAdmin):
 class DataGateAdmin(admin.ModelAdmin):
     list_display = ('project', 'data_location_type', 'data_location')
 
+class HostedFileAdmin(admin.ModelAdmin):
+    list_display = ('long_name', 'file_name', 'file_location_type', 'file_location')
+
+class HostedFileDownloadAdmin(admin.ModelAdmin):
+    list_display = ('user', 'hosted_file', 'download_date')
+
 admin.site.register(DataProject, DataprojectAdmin)
 admin.site.register(AgreementForm, AgreementformAdmin)
 admin.site.register(SignedAgreementForm, SignedagreementformAdmin)
@@ -35,3 +43,5 @@ admin.site.register(Team, TeamAdmin)
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(Institution, InstitutionAdmin)
 admin.site.register(DataGate, DataGateAdmin)
+admin.site.register(HostedFile, HostedFileAdmin)
+admin.site.register(HostedFileDownload, HostedFileDownloadAdmin)
