@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load countries %}
 
 {% block headscripts %}
 <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
@@ -41,6 +42,48 @@
                             {% elif team.status == "Deactivated" %}
                                 Deactivated
                             {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Pending Participants Without Teams</h2>
+            </div>
+            <div class="panel-body">
+                <table id="participants-without-teams-table" class="table table-bordered table-hover table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Location</th>
+                            <th>Email</th>
+                            <th>Signed Forms</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for person in users_without_a_team_details %}
+                        <tr>
+                            <td>{{ person.user_info.first_name }} {{ person.user_info.last_name }}</td>
+                            <td>
+                                {% get_country person.user_info.country as country %}
+                                {% if country == 'US' and person.user_info.state != "" %}
+                                    {{ person.user_info.state }}, USA
+                                {% else %}
+                                    {{ country.name }}
+                                {% endif %}
+                                    <img src="{{ country.flag }}" class="pull-right" style="margin: 6px 4px 0">
+                            </td>
+                            <td>{{ person.email }}</td>
+                            <td>
+                                {% for form in person.signed_agreement_forms %}
+                                <a class="btn btn-default btn-xs download-signed-form" href="/projects/download_signed_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
+                                    {{ form.agreement_form.short_name }}
+                                </a>
+                                {% endfor %}
                             </td>
                         </tr>
                     {% endfor %}
@@ -105,6 +148,13 @@
     // Turn the team table into a DataTable
     $(document).ready(function() {
         $('#team-table').DataTable();
+    });
+</script>
+
+<script type="application/javascript">
+    // Turn the team table into a DataTable
+    $(document).ready(function() {
+        $('#participants-without-teams-table').DataTable();
     });
 </script>
 
