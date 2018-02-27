@@ -248,6 +248,9 @@ RAVEN_CONFIG = {
     'release': '1',
 }
 
+
+HYPATIO_S3_BUCKET=os.environ.get("HYPATIO_S3_BUCKET", "")
+
 try:
     from .local_settings import *
 except ImportError:
