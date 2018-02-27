@@ -100,7 +100,7 @@
         </div>
         {% if current_step == 'team' %}                
         <div class="panel-body">
-            {% include "datacontests/teamdetails.html" with participant=participant teams=teams project=project pi_team=pi_team pi_team_members=pi_team_members %}
+            {% include "datacontests/teamsetup.html" with participant=participant teams=teams project=project pi_team=pi_team pi_team_members=pi_team_members %}
         </div>
         {% endif %}
     </div>
