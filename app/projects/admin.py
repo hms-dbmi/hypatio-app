@@ -31,7 +31,7 @@ class DataGateAdmin(admin.ModelAdmin):
     list_display = ('project', 'data_location_type', 'data_location')
 
 class HostedFileAdmin(admin.ModelAdmin):
-    list_display = ('long_name', 'file_name', 'file_location_type', 'file_location')
+    list_display = ('long_name', 'project', 'file_name', 'file_location_type', 'file_location')
 
 class HostedFileDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'hosted_file', 'download_date')

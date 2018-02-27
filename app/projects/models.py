@@ -148,9 +148,12 @@ class Participant(models.Model):
 
 class HostedFile(models.Model):
     long_name = models.CharField(max_length=100, blank=False, null=False)
+    description = models.CharField(max_length=2000, blank=True, null=True)
     file_name = models.CharField(max_length=100, blank=False, null=False)
     file_location_type = models.CharField(max_length=100, blank=False, null=False, choices=DATA_LOCATION_TYPE)
     file_location = models.CharField(max_length=100, blank=False, null=False)
+    project = models.ForeignKey(DataProject)
+    enabled = models.BooleanField(default=False)
 
 
 class HostedFileDownload(models.Model):
