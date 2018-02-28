@@ -52,6 +52,10 @@ export RECAPTCHA_KEY=$(aws ssm get-parameters --names $PS_PATH.recaptcha_key --w
 export RECAPTCHA_CLIENT_ID=$(aws ssm get-parameters --names $PS_PATH.recaptcha_client_id --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 export EMAIL_CONFIRM_SUCCESS_URL=$(aws ssm get-parameters --names $PS_PATH.email_confirm_success_url --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 
+export S3_AWS_ACCESS_KEY_ID=$(aws ssm get-parameters --names $PS_PATH.s3_aws_access_key_id --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+export S3_AWS_SECRET_ACCESS_KEY=$(aws ssm get-parameters --names $PS_PATH.s3_aws_secret_access_key --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+export S3_BUCKET=$(aws ssm get-parameters --names $PS_PATH.s3_bucket --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+
 SSL_KEY=$(aws ssm get-parameters --names $PS_PATH.ssl_key --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 SSL_CERT_CHAIN1=$(aws ssm get-parameters --names $PS_PATH.ssl_cert_chain1 --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 SSL_CERT_CHAIN2=$(aws ssm get-parameters --names $PS_PATH.ssl_cert_chain2 --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
