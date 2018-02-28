@@ -6,6 +6,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth import logout
+from django.contrib.auth.models import User
 from django.db.models import Count
 from django.shortcuts import render
 from django.shortcuts import redirect
@@ -306,6 +307,34 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
 
     teams = Team.objects.filter(data_project=project)
 
+    # A person who has filled out a form for a project but not yet joined a team
+    users_with_a_team = Participant.objects.filter(team__in=teams).values_list('user', flat=True).distinct()
+    users_who_signed_forms = SignedAgreementForm.objects.filter(project=project).values_list('user', flat=True).distinct()
+    users_without_a_team = User.objects.filter(id__in=users_who_signed_forms).exclude(id__in=users_with_a_team)
+
+    # Collect additional information about these participants who aren't on teams yet
+    users_without_a_team_details = []
+
+    for person in users_without_a_team:
+        email = person.email
+
+        # Make a request to SciReg for a specific person's user information
+        user_info_json = get_user_profile(user_jwt, email, project_key)
+
+        if user_info_json['count'] != 0:
+            user_info = user_info_json["results"][0]
+        else:
+            user_info = None
+        
+        signed_agreement_forms = SignedAgreementForm.objects.filter(user__email=email, project=project)
+
+        users_without_a_team_details.append({
+            'email': email,
+            'user_info': user_info,
+            'signed_agreement_forms': signed_agreement_forms,
+            'participant': person
+        })
+
     # Simple statistics for display
     total_teams = teams.count()
     total_participants = Participant.objects.filter(data_challenge=project).count()   
@@ -319,6 +348,7 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
                                            "is_manager": is_manager,
                                            "project": project,
                                            "teams": teams,
+                                           "users_without_a_team_details": users_without_a_team_details,
                                            "total_teams": total_teams,
                                            "total_participants": total_participants,
                                            "countries_represented": countries_represented,
@@ -393,10 +423,8 @@ def project_details(request, project_key, template_name='project_details.html'):
     team_members = None
     team_has_pending_members = None
     user_is_team_leader = False
-
+    access_granted = False
     current_step = None
-
-    access_granted = False # TODO
 
     if not request.user.is_authenticated():
         user = None
@@ -490,6 +518,9 @@ def project_details(request, project_key, template_name='project_details.html'):
             team_has_pending_members = team_members.filter(team_approved=False)
             user_is_team_leader = team.team_leader == request.user
 
+        if team and team.status == 'Active':
+            access_granted = True
+
         # If all other steps completed, then last step will be team
         if current_step is None:
             current_step = "team"
@@ -526,4 +557,3 @@ def project_details(request, project_key, template_name='project_details.html'):
                                            "institution": institution,
                                            "registration_form": registration_form,
                                            "current_step": current_step})
-

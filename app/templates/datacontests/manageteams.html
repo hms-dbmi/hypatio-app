@@ -44,12 +44,7 @@
                     {% endif %}
                         <img src="{{ country.flag }}" class="pull-right" style="margin: 6px 4px 0">
                     </td>
-                    <td>
-                        {{ member.email }}
-                        <div class="pull-right">
-                            <!-- Country flag here? -->
-                        </div>
-                    </td>
+                    <td>{{ member.email }}</td>
                     <td>
                     {% if member.email == team.team_leader.email %}
                         <span class="label label-primary">Team leader</span>
@@ -63,7 +58,7 @@
                     </td>
                     <td>
                         {% for form in member.signed_agreement_forms %}
-                        <a class="btn btn-default btn-xs download-signed-form" href="/projects/download_signed_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" role="button">
+                        <a class="btn btn-default btn-xs download-signed-form" href="/projects/download_signed_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
                             {{ form.agreement_form.short_name }}
                         </a>
                         {% endfor %}
