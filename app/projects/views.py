@@ -128,7 +128,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
             return logout_redirect(request)
 
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-        is_manager = sciauthz.user_has_manage_permission(request, 'Hypatio.n2c2-t1')
+        is_manager = sciauthz.user_has_manage_permission(request, 'n2c2-t1')
         user_permissions = sciauthz.current_user_permissions()
         user_access_requests = sciauthz.current_user_access_requests()
 
@@ -220,7 +220,7 @@ def list_data_contests(request, template_name='datacontests/list.html'):
             all_data_contests = DataProject.objects.filter(is_contest=True)
 
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-        is_manager = sciauthz.user_has_manage_permission(request, 'Hypatio.n2c2-t1')
+        is_manager = sciauthz.user_has_manage_permission(request, 'n2c2-t1')
 
     # Build the dictionary with all project and permission information needed
     for data_contest in all_data_contests:
