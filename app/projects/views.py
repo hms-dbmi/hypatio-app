@@ -526,7 +526,7 @@ def project_details(request, project_key, template_name='project_details.html'):
 
             # TODO Temporarily ordering by name descending for n2c2
             # Get all of the files available for this data set
-            data_files = HostedFile.objects.filter(project=project).order_by('-long_name')           
+            data_files = HostedFile.objects.filter(project=project).order_by('-long_name')
 
         # If all other steps completed, then last step will be team
         if current_step is None:
