@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
 
 from hypatio.sciauthz_services import SciAuthZ
+from hypatio.file_services import get_download_url
 
 from .models import HostedFile
 from .models import HostedFileDownload
@@ -37,28 +38,12 @@ def download_dataset(request):
 
     s3 = boto3.resource('s3')
 
-    filename_in_s3 = file_to_download.file_location + "/" + file_to_download.file_name
-    logger.debug("[views_files][download_dataset] - Attempting to download file " + filename_in_s3 + " from bucket " + settings.HYPATIO_S3_BUCKET)
+    s3_filename = file_to_download.file_location + "/" + file_to_download.file_name
+    logger.debug("[views_files][download_dataset] - Attempting to download file " + s3_filename + " from bucket " + settings.S3_BUCKET)
+
+    download_url = get_download_url(s3_filename)
 
     # TODO: Plan A: redirect user's page to the S3 link to trigger the download -- will need to change the jquery code in project_compete.html
     # TODO: Plan B: return the S3 link to the project_compete.html page -- the jquery there can handle this now
 
-    # with open('filename', 'wb') as data:
-    #     try:
-    #         s3.Bucket(settings.HYPATIO_S3_BUCKET).download_file(filename_in_s3, data)
-    #     except botocore.exceptions.ClientError as e:
-    #         if e.response['Error']['Code'] == "404":
-    #             logger.debug('[views_files][download_dataset] - File does not exist in S3.')
-    #             return HttpResponse(404)
-    #         else:
-    #             logger.debug('[views_files][download_dataset] - Error ' + e)
-    #             return HttpResponse(500)
-        
-    # with open('filename', 'wb') as data:
-    #     s3.download_fileobj(settings.HYPATIO_S3_BUCKET, file_to_download.file_location, data)
-    #     return data
-
-    # with open('filename', 'wb') as data:
-     #   return StreamingHttpResponse(streaming_content=s3.download_fileobj(settings.HYPATIO_S3_BUCKET, file_to_download.file_location, data))
-
-    return "S3 LINK HERE?"
+    return HttpResponse(download_url)

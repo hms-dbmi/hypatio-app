@@ -19,7 +19,7 @@
 
             <p><strong><small>Disclaimer here... Something about not sending this to other people and that you are agreeing to compete in this contest if you download. Your download is logged.</small></strong></p>
 
-            <button type="button" class="btn btn-primary download-file-button" data-file-id="{{ file.id }}">Download</button>        
+            <button type="button" class="btn btn-primary download-file-button" data-file-id="{{ file.id }}">Request Download Link</button>
         </div>
         {% endif %}
     </div>
@@ -42,7 +42,8 @@
             url: "/download_dataset/",
             data: request_data,
             success: function(data) {
-                button.replaceWith(data);
+                var new_button = "<a href=\"" + data + "\" download class=\"btn btn-success\">Download Now</a>";
+                button.replaceWith(new_button);
             },
             error: function() {
                 button.replaceWith("<p>Failed to get download link. Please try again in a few minutes.</p>");
