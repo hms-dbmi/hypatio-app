@@ -13,6 +13,8 @@ from .models import DataProject
 from .models import Participant
 from .models import Team
 
+from contact.views import email_send
+
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 
 logger = logging.getLogger(__name__)
@@ -51,6 +53,8 @@ def activate_team(request):
 
 @user_auth_and_jwt
 def finalize_team(request):
+    """Mark the team as ready and send an email notification to contest managers."""
+
     project_key = request.POST.get("project_key")
     team = request.POST.get("team")
 
@@ -59,6 +63,18 @@ def finalize_team(request):
 
     team.status = 'Ready'
     team.save()
+
+    # TODO Eventually this should be replaced by checking SciAuthZ for MANAGE permissions
+    contest_managers = ['ouzuner@gmu.edu', 'filannim@csail.mit.edu', 'stubbs@simmons.edu']
+
+    context = {'team_leader': team,
+               'project': project_key,
+               'site_url': settings.SITE_URL}
+
+    email_success = email_send(subject='DBMI Portal Finalized Team',
+                               recipients=contest_managers,
+                               email_template='email_finalized_team_notification',
+                               extra=context)
 
     return HttpResponse(200)
 
@@ -144,6 +160,18 @@ def join_team(request):
         participant.team_wait_on_leader_email = team_leader
         participant.team_wait_on_leader = True
         participant.save()
+        team = None
+
+    # Send email to team leader informing them of a pending member
+    if team is not None:
+        context = {'member_email': request.user.email,
+                   'project': project,
+                   'site_url': settings.SITE_URL}
+
+        email_success = email_send(subject='DBMI Portal - Finalized Team',
+                                   recipients=[team_leader],
+                                   email_template='email_pending_member_notification',
+                                   extra=context)
 
     logger.debug('[HYPATIO][join_team] - Creating Profile Permissions')
 
