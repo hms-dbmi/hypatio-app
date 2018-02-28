@@ -1,10 +1,12 @@
 import logging
 import boto3
+import botocore
 
 from django.conf import settings
 from django.http import StreamingHttpResponse
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.core.files.base import ContentFile
 
 from hypatio.sciauthz_services import SciAuthZ
 
@@ -30,13 +32,28 @@ def download_dataset(request):
     file_id = request.GET.get("file_id")
     file_to_download = get_object_or_404(HostedFile, id=file_id)
 
-    s3 = boto3.client('s3')
-
     # Save a record of this person downloading this file
     HostedFileDownload.objects.create(user=request.user, hosted_file=file_to_download)
 
-    return HttpResponse(200)
+    s3 = boto3.resource('s3')
 
+    filename_in_s3 = file_to_download.file_location + "/" + file_to_download.file_name
+    logger.debug("[views_files][download_dataset] - Attempting to download file " + filename_in_s3 + " from bucket " + settings.HYPATIO_S3_BUCKET)
+
+    # TODO: Plan A: redirect user's page to the S3 link to trigger the download -- will need to change the jquery code in project_compete.html
+    # TODO: Plan B: return the S3 link to the project_compete.html page -- the jquery there can handle this now
+
+    # with open('filename', 'wb') as data:
+    #     try:
+    #         s3.Bucket(settings.HYPATIO_S3_BUCKET).download_file(filename_in_s3, data)
+    #     except botocore.exceptions.ClientError as e:
+    #         if e.response['Error']['Code'] == "404":
+    #             logger.debug('[views_files][download_dataset] - File does not exist in S3.')
+    #             return HttpResponse(404)
+    #         else:
+    #             logger.debug('[views_files][download_dataset] - Error ' + e)
+    #             return HttpResponse(500)
+        
     # with open('filename', 'wb') as data:
     #     s3.download_fileobj(settings.HYPATIO_S3_BUCKET, file_to_download.file_location, data)
     #     return data
@@ -44,5 +61,4 @@ def download_dataset(request):
     # with open('filename', 'wb') as data:
      #   return StreamingHttpResponse(streaming_content=s3.download_fileobj(settings.HYPATIO_S3_BUCKET, file_to_download.file_location, data))
 
-
-
+    return "S3 LINK HERE?"
