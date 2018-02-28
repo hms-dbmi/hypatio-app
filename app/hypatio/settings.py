@@ -150,6 +150,14 @@ RECAPTCHA_CLIENT_ID = os.environ.get('RECAPTCHA_CLIENT_ID')
 
 EMAIL_CONFIRM_SUCCESS_URL = os.environ.get('EMAIL_CONFIRM_SUCCESS_URL')
 
+##########
+# S3 Configurations
+S3_AWS_ACCESS_KEY_ID = os.environ.get('S3_AWS_ACCESS_KEY_ID')
+S3_AWS_SECRET_ACCESS_KEY = os.environ.get('S3_AWS_SECRET_ACCESS_KEY')
+S3_BUCKET = os.environ.get('S3_BUCKET')
+
+##########
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
@@ -247,9 +255,6 @@ RAVEN_CONFIG = {
     # release based on the git info.
     'release': '1',
 }
-
-
-HYPATIO_S3_BUCKET=os.environ.get("HYPATIO_S3_BUCKET", "")
 
 try:
     from .local_settings import *

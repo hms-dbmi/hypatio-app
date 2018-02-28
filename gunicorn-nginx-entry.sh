@@ -9,7 +9,6 @@ AUTH0_SECRET_VAULT=$(aws ssm get-parameters --names $PS_PATH.auth0_secret --with
 AUTH0_SUCCESS_URL_VAULT=$(aws ssm get-parameters --names $PS_PATH.auth0_success_url --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 AUTH0_LOGOUT_URL_VAULT=$(aws ssm get-parameters --names $PS_PATH.auth0_logout_url --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 COOKIE_DOMAIN=$(aws ssm get-parameters --names $PS_PATH.cookie_domain --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
-HYPATIO_S3_BUCKET=$(aws ssm get-parameters --names $PS_PATH.hypatio_s3_bucket --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 
 MYSQL_USERNAME_VAULT=$(aws ssm get-parameters --names $PS_PATH.mysql_username --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 MYSQL_PASSWORD_VAULT=$(aws ssm get-parameters --names $PS_PATH.mysql_pw --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
@@ -21,7 +20,6 @@ EMAIL_HOST_USER=$(aws ssm get-parameters --names $PS_PATH.email_host_user --with
 EMAIL_HOST_PASSWORD=$(aws ssm get-parameters --names $PS_PATH.email_host_password --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 EMAIL_PORT=$(aws ssm get-parameters --names $PS_PATH.email_port --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 
-export HYPATIO_S3_BUCKET
 export COOKIE_DOMAIN
 export SITE_URL=$SITE_URL
 export ALLOWED_HOSTS=$ALLOWED_HOSTS
@@ -53,6 +51,10 @@ export AUTHZ_BASE
 export RECAPTCHA_KEY=$(aws ssm get-parameters --names $PS_PATH.recaptcha_key --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 export RECAPTCHA_CLIENT_ID=$(aws ssm get-parameters --names $PS_PATH.recaptcha_client_id --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 export EMAIL_CONFIRM_SUCCESS_URL=$(aws ssm get-parameters --names $PS_PATH.email_confirm_success_url --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+
+export S3_AWS_ACCESS_KEY_ID=$(aws ssm get-parameters --names $PS_PATH.s3_aws_access_key_id --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+export S3_AWS_SECRET_ACCESS_KEY=$(aws ssm get-parameters --names $PS_PATH.s3_aws_secret_access_key --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+export S3_BUCKET=$(aws ssm get-parameters --names $PS_PATH.s3_bucket --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 
 SSL_KEY=$(aws ssm get-parameters --names $PS_PATH.ssl_key --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 SSL_CERT_CHAIN1=$(aws ssm get-parameters --names $PS_PATH.ssl_cert_chain1 --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')

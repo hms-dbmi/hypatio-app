@@ -21,10 +21,14 @@ class SciAuthZ:
         authorization_request_url = authz_base + "/authorization_requests/"
         authorization_request_grant_url = authz_base + "/authorization_request_change/"
         create_profile_permission = authz_base + "/user_permission/create_registration_permission_record/"
+        create_view_permission = authz_base + "/user_permission/create_item_view_permission_record/"
+        remove_view_permission = authz_base + "/user_permission/remove_item_view_permission_record/"
 
         self.USER_PERMISSIONS_URL = user_permissions_url
         self.AUTHORIZATION_REQUEST_URL = authorization_request_url
         self.CREATE_PROFILE_PERMISSION = create_profile_permission
+        self.CREATE_ITEM_PERMISSION = create_view_permission
+        self.REMOVE_ITEM_PERMISSION = remove_view_permission
 
         jwt_headers = {"Authorization": "JWT " + jwt, 'Content-Type': 'application/json'}
 
@@ -36,9 +40,10 @@ class SciAuthZ:
     def user_has_manage_permission(self, request, item):
 
         is_manager = False
+        sciauthz_item = 'Hypatio.' + item
 
         # Confirm user is a manager of the given project
-        permissions_url = self.USER_PERMISSIONS_URL + "?item=" + item + "&email=" + self.CURRENT_USER_EMAIL
+        permissions_url = self.USER_PERMISSIONS_URL + "?item=" + sciauthz_item + "&email=" + self.CURRENT_USER_EMAIL
 
         try:
             user_permissions = requests.get(permissions_url, headers=self.JWT_HEADERS, verify=self.VERIFY_REQUEST).json()
@@ -82,17 +87,43 @@ class SciAuthZ:
         logger.debug('[HYPATIO][create_profile_permission] - Creating Profile Permissions')
 
         modified_headers = self.JWT_HEADERS
-
         modified_headers['Content-Type'] = 'application/x-www-form-urlencoded'
 
         profile_permission = requests.post(self.CREATE_PROFILE_PERMISSION, headers=modified_headers, data={"grantee_email": grantee_email}, verify=self.VERIFY_REQUEST)
-
         return profile_permission
+
+    def create_view_permission(self, project, grantee_email):
+        logger.debug('[HYPATIO][create_view_permission] - Creating VIEW permission for ' + grantee_email + ' on project ' + project + '.')
+
+        modified_headers = self.JWT_HEADERS
+        modified_headers['Content-Type'] = 'application/x-www-form-urlencoded'
+
+        context = {
+            "grantee_email": grantee_email,
+            "item": 'Hypatio.' + project
+        }
+
+        view_permission = requests.post(self.CREATE_ITEM_PERMISSION, headers=modified_headers, data=context, verify=self.VERIFY_REQUEST)
+        return view_permission
+
+    def remove_view_permission(self, project, grantee_email):
+        logger.debug('[HYPATIO][remove_view_permission] - Removing VIEW permission for ' + grantee_email + ' on project ' + project + '.')
+
+        modified_headers = self.JWT_HEADERS
+        modified_headers['Content-Type'] = 'application/x-www-form-urlencoded'
+
+        context = {
+            "grantee_email": grantee_email,
+            "item": 'Hypatio.' + project
+        }
+
+        view_permission = requests.post(self.REMOVE_ITEM_PERMISSION, headers=modified_headers, data=context, verify=self.VERIFY_REQUEST)        
+        return view_permission
 
     def user_has_single_permission(self, permission, value):
 
         f = furl.furl(self.USER_PERMISSIONS_URL)
-        f.args["item"] = permission
+        f.args["item"] = 'Hypatio.' + permission
 
         try:
             user_permissions = requests.get(f.url, headers=self.JWT_HEADERS, verify=self.VERIFY_REQUEST).json()
