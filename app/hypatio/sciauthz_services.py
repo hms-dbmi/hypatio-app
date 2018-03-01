@@ -2,6 +2,7 @@ from json import JSONDecodeError
 
 import requests
 import json
+import furl
 import logging
 
 logger = logging.getLogger(__name__)
@@ -116,5 +117,27 @@ class SciAuthZ:
             "item": 'Hypatio.' + project
         }
 
-        view_permission = requests.post(self.REMOVE_ITEM_PERMISSION, headers=modified_headers, data=context, verify=self.VERIFY_REQUEST)
+        view_permission = requests.post(self.REMOVE_ITEM_PERMISSION, headers=modified_headers, data=context, verify=self.VERIFY_REQUEST)        
         return view_permission
+
+    def user_has_single_permission(self, permission, value):
+
+        f = furl.furl(self.USER_PERMISSIONS_URL)
+        f.args["item"] = 'Hypatio.' + permission
+
+        try:
+            user_permissions = requests.get(f.url, headers=self.JWT_HEADERS, verify=self.VERIFY_REQUEST).json()
+        except JSONDecodeError:
+            logger.debug("[SCIAUTHZ][user_has_single_permission] - No Valid permissions returned.")
+            user_permissions = {"count": 0}
+
+        if user_permissions["count"] > 0:
+
+            # A user may have multiple permissions, check if one of them is the one we're looking for
+            for permission in user_permissions["results"]:
+                if permission["permission"] == value:
+                    return True
+
+            return False
+        else:
+            return False

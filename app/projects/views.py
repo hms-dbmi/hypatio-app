@@ -22,6 +22,7 @@ from .models import Participant
 from .models import Team
 from .models import AgreementForm
 from .models import SignedAgreementForm
+from .models import HostedFile
 
 from profile.views import get_task_context_data
 from profile.forms import RegistrationForm
@@ -425,6 +426,7 @@ def project_details(request, project_key, template_name='project_details.html'):
     user_is_team_leader = False
     access_granted = False
     current_step = None
+    data_files = []
 
     if not request.user.is_authenticated():
         user = None
@@ -519,7 +521,12 @@ def project_details(request, project_key, template_name='project_details.html'):
             user_is_team_leader = team.team_leader == request.user
 
         if team and team.status == 'Active':
+            # Used to display actions after the setup phase such as data downloads and uploads
             access_granted = True
+
+            # TODO Temporarily ordering by name descending for n2c2
+            # Get all of the files available for this data set
+            data_files = HostedFile.objects.filter(project=project).order_by('-long_name')
 
         # If all other steps completed, then last step will be team
         if current_step is None:
@@ -537,6 +544,7 @@ def project_details(request, project_key, template_name='project_details.html'):
                 if access_request['item'] == project_key:
                     user_requested_access = True
                     user_access_request_granted = access_request['request_granted']
+        
 
     institution = project.institution
 
@@ -548,6 +556,7 @@ def project_details(request, project_key, template_name='project_details.html'):
                                            "team_members": team_members,
                                            "team_has_pending_members": team_has_pending_members,
                                            "access_granted": access_granted,
+                                           "data_files": data_files,
                                            "is_manager": is_manager,
                                            "user_logged_in": user_logged_in,
                                            "user_requested_access": user_requested_access,
