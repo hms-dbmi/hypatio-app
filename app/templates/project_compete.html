@@ -19,35 +19,10 @@
 
             <p><strong><small>Disclaimer here... Something about not sending this to other people and that you are agreeing to compete in this contest if you download. Your download is logged.</small></strong></p>
 
-            <button type="button" class="btn btn-primary download-file-button" data-file-id="{{ file.id }}">Request Download Link</button>
+            <a href="/download_dataset/?file_id={{ file.id }}" class="btn btn-primary download-file-button" download>Download Data</a>
         </div>
         {% endif %}
     </div>
     {% endfor %}
 
 </div>
-
-<script type="application/javascript">
-    $('.download-file-button').click(function(){
-        var button = $(this);
-        var file_id = $(this).data("file-id");
-
-        var request_data = {
-            file_id: file_id,
-            csrfmiddlewaretoken: '{{ csrf_token }}',
-        };
-        
-        $.ajax({
-            type:"GET",
-            url: "/download_dataset/",
-            data: request_data,
-            success: function(data) {
-                var new_button = "<a href=\"" + data + "\" download class=\"btn btn-success\">Download Now</a>";
-                button.replaceWith(new_button);
-            },
-            error: function() {
-                button.replaceWith("<p>Failed to get download link. Please try again in a few minutes.</p>");
-            }
-        });
-    });
-</script>

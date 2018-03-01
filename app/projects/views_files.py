@@ -5,6 +5,7 @@ import botocore
 from django.conf import settings
 from django.http import StreamingHttpResponse
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
 
@@ -39,11 +40,12 @@ def download_dataset(request):
     s3 = boto3.resource('s3')
 
     s3_filename = file_to_download.file_location + "/" + file_to_download.file_name
-    logger.debug("[views_files][download_dataset] - Attempting to download file " + s3_filename + " from bucket " + settings.S3_BUCKET)
+    logger.debug("[views_files][download_dataset] - User " + request.user.email + " is downloading file " + s3_filename + " from bucket " + settings.S3_BUCKET + ".")
 
     download_url = get_download_url(s3_filename)
 
-    # TODO: Plan A: redirect user's page to the S3 link to trigger the download -- will need to change the jquery code in project_compete.html
-    # TODO: Plan B: return the S3 link to the project_compete.html page -- the jquery there can handle this now
+    response = redirect(download_url)
+    response['Content-Disposition'] = 'attachment'
+    response['filename'] = file_to_download.file_name
 
-    return HttpResponse(download_url)
+    return response
