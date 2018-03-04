@@ -81,6 +81,7 @@ class DataProject(models.Model):
     # TODO change to a choice field and create an enumerable of options (contest, data project)
     is_contest = models.BooleanField(default=False, blank=False, null=False)
     visible = models.BooleanField(default=False, blank=False, null=False)
+    registration_open = models.BooleanField(default=False, blank=False, null=False)
 
     def __str__(self):
         return '%s %s' % (self.project_key, self.name)
