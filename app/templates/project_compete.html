@@ -13,7 +13,7 @@
                 </div>
             </h2>
         </div>
-        {% if file.enabled %}
+        {% if file.enabled or user.is_superuser %}
         <div class="panel-body">
             <p>{{ file.description }}</p>
 
