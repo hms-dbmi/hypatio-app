@@ -7,11 +7,12 @@ from django.core.validators import FileExtensionValidator
 
 FILE_SERVICE_URL = 'FILE_SERVICE_URL'
 EXTERNAL_APP_URL = 'EXTERNAL_APP_URL'
-BLUE = 'BLUE'
+S3_BUCKET = 'S3_BUCKET'
 
 DATA_LOCATION_TYPE = (
     (FILE_SERVICE_URL, 'FileService Signed URL'),
-    (EXTERNAL_APP_URL, 'External Application URL')
+    (EXTERNAL_APP_URL, 'External Application URL'),
+    (S3_BUCKET, 'S3 Bucket directly accessed by Hyatio')
 )
 
 TEAM_STATUS = (
@@ -80,6 +81,7 @@ class DataProject(models.Model):
     # TODO change to a choice field and create an enumerable of options (contest, data project)
     is_contest = models.BooleanField(default=False, blank=False, null=False)
     visible = models.BooleanField(default=False, blank=False, null=False)
+    registration_open = models.BooleanField(default=False, blank=False, null=False)
 
     def __str__(self):
         return '%s %s' % (self.project_key, self.name)
@@ -143,3 +145,19 @@ class Participant(models.Model):
         self.team_wait_on_leader = False
         self.team_wait_on_leader_email = None
         self.team_pending = False
+
+
+class HostedFile(models.Model):
+    long_name = models.CharField(max_length=100, blank=False, null=False)
+    description = models.CharField(max_length=2000, blank=True, null=True)
+    file_name = models.CharField(max_length=100, blank=False, null=False)
+    file_location_type = models.CharField(max_length=100, blank=False, null=False, choices=DATA_LOCATION_TYPE)
+    file_location = models.CharField(max_length=100, blank=False, null=False)
+    project = models.ForeignKey(DataProject)
+    enabled = models.BooleanField(default=False)
+
+
+class HostedFileDownload(models.Model):
+    user = models.ForeignKey(User)
+    hosted_file = models.ForeignKey(HostedFile)
+    download_date = models.DateTimeField(auto_now_add=True)
