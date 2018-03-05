@@ -31,13 +31,23 @@
     </div>
 
     <div class="col-md-6">
-    {% if not user_logged_in %}
-        {% include 'project_login.html' %}
-    {% elif not access_granted %}
-        {% include 'project_signup.html' %}
-    {% elif access_granted %}
-        {% include 'project_compete.html' %}
-    {% endif %}
+
+        {% if not user_logged_in %}
+            {% if project.registration_open or user.is_superuser %}
+                {% include 'project_login.html' %}
+            {% else %}
+                {% include 'project_registration_closed.html' %}
+            {% endif %}
+        {% elif not access_granted %}
+            {% if project.registration_open or user.is_superuser %}
+                {% include 'project_signup.html' %}
+            {% else %}
+                {% include 'project_registration_closed.html' %}
+            {% endif %}
+        {% elif access_granted %}
+            {% include 'project_compete.html' %}
+        {% endif %}
+
     </div>
 </div>
 {% endblock %}

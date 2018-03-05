@@ -2,19 +2,31 @@
     Your team has been approved for access to this challenge. In the sections below, you will be able to download training and test data sets and upload your solutions.
 </div>
 
+<div class="alert alert-danger" role="alert">
+    Reminder: Gaining access to any portion of the 2018 n2c2 data commits your team to participate in the evaluation that will be run by n2c2, to submit a paper describing your developed system, and to present your work in the follow-up workshop to be organized by n2c2 (should your paper be accepted for presentation). <b>Teams cannot withdraw after gaining access to the data.</b> (See <a href="https://n2c2.dbmi.hms.harvard.edu/conduct.php">Rules of Conduct</a> and <a href="https://n2c2.dbmi.hms.harvard.edu/dua.php">Data Use Agreement</a>).
+</div>
+
 <div class="panel-group" id="accordion">
 
+    {% for file in data_files %}
     <div class="panel panel-default">
         <div class="panel-heading training-data-step" role="tab" id="heading-training-data">
             <h2 class="panel-title">
-                <div class="">
-                    <span>Training Data</span>
+                <div class="{% if not file.enabled %}blocked-step-header{% endif %}">
+                    <span>{{ file.long_name }}</span>
                 </div>
             </h2>
         </div>
+        {% if file.enabled or user.is_superuser %}
         <div class="panel-body">
-            Coming soon.
+            <p>{{ file.description }}</p>
+
+            <hr>
+
+            <a href="/download_dataset/?file_id={{ file.id }}" class="btn btn-success download-file-button" download>Download Data</a>
         </div>
+        {% endif %}
     </div>
+    {% endfor %}
 
 </div>
