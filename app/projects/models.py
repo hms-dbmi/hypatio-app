@@ -116,7 +116,7 @@ class Team(models.Model):
 class Participant(models.Model):
     user = models.OneToOneField(User)
     data_challenge = models.ForeignKey(DataProject)
-    team = models.ForeignKey(Team, null=True, blank=True)
+    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE)
     team_wait_on_leader_email = models.CharField(max_length=100, blank=True, null=True)
     team_wait_on_leader = models.BooleanField(default=False)
     team_pending = models.BooleanField(default=False)
