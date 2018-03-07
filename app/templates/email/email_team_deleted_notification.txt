@@ -1,0 +1,8 @@
+This is a notification that a {{ project.name }} challenge administrator has deleted your team.
+
+{% if administrator_message %}
+A contest administrator provided the following reason why:
+"{{ administrator_message }}"
+{% endif %}
+
+Thank you.

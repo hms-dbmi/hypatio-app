@@ -12,6 +12,7 @@ from hypatio.sciauthz_services import SciAuthZ
 from .models import DataProject
 from .models import Participant
 from .models import Team
+from .models import SignedAgreementForm
 
 from contact.views import email_send
 
@@ -20,42 +21,109 @@ from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 logger = logging.getLogger(__name__)
 
 @user_auth_and_jwt
-def deactivate_team(request):
-    project_key = request.POST.get("project")
-    team = request.POST.get("team")
+def change_team_status(request):
+    """Change a team's status, assign the correct permissions, and notify team members."""
 
-    logger.debug('[HYPATIO][deactivate_team] ' + request.user.email + ' deactivating team ' + team + ' for project ' + project_key + '.')
+    project_key = request.POST.get("project")
+    team_leader = request.POST.get("team")
+    status = request.POST.get("status")
+
+    logger.debug('[HYPATIO][change_team_status] ' + request.user.email + ' changing team ' + team_leader + ' for project ' + project_key + ' to status of ' + status + '.')
 
     project = DataProject.objects.get(project_key=project_key)
-    team = Team.objects.get(team_leader__email=team, data_project=project)
+    team = Team.objects.get(team_leader__email=team_leader, data_project=project)
 
-    team.status = 'Deactivated'
-    team.save()
+    # First change the team's status
+    if status == "pending":
+        team.status = "Pending"
+        team.save()
+    elif status == "ready":
+        team.status = "Ready"
+        team.save()
+    elif status == "active":
+        team.status = "Active"
+        team.save()
+    elif status == "deactivated":
+        team.status = "Deactivated"
+        team.save()
+    else:
+        logger.debug('[HYPATIO][change_team_status] Given status "' + status + '" not one of allowed statuses.')
+        return HttpResponse(500)
 
-    # Grant VIEW permissions to each person on this team
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
-    for member in team.participant_set.all():
-        sciauthz.remove_view_permission(project_key, member.user.email)
+    logger.debug('[HYPATIO][change_team_status] Adjusting VIEW permissions for team members.')
+
+    # If a status is anything other than active, remove VIEW permissions
+    if status in ["active"]:
+        for member in team.participant_set.all():
+            sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+            sciauthz.create_view_permission(project_key, member.user.email)
+    else:
+        for member in team.participant_set.all():
+            sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+            sciauthz.remove_view_permission(project_key, member.user.email)
+
+    logger.debug('[HYPATIO][change_team_status] Emailing a notification to team members.')
+
+    # Send an email notification to the team
+    context = {'status': status,
+               'project': project,
+               'site_url': settings.SITE_URL}
+
+    # Email list
+    emails = [member.user.email for member in team.participant_set.all()]
+
+    email_success = email_send(subject='DBMI Portal Team Status Changed',
+                               recipients=emails,
+                               email_template='email_new_team_status_notification',
+                               extra=context)
 
     return HttpResponse(200)
 
 @user_auth_and_jwt
-def activate_team(request):
-    project_key = request.POST.get("project")
-    team = request.POST.get("team")
+def delete_team(request):
+    """Delete a team and notify members."""
 
-    logger.debug('[HYPATIO][activate_team] ' + request.user.email + ' activating team ' + team + ' for project ' + project_key + '.')
+    project_key = request.POST.get("project")
+    team_leader = request.POST.get("team")
+    administrator_message = request.POST.get("administrator_message")
+
+    logger.debug('[HYPATIO][delete_team] ' + request.user.email + ' is deleting team ' + team_leader + ' for project ' + project_key + '.')
 
     project = DataProject.objects.get(project_key=project_key)
-    team = Team.objects.get(team_leader__email=team, data_project=project)
+    team = Team.objects.get(team_leader__email=team_leader, data_project=project)
 
-    team.status = 'Active'
-    team.save()
+    logger.debug('[HYPATIO][delete_team] Removing all VIEW permissions for team members.')
 
-    # Grant VIEW permissions to each person on this team
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+    # First revoke all VIEW permissions
     for member in team.participant_set.all():
-        sciauthz.create_view_permission(project_key, member.user.email)
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+        sciauthz.remove_view_permission(project_key, member.user.email)
+
+    logger.debug('[HYPATIO][delete_team] Deleting all signed forms by team members.')
+
+    for member in team.participant_set.all():
+        SignedAgreementForm.objects.filter(user__email=member.user.email, project=project).delete()
+
+    logger.debug('[HYPATIO][delete_team] Sending a notification to team members.')
+
+    # Then send a notification to the team members
+    context = {'administrator_message': administrator_message,
+               'project': project,
+               'site_url': settings.SITE_URL}
+
+    emails = [member.user.email for member in team.participant_set.all()]
+
+    email_success = email_send(subject='DBMI Portal Team Deleted',
+                               recipients=emails,
+                               email_template='email_team_deleted_notification',
+                               extra=context)
+
+    logger.debug('[HYPATIO][delete_team] Deleting the team from the database.')
+
+    # Then delete the team
+    team.delete()
+
+    logger.debug('[HYPATIO][delete_team] Team ' + team_leader + ' for project ' + project_key + ' successfully deleted.')
 
     return HttpResponse(200)
 
@@ -206,7 +274,6 @@ def team_signup_form(request, project_key):
     return render(request, "teams/manageteam.html", {"participant": participant,
                                                      "teams": teams})
 
-
 @user_auth_and_jwt
 def create_team(request):
     """Creates a new team with the given user as its team leader.
@@ -232,7 +299,6 @@ def create_team(request):
         participant.save()
 
     return redirect('/projects/' + project_key + '/')
-
 
 def create_participant(user, project):
     """ Creates a participant object and returns it.
