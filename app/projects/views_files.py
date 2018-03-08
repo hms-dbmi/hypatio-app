@@ -37,8 +37,6 @@ def download_dataset(request):
     # Save a record of this person downloading this file
     HostedFileDownload.objects.create(user=request.user, hosted_file=file_to_download)
 
-    s3 = boto3.resource('s3')
-
     s3_filename = file_to_download.file_location + "/" + file_to_download.file_name
     logger.debug("[views_files][download_dataset] - User " + request.user.email + " is downloading file " + s3_filename + " from bucket " + settings.S3_BUCKET + ".")
 

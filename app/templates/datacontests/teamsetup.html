@@ -73,7 +73,7 @@
         No action needed at this time. We are waiting for your team leader {{ team.team_leader }} to approve your request to join the team.
     {%  elif participant.team_approved %}
         <div class="alert alert-success alert-dismissible" role="alert">
-            You have been approved to join team {{ participant.team }}. Please wait for your team leader to finalize the team.
+            You have been approved to join team {{ participant.team }}. Please wait for your team to be finalized by your team leader and/or reviewed by the challenge administrators before your team can participate.
         </div>
     {% else %}
         <div class="alert alert-warning" role="alert">
