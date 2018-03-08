@@ -99,11 +99,6 @@ def delete_team(request):
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
         sciauthz.remove_view_permission(project_key, member.user.email)
 
-    logger.debug('[HYPATIO][delete_team] Deleting all signed forms by team members.')
-
-    for member in team.participant_set.all():
-        SignedAgreementForm.objects.filter(user__email=member.user.email, project=project).delete()
-
     logger.debug('[HYPATIO][delete_team] Sending a notification to team members.')
 
     # Then send a notification to the team members
