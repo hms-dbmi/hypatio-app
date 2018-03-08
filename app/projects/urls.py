@@ -17,8 +17,8 @@ from .views_teams import team_signup_form
 from .views_teams import approve_team_join
 from .views_teams import reject_team_join
 from .views_teams import finalize_team
-from .views_teams import activate_team
-from .views_teams import deactivate_team
+from .views_teams import change_team_status
+from .views_teams import delete_team
 
 from .views_files import download_dataset
 
@@ -38,8 +38,8 @@ urlpatterns = (
     url(r'^reject_team_join/$', reject_team_join),
     url(r'^create_team/$', create_team),
     url(r'^finalize_team/$', finalize_team),
-    url(r'^activate_team/$', activate_team),
-    url(r'^deactivate_team/$', deactivate_team),
+    url(r'^change_team_status/$', change_team_status),
+    url(r'^delete_team/$', delete_team),
     url(r'^team_signup_form/(P<project_key>[^/]+)/$', team_signup_form),
     url(r'^download_signed_form/$', download_signed_form),
     url(r'^download_dataset/$', download_dataset),

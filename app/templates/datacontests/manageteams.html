@@ -1,26 +1,47 @@
 {% load countries %}
 
 <div class="row form-group">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <p><strong>Team Leader:</strong> {{ team.team_leader.email }}</p>
-        <p><strong>Team Status:</strong> <span id="team-status">{{ team.status }}</span></p>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-8">
         <div class="pull-right">
-        {% if team.status == "Ready" %}
-            <button type="button" class="btn btn-success" id="activate-team" data-project="{{ project.project_key }}" data-team="{{ team.team_leader.email }}">Activate Team</button>
-        {% elif team.status == "Active" %}
-            <button type="button" class="btn btn-default" id="deactivate-team" data-project="{{ project.project_key }}" data-team="{{ team.team_leader.email }}">Deactivate Team</button>
-        {% elif team.status == "Deactivated" %}
-            <button type="button" class="btn btn-default" id="activate-team" data-project="{{ project.project_key }}" data-team="{{ team.team_leader.email }}">Reactivate Team</button>
-        {% endif %}            
+            <div class="btn-toolbar" role="toolbar" aria-label="team-change-buttons">
+                <div class="btn-group" role="group" aria-label="team-status-buttons">
+                    <button type="button" id="change-status-to-pending" class="btn btn-sm team-status-buttons {% if team.status == "Pending" %}btn-primary{% else %}btn-default{% endif %}">Open</button>
+                    <button type="button" id="change-status-to-ready" class="btn btn-sm team-status-buttons {% if team.status == "Ready" %}btn-warning{% else %}btn-default{% endif %}">Ready</button>
+                    <button type="button" id="change-status-to-active" class="btn btn-sm team-status-buttons {% if team.status == "Active" %}btn-success{% else %}btn-default{% endif %}">Activated</button>
+                    <button type="button" id="change-status-to-deactivated" class="btn btn-sm team-status-buttons {% if team.status == "Deactivated" %}btn-primary{% else %}btn-default{% endif %}">Deactivated</button>
+                </div>
+                <div class="btn-group" role="group" aria-label="team-delete-button">            
+                    <button type="button" id="delete-team" class="btn btn-danger btn-sm">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row" id="delete-team-confirmation-form" style="display: none;">
+    <div class="col-md-12">
+        <div class="alert alert-warning" role="alert">
+            <form>
+                <div class="form-group">
+                    <strong>Are you sure you want to delete this team?</strong> This action will disband a team and delete all the forms that the team members signed.
+                </div>
+                <div class="form-group">
+                    <label for="delete-reason">Please provide a reason and then hit confirm.</label>
+                    <textarea class="form-control" rows="3" name="delete-reason" id="delete-reason"></textarea>
+                </div>
+                <button type="button" id="delete-team-confirm" class="btn btn-danger">Delete Team</button>
+                <button type="button" id="delete-team-cancel" class="btn btn-default">Cancel</button>
+            </form>
         </div>
     </div>
 </div>
 
 <div class="row">
     <div class="col-md-12">
-        <table class="table table-condensed table-bordered table-hover table-responsive">
+        <table class="table table-bordered table-hover table-responsive">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -53,7 +74,7 @@
                     {% elif member.participant.team_pending %}
                         <span class="label label-warning">Pending team leader approval</span>
                     {% else %}
-                        <span class="label label-success">Active</span>
+                        <span class="label label-default">No issues</span>
                     {% endif %}
                     </td>
                     <td>
@@ -83,51 +104,63 @@
 </div>
 
 <script type="application/javascript">
-    $('#activate-team').click(function() {
-        var team = $(this).attr("data-team");
-        var project = $(this).attr("data-project");
+    var team = "{{ team.team_leader.email }}";
+    var project = "{{ project.project_key }}";
+    var status = "";
 
+    $('.team-status-buttons').click(function(event) {
+        
+        if (event.target.id == "change-status-to-pending") {
+            status = "pending";
+        } else if (event.target.id == "change-status-to-ready") {
+            status = "ready";
+        } else if (event.target.id == "change-status-to-active") {
+            status = "active";
+        } else if (event.target.id == "change-status-to-deactivated") {
+            status = "deactivated";
+        }
+        
         var request_data = {
             team: team,
             project: project,
+            status: status,
             csrfmiddlewaretoken: '{{ csrf_token }}',
         };
 
-        $.post("/projects/activate_team/", request_data)
+        $.post("/projects/change_team_status/", request_data)
             .done(function() {
-                $("#activate-team").replaceWith('<h4><span class="label label-warning">Team activated. Refreshing page...</span></h4>');
-
-                // Refresh the page so the user does not see this button again
-                setTimeout(function(){
-                    location.reload();
-                },1500);
+                location.reload();
             }).fail(function() {
-                // TODO Fail message needed    
+                alert('fail');
             });
     });
-</script>
 
-<script type="application/javascript">
-    $('#deactivate-team').click(function() {
-        var team = $(this).attr("data-team");
-        var project = $(this).attr("data-project");
+    $('#delete-team').click(function() {
+        // Display the div containing the confirmation form
+        $('#delete-team-confirmation-form').show();
+    });
+
+    $('#delete-team-cancel').click(function() {
+        // Display the div containing the confirmation form
+        $('#delete-team-confirmation-form').hide();
+    });
+
+    $('#delete-team-confirm').click(function() {
+
+        var delete_reason = $("#delete-reason").val();
 
         var request_data = {
             team: team,
             project: project,
+            administrator_message: delete_reason,
             csrfmiddlewaretoken: '{{ csrf_token }}',
         };
 
-        $.post("/projects/deactivate_team/", request_data)
+        $.post("/projects/delete_team/", request_data)
             .done(function() {
-                $("#deactivate-team").replaceWith('<h4><span class="label label-warning">Team deactivated. Refreshing page...</span></h4>');
-
-                // Refresh the page so the user does not see this button again
-                setTimeout(function(){
-                    location.reload();
-                },1500);
+                location.reload();
             }).fail(function() {
-                // TODO Fail message needed    
+                alert('fail');
             });
     });
 </script>
