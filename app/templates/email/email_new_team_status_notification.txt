@@ -1,0 +1,7 @@
+This is a notification that a {{ project.name }} challenge administrator has changed your team status to {{ status }}. 
+
+Team statuses have the following meanings:
+- Pending: A team can add new members but it is not approved yet to participate.
+- Ready: A team has all of its members registered and is awaiting approval to participate.
+- Active: A team has been approved by a challenge administrator to participate.
+- Deactivated: A team has been blocked by an administrator from any further participation.
