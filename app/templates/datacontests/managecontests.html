@@ -145,7 +145,7 @@
 <script type="application/javascript">
     // When clicking a team row, open a new window for team managment
     $(document).ready(function() {
-        $('.team-row').click(function() {
+        $('#team-table').on("click", ".team-row", function() {
             var team = $(this).data('team');
             window.open("./" + team);
         });
