@@ -33,7 +33,7 @@
         <link rel="stylesheet" href="{% static 'custom.css' %}" />
 
         <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/vnd.microsoft.icon"/>
-        <title>DBMI Portal</title>
+        <title>{% block tab_name %}DBMI Portal{% endblock %}</title>
 
         <script type='text/javascript' src="{% static 'bootstrap-notify.min.js' %}"></script>
 

@@ -23,6 +23,8 @@ from .models import Team
 from .models import AgreementForm
 from .models import SignedAgreementForm
 from .models import HostedFile
+from .models import HostedFileDownload
+from .models import TeamComment
 
 from profile.views import get_task_context_data
 from profile.forms import RegistrationForm
@@ -245,13 +247,10 @@ def list_data_contests(request, template_name='datacontests/list.html'):
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
 
 @user_auth_and_jwt
-def view_team_management(request, template_name='datacontests/manageteams.html'):
+def manage_team(request, project_key, team_leader, template_name='datacontests/manageteams.html'):
     """
     Populates the team management modal popup on the contest management screen.
     """
-
-    project_key = request.GET["project"]
-    team_leader = request.GET["team"]
 
     project = DataProject.objects.get(project_key=project_key)
     team = Team.objects.get(data_project=project, team_leader__email=team_leader)
@@ -282,10 +281,20 @@ def view_team_management(request, template_name='datacontests/manageteams.html')
             'participant': member
         })
 
+    institution = project.institution
+
+    comments = TeamComment.objects.filter(team=team).order_by('-date')
+
+    files = HostedFile.objects.filter(project=project)
+    downloads = HostedFileDownload.objects.filter(hosted_file__in=files)
+
     return render(request, template_name, context={"project": project,
                                                    "team": team,
                                                    "team_members": team_members,
-                                                   "num_required_forms": num_required_forms})
+                                                   "num_required_forms": num_required_forms,
+                                                   "institution": institution,
+                                                   "comments": comments,
+                                                   "downloads": downloads})
 
 @user_auth_and_jwt
 def manage_contest(request, project_key, template_name='datacontests/managecontests.html'):
@@ -343,6 +352,8 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
     total_submissions = 0 # TODO
     teams_with_any_submission = 0 # TODO
 
+    institution = project.institution
+
     return render(request, template_name, {"user_logged_in": user_logged_in,
                                            "user": user,
                                            "ssl_setting": settings.SSL_SETTING,
@@ -354,7 +365,8 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
                                            "total_participants": total_participants,
                                            "countries_represented": countries_represented,
                                            "total_submissions": total_submissions,
-                                           "teams_with_any_submission": teams_with_any_submission})
+                                           "teams_with_any_submission": teams_with_any_submission,
+                                           "institution": institution})
 
 # TODO remove this: activate_team view should now do this
 @user_auth_and_jwt
