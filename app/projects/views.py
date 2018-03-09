@@ -259,9 +259,10 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
     # Collect all the team member information needed
-    team_members = []
+    team_member_details = []
+    team_participants = team.participant_set.all()
 
-    for member in team.participant_set.all():
+    for member in team_participants:
         email = member.user.email
 
         # Make a request to SciReg for a specific person's user information
@@ -274,7 +275,7 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
         
         signed_agreement_forms = SignedAgreementForm.objects.filter(user__email=email, project=project)
 
-        team_members.append({
+        team_member_details.append({
             'email': email,
             'user_info': user_info,
             'signed_agreement_forms': signed_agreement_forms,
@@ -283,14 +284,17 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
 
     institution = project.institution
 
-    comments = TeamComment.objects.filter(team=team).order_by('-date')
+    # Get the comments made about this team by challenge administrators
+    comments = TeamComment.objects.filter(team=team)
 
+    # Get a history of files downloaded for members of this team
     files = HostedFile.objects.filter(project=project)
-    downloads = HostedFileDownload.objects.filter(hosted_file__in=files)
+    team_users = User.objects.filter(participant__in=team_participants)
+    downloads = HostedFileDownload.objects.filter(hosted_file__in=files, user__in=team_users)
 
     return render(request, template_name, context={"project": project,
                                                    "team": team,
-                                                   "team_members": team_members,
+                                                   "team_members": team_member_details,
                                                    "num_required_forms": num_required_forms,
                                                    "institution": institution,
                                                    "comments": comments,
