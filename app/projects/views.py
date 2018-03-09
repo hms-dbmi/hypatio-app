@@ -23,6 +23,8 @@ from .models import Team
 from .models import AgreementForm
 from .models import SignedAgreementForm
 from .models import HostedFile
+from .models import HostedFileDownload
+from .models import TeamComment
 
 from profile.views import get_task_context_data
 from profile.forms import RegistrationForm
@@ -245,13 +247,21 @@ def list_data_contests(request, template_name='datacontests/list.html'):
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
 
 @user_auth_and_jwt
-def view_team_management(request, template_name='datacontests/manageteams.html'):
+def manage_team(request, project_key, team_leader, template_name='datacontests/manageteams.html'):
     """
     Populates the team management modal popup on the contest management screen.
     """
 
-    project_key = request.GET["project"]
-    team_leader = request.GET["team"]
+    user = request.user
+    user_logged_in = True
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    is_manager = sciauthz.user_has_manage_permission(request, project_key)
+
+    if not is_manager:
+        logger.debug('[HYPATIO][DEBUG][manage_team] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
+        return HttpResponse(403)
 
     project = DataProject.objects.get(project_key=project_key)
     team = Team.objects.get(data_project=project, team_leader__email=team_leader)
@@ -260,9 +270,10 @@ def view_team_management(request, template_name='datacontests/manageteams.html')
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
     # Collect all the team member information needed
-    team_members = []
+    team_member_details = []
+    team_participants = team.participant_set.all()
 
-    for member in team.participant_set.all():
+    for member in team_participants:
         email = member.user.email
 
         # Make a request to SciReg for a specific person's user information
@@ -275,17 +286,34 @@ def view_team_management(request, template_name='datacontests/manageteams.html')
         
         signed_agreement_forms = SignedAgreementForm.objects.filter(user__email=email, project=project)
 
-        team_members.append({
+        team_member_details.append({
             'email': email,
             'user_info': user_info,
             'signed_agreement_forms': signed_agreement_forms,
             'participant': member
         })
 
-    return render(request, template_name, context={"project": project,
+    institution = project.institution
+
+    # Get the comments made about this team by challenge administrators
+    comments = TeamComment.objects.filter(team=team)
+
+    # Get a history of files downloaded for members of this team
+    files = HostedFile.objects.filter(project=project)
+    team_users = User.objects.filter(participant__in=team_participants)
+    downloads = HostedFileDownload.objects.filter(hosted_file__in=files, user__in=team_users)
+
+    return render(request, template_name, context={"user_logged_in": user_logged_in,
+                                                   "user": user,
+                                                   "ssl_setting": settings.SSL_SETTING,
+                                                   "is_manager": is_manager,
+                                                   "project": project,
                                                    "team": team,
-                                                   "team_members": team_members,
-                                                   "num_required_forms": num_required_forms})
+                                                   "team_members": team_member_details,
+                                                   "num_required_forms": num_required_forms,
+                                                   "institution": institution,
+                                                   "comments": comments,
+                                                   "downloads": downloads})
 
 @user_auth_and_jwt
 def manage_contest(request, project_key, template_name='datacontests/managecontests.html'):
@@ -303,7 +331,7 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
     is_manager = sciauthz.user_has_manage_permission(request, project_key)
 
     if not is_manager:
-        logger.debug('[HYPATIO][DEBUG] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
+        logger.debug('[HYPATIO][DEBUG][manage_contest] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
         return HttpResponse(403)
 
     teams = Team.objects.filter(data_project=project)
@@ -343,6 +371,8 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
     total_submissions = 0 # TODO
     teams_with_any_submission = 0 # TODO
 
+    institution = project.institution
+
     return render(request, template_name, {"user_logged_in": user_logged_in,
                                            "user": user,
                                            "ssl_setting": settings.SSL_SETTING,
@@ -354,7 +384,8 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
                                            "total_participants": total_participants,
                                            "countries_represented": countries_represented,
                                            "total_submissions": total_submissions,
-                                           "teams_with_any_submission": teams_with_any_submission})
+                                           "teams_with_any_submission": teams_with_any_submission,
+                                           "institution": institution})
 
 # TODO remove this: activate_team view should now do this
 @user_auth_and_jwt
