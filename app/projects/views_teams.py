@@ -13,12 +13,33 @@ from .models import DataProject
 from .models import Participant
 from .models import Team
 from .models import SignedAgreementForm
+from .models import TeamComment
 
 from contact.views import email_send
 
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 
 logger = logging.getLogger(__name__)
+
+@user_auth_and_jwt
+def save_team_comment(request):
+    """Saves a comment made about a team by a challenge administrator."""
+
+    project_key = request.POST.get("project")
+    team_leader = request.POST.get("team")
+    comment = request.POST.get("comment")
+
+    logger.debug('[HYPATIO][save_team_comment] ' + request.user.email + ' entered a comment about team ' + team_leader + '.')
+
+    project = DataProject.objects.get(project_key=project_key)
+    team = Team.objects.get(team_leader__email=team_leader, data_project=project)
+
+    new_comment = TeamComment(user=request.user,
+                              team=team,
+                              text=comment)
+    new_comment.save()
+
+    return HttpResponse(200)
 
 @user_auth_and_jwt
 def change_team_status(request):
