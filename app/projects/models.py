@@ -156,8 +156,20 @@ class HostedFile(models.Model):
     project = models.ForeignKey(DataProject)
     enabled = models.BooleanField(default=False)
 
+    def __str__(self):
+        return '%s - %s' % (self.project, self.long_name)
 
 class HostedFileDownload(models.Model):
     user = models.ForeignKey(User)
     hosted_file = models.ForeignKey(HostedFile)
     download_date = models.DateTimeField(auto_now_add=True)
+
+
+class TeamComment(models.Model):
+    user = models.ForeignKey(User)
+    team = models.ForeignKey(Team)
+    date = models.DateTimeField(auto_now_add=True)
+    text = models.CharField(max_length=2000, blank=False, null=False)
+
+    def __str__(self):
+        return '%s %s %s' % (self.user, self.team, self.date)

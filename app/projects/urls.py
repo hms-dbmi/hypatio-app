@@ -9,7 +9,8 @@ from .views import download_signed_form
 from .views import save_signed_agreement_form
 from .views import project_details
 from .views import signout
-from .views import view_team_management
+from .views import manage_team
+
 from .views_teams import join_team
 from .views_teams import leave_team
 from .views_teams import create_team
@@ -19,6 +20,7 @@ from .views_teams import reject_team_join
 from .views_teams import finalize_team
 from .views_teams import change_team_status
 from .views_teams import delete_team
+from .views_teams import save_team_comment
 
 from .views_files import download_dataset
 
@@ -29,7 +31,7 @@ urlpatterns = (
     url(r'^request_access/$', request_access),
     url(r'^submit_user_permission_request/$', submit_user_permission_request),
     url(r'^manage/(?P<project_key>[^/]+)/$', manage_contest, name='manage_contest'),
-    url(r'^view_team_management/$', view_team_management),
+    url(r'^manage/(?P<project_key>[^/]+)/(?P<team_leader>[^/]+)/$', manage_team),
     url(r'^save_signed_agreement_form', save_signed_agreement_form),
     url(r'^signout/$', signout),
     url(r'^join_team/$', join_team),
@@ -40,6 +42,7 @@ urlpatterns = (
     url(r'^finalize_team/$', finalize_team),
     url(r'^change_team_status/$', change_team_status),
     url(r'^delete_team/$', delete_team),
+    url(r'^save_team_comment/$', save_team_comment),
     url(r'^team_signup_form/(P<project_key>[^/]+)/$', team_signup_form),
     url(r'^download_signed_form/$', download_signed_form),
     url(r'^download_dataset/$', download_dataset),
