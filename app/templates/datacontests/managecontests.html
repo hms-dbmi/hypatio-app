@@ -8,8 +8,9 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
 {% endblock %}
 
+{% block tab_name %}Challenge Management{% endblock %}
 {% block title %}{{ project.project_key }} Management{% endblock %}
-{% block subtitle %}{{ project.short_description }}{% endblock %}
+{% block subtitle %}<a href="#">{{ project.short_description }}</a>{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -29,7 +30,7 @@
                     </thead>
                     <tbody>
                     {% for team in teams %}
-                        <tr data-toggle="modal" data-target="#team_management_modal" data-project="{{ project.project_key }}" data-team="{{ team }}">
+                        <tr class="team-row" data-team="{{ team }}">
                             <td>{{ team }}</td>
                             <td>{{ team.participant_set.all.count }}</td>
                             <td>
@@ -124,23 +125,6 @@
         </div>
     </div>
 </div>
-
-<div class="modal fade bs-example-modal-lg" id="team_management_modal" tabindex="-1" role="dialog" aria-labelledby="team_management_modal_label">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="team_management_modal_label">Team Management</h4>
-            </div>
-            <div class="modal-body">
-                ...
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block footerscripts %}
@@ -159,34 +143,11 @@
 </script>
 
 <script type="application/javascript">
-    // Update the team management modal when it is opened
+    // When clicking a team row, open a new window for team managment
     $(document).ready(function() {
-        $('#team_management_modal').modal({
-            keyboard: true,
-            show: false
-        }).on('show.bs.modal', function (event) {
-            // Grab key information from the clicked row
-            var modal = $(this);
-            var link = $(event.relatedTarget);
-            var project = link.data('project');
-            var team = link.data('team');
-
-            // Make an AJAX call that returns the contents of the modal
-            $.ajax({
-                type: "GET",
-                url: "/projects/view_team_management/",
-                data: {
-                    team: team,
-                    project: project,
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
-                success: function (data) {
-                    $(modal).find('.modal-body').html(data);
-                },
-                error: function() {
-                    notify('danger', 'An error occurred during the request', 'glyphicon glyphicon-remove');
-                }
-            });
+        $('.team-row').click(function() {
+            var team = $(this).data('team');
+            window.open("./" + team);
         });
     });
 </script>
