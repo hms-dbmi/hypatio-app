@@ -252,6 +252,17 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
     Populates the team management modal popup on the contest management screen.
     """
 
+    user = request.user
+    user_logged_in = True
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    is_manager = sciauthz.user_has_manage_permission(request, project_key)
+
+    if not is_manager:
+        logger.debug('[HYPATIO][DEBUG][manage_team] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
+        return HttpResponse(403)
+
     project = DataProject.objects.get(project_key=project_key)
     team = Team.objects.get(data_project=project, team_leader__email=team_leader)
     num_required_forms = project.agreement_forms.count()
@@ -292,7 +303,11 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
     team_users = User.objects.filter(participant__in=team_participants)
     downloads = HostedFileDownload.objects.filter(hosted_file__in=files, user__in=team_users)
 
-    return render(request, template_name, context={"project": project,
+    return render(request, template_name, context={"user_logged_in": user_logged_in,
+                                                   "user": user,
+                                                   "ssl_setting": settings.SSL_SETTING,
+                                                   "is_manager": is_manager,
+                                                   "project": project,
                                                    "team": team,
                                                    "team_members": team_member_details,
                                                    "num_required_forms": num_required_forms,
@@ -316,7 +331,7 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
     is_manager = sciauthz.user_has_manage_permission(request, project_key)
 
     if not is_manager:
-        logger.debug('[HYPATIO][DEBUG] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
+        logger.debug('[HYPATIO][DEBUG][manage_contest] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
         return HttpResponse(403)
 
     teams = Team.objects.filter(data_project=project)
