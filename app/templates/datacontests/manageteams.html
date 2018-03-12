@@ -255,7 +255,7 @@
 
         $.post("/projects/delete_team/", request_data)
             .done(function() {
-                location.reload();
+                window.close();
             }).fail(function() {
                 alert('Failed to delete team.');
             });
