@@ -33,7 +33,7 @@
                         <tr class="team-row" data-team="{{ team }}">
                             <td>{{ team }}</td>
                             <td>{{ team.participant_set.all.count }}</td>
-                            <td>
+                            <td class="team-status-column">
                             {% if team.status == "Pending" %}
                                 Pending
                             {% elif team.status == "Ready" %}
@@ -148,6 +148,11 @@
         $('#team-table').on("click", ".team-row", function() {
             var team = $(this).data('team');
             window.open("./" + team);
+            
+            // Because the user may now delete the team or change its status, mention
+            // that they should refresh the page to see any changes
+            var teamStatus = $(this).find('.team-status-column');
+            teamStatus.html('<span class="label label-default">Refresh to see changes</span>');
         });
     });
 </script>
