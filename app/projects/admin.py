@@ -16,7 +16,7 @@ class AgreementformAdmin(admin.ModelAdmin):
     list_display = ('name', 'short_name', 'form_html')
 
 class SignedagreementformAdmin(admin.ModelAdmin):
-    list_display = ('user', 'agreement_form', 'date_signed')
+    list_display = ('user', 'agreement_form', 'date_signed', 'status')
 
 class TeamAdmin(admin.ModelAdmin):
     list_display = ('team_leader', 'data_project')

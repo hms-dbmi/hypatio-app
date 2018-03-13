@@ -1,0 +1,7 @@
+This is a notification that a {{ signed_form.project.name }} challenge administrator has rejected the {{ signed_form.agreement_form.name }} form that you signed on {{ signed_form.date_signed }}. A contest administrator provided the following reason why:
+
+{{ administrator_message }}
+
+Please return to the {{ signed_form.project.name }} challenge page and fill out the form again if you wish to participate in the challenge.
+
+Thank you.
