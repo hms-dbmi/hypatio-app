@@ -22,6 +22,12 @@ TEAM_STATUS = (
     ('Deactivated', 'Deactivated')
 )
 
+SIGNED_FORM_STATUSES = (
+    ('P', 'Pending Approval'),
+    ('A', 'Approved'),
+    ('R', 'Rejected'),
+)
+
 def get_agreement_form_upload_path(instance, filename):
 
     form_directory = 'agreementforms/'
@@ -102,6 +108,7 @@ class SignedAgreementForm(models.Model):
     project = models.ForeignKey(DataProject)
     date_signed = models.DateTimeField(auto_now_add=True)
     agreement_text = models.TextField(blank=False)
+    status = models.CharField(max_length=1, null=False, blank=False, default='P', choices=SIGNED_FORM_STATUSES)
 
 
 class Team(models.Model):
