@@ -5,7 +5,7 @@ from .views import list_data_contests
 from .views import request_access
 from .views import submit_user_permission_request
 from .views import manage_contest
-from .views import download_signed_form
+from .views import signed_agreement_form
 from .views import save_signed_agreement_form
 from .views import project_details
 from .views import signout
@@ -21,6 +21,8 @@ from .views_teams import finalize_team
 from .views_teams import change_team_status
 from .views_teams import delete_team
 from .views_teams import save_team_comment
+from .views_teams import change_signed_form_status
+from .views_teams import download_signed_form
 
 from .views_files import download_dataset
 
@@ -43,8 +45,10 @@ urlpatterns = (
     url(r'^change_team_status/$', change_team_status),
     url(r'^delete_team/$', delete_team),
     url(r'^save_team_comment/$', save_team_comment),
+    url(r'^change_signed_form_status/$', change_signed_form_status),
+    url(r'^download_signed_form/$', download_signed_form),    
     url(r'^team_signup_form/(P<project_key>[^/]+)/$', team_signup_form),
-    url(r'^download_signed_form/$', download_signed_form),
+    url(r'^signed_agreement_form/$', signed_agreement_form),
     url(r'^download_dataset/$', download_dataset),
     url(r'^(?P<project_key>[^/]+)/$', project_details)
 )
