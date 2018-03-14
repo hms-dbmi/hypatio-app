@@ -39,7 +39,7 @@
             {% else %}
                 {% include 'project_registration_closed.html' %}
             {% endif %}
-        {% elif not access_granted %}
+        {% elif not access_granted or forms_incomplete %}
             {% if project.registration_open or user.is_superuser %}
                 {% include 'project_signup.html' %}
             {% else %}

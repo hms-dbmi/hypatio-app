@@ -81,7 +81,7 @@
                             <td>{{ person.email }}</td>
                             <td>
                                 {% for form in person.signed_agreement_forms %}
-                                <a class="btn btn-default btn-xs download-signed-form" href="/projects/download_signed_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
+                                <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-success{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="/projects/signed_agreement_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
                                     {{ form.agreement_form.short_name }}
                                 </a>
                                 {% endfor %}
