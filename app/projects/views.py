@@ -102,7 +102,7 @@ def signed_agreement_form(request, template_name='signed_agreement_form.html'):
     if is_manager:
         project = get_object_or_404(DataProject, project_key=project_key)
         signed_form = get_object_or_404(SignedAgreementForm, id=signed_agreement_form_id, project=project)
-        participant = Participant.objects.get(data_challenge=project, user=request.user)
+        participant = Participant.objects.get(data_challenge=project, user=signed_form.user)
 
         return render(request, template_name, {"user": request.user,
                                                "user_logged_in": True,
