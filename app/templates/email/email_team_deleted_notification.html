@@ -11,7 +11,7 @@
 {% if administrator_message %}
 <p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">A contest administrator provided the following reason why:</p>
 
-<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;"><i>{{ administrator_message }}</i></p>
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;"><i>{{ administrator_message|linebreaks }}</i></p>
 {% endif %}
 
 <p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">You can <a href="{{ site_url }}/{{ project.project_key }}/">click here</a> to return to the {{ project.name }} challenge page.</p>

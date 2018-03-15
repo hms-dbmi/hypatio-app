@@ -1,5 +1,7 @@
 import logging
+from datetime import datetime
 
+from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.http import HttpResponse
@@ -20,6 +22,90 @@ from contact.views import email_send
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 
 logger = logging.getLogger(__name__)
+
+
+@user_auth_and_jwt
+def download_signed_form(request):
+    """Returns a text file to the user containing the signed form's content."""
+
+    form_id = request.GET.get("form_id")
+
+    logger.debug('[HYPATIO][download_signed_form] ' + request.user.email + ' is downloading signed form ' + form_id + '.')
+
+    signed_form = get_object_or_404(SignedAgreementForm, id=form_id)
+    affected_user = signed_form.user
+    date_as_string = datetime.strftime(signed_form.date_signed, "%Y%m%d-%H%M")
+
+    filename = affected_user.email + '-' + signed_form.agreement_form.short_name + '-' + date_as_string + '.txt'
+    response = HttpResponse(signed_form.agreement_text, content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename={0}'.format(filename)
+    return response
+
+@user_auth_and_jwt
+def change_signed_form_status(request):
+    """Change a signed form's status and notify the user."""
+
+    status = request.POST.get("status")
+    form_id = request.POST.get("form_id")
+    administrator_message = request.POST.get("administrator_message")
+
+    logger.debug('[HYPATIO][change_signed_form_status] ' + request.user.email + ' changing status for signed form ' + form_id + ' to ' + status + '.')
+
+    signed_form = get_object_or_404(SignedAgreementForm, id=form_id)
+    affected_user = signed_form.user
+
+    # First change the team's status
+    if status == "approved":
+        signed_form.status = 'A'
+        signed_form.save()
+    elif status == "rejected":
+        signed_form.status = 'R'
+        signed_form.save()
+
+        logger.debug('[HYPATIO][change_signed_form_status] Emailing a rejection notification to the affected participant')
+
+        # Send an email notification to the affected person
+        context = {'signed_form': signed_form,
+                   'administrator_message': administrator_message,
+                   'site_url': settings.SITE_URL}
+
+        email_success = email_send(subject='DBMI Portal Signed Form Rejected',
+                                   recipients=[affected_user.email],
+                                   email_template='email_signed_form_rejection_notification',
+                                   extra=context)
+
+        participant = Participant.objects.get(user=affected_user, data_challenge=signed_form.project)
+        team = participant.team
+
+        # If the team is in an Active status, move the team status down to Ready and remove everyone's VIEW permissions
+        if team.status == "Active":
+            team.status = "Ready"
+            team.save()
+
+            for member in team.participant_set.all():
+                sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+                sciauthz.remove_view_permission(signed_form.project.project_key, member.user.email)
+
+            logger.debug('[HYPATIO][change_signed_form_status] Emailing the whole team that their status has been moved to Ready because someone has a pending form')
+
+            # Send an email notification to the team
+            context = {'status': "ready",
+                       'reason': 'Your team has been temporarily disabled because of an issue with a team members\' forms. Challenge administrators will resolve this shortly.',
+                       'project': signed_form.project,
+                       'site_url': settings.SITE_URL}
+
+            # Email list
+            emails = [member.user.email for member in team.participant_set.all()]
+
+            email_success = email_send(subject='DBMI Portal Team Status Changed',
+                                       recipients=emails,
+                                       email_template='email_new_team_status_notification',
+                                       extra=context)
+    else:
+        logger.debug('[HYPATIO][change_signed_form_status] Given status "' + status + '" not one of allowed statuses.')
+        return HttpResponse(500)
+
+    return HttpResponse(200)
 
 @user_auth_and_jwt
 def save_team_comment(request):

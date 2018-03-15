@@ -90,20 +90,26 @@ def submit_user_permission_request(request):
     return HttpResponse(200)
 
 @user_auth_and_jwt
-def download_signed_form(request):
-
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+def signed_agreement_form(request, template_name='signed_agreement_form.html'):
 
     project_key = request.GET['project_key']
     signed_agreement_form_id = request.GET['signed_form_id']
 
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(request, project_key)
 
     if is_manager:
         project = get_object_or_404(DataProject, project_key=project_key)
-        signed_agreement_form = get_object_or_404(SignedAgreementForm, id=signed_agreement_form_id, project=project)
-        return HttpResponse(signed_agreement_form.agreement_text, content_type='text/plain')
+        signed_form = get_object_or_404(SignedAgreementForm, id=signed_agreement_form_id, project=project)
+        participant = Participant.objects.get(data_challenge=project, user=signed_form.user)
+
+        return render(request, template_name, {"user": request.user,
+                                               "user_logged_in": True,
+                                               "ssl_setting": settings.SSL_SETTING,
+                                               "is_manager": is_manager,
+                                               "signed_form": signed_form,
+                                               "participant": participant})
     else:
         return HttpResponse(403)
 
@@ -255,7 +261,7 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
     user = request.user
     user_logged_in = True
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    
+
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(request, project_key)
 
@@ -272,6 +278,7 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
     # Collect all the team member information needed
     team_member_details = []
     team_participants = team.participant_set.all()
+    team_accepted_forms = 0
 
     for member in team_participants:
         email = member.user.email
@@ -283,15 +290,34 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
             user_info = user_info_json["results"][0]
         else:
             user_info = None
-        
-        signed_agreement_forms = SignedAgreementForm.objects.filter(user__email=email, project=project)
+
+        signed_agreement_forms = []
+        signed_accepted_agreement_forms = 0
+
+        # For each of the available agreement forms for this project, display only latest version completed by the user
+        for agreement_form in project.agreement_forms.all():
+            signed_form = SignedAgreementForm.objects.filter(user__email=email,
+                                                             project=project,
+                                                             agreement_form=agreement_form).last()
+
+            if signed_form is not None:
+                signed_agreement_forms.append(signed_form)
+
+                if signed_form.status == 'A':
+                    team_accepted_forms += 1
+                    signed_accepted_agreement_forms += 1
 
         team_member_details.append({
             'email': email,
             'user_info': user_info,
             'signed_agreement_forms': signed_agreement_forms,
+            'signed_accepted_agreement_forms': signed_accepted_agreement_forms,
             'participant': member
         })
+
+    # Check whether this team has completed all the necessary forms and they have been accepted by challenge admins
+    total_required_forms_for_team = project.agreement_forms.count() * team_participants.count()
+    team_has_all_forms_complete = total_required_forms_for_team == team_accepted_forms
 
     institution = project.institution
 
@@ -311,6 +337,7 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
                                                    "team": team,
                                                    "team_members": team_member_details,
                                                    "num_required_forms": num_required_forms,
+                                                   "team_has_all_forms_complete": team_has_all_forms_complete,
                                                    "institution": institution,
                                                    "comments": comments,
                                                    "downloads": downloads})
@@ -355,7 +382,11 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
         else:
             user_info = None
         
-        signed_agreement_forms = SignedAgreementForm.objects.filter(user__email=email, project=project)
+        signed_agreement_forms = []
+
+        # For each of the available agreement forms for this project, display only latest version completed by the user
+        for agreement_form in project.agreement_forms.all():
+            signed_agreement_forms.append(SignedAgreementForm.objects.filter(user__email=email, project=project, agreement_form=agreement_form).last())
 
         users_without_a_team_details.append({
             'email': email,
@@ -444,6 +475,7 @@ def project_details(request, project_key, template_name='project_details.html'):
 
     # TODO cleanup and eliminate some of these where possible
     registration_form = None
+    forms_incomplete = False
     agreement_forms_list = []
     participant = None
     is_manager = False
@@ -520,17 +552,19 @@ def project_details(request, project_key, template_name='project_details.html'):
         # Order by name descending temporarily so the n2c2 ROC appears before DUA
         agreement_forms = project.agreement_forms.order_by('-name')
 
-        # Check to see if any of the necessary agreement forms have already been signed by the user
+        # Check to see if any of the agreement forms have been signed and not rejected by an admin
         for agreement_form in agreement_forms:
             signed_agreement_form = SignedAgreementForm.objects.filter(project=project,
                                                                        user=user,
-                                                                       agreement_form=agreement_form)
+                                                                       agreement_form=agreement_form,
+                                                                       status__in=["P", "A"])
 
             if signed_agreement_form.count() > 0:
                 already_signed = True
             else:
                 already_signed = False
-            
+                forms_incomplete = True
+
             if current_step is None and not already_signed:
                 current_step = agreement_form.name
 
@@ -556,9 +590,7 @@ def project_details(request, project_key, template_name='project_details.html'):
             access_granted = True
 
             # TODO Temporarily ordering by name descending for n2c2
-
             # Get all of the files available for this data set
-
             if request.user.is_superuser:
                 data_files = HostedFile.objects.filter(project=project).order_by('-long_name')
             else:
@@ -601,4 +633,5 @@ def project_details(request, project_key, template_name='project_details.html'):
                                            "profile_completed": profile_completed,
                                            "institution": institution,
                                            "registration_form": registration_form,
-                                           "current_step": current_step})
+                                           "current_step": current_step,
+                                           "forms_incomplete": forms_incomplete})

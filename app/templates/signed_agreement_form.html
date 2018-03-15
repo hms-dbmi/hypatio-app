@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load tz %}
+
+{% block headscripts %}
+{% endblock %}
+
+{% block tab_name %}Signed Agreement Form{% endblock %}
+{% block title %}Manage Signed Agreement Form{% endblock %}
+{% block subtitle %}{{ signed_form.agreement_form.name }} -- {{ signed_form.user }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-7">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Signed Form Content</h2>
+            </div>
+            <div class="panel-body">
+                {{ signed_form.agreement_text|linebreaks }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Information</h2>
+            </div>
+            <div class="panel-body">
+                <p><strong>Form Status:</strong> <span class="label {% if signed_form.status == 'P' %}label-warning{% elif signed_form.status == 'A' %}label-success{% elif signed_form.status == 'R' %}label-danger{% endif %}">{{ signed_form.get_status_display }}</span></p>
+                <p><strong>Signed by:</strong> {{ signed_form.user }}</p>
+                <p><strong>Member of team:</strong> {{ participant.team.team_leader }}</p>
+                <p><strong>For Project:</strong> {{ signed_form.project.name }}</p>
+                <p><strong>Form Name:</strong> {{ signed_form.agreement_form.name }}</p>
+                <p><strong>Signed on:</strong> {{ signed_form.date_signed|timezone:"America/New_York" }} (EST)</p>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Actions</h2>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <a href="/projects/download_signed_form/?form_id={{ signed_form.id }}" class="btn btn-default">Download</a> 
+                        <button type="button" class="btn btn-success" id="approve-form">Approve</button>
+                        <button type="button" class="btn btn-danger" id="reject-form">Reject</button>
+                    </div>
+                </div>
+                <div class="row" id="reject-form-confirmation" style="display: none;">
+                    <div class="col-xs-12">
+                        <hr>
+                        
+                        <form>
+                            <div class="form-group">
+                                <strong>Are you sure you want to reject this form?</strong> If this person is on an Active team, the entire team will lose its Active status and need to be reviewed again.
+                            </div>
+                            <div class="form-group">
+                                <label for="reject-reason">Please provide a reason and then hit confirm. This will be emailed to the user.</label>
+                                <textarea class="form-control" rows="3" name="reject-reason" id="reject-reason"></textarea>
+                            </div>
+                            <button type="button" id="reject-form-confirm" class="btn btn-danger">Confirm</button>
+                            <button type="button" id="reject-form-cancel" class="btn btn-default">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footerscripts %}
+<script type="application/javascript">
+
+    $('#reject-form').click(function() {
+        $('#reject-form-confirmation').show();
+    });
+
+    $('#reject-form-cancel').click(function() {
+        $('#reject-form-confirmation').hide();
+    });
+
+    $('#reject-form-confirm').click(function() {
+
+        var reject_reason = $("#reject-reason").val();
+
+        var request_data = {
+            status: "rejected",
+            form_id: "{{ signed_form.id }}",
+            administrator_message: reject_reason,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        };
+
+        $.post("/projects/change_signed_form_status/", request_data)
+            .done(function() {
+                location.reload();
+            }).fail(function() {
+                alert('Failed to reject signed form.');
+            });
+    });
+
+    $('#approve-form').click(function() {
+
+        var request_data = {
+            status: "approved",
+            form_id: "{{ signed_form.id }}",
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        };
+
+        $.post("/projects/change_signed_form_status/", request_data)
+            .done(function() {
+                location.reload();
+            }).fail(function() {
+                alert('Failed to approve signed form.');
+            });
+    });
+</script>
+{% endblock %}
+
