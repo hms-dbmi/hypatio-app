@@ -90,7 +90,7 @@ class DataProject(models.Model):
     registration_open = models.BooleanField(default=False, blank=False, null=False)
 
     def __str__(self):
-        return '%s %s' % (self.project_key, self.name)
+        return '%s' % (self.project_key)
 
 
 class DataGate(models.Model):
@@ -112,9 +112,27 @@ class SignedAgreementForm(models.Model):
 
 
 class Team(models.Model):
+    """
+    This model describes a team of participants that are competing in a data challenge.
+    """
     team_leader = models.OneToOneField(User)
     data_project = models.ForeignKey(DataProject)
     status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
+
+    def get_count_of_submissions_made(self):
+        """Returns the total number of submissions that a team's participants have made for its challenge."""
+
+        submissions = 0
+        participants = self.participant_set.all()
+        for p in participants:
+            submissions += p.participantsubmission_set.count()
+        return submissions
+
+    def get_number_of_submissions_left(self):
+        """Returns the number of submissions left that a team may make."""
+
+        # TODO: abstract this number to the DataProjects class?
+        return 3 - self.get_count_of_submissions_made()
 
     def __str__(self):
         return '%s' % self.team_leader.email
@@ -153,6 +171,9 @@ class Participant(models.Model):
         self.team_wait_on_leader_email = None
         self.team_pending = False
 
+    def __str__(self):
+        return '%s - %s' % (self.user, self.data_challenge)
+
 
 class HostedFile(models.Model):
     long_name = models.CharField(max_length=100, blank=False, null=False)
@@ -165,6 +186,7 @@ class HostedFile(models.Model):
 
     def __str__(self):
         return '%s - %s' % (self.project, self.long_name)
+
 
 class HostedFileDownload(models.Model):
     user = models.ForeignKey(User)
@@ -180,3 +202,14 @@ class TeamComment(models.Model):
 
     def __str__(self):
         return '%s %s %s' % (self.user, self.team, self.date)
+
+class ParticipantSubmission(models.Model):
+    """Captures the files that participants are submitting for their challenges. Through the Participant model
+    you can get to what team and project this submission pertains to.
+    """
+    participant = models.ForeignKey(Participant)
+    upload_date = models.DateTimeField(auto_now_add=True)
+    file = models.FileField()
+
+    def __str__(self):
+        return '%s %s' % (self.participant.user, self.file)
