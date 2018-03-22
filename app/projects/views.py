@@ -545,15 +545,13 @@ def project_details(request, project_key):
     try:
         participant = Participant.objects.get(user=user)
         team = participant.team
+        access_granted = participant.team_approved and team.status == 'Active'
     except ObjectDoesNotExist:
         participant = None
         team = None
+        access_granted = False
 
     team_has_pending_members = Participant.objects.filter(team=team, team_approved=False)
-
-    # A user has been granted access to a project when they are on an Active team
-    access_granted = team and team.status == 'Active'
-
     # If all other steps completed, then last step will be team
     if current_step is None:
         current_step = "team"
