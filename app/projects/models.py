@@ -88,6 +88,7 @@ class DataProject(models.Model):
     is_contest = models.BooleanField(default=False, blank=False, null=False)
     visible = models.BooleanField(default=False, blank=False, null=False)
     registration_open = models.BooleanField(default=False, blank=False, null=False)
+    accepting_user_submissions = models.BooleanField(default=False, blank=False, null=False)
 
     def __str__(self):
         return '%s' % (self.project_key)

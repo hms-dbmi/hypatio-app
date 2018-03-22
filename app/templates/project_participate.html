@@ -116,6 +116,7 @@
             </div>
         </div>
 
+        {% if project.accepting_user_submissions %}
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Uploads</a></h2>
@@ -139,6 +140,7 @@
             {% endif %}
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
