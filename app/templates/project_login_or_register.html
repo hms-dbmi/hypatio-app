@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load projects_extras %}
+{% load bootstrap3 %}
+
+{% block headscripts %}
+{% endblock %}
+
+{% block tab_name %}{{ project.name }}{% endblock %}
+{% block title %}{{ project.name }}{% endblock %}
+{% block subtitle %}{{ project.short_description }}{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+{% include 'messages.html' %}
+{% endif %}
+
+<div class="row">
+    <div class="col-md-12">
+        {% if project.registration_open %}
+            {% if project.is_contest %}
+                <div class="alert alert-danger" role="alert">
+                    To compete in {{ project.short_description }} please first <a href="{{ request.build_absolute_uri|get_login_url }}">login or register</a>.
+                </div>
+            {% else %}
+                <div class="alert alert-danger" role="alert">
+                    To request access to this dataset please first <a href="{{ request.build_absolute_uri|get_login_url }}">login or register</a>.
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-danger" role="alert">
+                Registration is not open for {{ project.short_description }} at this time. If you believe this is in error please contact the project leader or use the Contact Us link to get in contact with DBMI's Technology Core.
+            </div>
+        {% endif %}
+
+        <div class="panel panel-primary">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Description</a>
+                </h2>
+            </div>
+            <div class="panel-body">
+                {% autoescape off %}
+                {{ project.description }}
+                {% endautoescape %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footerscripts %}
+{% endblock %}

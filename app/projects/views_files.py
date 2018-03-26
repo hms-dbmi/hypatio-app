@@ -29,7 +29,7 @@ def download_dataset(request):
 
     if not sciauthz.user_has_single_permission("n2c2-t1", "VIEW"):
         logger.debug("[views_files][download_dataset] - No Access for user " + request.user.email)
-        return HttpResponse(403)
+        return HttpResponse("403 Forbidden. You do not have access to download this file.")
 
     file_id = request.GET.get("file_id")
     file_to_download = get_object_or_404(HostedFile, id=file_id)

@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 def update_profile(request):
 
     user = request.user
-    user_logged_in = True
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
     # If the JWT has expired or the user doesn't have one, force the user to login again
@@ -59,7 +58,6 @@ def update_profile(request):
 def profile(request, template_name='profile/profile.html'):
 
     user = request.user
-    user_logged_in = True
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
@@ -90,8 +88,7 @@ def profile(request, template_name='profile/profile.html'):
     return render(request, template_name, {'registration_form': registration_form,
                                             'user': user,
                                             'is_manager': is_manager,
-                                            'new_user': new_user,
-                                            'user_logged_in': user_logged_in})
+                                            'new_user': new_user})
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
