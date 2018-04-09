@@ -128,16 +128,21 @@
                 <div class="alert alert-warning" role="alert">
                     Something here about what exactly you're submitting and a reminder that each team has a limited number of submissions.
                 </div>
-
                 <h5>Your team has {{ team.get_number_of_submissions_left }} submissions left. </h5>
+                <form id="file-upload-form">
+                    {% csrf_token %}
 
-                <form>
                     <label class="btn btn-default" id="file-upload-browse">
-                        Click to browse for a file... <input type="file" style="display: none;">
-                    </label> 
-                    <button id="file-upload-submit" type="submit" class="btn btn-danger" style="display: none;"></button>
+                        Click to browse for a file... <input id="file-upload-file" name="file" type="file" style="display: none;">
+                    </label>
+                    <input id="file-upload-filename" name="filename" type="text" hidden="true" />
+                    <input id="file-upload-project" name="project" type="text" hidden="true" value="{{ project.project_key }}" />
+                    <button id="file-upload-submit" type="submit" class="btn btn-danger" style="display: none;"
+                    data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> Uploading file..."></button>
+
                 </form>
-            {% endif %}
+
+                {% endif %}
             </div>
         </div>
         {% endif %}
@@ -152,19 +157,213 @@
         $('[data-toggle="team-status-tooltip"]').tooltip()
     });
 </script>
-
 <script type="application/javascript">
-    $(function() {
 
-        // We can attach the `fileselect` event to all file inputs on the page
-        $(document).on('change', ':file', function() {
+    function objectifyForm( formArray ) {
+        var returnArray = {};
+        for (var i = 0; i < formArray.length; i++){
+            returnArray[formArray[i]['name']] = formArray[i]['value'];
+        }
+        return returnArray;
+    }
+
+    $( document ).ready(function() {
+
+        // Automatically update the filename field when a file
+        // is selected by the user.
+        $(document).on('change', '#file-upload-form input[name=file]', function () {
             var input = $(this);
             var fileName = input.val().replace(/\\/g, '/').replace(/.*\//, '');
-            
+
             $('#file-upload-submit').text('Submit ' + fileName);
             $('#file-upload-browse').hide();
             $('#file-upload-submit').show();
+
+            $('#file-upload-filename').val(fileName);
         });
+
+        // Set the handler for the form
+        $(document).on('submit', '#file-upload-form', function (event) {
+            console.log('form.submit');
+
+            // Get the file
+            var file = $("#file-upload-form input[name=file]").prop('files')[0];
+            if(file == null) {
+
+                // Quit with error
+                error('A file has not been selected, please try again');
+                return false;
+            }
+
+            // Get the form data.
+            var form = objectifyForm($('#file-upload-form').serializeArray());
+
+            // Remove the file from the data.
+            delete form['file'];
+
+            // Add info about the file
+            form['content_type'] = file.content;
+
+            // Disable the form and the buttons.
+            $("#file-upload-submit").button('loading');
+
+            // Inform the server that the uploade completed
+            $.ajax({
+                method: "POST",
+                data: form,
+                url: "/upload_dataset/",
+                success: function (data, textStatus, jqXHR) {
+                    console.log("submit.success: " + textStatus);
+
+                    // Do the upload
+                    upload(data["post"], data["file"], file);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log("submit.error: " + errorThrown);
+
+                    // Error with message
+                    error('Something happened, please try again');
+                }
+            });
+
+            return false;
+        });
+
+        function upload(post, fileRecord, file) {
+            console.log('upload: ' + fileRecord["filename"]);
+
+            // construct the needed data using the policy for AWS
+            var form = new FormData();
+            var fields = post["fields"];
+            for(var key in fields) {
+                form.append(key, fields[key]);
+            }
+
+            // Add the file
+            form.append('file', file);
+
+            // Post it!
+            $.ajax({
+                    url: post["url"],
+                    datatype: 'xml',
+                    data: form,
+                    type: 'POST',
+                    contentType: false,
+                    processData: false,
+                    xhr: function () {
+
+                        // Add a progress handler
+                        var xhr = $.ajaxSettings.xhr();
+                        xhr.upload.onprogress = progress;
+
+                        // Allow aborting the upload.
+                        $('#file-upload-close-button').click(function() {
+
+                            xhr.abort();
+                        });
+                        return xhr;
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        console.log('upload.success: ' + textStatus);
+
+                        // Do not allow the upload to be cancelled at this point
+                        $("#file-upload-form :input").prop("disabled", true);
+
+                        // Inform the server that the uploade completed
+                        complete(fileRecord);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log('upload.error: ' + errorThrown + ', ' + textStatus);
+
+                        // Check if aborted
+                        if( !jqXHR.getAllResponseHeaders() ) {
+                            // Cancelled notification
+                            aborted();
+
+                        } else {
+
+                            // Error with message
+                            error('Something happened, please try again');
+                        }
+                    }
+                });
+        }
+
+        function complete(fileRecord) {
+            console.log('complete: ' + fileRecord["filename"]);
+
+            // Inform the server that the uploade completed
+            $.ajax({
+                method: "PATCH",
+                data: fileRecord,
+                url: "/upload_dataset/",
+                success: function (data, textStatus, jqXHR) {
+                    console.log("complete.success: " + textStatus);
+
+                    // Notify.
+                    success();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log("complete.error: " + errorThrown);
+
+                    // Error with message
+                    error('Something happened, please try again');
+                }
+            });
+        }
+
+        function progress(event) {
+
+            // Ensure it can be used
+            if (event.lengthComputable) {
+
+                // Calculate progress.
+                var progress = event.loaded / event.total * 100;
+                console.log('upload.progress: ' + progress);
+
+                // Update UI if needed
+            }
+        }
+
+        function error(message) {
+
+            // Cleanup
+            cleanup();
+
+            // Notify.
+            notify('danger', message, 'glyphicon glyphicon-remove');
+        }
+
+        function aborted() {
+
+            // Cleanup
+            cleanup();
+
+            // Notify.
+            notify('warning', 'The upload was cancelled', 'glyphicon glyphicon-warning-sign');
+        }
+
+        function success() {
+
+            // Add a little delay
+            setTimeout(function(){
+
+                // Cleanup
+                cleanup();
+
+                // Notify.
+                notify('success', 'The upload has completed successfully!', 'glyphicon glyphicon-ok');
+            }, 1000);
+        }
+
+        function cleanup() {
+
+            // Reset the form
+            $('#file-upload-form').trigger('reset');
+            $('#file-upload-browse').show();
+            $('#file-upload-submit').button('reset');
+            $('#file-upload-submit').hide();
+        }
     });
 </script>
 {% endblock %}

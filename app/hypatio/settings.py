@@ -218,6 +218,20 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = os.environ.get("EMAIL_PORT")
 
+
+#####################################################################################
+# FileService Configurations
+#####################################################################################
+
+FILESERVICE_API_URL = os.environ.get('FILESERVICE_API_URL')
+FILESERVICE_GROUP = os.environ.get('FILESERVICE_GROUP')
+FILESERVICE_AWS_BUCKET = os.environ.get('S3_BUCKET')
+FILESERVICE_SERVICE_ACCOUNT = 'hypatio'
+FILESERVICE_SERVICE_TOKEN = os.environ.get('FILESERVICE_SERVICE_TOKEN')
+
+#####################################################################################
+
+
 LOGGING = {
     'version': 1,
     'handlers': {
