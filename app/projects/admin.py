@@ -38,7 +38,7 @@ class HostedFileDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'hosted_file', 'download_date')
 
 class ParticipantSubmissionAdmin(admin.ModelAdmin):
-    list_display = ('participant', 'upload_date', 'file')
+    list_display = ('participant', 'upload_date', 'uuid', 'location')
 
 admin.site.register(DataProject, DataprojectAdmin)
 admin.site.register(AgreementForm, AgreementformAdmin)

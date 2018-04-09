@@ -210,7 +210,8 @@ class ParticipantSubmission(models.Model):
     """
     participant = models.ForeignKey(Participant)
     upload_date = models.DateTimeField(auto_now_add=True)
-    file = models.FileField()
+    uuid = models.UUIDField(null=False, unique=True, primary_key=True, default=None)
+    location = models.CharField(max_length=12, default=None)
 
     def __str__(self):
         return '%s %s' % (self.participant.user, self.file)
