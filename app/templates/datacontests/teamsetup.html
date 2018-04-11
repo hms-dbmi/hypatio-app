@@ -1,23 +1,25 @@
-{% if user_is_team_leader %}
+{% if team.team_leader == user %}
     {% if team.status == "Active" %}
         <div class="alert alert-success" role="alert">
             Your team has been activated by the challenge administrators. Please wait for the data sets to be released.
-        </div>
-    {% elif team.status == "Ready" %}
-        <div class="alert alert-warning" role="alert">
-            You marked your team as finalized. Please wait for a challenge administrator to approve your team.
         </div>
     {% elif team.status == "Deactivated" %}
         <div class="alert alert-danger" role="alert">
             Your team was deactivated by challenge administrators.
         </div>
-    {% elif team_has_pending_members %}
+    {% elif team.status == "Ready" %}
         <div class="alert alert-warning" role="alert">
-            You are the leader of this team. Please review the list of team members below for any membership requests to approve or reject. If there is someone you would like to join your team, have them create an account here on the DBMI Portal and visit this page.
+            You marked your team as finalized. Please wait for a challenge administrator to approve your team.
         </div>
-        {% else %}
+    {% else %}
         <div class="alert alert-success" role="alert">
             You are the leader of this team. If all members of your team have already registered and are listed below, please click the Finalize button below to lock in your team for the challenge.
+        </div>
+    {% endif %}
+
+    {% if team_has_pending_members %}
+        <div class="alert alert-danger" role="alert">
+            You have a pending request from someone wishing to join your team. Please use the Accept or Reject button below to complete the request.
         </div>
     {% endif %}
 
@@ -29,7 +31,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for participant in team_members %}
+            {% for participant in team.participant_set.all %}
             <tr>
                 <td>{{ participant.user.email }}</td>
                 <td>

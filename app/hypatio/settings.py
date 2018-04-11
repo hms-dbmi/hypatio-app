@@ -141,6 +141,7 @@ SCIREG_REGISTRATION_URL = SCIREG_SERVER_URL + "/api/register/"
 COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN")
 
 SSL_SETTING = "https"
+VERIFY_REQUESTS = True
 
 CONTACT_FORM_RECIPIENTS="dbmi_tech_core@hms.harvard.edu"
 DEFAULT_FROM_EMAIL="dbmi_tech_core@hms.harvard.edu"

@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load projects_extras %}
+{% load bootstrap3 %}
+{% load tz %}
+
+{% block headscripts %}
+{% endblock %}
+
+{% block tab_name %}{{ team.data_project.name }}{% endblock %}
+{% block title %}{{ team.data_project.name }}{% endblock %}
+{% block subtitle %}{{ team.data_project.short_description }}{% endblock %}
+
+{% block extrainfo %}
+<button type="button" class="btn btn-success" data-toggle="team-status-tooltip" data-placement="left" title="Your team has been approved for access to this challenge. In the sections below, you will be able to download training and test data sets and upload your solutions.">
+    Team status: active
+</button>
+{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+{% include 'messages.html' %}
+{% endif %}
+
+<div class="row">
+    <div class="col-md-6">
+
+        <div class="panel panel-primary">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Challenge Description</a></h2>
+            </div>
+            <div class="panel-body pre-scrollable">
+                {% autoescape off %}
+                {{ team.data_project.description }}
+                {% endautoescape %}
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Your Team</a></h2>
+            </div>
+            <div class="panel-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Submissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for participant in team.participant_set.all %}
+                        <tr>
+                            <td>
+                                {{ participant.user.email }}
+                                {% if team.team_leader == participant.user %}
+                                    &nbsp;&nbsp;<span class="label label-primary">Team leader</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ participant.participantsubmission_set.all|length }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Your Agreement Forms</a></h2>
+            </div>
+            <div class="panel-body">
+                {% for agreement_form in final_signed_agreement_forms %}
+                    <h4>{{ agreement_form.agreement_form.name }}</h4>
+                    <div class="row">
+                        <div class="col-md-8">
+                            Signed {{ agreement_form.date_signed|timezone:"America/New_York" }} (EST)
+                        </div>
+                        <div class="col-md-4">
+                            <a class="btn btn-default btn-sm" href="/projects/signed_agreement_form/?signed_form_id={{ agreement_form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">View</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-md-6">
+
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Available Downloads</a></h2>
+            </div>
+            <div class="panel-body">
+                <div class="alert alert-danger" role="alert">
+                    Reminder: Gaining access to any portion of the 2018 n2c2 data commits your team to participate in the evaluation that will be run by n2c2, to submit a paper describing your developed system, and to present your work in the follow-up workshop to be organized by n2c2 (should your paper be accepted for presentation). <b>Teams cannot withdraw after gaining access to the data.</b> (See <a href="https://n2c2.dbmi.hms.harvard.edu/conduct.php">Rules of Conduct</a> and <a href="https://n2c2.dbmi.hms.harvard.edu/dua.php">Data Use Agreement</a>).
+                </div>
+
+                {% for file in project.hostedfile_set.all %}
+                    {% if file.enabled or user.is_superuser %}
+                        <hr>
+                        <h4>{{ file.long_name }}</h4>
+                        <div class="row">
+                            <div class="col-md-9">
+                                {{ file.description }}
+                            </div>
+                            <div class="col-md-3">
+                                <a href="/download_dataset/?file_id={{ file.id }}" class="btn btn-default download-file-button" download>Download</a>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if project.accepting_user_submissions %}
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Uploads</a></h2>
+            </div>
+            <div class="panel-body">
+            {% if team.get_number_of_submissions_left == 0 %}
+                Your team has used up all of its available submissions.
+            {% else %}
+                <div class="alert alert-warning" role="alert">
+                    Something here about what exactly you're submitting and a reminder that each team has a limited number of submissions.
+                </div>
+
+                <h5>Your team has {{ team.get_number_of_submissions_left }} submissions left. </h5>
+
+                <form>
+                    <label class="btn btn-default" id="file-upload-browse">
+                        Click to browse for a file... <input type="file" style="display: none;">
+                    </label> 
+                    <button id="file-upload-submit" type="submit" class="btn btn-danger" style="display: none;"></button>
+                </form>
+            {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block footerscripts %}
+<script type="application/javascript">
+    // Enable the team status tooltip
+    $(function () {
+        $('[data-toggle="team-status-tooltip"]').tooltip()
+    });
+</script>
+
+<script type="application/javascript">
+    $(function() {
+
+        // We can attach the `fileselect` event to all file inputs on the page
+        $(document).on('change', ':file', function() {
+            var input = $(this);
+            var fileName = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+            
+            $('#file-upload-submit').text('Submit ' + fileName);
+            $('#file-upload-browse').hide();
+            $('#file-upload-submit').show();
+        });
+    });
+</script>
+{% endblock %}
