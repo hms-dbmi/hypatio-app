@@ -5,6 +5,8 @@ import json
 import furl
 import logging
 
+from django.conf import settings
+
 logger = logging.getLogger(__name__)
 
 class SciAuthZ:
@@ -12,8 +14,6 @@ class SciAuthZ:
     JWT_HEADERS = None
     CURRENT_USER_EMAIL = None
     AUTHORIZATION_REQUEST_URL = None
-
-    VERIFY_REQUEST = False
 
     def __init__(self, authz_base, jwt, user_email):
 
@@ -46,7 +46,7 @@ class SciAuthZ:
         permissions_url = self.USER_PERMISSIONS_URL + "?item=" + sciauthz_item + "&email=" + self.CURRENT_USER_EMAIL
 
         try:
-            user_permissions = requests.get(permissions_url, headers=self.JWT_HEADERS, verify=self.VERIFY_REQUEST).json()
+            user_permissions = requests.get(permissions_url, headers=self.JWT_HEADERS, verify=settings.VERIFY_REQUESTS).json()
         except JSONDecodeError:
             user_permissions = None
 
@@ -60,7 +60,7 @@ class SciAuthZ:
     def current_user_permissions(self):
 
         try:
-            user_permissions = requests.get(self.USER_PERMISSIONS_URL + "?email=" + self.CURRENT_USER_EMAIL, headers=self.JWT_HEADERS, verify=self.VERIFY_REQUEST).json()
+            user_permissions = requests.get(self.USER_PERMISSIONS_URL + "?email=" + self.CURRENT_USER_EMAIL, headers=self.JWT_HEADERS, verify=settings.VERIFY_REQUESTS).json()
         except JSONDecodeError:
             user_permissions = None
 
@@ -69,7 +69,7 @@ class SciAuthZ:
     def current_user_access_requests(self):
 
         try:
-            user_access_requests = requests.get(self.AUTHORIZATION_REQUEST_URL, headers=self.JWT_HEADERS, verify=self.VERIFY_REQUEST).json()
+            user_access_requests = requests.get(self.AUTHORIZATION_REQUEST_URL, headers=self.JWT_HEADERS, verify=settings.VERIFY_REQUESTS).json()
         except JSONDecodeError:
             user_access_requests = None
 
@@ -77,7 +77,7 @@ class SciAuthZ:
 
     def current_user_request_access(self, access_request):
         try:
-            user_access_request = requests.post(self.AUTHORIZATION_REQUEST_URL, headers=self.JWT_HEADERS, data=json.dumps(access_request), verify=self.VERIFY_REQUEST)
+            user_access_request = requests.post(self.AUTHORIZATION_REQUEST_URL, headers=self.JWT_HEADERS, data=json.dumps(access_request), verify=settings.VERIFY_REQUESTS)
         except JSONDecodeError:
             user_access_request = None
 
@@ -89,7 +89,7 @@ class SciAuthZ:
         modified_headers = self.JWT_HEADERS
         modified_headers['Content-Type'] = 'application/x-www-form-urlencoded'
 
-        profile_permission = requests.post(self.CREATE_PROFILE_PERMISSION, headers=modified_headers, data={"grantee_email": grantee_email}, verify=self.VERIFY_REQUEST)
+        profile_permission = requests.post(self.CREATE_PROFILE_PERMISSION, headers=modified_headers, data={"grantee_email": grantee_email}, verify=settings.VERIFY_REQUESTS)
         return profile_permission
 
     def create_view_permission(self, project, grantee_email):
@@ -103,7 +103,7 @@ class SciAuthZ:
             "item": 'Hypatio.' + project
         }
 
-        view_permission = requests.post(self.CREATE_ITEM_PERMISSION, headers=modified_headers, data=context, verify=self.VERIFY_REQUEST)
+        view_permission = requests.post(self.CREATE_ITEM_PERMISSION, headers=modified_headers, data=context, verify=settings.VERIFY_REQUESTS)
         return view_permission
 
     def remove_view_permission(self, project, grantee_email):
@@ -117,7 +117,7 @@ class SciAuthZ:
             "item": 'Hypatio.' + project
         }
 
-        view_permission = requests.post(self.REMOVE_ITEM_PERMISSION, headers=modified_headers, data=context, verify=self.VERIFY_REQUEST)        
+        view_permission = requests.post(self.REMOVE_ITEM_PERMISSION, headers=modified_headers, data=context, verify=settings.VERIFY_REQUESTS)        
         return view_permission
 
     def user_has_single_permission(self, permission, value):
@@ -126,7 +126,7 @@ class SciAuthZ:
         f.args["item"] = 'Hypatio.' + permission
 
         try:
-            user_permissions = requests.get(f.url, headers=self.JWT_HEADERS, verify=self.VERIFY_REQUEST).json()
+            user_permissions = requests.get(f.url, headers=self.JWT_HEADERS, verify=settings.VERIFY_REQUESTS).json()
         except JSONDecodeError:
             logger.debug("[SCIAUTHZ][user_has_single_permission] - No Valid permissions returned.")
             user_permissions = {"count": 0}
