@@ -36,6 +36,7 @@
             </div>
         </div>
 
+        {% if is_manager %}
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Actions</h2>
@@ -67,6 +68,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

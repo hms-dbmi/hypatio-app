@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 def update_profile(request):
 
     user = request.user
-    user_logged_in = True
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
     # If the JWT has expired or the user doesn't have one, force the user to login again
@@ -43,11 +42,11 @@ def update_profile(request):
 
             # Create a new registration with a POST
             if registration_form.cleaned_data['id'] == "":
-                requests.post(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data), verify=False)
+                requests.post(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data), verify=settings.VERIFY_REQUESTS)
             # Update an existing registration with a PUT to the specific ID
             else:
                 registration_url = settings.SCIREG_REGISTRATION_URL + registration_form.cleaned_data['id'] + '/'
-                requests.put(registration_url, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data), verify=False)
+                requests.put(registration_url, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data), verify=settings.VERIFY_REQUESTS)
 
             return HttpResponse(200)
         else:
@@ -59,7 +58,6 @@ def update_profile(request):
 def profile(request, template_name='profile/profile.html'):
 
     user = request.user
-    user_logged_in = True
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
@@ -69,7 +67,7 @@ def profile(request, template_name='profile/profile.html'):
     jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
     # Query SciReg to get the user's information
-    registration_info = requests.get(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, verify=False).json()
+    registration_info = requests.get(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, verify=settings.VERIFY_REQUESTS).json()
 
     logger.debug('[HYPATIO][DEBUG] Registration info ' + json.dumps(registration_info))
 
@@ -90,8 +88,7 @@ def profile(request, template_name='profile/profile.html'):
     return render(request, template_name, {'registration_form': registration_form,
                                             'user': user,
                                             'is_manager': is_manager,
-                                            'new_user': new_user,
-                                            'user_logged_in': user_logged_in})
+                                            'new_user': new_user})
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
