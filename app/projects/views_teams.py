@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib import messages
 from django.contrib.auth.models import User
 from django.conf import settings
 
@@ -330,9 +331,20 @@ def join_team(request):
     try:
         # If this team leader has already created a team, add the person to the team in a pending status
         team = Team.objects.get(team_leader__email__iexact=team_leader)
-        participant.team = team
-        participant.team_pending = True
-        participant.save()
+
+        # Only allow a new participant to join a team that is still in a pending or ready state
+        if team.status in ['Pending', 'Ready']:
+            participant.team = team
+            participant.team_pending = True
+            participant.save()
+        # Otherwise, let them know why they can't join the team
+        else:
+            msg = "The team you are trying to join has already been finalized and is not accepting new members. " + \
+                  "If you would like to join this team, please have the team leader contact the challenge " + \
+                  "administrators for help."
+            messages.error(request, msg)
+
+            return redirect('/projects/' + request.POST.get('project_key') + '/')
     except ObjectDoesNotExist:
         # If this team leader has not yet created a team, mark the person as waiting
         participant.team_wait_on_leader_email = team_leader
@@ -346,7 +358,7 @@ def join_team(request):
                    'project': project,
                    'site_url': settings.SITE_URL}
 
-        email_success = email_send(subject='DBMI Portal - Finalized Team',
+        email_success = email_send(subject='DBMI Portal - Pending Member',
                                    recipients=[team_leader],
                                    email_template='email_pending_member_notification',
                                    extra=context)
