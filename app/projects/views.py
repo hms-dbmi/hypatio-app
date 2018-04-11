@@ -431,7 +431,7 @@ def grant_access_with_view_permissions(request):
 
     # Grab the full authorization request object from SciAuthZ to have all fields necessary for serialization
     authorization_request_url = settings.AUTHORIZATION_REQUEST_URL + "?id=" + authorization_request_id
-    authorization_request = requests.get(authorization_request_url, headers=jwt_headers, verify=False).json()
+    authorization_request = requests.get(authorization_request_url, headers=jwt_headers, verify=settings.VERIFY_REQUESTS).json()
 
     if authorization_request is not None and 'results' in authorization_request:
         authorization_request_data = authorization_request['results'][0]
@@ -445,7 +445,7 @@ def grant_access_with_view_permissions(request):
     authorization_request_data['date_request_granted'] = current_time
 
     authorization_request_url = settings.AUTHORIZATION_REQUEST_GRANT_URL + authorization_request_id + '/'
-    requests.put(authorization_request_url, headers=jwt_headers, data=json.dumps(authorization_request_data), verify=False)
+    requests.put(authorization_request_url, headers=jwt_headers, data=json.dumps(authorization_request_data), verify=settings.VERIFY_REQUESTS)
 
     user_permission = {"user": person_email,
                        "item": project,
@@ -454,7 +454,7 @@ def grant_access_with_view_permissions(request):
 
     # Add a VIEW permission to the user
     permissions_url = settings.USER_PERMISSIONS_URL
-    user_permissions = requests.post(permissions_url, headers=jwt_headers, data=json.dumps(user_permission), verify=False)
+    user_permissions = requests.post(permissions_url, headers=jwt_headers, data=json.dumps(user_permission), verify=settings.VERIFY_REQUESTS)
 
     return HttpResponse(200)
 
@@ -492,7 +492,7 @@ def project_details(request, project_key):
     get_task_context_data(request)
 
     # Make a request to SciReg to grab email verification and profile information
-    profile_registration_info = requests.get(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, verify=False).json()
+    profile_registration_info = requests.get(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, verify=settings.VERIFY_REQUESTS).json()
 
     if profile_registration_info['count'] != 0:
         profile_registration_info = profile_registration_info["results"][0]
