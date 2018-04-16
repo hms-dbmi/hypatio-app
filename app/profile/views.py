@@ -7,7 +7,7 @@ import requests
 from django.contrib import messages
 from django.conf import settings
 from django.shortcuts import render
-from pyauth0jwt.auth0authenticate import user_auth_and_jwt, validate_jwt, logout_redirect
+from pyauth0jwt.auth0authenticate import user_auth_and_jwt, validate_request as validate_jwt, logout_redirect
 from .forms import RegistrationForm
 from django.http import HttpResponse
 
