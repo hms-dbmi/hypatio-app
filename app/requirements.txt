@@ -14,8 +14,7 @@ Pillow==5.0.0
 py-auth0-jwt==0.2.7
 py-auth0-jwt-rest==0.1
 python-pstore==0.8
-pycrypto==2.6.1
-PyJWT==1.4.2
+PyJWT==1.6.1
 PyMySQL==0.7.9
 raven==6.1.0
 requests==2.11.1
