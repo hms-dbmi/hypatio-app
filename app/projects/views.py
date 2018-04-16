@@ -14,7 +14,7 @@ from django.shortcuts import get_object_or_404
 
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
-from pyauth0jwt.auth0authenticate import validate_jwt
+from pyauth0jwt.auth0authenticate import validate_request as validate_jwt
 from pyauth0jwt.auth0authenticate import logout_redirect
 
 from .models import DataProject
