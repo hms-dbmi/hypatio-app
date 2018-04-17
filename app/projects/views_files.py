@@ -16,6 +16,7 @@ from hypatio import file_services as fileservice
 from .models import HostedFile
 from .models import HostedFileDownload
 from .models import ParticipantSubmission
+from .models import ParticipantSubmissionDownload
 from .models import Participant
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,11 @@ logger = logging.getLogger(__name__)
 
 @user_auth_and_jwt
 def download_dataset(request):
+    """
+    Handles downloads for project level files. Checks that the requesting user
+    has view permissions on the given project before allowing a download.
+    """
+
     logger.debug("[views_files][download_dataset] - Attempting file download.")
 
     # Check Permissions in SciAuthZ
@@ -31,7 +37,7 @@ def download_dataset(request):
 
     if not sciauthz.user_has_single_permission("n2c2-t1", "VIEW"):
         logger.debug("[views_files][download_dataset] - No Access for user " + request.user.email)
-        return HttpResponse("403 Forbidden. You do not have access to download this file.")
+        return HttpResponse("You do not have access to download this file.", status=403)
 
     file_id = request.GET.get("file_id")
     file_to_download = get_object_or_404(HostedFile, id=file_id)
@@ -50,17 +56,53 @@ def download_dataset(request):
 
     return response
 
+@user_auth_and_jwt
+def download_participantsubmission_file(request):
+    """
+    Handles downloads of participant submission files. Checks that the requesting user
+    has proper permissions to access this file.
+    """
+    logger.debug('download_participantsubmission_file: {}'.format(request.method))
+
+    if request.method == "GET":
+
+        project_key = request.GET.get("project_key", "")
+        fileservice_uuid = request.GET.get("uuid", "")
+
+        # Check Permissions in SciAuthZ
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        is_manager = sciauthz.user_has_manage_permission(request, project_key)
+
+        if not is_manager:
+            logger.debug("[views_files][download_participantsubmission_file] - No Access for user " + request.user.email)
+            return HttpResponse("You do not have access to download this file.", status=403)
+
+        # Save a record of this person downloading this file
+        participant_submission = ParticipantSubmission.objects.get(uuid=fileservice_uuid)
+        ParticipantSubmissionDownload.objects.create(user=request.user, participant_submission=participant_submission)
+
+        url = fileservice.download_file(request, fileservice_uuid)
+
+        response = redirect(url)
+        response['Content-Disposition'] = 'attachment'
+
+        return response
 
 @user_auth_and_jwt
-def upload_dataset(request):
-    logger.debug('upload_dataset: {}'.format(request.method))
+def upload_participantsubmission_file(request):
+    logger.debug('upload_participantsubmission_file: {}'.format(request.method))
 
-    # Check method
     if request.method == 'POST':
         logger.debug('post')
 
-        # Check user permissions
-        # TODO: Finish this
+        # Check Permissions in SciAuthZ
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+
+        if not sciauthz.user_has_single_permission("n2c2-t1", "VIEW"):
+            logger.debug("[views_files][upload_participantsubmission_file] - No Access for user " + request.user.email)
+            return HttpResponse("You do not have access to upload this file.", status=403)
 
         # Assembles the form and run validation.
         filename = request.POST.get('filename')
@@ -70,7 +112,6 @@ def upload_dataset(request):
             return HttpResponse('Filename and project are required', status=400)
 
         # Prepare the metadata
-        # TODO: Finish this
         metadata = {
             'project': project,
             'uploader': request.user.email,
