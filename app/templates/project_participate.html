@@ -211,7 +211,7 @@
             $.ajax({
                 method: "POST",
                 data: form,
-                url: "/upload_dataset/",
+                url: "/upload_participantsubmission_file/",
                 success: function (data, textStatus, jqXHR) {
                     console.log("submit.success: " + textStatus);
 
@@ -269,7 +269,7 @@
                         // Do not allow the upload to be cancelled at this point
                         $("#file-upload-form :input").prop("disabled", true);
 
-                        // Inform the server that the uploade completed
+                        // Inform the server that the upload completed
                         complete(fileRecord);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
@@ -296,7 +296,7 @@
             $.ajax({
                 method: "PATCH",
                 data: fileRecord,
-                url: "/upload_dataset/",
+                url: "/upload_participantsubmission_file/",
                 success: function (data, textStatus, jqXHR) {
                     console.log("complete.success: " + textStatus);
 

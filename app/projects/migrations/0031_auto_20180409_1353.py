@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='participantsubmission',
             name='location',
-            field=models.CharField(default=None, max_length=12),
+            field=models.CharField(default=None, max_length=12, blank=True, null=True),
         ),
         migrations.AddField(
             model_name='participantsubmission',
