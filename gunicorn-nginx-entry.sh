@@ -56,6 +56,12 @@ export S3_AWS_ACCESS_KEY_ID=$(aws ssm get-parameters --names $PS_PATH.s3_aws_acc
 export S3_AWS_SECRET_ACCESS_KEY=$(aws ssm get-parameters --names $PS_PATH.s3_aws_secret_access_key --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 export S3_BUCKET=$(aws ssm get-parameters --names $PS_PATH.s3_bucket --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 
+export FILESERVICE_API_URL=$(aws ssm get-parameters --names $PS_PATH.fileservice_api_url --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+export FILESERVICE_GROUP=$(aws ssm get-parameters --names $PS_PATH.fileservice_group --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+
+export FILESERVICE_SERVICE_ACCOUNT=$(aws ssm get-parameters --names $PS_PATH.fileservice_service_account --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+export FILESERVICE_SERVICE_TOKEN=$(aws ssm get-parameters --names $PS_PATH.fileservice_service_token --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+
 SSL_KEY=$(aws ssm get-parameters --names $PS_PATH.ssl_key --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 SSL_CERT_CHAIN1=$(aws ssm get-parameters --names $PS_PATH.ssl_cert_chain1 --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 SSL_CERT_CHAIN2=$(aws ssm get-parameters --names $PS_PATH.ssl_cert_chain2 --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
