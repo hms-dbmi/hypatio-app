@@ -36,6 +36,14 @@ def get_agreement_form_upload_path(instance, filename):
     return '%s/%s.%s' % (form_directory, file_name, file_extension)
 
 
+def get_submission_form_upload_path(instance, filename):
+
+    form_directory = 'submissionforms/'
+    file_name = uuid.uuid4()
+    file_extension = filename.split('.')[-1]
+    return '%s/%s.%s' % (form_directory, file_name, file_extension)
+
+
 def get_institution_logo_upload_path(instance, filename):
 
     form_directory = 'institutionlogos/'
@@ -89,6 +97,7 @@ class DataProject(models.Model):
     visible = models.BooleanField(default=False, blank=False, null=False)
     registration_open = models.BooleanField(default=False, blank=False, null=False)
     accepting_user_submissions = models.BooleanField(default=False, blank=False, null=False)
+    submission_form_html = models.FileField(upload_to=get_submission_form_upload_path, validators=[FileExtensionValidator(allowed_extensions=['html'])], blank=True, null=True)
 
     def __str__(self):
         return '%s' % (self.project_key)
@@ -215,12 +224,15 @@ class TeamComment(models.Model):
 class ParticipantSubmission(models.Model):
     """
     Captures the files that participants are submitting for their challenges. Through the Participant model
-    you can get to what team and project this submission pertains to.
+    you can get to what team and project this submission pertains to. The location field is for fileservice
+    integration. The submission_form_answers field stores any answers a participant might provide when
+    submitting their work.
     """
     participant = models.ForeignKey(Participant)
     upload_date = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(null=False, unique=True, primary_key=True, default=None)
     location = models.CharField(max_length=12, default=None, blank=True, null=True)
+    submission_info = models.TextField(default=None, blank=True, null=True)
 
     def __str__(self):
         return '%s' % (self.uuid)
