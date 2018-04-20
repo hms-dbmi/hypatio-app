@@ -99,7 +99,8 @@
             "agreement_forms_required": false,
             "project_supervisor": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": false,
-            "visible": true
+            "visible": true,
+            "submission_form_html": "submissionforms/6b40a9a6-5190-4559-90b3-1f19d380a33c.html"
         }
     },
     {

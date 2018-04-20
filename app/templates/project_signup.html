@@ -96,7 +96,7 @@
                         {% if not agreement_form.already_signed %}
                         <form name="agreement_form_container" action="/save_signed_agreement_form/" method="post">
                             <div class="agreement_form_contents">
-                                {{ agreement_form.agreement_form_file|get_agreement_form_file_contents | safe }}
+                                {{ agreement_form.agreement_form_file|get_html_form_file_contents | safe }}
                             </div>
             
                             <input type="hidden" class="project_key" name="project_key" value="{{ project.project_key }}" />

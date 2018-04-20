@@ -1,4 +1,6 @@
 import logging
+import json
+from copy import copy
 
 from django.shortcuts import get_object_or_404
 from django.conf import settings
@@ -91,12 +93,17 @@ def download_participantsubmission_file(request):
 
 @user_auth_and_jwt
 def upload_participantsubmission_file(request):
+    """
+    On a POST, send metadata about the user's file to fileservice to get back an S3 upload link.
+    On a PATCH, check to see that the file successfully was uploaded to S3 and then create a new
+    ParticipantSubmission record.
+    """
     logger.debug('upload_participantsubmission_file: {}'.format(request.method))
 
     if request.method == 'POST':
         logger.debug('post')
 
-        # Check Permissions in SciAuthZ
+        # Check that user has permissions to be submitting files for this project.
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
 
@@ -104,14 +111,14 @@ def upload_participantsubmission_file(request):
             logger.debug("[views_files][upload_participantsubmission_file] - No Access for user " + request.user.email)
             return HttpResponse("You do not have access to upload this file.", status=403)
 
-        # Assembles the form and run validation.
+        # Assembles the form and runs validation.
         filename = request.POST.get('filename')
         project = request.POST.get('project')
         if not filename or not project:
             logger.error('No filename or no project!')
             return HttpResponse('Filename and project are required', status=400)
 
-        # Prepare the metadata
+        # Prepare the metadata.
         metadata = {
             'project': project,
             'uploader': request.user.email,
@@ -119,24 +126,19 @@ def upload_participantsubmission_file(request):
             'app': 'hypatio',
         }
 
-        # Get the file link
+        # Create a new record in fileservice for this file and get back information on where it should live in S3.
         uuid, response = fileservice.create_file(request, filename, metadata)
-
-        # Get the needed bits.
         post = response['post']
         location = response['locationid']
 
         # Form the data for the File object.
         file = {'uuid': uuid, 'location': location, 'filename': filename}
-
         logger.debug('File: {}'.format(file))
 
-        # Build the response
         response = {
             'post': post,
             'file': file,
         }
-
         logger.debug('Response: {}'.format(post))
 
         return JsonResponse(data=response)
@@ -144,20 +146,29 @@ def upload_participantsubmission_file(request):
     elif request.method == 'PATCH':
         logger.debug('patch')
 
-        # Get the data
+        # Get the data.
         data = QueryDict(request.body)
-
         logger.debug('Data: {}'.format(data))
 
         try:
-            # Get the participant
+            # Get the participant.
             participant = Participant.objects.get(user=request.user)
 
-            # Create the object and save UUID and location for future downloads
+            # Prepare a json that holds information about the file and the original submission form.
+            # This is used later as included metadata when downloading the participant's submission.
+            # Remove a few unnecessary fields.
+            submission_info = copy(data)
+            del submission_info['csrfmiddlewaretoken']
+            del submission_info['location']
+            submission_info_json = json.dumps(submission_info)
+
+            # Create the object and save UUID and location for future downloads.
             ParticipantSubmission.objects.create(
                 participant=participant,
                 uuid=data['uuid'],
-                location=data['location'])
+                location=data['location'],
+                submission_info=submission_info_json
+            )
 
             # Make the request to FileService.
             if not fileservice.uploaded_file(request, data['uuid'], data['location']):
@@ -169,16 +180,9 @@ def upload_participantsubmission_file(request):
 
         except exceptions.ObjectDoesNotExist as e:
             logger.exception(e)
-
             return HttpResponse(status=404)
-
         except Exception as e:
             logger.exception(e)
-
             return HttpResponse(status=500)
     else:
-
         return HttpResponse("Invalid method", status=403)
-
-
-
