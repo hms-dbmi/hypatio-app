@@ -497,7 +497,7 @@ def project_details(request, project_key):
     # Make a request to SciReg to grab email verification and profile information
     profile_registration_info = requests.get(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, verify=settings.VERIFY_REQUESTS).json()
 
-    if profile_registration_info['count'] != 0:
+    if profile_registration_info.get('count', 0) != 0:
         profile_registration_info = profile_registration_info["results"][0]
         email_verified = profile_registration_info['email_confirmed']
 
