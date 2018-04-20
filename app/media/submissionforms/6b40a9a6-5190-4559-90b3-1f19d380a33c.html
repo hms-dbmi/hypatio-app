@@ -1,0 +1,51 @@
+<div class="form-content">
+    <div class="form-group">
+        <label for="external-resource-used">Did you use any external resource?</label>
+        <input type="text" class="form-control" id="external-resource-used" name="external-resource-used" placeholder="(gazetters, ontologies, corpora)">
+    </div>
+
+    <div class="form-group">
+        <label>Did you use medical doctors' expertise?</label>
+
+        <div class="form-group">
+            <label class="radio-inline">
+                <input type="radio" name="md-involved" id="md-involved-yes" value="true" required> Yes
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="md-involved" id="md-involved-no" value="false" required> No
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>System type:</label>
+
+        <div class="form-group">
+            <label class="radio-inline">
+                <input type="radio" name="submission-type" id="submission-type-rule-based" value="rule-based" required> Rule-based
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="submission-type" id="submission-type-ml-based" value="ml-based" required> ML-based
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="submission-type" id="submission-type-hybrid" value="hybrid" required> Hybrid
+            </label>
+        </div>
+    </div>
+
+    <!-- <div class="form-group">
+        <label for="annotated-data-usage" class="control-label" style="margin-right: 10px;">Annotated data usage:</label>
+
+        <label class="radio-inline">
+            <input type="radio" name="annotated-data-usage" id="annotated-data-usage-yes" value="true" required> Yes
+        </label>
+        <label class="radio-inline">
+            <input type="radio" name="annotated-data-usage" id="annotated-data-usage-no" value="false" required> No
+        </label>
+    </div> -->
+
+    <div class="form-group">
+        <label for="submission-code" style="margin-right: 10px;">Internal submission code:</label>
+        <input type="text" class="form-control" id="submission-code" name="submission-code" placeholder="(This is for your reference, to remember the details of your submission)">
+    </div>
+</div>
