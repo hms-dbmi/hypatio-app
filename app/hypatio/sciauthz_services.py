@@ -117,7 +117,7 @@ class SciAuthZ:
             "item": 'Hypatio.' + project
         }
 
-        view_permission = requests.post(self.REMOVE_ITEM_PERMISSION, headers=modified_headers, data=context, verify=settings.VERIFY_REQUESTS)        
+        view_permission = requests.post(self.REMOVE_ITEM_PERMISSION, headers=modified_headers, data=context, verify=settings.VERIFY_REQUESTS)
         return view_permission
 
     def user_has_single_permission(self, permission, value):
