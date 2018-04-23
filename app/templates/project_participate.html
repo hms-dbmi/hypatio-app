@@ -125,13 +125,9 @@
             {% if team.get_number_of_submissions_left == 0 %}
                 Your team has used up all of its available submissions.
             {% else %}
-                <div class="alert alert-warning" role="alert">
-                    Something here about what exactly you're submitting and a reminder that each team has a limited number of submissions.
+                <div class="alert alert-danger" role="alert">
+                    Please use the form below to submit an official solution on behalf of your team. <strong>For the file upload, only .zip files will be accepted.</strong> While any member of the team may submit a solution, the total submissions for a team is capped at 3. <strong>Your team has {{ team.get_number_of_submissions_left }} submissions left</strong> before reaching that cap.
                 </div>
-
-                <div class="text-danger">Your team has {{ team.get_number_of_submissions_left }} submissions left.</div>
-                
-                <hr>
 
                 <form id="participant-submission-form">           
                     {% if project.submission_form_html %}
@@ -142,7 +138,7 @@
                                     
                     <div class="form-group">
                         <label class="btn btn-default" id="file-upload-browse">
-                            Click to select a file... <input id="file-upload-file" name="file" type="file" style="display: none;">
+                            Click to select a zip file... <input id="file-upload-file" name="file" type="file" style="display: none;" accept=".zip">
                         </label>
                     </div>
 
@@ -200,8 +196,14 @@
 
             // Get the file.
             var file = $("#participant-submission-form input[name=file]").prop('files')[0];
-            if(file == null) {
+            if (file == null) {
                 error('A file has not been selected, please try again');
+                return false;
+            }
+
+            // Only allow zip files for upload.
+            if (filename.split('.').pop() != 'zip') {
+                error('Only .zip files are accepted.');
                 return false;
             }
 
@@ -231,7 +233,7 @@
                 }
             });
 
-            return false;
+            return true;
         });
 
         // Uploads the file to AWS S3.
@@ -338,26 +340,21 @@
         }
 
         function error(message) {
-            cleanup();
+            $('#file-upload-submit').text('File failed to upload');
             notify('danger', message, 'glyphicon glyphicon-remove');
         }
 
         function aborted() {
-            cleanup();
+            $('#file-upload-submit').text('File uploaded canceled');
             notify('warning', 'The upload was cancelled', 'glyphicon glyphicon-warning-sign');
         }
 
         function success() {
             // Add a little delay
             setTimeout(function(){
-                cleanup();
+                $('#file-upload-submit').text('File uploaded successfully!');                
                 notify('success', 'The upload has completed successfully! Refreshing page.', 'glyphicon glyphicon-ok');
             }, 2000);
-        }
-
-        function cleanup() {
-            // Reset the form
-            $('#file-upload-submit').text('File uploaded successfully!');
         }
     });
 </script>
