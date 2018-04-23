@@ -118,6 +118,10 @@ def upload_participantsubmission_file(request):
             logger.error('No filename or no project!')
             return HttpResponse('Filename and project are required', status=400)
 
+        if filename.split(".")[1] != "zip":
+            logger.error('Not a zip file.')
+            return HttpResponse("Only .zip files are accepted", status=400)
+
         # Prepare the metadata.
         metadata = {
             'project': project,
