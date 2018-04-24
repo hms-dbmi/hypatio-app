@@ -237,11 +237,12 @@ class ParticipantSubmission(models.Model):
     def __str__(self):
         return '%s' % (self.uuid)
 
-class ParticipantSubmissionDownload(models.Model):
+class TeamSubmissionsDownload(models.Model):
     """
-    Tracks who is attempting to download a participant's submission.
+    Tracks who is attempting to download a team's submissions.
     """
 
     user = models.ForeignKey(User)
-    participant_submission = models.ForeignKey(ParticipantSubmission, on_delete=models.CASCADE)
+    team = models.ForeignKey(Team)
+    participant_submissions = models.ManyToManyField(ParticipantSubmission)
     download_date = models.DateTimeField(auto_now_add=True)
