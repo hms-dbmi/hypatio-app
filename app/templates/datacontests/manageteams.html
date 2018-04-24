@@ -139,7 +139,7 @@
     <div class="col-md-7">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Data Uploads</h3>
+                <h3 class="panel-title">Contest Submissions</h3>
             </div>
             <div class="panel-body table-responsive">
                 <table class="table table-bordered table-hover" id="team-uploads-table" width="100%">
@@ -147,7 +147,6 @@
                         <tr>
                             <th>Person</th>
                             <th>Date</th>
-                            <th>File</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -155,11 +154,16 @@
                         <tr>
                             <td>{{ upload.participant.user.email }}</td>
                             <td>{{ upload.upload_date|timezone:"America/New_York" }} (EST)</td>
-                            <td><a href="/download_participantsubmission_file/?uuid={{ upload.uuid }}&project_key={{ upload.participant.data_challenge.project_key }}" class="btn-primary btn-xs download-file" download>Download</a></td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                
+                <div style="margin-top: 10px;">
+                    <a href="/download_team_submissions/?team={{ team.team_leader.email }}&project_key={{ project.project_key }}" class="btn-success btn download-file" download>
+                        Download all files now
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -232,7 +236,7 @@
             "paging": false,
             "info": false,
             "searching": false,
-            "order": [[2, "desc"]] // Sort by date column (3rd column)
+            "order": [[1, "desc"]] // Sort by date column (3rd column)
         });
 
         $('#team-downloads-table').DataTable({
