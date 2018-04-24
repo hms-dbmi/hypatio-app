@@ -202,7 +202,7 @@
             }
 
             // Only allow zip files for upload.
-            if (filename.split('.').pop() != 'zip') {
+            if (file.name.split('.').pop() != 'zip') {
                 error('Only .zip files are accepted.');
                 return false;
             }
@@ -233,7 +233,8 @@
                 }
             });
 
-            return true;
+            // Return false to prevent a form submit effect
+            return false;
         });
 
         // Uploads the file to AWS S3.
@@ -315,7 +316,7 @@
                     // Refresh the page.
                     setTimeout(function(){
                         window.location = window.location.pathname
-                    },1000);
+                    }, 3000);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.log("complete.error: " + errorThrown);
@@ -327,15 +328,10 @@
         }
 
         function progress(event) {
-
             // Ensure it can be used
             if (event.lengthComputable) {
-
-                // Calculate progress.
                 var progress = event.loaded / event.total * 100;
                 console.log('upload.progress: ' + progress);
-
-                // Update UI if needed.
             }
         }
 
@@ -354,7 +350,7 @@
             setTimeout(function(){
                 $('#file-upload-submit').text('File uploaded successfully!');                
                 notify('success', 'The upload has completed successfully! Refreshing page.', 'glyphicon glyphicon-ok');
-            }, 2000);
+            }, 500);
         }
     });
 </script>
