@@ -405,8 +405,11 @@ def create_team(request):
     participant.assign_approved(new_team)
     participant.save()
 
-    # Find anyone whose waiting on this team leaedear and link them to the new team.
-    waiting_participants = Participant.objects.filter(team_wait_on_leader_email=request.user.email)
+    # Find anyone whose waiting on this team leader and link them to the new team.
+    waiting_participants = Participant.objects.filter(
+        team_wait_on_leader_email=request.user.email,
+        data_challenge=project
+    )
 
     for participant in waiting_participants:
         participant.assign_pending(new_team)
