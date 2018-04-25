@@ -139,6 +139,36 @@
     <div class="col-md-7">
         <div class="panel panel-default">
             <div class="panel-heading">
+                <h3 class="panel-title">Contest Submissions</h3>
+            </div>
+            <div class="panel-body table-responsive">
+                <table class="table table-bordered table-hover" id="team-uploads-table" width="100%">
+                    <thead>
+                        <tr>
+                            <th>Person</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for upload in uploads %}
+                        <tr>
+                            <td>{{ upload.participant.user.email }}</td>
+                            <td>{{ upload.upload_date|timezone:"America/New_York" }} (EST)</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 10px;">
+                    <a href="/download_team_submissions/?team={{ team.team_leader.email }}&project_key={{ project.project_key }}" class="btn-success btn download-file" download>
+                        Download all files now
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
                 <h3 class="panel-title">Data downloads</h3>
             </div>
             <div class="panel-body table-responsive">
@@ -202,6 +232,13 @@
             "order": [[3, "desc"]] // Sort by status column (4th column)
         });
         
+        $('#team-uploads-table').DataTable({
+            "paging": false,
+            "info": false,
+            "searching": false,
+            "order": [[1, "desc"]] // Sort by date column (3rd column)
+        });
+
         $('#team-downloads-table').DataTable({
             "paging": false,
             "info": false,
