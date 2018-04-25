@@ -2,19 +2,19 @@ import json
 import logging
 import requests
 
-
+from pyauth0jwt.auth0authenticate import user_auth_and_jwt
+from pyauth0jwt.auth0authenticate import validate_request as validate_jwt
+from pyauth0jwt.auth0authenticate import logout_redirect
 
 from django.contrib import messages
 from django.conf import settings
 from django.shortcuts import render
-from pyauth0jwt.auth0authenticate import user_auth_and_jwt, validate_jwt, logout_redirect
-from .forms import RegistrationForm
 from django.http import HttpResponse
 
 from hypatio.sciauthz_services import SciAuthZ
-
 from hypatio import scireg_services
 
+from .forms import RegistrationForm
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

@@ -14,7 +14,7 @@ from django.shortcuts import get_object_or_404
 
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
-from pyauth0jwt.auth0authenticate import validate_jwt
+from pyauth0jwt.auth0authenticate import validate_request as validate_jwt
 from pyauth0jwt.auth0authenticate import logout_redirect
 
 from .models import DataProject
@@ -25,6 +25,7 @@ from .models import SignedAgreementForm
 from .models import HostedFile
 from .models import HostedFileDownload
 from .models import TeamComment
+from .models import ParticipantSubmission
 
 from profile.views import get_task_context_data
 from profile.forms import RegistrationForm
@@ -316,10 +317,11 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
     # Get the comments made about this team by challenge administrators
     comments = TeamComment.objects.filter(team=team)
 
-    # Get a history of files downloaded for members of this team
+    # Get a history of files downloaded and uploaded by members of this team
     files = HostedFile.objects.filter(project=project)
     team_users = User.objects.filter(participant__in=team_participants)
     downloads = HostedFileDownload.objects.filter(hosted_file__in=files, user__in=team_users)
+    uploads = ParticipantSubmission.objects.filter(participant__in=team_participants)
 
     return render(request, template_name, context={"user": user,
                                                    "ssl_setting": settings.SSL_SETTING,
@@ -331,7 +333,8 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
                                                    "team_has_all_forms_complete": team_has_all_forms_complete,
                                                    "institution": institution,
                                                    "comments": comments,
-                                                   "downloads": downloads})
+                                                   "downloads": downloads,
+                                                   "uploads": uploads})
 
 @user_auth_and_jwt
 def manage_contest(request, project_key, template_name='datacontests/managecontests.html'):
@@ -494,7 +497,7 @@ def project_details(request, project_key):
     # Make a request to SciReg to grab email verification and profile information
     profile_registration_info = requests.get(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, verify=settings.VERIFY_REQUESTS).json()
 
-    if profile_registration_info['count'] != 0:
+    if profile_registration_info.get('count', 0) != 0:
         profile_registration_info = profile_registration_info["results"][0]
         email_verified = profile_registration_info['email_confirmed']
 
@@ -543,9 +546,10 @@ def project_details(request, project_key):
                                      'already_signed': already_signed})
 
     try:
+        # Only allow a user onto the project participation page if they are on an Active team and they have VIEW permissions
         participant = Participant.objects.get(user=user)
         team = participant.team
-        access_granted = participant.team_approved and team.status == 'Active'
+        access_granted = participant.team_approved and team.status == 'Active' and sciauthz.user_has_single_permission("n2c2-t1", "VIEW")
     except ObjectDoesNotExist:
         participant = None
         team = None
