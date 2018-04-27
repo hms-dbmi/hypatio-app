@@ -367,13 +367,14 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
     for person in users_without_a_team:
         email = person.email
 
+        # TODO: commented out because these are too many api calls to make
         # Make a request to SciReg for a specific person's user information
-        user_info_json = get_user_profile(user_jwt, email, project_key)
+        # user_info_json = get_user_profile(user_jwt, email, project_key)
 
-        if user_info_json['count'] != 0:
-            user_info = user_info_json["results"][0]
-        else:
-            user_info = None
+        # if user_info_json['count'] != 0:
+        #     user_info = user_info_json["results"][0]
+        # else:
+        #     user_info = None
         
         signed_agreement_forms = []
 
@@ -383,7 +384,7 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
 
         users_without_a_team_details.append({
             'email': email,
-            'user_info': user_info,
+            # 'user_info': user_info,
             'signed_agreement_forms': signed_agreement_forms,
             'participant': person
         })
