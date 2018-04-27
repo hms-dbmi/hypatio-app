@@ -32,6 +32,8 @@ from .models import TeamSubmissionsDownload
 from .models import Participant
 from .models import Team
 
+from contact.views import email_send
+
 logger = logging.getLogger(__name__)
 
 
@@ -256,17 +258,23 @@ def upload_participantsubmission_file(request):
         logger.debug('Data: {}'.format(data))
 
         try:
-            # Get the participant.
-            participant = Participant.objects.get(user=request.user)
-
             # Prepare a json that holds information about the file and the original submission form.
             # This is used later as included metadata when downloading the participant's submission.
-            # Remove a few unnecessary fields.
             submission_info = copy(data)
+
+            # Get the participant.
+            project = get_object_or_404(DataProject, project_key=submission_info['project'])
+            participant = get_object_or_404(Participant, user=request.user, data_challenge=project)
+            team = participant.team
+
+            # Remove a few unnecessary fields.
             del submission_info['csrfmiddlewaretoken']
             del submission_info['location']
+
+            # Add some more fields
             submission_info['submitted_by'] = request.user.email
             submission_info['team_leader'] = participant.team.team_leader.email
+
             submission_info_json = json.dumps(submission_info, indent=4)
 
             # Create the object and save UUID and location for future downloads.
@@ -276,6 +284,29 @@ def upload_participantsubmission_file(request):
                 location=data['location'],
                 submission_info=submission_info_json
             )
+
+            # Send an email notification to team members about the submission.
+            emails = [member.user.email for member in team.participant_set.all()]
+
+            context = {
+                'submission_info': submission_info_json,
+                'challenge': project,
+                'submitter': request.user.email,
+                'max_submissions': 3,
+                'submission_count': team.get_count_of_submissions_made()
+            }
+
+            try:
+                subject = 'DBMI Data Portal - {challenge} solution submitted by your team'.format(challenge=project.project_key)
+
+                email_success = email_send(
+                    subject=subject,
+                    recipients=emails,
+                    email_template='email_submission_uploaded',
+                    extra=context
+                )
+            except Exception as e:
+                logger.exception(e)
 
             # Make the request to FileService.
             if not fileservice.uploaded_file(request, data['uuid'], data['location']):

@@ -5,3 +5,4 @@ app/assets/*
 *.log
 app/db.sqlite3
 app/hypatio/local_settings.py
+.vscode/settings.json
