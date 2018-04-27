@@ -390,7 +390,7 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
 
     # Simple statistics for display
     total_teams = teams.count()
-    total_participants = Participant.objects.filter(data_challenge=project).count()   
+    total_participants = Participant.objects.filter(data_challenge=project).count()
     countries_represented = '?' # TODO
     total_submissions = 0 # TODO
     teams_with_any_submission = 0 # TODO
