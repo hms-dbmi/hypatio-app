@@ -59,8 +59,8 @@
                 <table id="participants-without-teams-table" class="table table-bordered table-hover table-responsive">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Location</th>
+                            <!-- <th>Name</th> -->
+                            <!-- <th>Location</th> -->
                             <th>Email</th>
                             <th>Signed Forms</th>
                         </tr>
@@ -68,7 +68,7 @@
                     <tbody>
                     {% for person in users_without_a_team_details %}
                         <tr>
-                            <td>{{ person.user_info.first_name }} {{ person.user_info.last_name }}</td>
+                            <!-- <td>{{ person.user_info.first_name }} {{ person.user_info.last_name }}</td>
                             <td>
                                 {% get_country person.user_info.country as country %}
                                 {% if country == 'US' and person.user_info.state != "" %}
@@ -77,7 +77,7 @@
                                     {{ country.name }}
                                 {% endif %}
                                     <img src="{{ country.flag }}" class="pull-right" style="margin: 6px 4px 0">
-                            </td>
+                            </td> -->
                             <td>{{ person.email }}</td>
                             <td>
                                 {% for form in person.signed_agreement_forms %}
