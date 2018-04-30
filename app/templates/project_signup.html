@@ -134,6 +134,11 @@
                     {% endif %}
                 </div>
                 {% endif %}
+
+                <!-- Show JWT -->
+                {% if project.show_jwt %}
+                    {% include "shared/jwt_dialog.html" %}
+                {% endif %}
             </div>
         {% else %}
             <div class="alert alert-danger" role="alert">
