@@ -39,7 +39,7 @@ class HostedFileDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'hosted_file', 'download_date')
 
 class ParticipantSubmissionAdmin(admin.ModelAdmin):
-    list_display = ('participant', 'upload_date', 'uuid', 'location')
+    list_display = ('participant', 'upload_date', 'uuid', 'location', 'deleted')
 
 class TeamSubmissionsDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'team', 'download_date')
