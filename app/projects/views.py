@@ -34,7 +34,7 @@ from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 from hypatio.sciauthz_services import SciAuthZ
-from hypatio.scireg_services import get_user_profile
+from hypatio.scireg_services import get_user_profile, get_current_user_profile
 
 
 # Get an instance of a logger
@@ -469,9 +469,7 @@ def project_details(request, project_key):
         project = get_object_or_404(DataProject, project_key=project_key, visible=True)
         return render(request, 'project_login_or_register.html', {'project': project})
 
-    registration_form = None
     agreement_forms_list = []
-    access_granted = False
     current_step = None
     user = request.user
 
@@ -489,14 +487,11 @@ def project_details(request, project_key):
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(request, project_key)
 
-    # The JWT token that will get passed in API calls
-    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
-
     # Check for a returning task and set messages accordingly
     get_task_context_data(request)
 
     # Make a request to SciReg to grab email verification and profile information
-    profile_registration_info = requests.get(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, verify=settings.VERIFY_REQUESTS).json()
+    profile_registration_info = get_current_user_profile(user_jwt)
 
     if profile_registration_info.get('count', 0) != 0:
         profile_registration_info = profile_registration_info["results"][0]
@@ -522,6 +517,9 @@ def project_details(request, project_key):
 
     if current_step is None and not profile_completed:
         current_step = "complete_profile"
+
+    if current_step is None and profile_completed and project.show_jwt:
+        current_step = "jwt"
 
     # Order by name descending temporarily so the n2c2 ROC appears before DUA
     agreement_forms = project.agreement_forms.order_by('-name')
@@ -577,7 +575,8 @@ def project_details(request, project_key):
                "institution": project.institution,
                "registration_form": registration_form,
                "current_step": current_step,
-               "final_signed_agreement_forms": final_signed_agreement_forms}
+               "final_signed_agreement_forms": final_signed_agreement_forms,
+               "user_jwt": user_jwt}
 
     if not access_granted:
         return render(request, 'project_signup.html', context)
