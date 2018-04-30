@@ -27,6 +27,7 @@ from .views_teams import download_signed_form
 from .views_files import download_dataset
 from .views_files import upload_participantsubmission_file
 from .views_files import download_team_submissions
+from .views_files import delete_participantsubmission
 
 urlpatterns = (
     url(r'^$', list_data_projects),
@@ -54,5 +55,6 @@ urlpatterns = (
     url(r'^download_dataset/$', download_dataset),
     url(r'^upload_participantsubmission_file/$', upload_participantsubmission_file),
     url(r'^download_team_submissions/$', download_team_submissions),
+    url(r'^delete_participantsubmission/$', delete_participantsubmission),
     url(r'^(?P<project_key>[^/]+)/$', project_details),
 )

@@ -321,7 +321,7 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
     files = HostedFile.objects.filter(project=project)
     team_users = User.objects.filter(participant__in=team_participants)
     downloads = HostedFileDownload.objects.filter(hosted_file__in=files, user__in=team_users)
-    uploads = ParticipantSubmission.objects.filter(participant__in=team_participants)
+    uploads = team.get_submissions()
 
     return render(request, template_name, context={"user": user,
                                                    "ssl_setting": settings.SSL_SETTING,
@@ -557,6 +557,7 @@ def project_details(request, project_key):
         access_granted = False
 
     team_has_pending_members = Participant.objects.filter(team=team, team_approved=False)
+
     # If all other steps completed, then last step will be team
     if current_step is None:
         current_step = "team"

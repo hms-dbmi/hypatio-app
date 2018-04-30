@@ -130,19 +130,32 @@ class Team(models.Model):
     status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
 
     def get_count_of_submissions_made(self):
-        """Returns the total number of submissions that a team's participants have made for its challenge."""
+        """
+        Returns the total number of submissions that a team's participants have made for its challenge.
+        """
 
-        submissions = 0
-        participants = self.participant_set.all()
-        for p in participants:
-            submissions += p.participantsubmission_set.count()
+        submissions = self.get_submissions().count()
         return submissions
 
     def get_number_of_submissions_left(self):
-        """Returns the number of submissions left that a team may make."""
+        """
+        Returns the number of submissions left that a team may make.
+        """
 
         # TODO: abstract this number to the DataProjects class?
         return 3 - self.get_count_of_submissions_made()
+
+    def get_submissions(self):
+        """
+        Returns a queryset of the (non-deleted) ParticipantSubmission records for this team.
+        """
+
+        participants = self.participant_set.all()
+
+        return ParticipantSubmission.objects.filter(
+            participant__in=participants,
+            deleted=False
+        )
 
     def __str__(self):
         return '%s' % self.team_leader.email
@@ -233,6 +246,7 @@ class ParticipantSubmission(models.Model):
     uuid = models.UUIDField(null=False, unique=True, primary_key=True, default=None)
     location = models.CharField(max_length=12, default=None, blank=True, null=True)
     submission_info = models.TextField(default=None, blank=True, null=True)
+    deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return '%s' % (self.uuid)
