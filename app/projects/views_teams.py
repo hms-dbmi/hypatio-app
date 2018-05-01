@@ -370,7 +370,7 @@ def join_team(request):
                    'project': project,
                    'site_url': settings.SITE_URL}
 
-        email_success = email_send(subject='DBMI Portal - Pending Member',
+        email_success = email_send(subject='DBMI Portal Pending Member',
                                    recipients=[team_leader],
                                    email_template='email_pending_member_notification',
                                    extra=context)
