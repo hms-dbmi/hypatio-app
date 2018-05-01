@@ -4,7 +4,7 @@
         "pk": 1,
         "fields": {
             "name": "George Mason University Volgenau School of Engineering",
-            "logo": "institutionlogos/f8352ae7-62f5-4785-b3b5-f72f24639192.png"
+            "logo_path": "institutionlogos/gmu-vse.png"
         }
     },
     {
@@ -14,7 +14,7 @@
             "name": "N2C2 Data Use Agreement",
             "short_name": "DUA",
             "created": "2018-01-01T00:00:00+00:00",
-            "form_html": "agreementforms/c757e275-486f-4c3d-ab52-e295ccb8f45a.html"
+            "form_file_path": "agreementforms/n2c2-t1_dua.html"
         }
     },
     {
@@ -24,7 +24,7 @@
             "name": "N2C2 Rules of Conduct",
             "short_name": "ROC",
             "created": "2018-01-01T00:00:00+00:00",
-            "form_html": "agreementforms/e3b33c4d-94d2-4738-9d4c-308548943435.html"
+            "form_file_path": "agreementforms/n2c2-t1_roc.html"
         }
     },
     {
@@ -42,7 +42,7 @@
             "project_supervisor": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": true,
             "visible": true,
-            "submission_form_html": "submissionforms/6b40a9a6-5190-4559-90b3-1f19d380a33c.html"
+            "submission_form_file_path": "submissionforms/n2c2-t1.html"
         }
     },
     {

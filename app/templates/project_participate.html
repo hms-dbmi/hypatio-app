@@ -38,6 +38,43 @@
 
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Your Submissions</a></h2>
+            </div>
+            <div class="panel-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Submitted By</th>
+                            <th>Date</th>
+                            <th>Information</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for submission in team.get_submissions %}
+                        <tr>
+                            <td>
+                                {{ submission.participant.user.email }}
+                            </td>
+                            <td>
+                                {{ submission.upload_date|timezone:"America/New_York" }}
+                            </td>
+                            <td>
+                                <div class="submission-info-button" data-submission-uuid="{{ submission.uuid }}">
+                                    <button class="btn btn-primary btn-xs view-submission-info" data-toggle="modal" data-target="#submission-info-modal">View</button>
+                                </div>
+                                <div class="submission-info-details" style="display: none;">
+                                    {{ submission.submission_info }}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Your Team</a></h2>
             </div>
             <div class="panel-body">
@@ -89,6 +126,46 @@
     </div>
 
     <div class="col-md-6">
+        {% if project.accepting_user_submissions %}
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Contest Submission</a></h2>
+            </div>
+            <div class="panel-body">
+            {% if team.get_number_of_submissions_left == 0 %}
+                Your team has used up all of its available submissions.
+            {% else %}
+                <div class="alert alert-danger" role="alert">
+                    Please use the form below to submit an official solution on behalf of your team. <strong>For the file upload, only .zip files will be accepted.</strong> While any member of the team may submit a solution, the total submissions for a team is capped at 3. <strong>Your team has {{ team.get_number_of_submissions_left }} submissions left</strong> before reaching that cap.
+                </div>
+
+                <form id="participant-submission-form">           
+                    {% if project.submission_form_file_path %}
+                        <div class="submission_form_contents">
+                            {{ project.submission_form_file_path|get_html_form_file_contents | safe }}
+                        </div>
+                    {% endif %}
+                                    
+                    <div class="form-group">
+                        <label class="btn btn-default" id="file-upload-browse">
+                            Click to select a zip file... <input id="file-upload-file" name="file" type="file" style="display: none;" accept=".zip">
+                        </label>
+                    </div>
+
+                    <div class="form-group">                        
+                        <input id="file-upload-filename" name="filename" type="text" hidden="true" />
+                        <input id="file-upload-project" name="project" type="text" hidden="true" value="{{ project.project_key }}" />
+                        <button id="file-upload-submit" type="submit" class="btn btn-danger" style="display: none;"
+                        data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> Uploading file..."></button>
+                    </div>
+
+                    {% csrf_token %}
+                </form>
+
+            {% endif %}
+            </div>
+        </div>
+        {% endif %}
 
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
@@ -115,58 +192,100 @@
                 {% endfor %}
             </div>
         </div>
+    </div>
+</div>
 
-        {% if project.accepting_user_submissions %}
-        <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Contest Submission</a></h2>
+<!-- Modal -->
+<div class="modal fade" id="submission-info-modal" tabindex="-1" role="dialog" aria-labelledby="submission-info-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="submission-info-modal">Submission Info</h4>
             </div>
-            <div class="panel-body">
-            {% if team.get_number_of_submissions_left == 0 %}
-                Your team has used up all of its available submissions.
-            {% else %}
-                <div class="alert alert-danger" role="alert">
-                    Please use the form below to submit an official solution on behalf of your team. <strong>For the file upload, only .zip files will be accepted.</strong> While any member of the team may submit a solution, the total submissions for a team is capped at 3. <strong>Your team has {{ team.get_number_of_submissions_left }} submissions left</strong> before reaching that cap.
-                </div>
-
-                <form id="participant-submission-form">           
-                    {% if project.submission_form_html %}
-                        <div class="submission_form_contents">
-                            {{ project.submission_form_html.name|get_html_form_file_contents | safe }}
-                        </div>
-                    {% endif %}
-                                    
-                    <div class="form-group">
-                        <label class="btn btn-default" id="file-upload-browse">
-                            Click to select a zip file... <input id="file-upload-file" name="file" type="file" style="display: none;" accept=".zip">
-                        </label>
-                    </div>
-
-                    <div class="form-group">                        
-                        <input id="file-upload-filename" name="filename" type="text" hidden="true" />
-                        <input id="file-upload-project" name="project" type="text" hidden="true" value="{{ project.project_key }}" />
-                        <button id="file-upload-submit" type="submit" class="btn btn-danger" style="display: none;"
-                        data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> Uploading file..."></button>
-                    </div>
-
-                    {% csrf_token %}
-                </form>
-
-            {% endif %}
+            <div class="modal-body">
+                <pre id="submission-info-display">
+                    ...
+                </pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-default" id="delete-submission">Delete Submission</button>
+                <button type="button" class="btn btn-danger" id="delete-submission-confirm" data-submission-uuid="" style="display: none;">Are you sure? Click to confirm and delete</button>
+                
+                <div class="model-error alert alert-danger text-center" style="display: none; margin-top: 10px;"></div>
             </div>
         </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}
 
 {% block footerscripts %}
 <script type="application/javascript">
+    // Populate the submission info modal with data about the selected submission
+    $('.submission-info-button').on('click', function() {
+        var submission_uuid = $(this).data('submission-uuid');
+
+        // Grab the information from an adjacent div
+        var submission_info = $(this).next(".submission-info-details").text();
+        
+        // Parse the string into an actual json
+        var submission_info_json  = JSON.parse(submission_info);
+        var submission_info_json_prettyprint = JSON.stringify(submission_info_json, null, 4);
+
+        // Paste the json into the modal and pretty print it
+        $('#submission-info-display').html(submission_info_json_prettyprint);
+
+        // Update the submission-uuid data attribute
+        $('#delete-submission-confirm').attr('data-submission-uuid', submission_uuid);
+    });
+</script>
+
+<script type="application/javascript">
+    // When someone clicks the delete button, display the confirm button
+    $('#delete-submission').on('click', function() {
+        $('#delete-submission').hide();
+        $('#delete-submission-confirm').show();
+    });
+
+    $('#delete-submission-confirm').on('click', function() {
+        var submission_uuid = $(this).data('submission-uuid');
+
+        $.ajax({
+            method: "POST",
+            data: {"submission_uuid": submission_uuid},
+            url: "/delete_participantsubmission/",
+            success: function (data, textStatus, jqXHR) {
+                $('#delete-submission-confirm').removeClass('btn-danger');
+                $('#delete-submission-confirm').addClass('btn-success');
+                $('#delete-submission-confirm').text('Submission deleted. Refreshing page...');
+
+                // Refresh the page.
+                setTimeout(function(){
+                    window.location = window.location.pathname
+                }, 1500);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('#delete-submission-confirm').text(errorThrown);
+                $('.model-error').text(jqXHR.responseText + " Refreshing page...");
+                $('.model-error').show();
+
+                // Refresh the page.
+                setTimeout(function(){
+                    window.location = window.location.pathname
+                }, 5000);
+            }
+        });
+    });
+</script>
+
+<script type="application/javascript">
     // Enable the team status tooltip
     $(function () {
         $('[data-toggle="team-status-tooltip"]').tooltip()
     });
 </script>
+
 <script type="application/javascript">
 
     function objectifyForm( formArray ) {
