@@ -543,7 +543,7 @@ def project_details(request, project_key):
 
         agreement_forms_list.append({'agreement_form_name': agreement_form.name,
                                      'agreement_form_id': agreement_form.id,
-                                     'agreement_form_file': agreement_form.form_html.name,
+                                     'agreement_form_path': agreement_form.form_file_path,
                                      'already_signed': already_signed})
 
     try:
