@@ -1,0 +1,7 @@
+Team member {{ submitter }} has submitted a solution on behalf of your team. Out of {{ max_submissions }} max submissions, your team has now made {{ submission_count }} submissions. 
+
+Submission metadata:
+{{ submission_info }}
+
+
+Thank you.
