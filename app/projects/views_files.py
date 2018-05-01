@@ -297,7 +297,7 @@ def upload_participantsubmission_file(request):
             }
 
             try:
-                subject = 'DBMI Portal {challenge} solution submitted by your team'.format(challenge=project.project_key)
+                subject = 'DBMI Portal - {challenge} solution submitted by your team'.format(challenge=project.project_key)
 
                 email_success = email_send(
                     subject=subject,

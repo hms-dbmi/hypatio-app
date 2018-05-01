@@ -74,7 +74,7 @@ def change_signed_form_status(request):
                    'administrator_message': administrator_message,
                    'site_url': settings.SITE_URL}
 
-        email_success = email_send(subject='DBMI Portal Signed Form Rejected',
+        email_success = email_send(subject='DBMI Portal - Signed Form Rejected',
                                    recipients=[affected_user.email],
                                    email_template='email_signed_form_rejection_notification',
                                    extra=context)
@@ -102,7 +102,7 @@ def change_signed_form_status(request):
             # Email list
             emails = [member.user.email for member in team.participant_set.all()]
 
-            email_success = email_send(subject='DBMI Portal Team Status Changed',
+            email_success = email_send(subject='DBMI Portal - Team Status Changed',
                                        recipients=emails,
                                        email_template='email_new_team_status_notification',
                                        extra=context)
@@ -188,7 +188,7 @@ def change_team_status(request):
     # Email list
     emails = [member.user.email for member in team.participant_set.all()]
 
-    email_success = email_send(subject='DBMI Portal Team Status Changed',
+    email_success = email_send(subject='DBMI Portal - Team Status Changed',
                                recipients=emails,
                                email_template='email_new_team_status_notification',
                                extra=context)
@@ -226,7 +226,7 @@ def delete_team(request):
 
     emails = [member.user.email for member in team.participant_set.all()]
 
-    email_success = email_send(subject='DBMI Portal Team Deleted',
+    email_success = email_send(subject='DBMI Portal - Team Deleted',
                                recipients=emails,
                                email_template='email_team_deleted_notification',
                                extra=context)
@@ -262,7 +262,7 @@ def finalize_team(request):
                'project': project_key,
                'site_url': settings.SITE_URL}
 
-    email_success = email_send(subject='DBMI Portal Finalized Team',
+    email_success = email_send(subject='DBMI Portal - Finalized Team',
                                recipients=contest_managers,
                                email_template='email_finalized_team_notification',
                                extra=context)
@@ -370,7 +370,7 @@ def join_team(request):
                    'project': project,
                    'site_url': settings.SITE_URL}
 
-        email_success = email_send(subject='DBMI Portal Pending Member',
+        email_success = email_send(subject='DBMI Portal - Pending Member',
                                    recipients=[team_leader],
                                    email_template='email_pending_member_notification',
                                    extra=context)

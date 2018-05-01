@@ -39,7 +39,7 @@ def contact_form(request):
             recipients = settings.CONTACT_FORM_RECIPIENTS.split(',')
 
             # Send it out.
-            success = email_send(subject='DBMI Portal Contact Form Inquiry',
+            success = email_send(subject='DBMI Portal - Contact Form Inquiry',
                                  recipients=recipients,
                                  email_template='email_contact',
                                  extra=context)
