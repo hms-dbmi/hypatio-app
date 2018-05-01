@@ -140,9 +140,9 @@
                 </div>
 
                 <form id="participant-submission-form">           
-                    {% if project.submission_form_html %}
+                    {% if project.submission_form_file_path %}
                         <div class="submission_form_contents">
-                            {{ project.submission_form_html.name|get_html_form_file_contents | safe }}
+                            {{ project.submission_form_file_path|get_html_form_file_contents | safe }}
                         </div>
                     {% endif %}
                                     
@@ -212,6 +212,8 @@
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-default" id="delete-submission">Delete Submission</button>
                 <button type="button" class="btn btn-danger" id="delete-submission-confirm" data-submission-uuid="" style="display: none;">Are you sure? Click to confirm and delete</button>
+                
+                <div class="model-error alert alert-danger text-center" style="display: none; margin-top: 10px;"></div>
             </div>
         </div>
     </div>
@@ -256,7 +258,7 @@
             success: function (data, textStatus, jqXHR) {
                 $('#delete-submission-confirm').removeClass('btn-danger');
                 $('#delete-submission-confirm').addClass('btn-success');
-                $('#delete-submission-confirm').text('Submission deleted. Refreshing page.');
+                $('#delete-submission-confirm').text('Submission deleted. Refreshing page...');
 
                 // Refresh the page.
                 setTimeout(function(){
@@ -264,12 +266,14 @@
                 }, 1500);
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                $('#delete-submission-confirm').text('Could not delete submission. Please contact an admin for help');                
-                
+                $('#delete-submission-confirm').text(errorThrown);
+                $('.model-error').text(jqXHR.responseText + " Refreshing page...");
+                $('.model-error').show();
+
                 // Refresh the page.
                 setTimeout(function(){
                     window.location = window.location.pathname
-                }, 1500);
+                }, 5000);
             }
         });
     });
