@@ -462,6 +462,46 @@ def grant_access_with_view_permissions(request):
 
     return HttpResponse(200)
 
+
+def _create_agreement_form_list(project, user):
+
+    # Order by name descending temporarily so the n2c2 ROC appears before DUA
+    agreement_forms = project.agreement_forms.order_by('-name')
+
+    agreement_forms_list = []
+
+    for agreement_form in agreement_forms:
+        signed_agreement_forms = SignedAgreementForm.objects.filter(project=project,
+                                                                    user=user,
+                                                                    agreement_form=agreement_form,
+                                                                    status__in=["P", "A"])
+
+        if signed_agreement_forms.count() > 0:
+            already_signed = True
+        else:
+            already_signed = False
+
+        if current_step is None and not already_signed:
+            current_step = agreement_form.name
+
+        agreement_forms_list.append({'agreement_form_name': agreement_form.name,
+                                     'agreement_form_id': agreement_form.id,
+                                     'agreement_form_file': agreement_form.form_html.name,
+                                     'already_signed': already_signed})
+    return agreement_forms_list
+
+
+def _project_access_request(user_access_requests, project):
+
+    if user_access_requests is not None and 'results' in user_access_requests:
+        user_access_requests = user_access_requests["results"]
+        for access_request in user_access_requests:
+            if access_request["item"] == project.project_key:
+                return access_request
+
+    return None
+
+
 @public_user_auth_and_jwt
 def project_details(request, project_key):
 
@@ -469,7 +509,6 @@ def project_details(request, project_key):
         project = get_object_or_404(DataProject, project_key=project_key, visible=True)
         return render(request, 'project_login_or_register.html', {'project': project})
 
-    agreement_forms_list = []
     current_step = None
     user = request.user
 
@@ -486,7 +525,9 @@ def project_details(request, project_key):
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(request, project_key)
-
+    user_access_requests = sciauthz.current_user_access_requests()
+    user_access_request = _project_access_request(user_access_requests, project)
+    print("UAR %s" % user_access_request)
     # Check for a returning task and set messages accordingly
     get_task_context_data(request)
 
@@ -521,28 +562,8 @@ def project_details(request, project_key):
     if current_step is None and profile_completed and project.show_jwt:
         current_step = "jwt"
 
-    # Order by name descending temporarily so the n2c2 ROC appears before DUA
-    agreement_forms = project.agreement_forms.order_by('-name')
-
     # Check to see if any of the agreement forms have been signed and not rejected by an admin
-    for agreement_form in agreement_forms:
-        signed_agreement_forms = SignedAgreementForm.objects.filter(project=project,
-                                                                    user=user,
-                                                                    agreement_form=agreement_form,
-                                                                    status__in=["P", "A"])
-
-        if signed_agreement_forms.count() > 0:
-            already_signed = True
-        else:
-            already_signed = False
-
-        if current_step is None and not already_signed:
-            current_step = agreement_form.name
-
-        agreement_forms_list.append({'agreement_form_name': agreement_form.name,
-                                     'agreement_form_id': agreement_form.id,
-                                     'agreement_form_path': agreement_form.form_file_path,
-                                     'already_signed': already_signed})
+    agreement_forms_list = _create_agreement_form_list(project, user)
 
     try:
         # Only allow a user onto the project participation page if they are on an Active team and they have VIEW permissions
@@ -563,7 +584,6 @@ def project_details(request, project_key):
     final_signed_agreement_forms = SignedAgreementForm.objects.filter(project=project,
                                                                       user=user,
                                                                       status__in=["P", "A"])
-
     context = {"project": project,
                "agreement_forms_list": agreement_forms_list,
                "participant": participant,
@@ -576,7 +596,8 @@ def project_details(request, project_key):
                "registration_form": registration_form,
                "current_step": current_step,
                "final_signed_agreement_forms": final_signed_agreement_forms,
-               "user_jwt": user_jwt}
+               "user_jwt": user_jwt,
+               "user_access_request": user_access_request}
 
     if not access_granted:
         return render(request, 'project_signup.html', context)
