@@ -336,7 +336,7 @@ def delete_participantsubmission(request):
                 "[views_files][delete_participantsubmission] - No Access for user %s",
                 request.user.email
             )
-            return HttpResponse("You do not have access to delete this file.", status=403)
+            return HttpResponse("Only the original submitter, team leader, or contest manager may delete this.", status=403)
 
         submission.deleted = True
         submission.save()
