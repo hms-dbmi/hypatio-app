@@ -1,0 +1,31 @@
+{% extends "email/email_base.html" %}
+
+{% block title %}DBMI Data Portal - {{ challenge.project_key }} solution submitted by your team{% endblock %}
+
+{% block content %}
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">
+    Hi,
+</p>
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">
+    Team member <strong>{{ submitter }}</strong> has submitted a solution on behalf of your team for challenge <strong>{{ challenge.name }}</strong>.
+</p>
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">
+    Out of {{ max_submissions }} max submissions, <strong>your team has now made {{ submission_count }} submissions</strong>. 
+</p>
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">
+    Submission metadata:
+</p>
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">
+    <pre>{{ submission_info|linebreaksbr }}</pre>
+</p>
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">
+    Thank you.
+</p>
+
+{% endblock %}
