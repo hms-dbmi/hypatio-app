@@ -321,7 +321,7 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
     files = HostedFile.objects.filter(project=project)
     team_users = User.objects.filter(participant__in=team_participants)
     downloads = HostedFileDownload.objects.filter(hosted_file__in=files, user__in=team_users)
-    uploads = ParticipantSubmission.objects.filter(participant__in=team_participants)
+    uploads = team.get_submissions()
 
     return render(request, template_name, context={"user": user,
                                                    "ssl_setting": settings.SSL_SETTING,
@@ -391,7 +391,7 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
 
     # Simple statistics for display
     total_teams = teams.count()
-    total_participants = Participant.objects.filter(data_challenge=project).count()   
+    total_participants = Participant.objects.filter(data_challenge=project).count()
     countries_represented = '?' # TODO
     total_submissions = 0 # TODO
     teams_with_any_submission = 0 # TODO
@@ -543,7 +543,7 @@ def project_details(request, project_key):
 
         agreement_forms_list.append({'agreement_form_name': agreement_form.name,
                                      'agreement_form_id': agreement_form.id,
-                                     'agreement_form_file': agreement_form.form_html.name,
+                                     'agreement_form_path': agreement_form.form_file_path,
                                      'already_signed': already_signed})
 
     try:
@@ -557,6 +557,7 @@ def project_details(request, project_key):
         access_granted = False
 
     team_has_pending_members = Participant.objects.filter(team=team, team_approved=False)
+
     # If all other steps completed, then last step will be team
     if current_step is None:
         current_step = "team"

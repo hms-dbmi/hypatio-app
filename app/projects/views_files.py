@@ -24,13 +24,17 @@ from hypatio.sciauthz_services import SciAuthZ
 from hypatio.file_services import get_download_url
 from hypatio import file_services as fileservice
 
-from .models import DataProject
-from .models import HostedFile
-from .models import HostedFileDownload
-from .models import ParticipantSubmission
-from .models import TeamSubmissionsDownload
-from .models import Participant
-from .models import Team
+from projects.models import DataProject
+from projects.models import HostedFile
+from projects.models import HostedFileDownload
+from projects.models import ParticipantSubmission
+from projects.models import TeamSubmissionsDownload
+from projects.models import Participant
+from projects.models import Team
+
+from contact.views import email_send
+
+from contact.views import email_send
 
 logger = logging.getLogger(__name__)
 
@@ -101,9 +105,7 @@ def download_team_submissions(request):
         team_participants = team.participant_set.all()
 
         # Get all of the participant submission records belonging to this team, ordered by upload date
-        team_submissions = ParticipantSubmission.objects.filter(
-            participant__in=team_participants
-        ).order_by('upload_date')
+        team_submissions = team.get_submissions().order_by('upload_date')
 
         logger.debug('Building a zip file containing the {submission_count} submissions from team {team}.'.format(
             submission_count=team_submissions.count(),
@@ -256,17 +258,23 @@ def upload_participantsubmission_file(request):
         logger.debug('Data: {}'.format(data))
 
         try:
-            # Get the participant.
-            participant = Participant.objects.get(user=request.user)
-
             # Prepare a json that holds information about the file and the original submission form.
             # This is used later as included metadata when downloading the participant's submission.
-            # Remove a few unnecessary fields.
             submission_info = copy(data)
+
+            # Get the participant.
+            project = get_object_or_404(DataProject, project_key=submission_info['project'])
+            participant = get_object_or_404(Participant, user=request.user, data_challenge=project)
+            team = participant.team
+
+            # Remove a few unnecessary fields.
             del submission_info['csrfmiddlewaretoken']
             del submission_info['location']
+
+            # Add some more fields
             submission_info['submitted_by'] = request.user.email
             submission_info['team_leader'] = participant.team.team_leader.email
+
             submission_info_json = json.dumps(submission_info, indent=4)
 
             # Create the object and save UUID and location for future downloads.
@@ -276,6 +284,29 @@ def upload_participantsubmission_file(request):
                 location=data['location'],
                 submission_info=submission_info_json
             )
+
+            # Send an email notification to team members about the submission.
+            emails = [member.user.email for member in team.participant_set.all()]
+
+            context = {
+                'submission_info': submission_info_json,
+                'challenge': project,
+                'submitter': request.user.email,
+                'max_submissions': 3,
+                'submission_count': team.get_count_of_submissions_made()
+            }
+
+            try:
+                subject = 'DBMI Portal - {challenge} solution submitted by your team'.format(challenge=project.project_key)
+
+                email_success = email_send(
+                    subject=subject,
+                    recipients=emails,
+                    email_template='email_submission_uploaded',
+                    extra=context
+                )
+            except Exception as e:
+                logger.exception(e)
 
             # Make the request to FileService.
             if not fileservice.uploaded_file(request, data['uuid'], data['location']):
@@ -293,3 +324,76 @@ def upload_participantsubmission_file(request):
             return HttpResponse(status=500)
     else:
         return HttpResponse("Invalid method", status=403)
+
+@user_auth_and_jwt
+def delete_participantsubmission(request):
+    """
+    Marks a ParticipantSubmission as deleted so it will not be counted against their
+    total submission count for a contest.
+    """
+
+    if request.method == 'POST':
+
+        # Check that user has permissions to be viewing files for this project.
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+
+        if not sciauthz.user_has_single_permission("n2c2-t1", "VIEW"):
+            logger.debug(
+                "[views_files][delete_participantsubmission] - No Access for user %s",
+                request.user.email
+            )
+            return HttpResponse("You do not have access to delete this file.", status=403)
+
+        submission_uuid = request.POST.get('submission_uuid')
+        submission = ParticipantSubmission.objects.get(uuid=submission_uuid)
+
+        project = submission.participant.data_challenge
+        team = submission.participant.team
+
+        logger.debug(
+            '[views_files][delete_participantsubmission] - %s is trying to delete submission %s',
+            request.user.email,
+            submission_uuid
+        )
+
+        user_is_submitter = submission.participant.user == request.user
+        user_is_team_leader = team.team_leader == request.user.email
+        user_is_manager = sciauthz.user_has_manage_permission(request, project.project_key)
+
+        # Check that the user is either the team leader, the original submitter, or a manager
+        if not user_is_submitter and not user_is_team_leader and not user_is_manager:
+            logger.debug(
+                "[views_files][delete_participantsubmission] - No Access for user %s",
+                request.user.email
+            )
+            return HttpResponse("Only the original submitter, team leader, or contest manager may delete this.", status=403)
+
+        submission.deleted = True
+        submission.save()
+
+        # Do not give away the admin's email when notifying the team
+        if user_is_manager:
+            deleted_by = "an admin"
+        else:
+            deleted_by = request.user.email
+
+        # Send an email notification to the team
+        context = {
+            'deleted_by': deleted_by,
+            'project': project.project_key,
+            'submission_uuid': submission_uuid,
+            'submissions_left': team.get_number_of_submissions_left()
+        }
+
+        emails = [member.user.email for member in team.participant_set.all()]
+        email_success = email_send(
+            subject='DBMI Portal - Team Submission Deleted',
+            recipients=emails,
+            email_template='email_submission_deleted_notification',
+            extra=context
+        )
+
+        return HttpResponse(status=200)
+
+    return HttpResponse(status=500)

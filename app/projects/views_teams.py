@@ -27,7 +27,9 @@ logger = logging.getLogger(__name__)
 
 @user_auth_and_jwt
 def download_signed_form(request):
-    """Returns a text file to the user containing the signed form's content."""
+    """
+    Returns a text file to the user containing the signed form's content.
+    """
 
     form_id = request.GET.get("form_id")
 
@@ -44,7 +46,9 @@ def download_signed_form(request):
 
 @user_auth_and_jwt
 def change_signed_form_status(request):
-    """Change a signed form's status and notify the user."""
+    """
+    Change a signed form's status and notify the user.
+    """
 
     status = request.POST.get("status")
     form_id = request.POST.get("form_id")
@@ -70,7 +74,7 @@ def change_signed_form_status(request):
                    'administrator_message': administrator_message,
                    'site_url': settings.SITE_URL}
 
-        email_success = email_send(subject='DBMI Portal Signed Form Rejected',
+        email_success = email_send(subject='DBMI Portal - Signed Form Rejected',
                                    recipients=[affected_user.email],
                                    email_template='email_signed_form_rejection_notification',
                                    extra=context)
@@ -98,7 +102,7 @@ def change_signed_form_status(request):
             # Email list
             emails = [member.user.email for member in team.participant_set.all()]
 
-            email_success = email_send(subject='DBMI Portal Team Status Changed',
+            email_success = email_send(subject='DBMI Portal - Team Status Changed',
                                        recipients=emails,
                                        email_template='email_new_team_status_notification',
                                        extra=context)
@@ -110,7 +114,9 @@ def change_signed_form_status(request):
 
 @user_auth_and_jwt
 def save_team_comment(request):
-    """Saves a comment made about a team by a challenge administrator."""
+    """
+    Saves a comment made about a team by a challenge administrator.
+    """
 
     project_key = request.POST.get("project")
     team_leader = request.POST.get("team")
@@ -130,7 +136,9 @@ def save_team_comment(request):
 
 @user_auth_and_jwt
 def change_team_status(request):
-    """Change a team's status, assign the correct permissions, and notify team members."""
+    """
+    Change a team's status, assign the correct permissions, and notify team members.
+    """
 
     project_key = request.POST.get("project")
     team_leader = request.POST.get("team")
@@ -180,7 +188,7 @@ def change_team_status(request):
     # Email list
     emails = [member.user.email for member in team.participant_set.all()]
 
-    email_success = email_send(subject='DBMI Portal Team Status Changed',
+    email_success = email_send(subject='DBMI Portal - Team Status Changed',
                                recipients=emails,
                                email_template='email_new_team_status_notification',
                                extra=context)
@@ -189,7 +197,9 @@ def change_team_status(request):
 
 @user_auth_and_jwt
 def delete_team(request):
-    """Delete a team and notify members."""
+    """
+    Delete a team and notify members.
+    """
 
     project_key = request.POST.get("project")
     team_leader = request.POST.get("team")
@@ -216,7 +226,7 @@ def delete_team(request):
 
     emails = [member.user.email for member in team.participant_set.all()]
 
-    email_success = email_send(subject='DBMI Portal Team Deleted',
+    email_success = email_send(subject='DBMI Portal - Team Deleted',
                                recipients=emails,
                                email_template='email_team_deleted_notification',
                                extra=context)
@@ -232,7 +242,9 @@ def delete_team(request):
 
 @user_auth_and_jwt
 def finalize_team(request):
-    """Mark the team as ready and send an email notification to contest managers."""
+    """
+    Mark the team as ready and send an email notification to contest managers.
+    """
 
     project_key = request.POST.get("project_key")
     team = request.POST.get("team")
@@ -250,7 +262,7 @@ def finalize_team(request):
                'project': project_key,
                'site_url': settings.SITE_URL}
 
-    email_success = email_send(subject='DBMI Portal Finalized Team',
+    email_success = email_send(subject='DBMI Portal - Finalized Team',
                                recipients=contest_managers,
                                email_template='email_finalized_team_notification',
                                extra=context)
@@ -390,7 +402,8 @@ def team_signup_form(request, project_key):
 
 @user_auth_and_jwt
 def create_team(request):
-    """Creates a new team with the given user as its team leader.
+    """
+    Creates a new team with the given user as its team leader.
     """
 
     project_key = request.POST.get("project_key")
@@ -418,7 +431,8 @@ def create_team(request):
     return redirect('/projects/' + project_key + '/')
 
 def create_participant(user, project):
-    """ Creates a participant object and returns it.
+    """
+    Creates a participant object and returns it.
     """
 
     participant = Participant(user=user,

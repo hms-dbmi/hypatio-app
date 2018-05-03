@@ -147,6 +147,7 @@
                         <tr>
                             <th>Person</th>
                             <th>Date</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -154,6 +155,10 @@
                         <tr>
                             <td>{{ upload.participant.user.email }}</td>
                             <td>{{ upload.upload_date|timezone:"America/New_York" }} (EST)</td>
+                            <td>
+                                <button class="btn btn-default btn-xs submission-delete">Delete</button>
+                                <button class="btn btn-danger btn-xs submission-delete-confirm" data-submission-uuid="{{ upload.uuid }}" style="display: none;">Confirm</button>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -244,6 +249,44 @@
             "info": false,
             "searching": false,
             "order": [[2, "desc"]] // Sort by date column (3rd column)
+        });
+    });
+</script>
+
+<!-- Handle submission delete -->
+<script type="application/javascript">
+    $('.submission-delete').on('click', function() {
+        // Swap the delete button for the confirm button
+        $(this).hide();
+        $(this).next('.submission-delete-confirm').show();
+    });
+
+    $('.submission-delete-confirm').on('click', function() {
+        var button = $(this);
+        var submission_uuid = $(this).data('submission-uuid');
+
+        $.ajax({
+            method: "POST",
+            data: {"submission_uuid": submission_uuid},
+            url: "/delete_participantsubmission/",
+            success: function (data, textStatus, jqXHR) {
+                button.removeClass('btn-danger');
+                button.addClass('btn-success');
+                button.text('Submission deleted. Refreshing page.');
+
+                // Refresh the page.
+                setTimeout(function(){
+                    window.location = window.location.pathname
+                }, 1500);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('#delete-submission-confirm').text('Could not delete submission. Please contact an admin for help');                
+                
+                // Refresh the page.
+                setTimeout(function(){
+                    window.location = window.location.pathname
+                }, 1500);
+            }
         });
     });
 </script>
