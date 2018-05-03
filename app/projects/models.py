@@ -100,6 +100,8 @@ class DataProject(models.Model):
     registration_open = models.BooleanField(default=False, blank=False, null=False)
     accepting_user_submissions = models.BooleanField(default=False, blank=False, null=False)
     submission_form_file_path = models.CharField(max_length=300, blank=True, null=True)
+    show_jwt = models.BooleanField(default=False, blank=False, null=False)
+
 
     def __str__(self):
         return '%s' % (self.project_key)
