@@ -40,6 +40,19 @@ def check_email_confirmation(user_jwt):
     return email_status
 
 
+def get_current_user_profile(user_jwt):
+
+    f = furl(settings.SCIREG_REGISTRATION_URL)
+
+    try:
+        profile = requests.get(f.url, headers=build_headers_with_jwt(user_jwt)).json()
+
+    except JSONDecodeError:
+        profile = {"count": 0}
+
+    return profile
+
+
 def get_user_profile(user_jwt, email_of_profile, project):
 
     f = furl(settings.SCIREG_REGISTRATION_URL)

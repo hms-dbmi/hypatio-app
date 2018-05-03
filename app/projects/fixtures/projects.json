@@ -135,5 +135,21 @@
             "is_contest": false,
             "visible": true
         }
+    },
+    {
+        "model": "projects.dataproject",
+        "pk": 7,
+        "fields": {
+            "name": "Exposome Data Warehouse",
+            "institution": null,
+            "description": "<div>Environmental factors are known to play a role in population and individual-level health and clinical outcomes, but we lack data resources to uncover the association between environment and disease. There are many publicly available, yet disparate, geographical data resources.  However, we lack integrated data resources to interrogate the demographic, economic, and environmental influences in clinical disease risk. In this paper, we outline a new data warehouse, “Exposome DW” (or EDW), that enables the interrogation of diverse and heterogeneous environmental and socioeconomic data in clinical outcomes. EDW currently contains EPA air data, NOAA weather data, and American Community Survey socioeconomic  and demographic data. The raw data ingested contains approximately 2.52 billion rows of data from all sources that we aggregated into a simple STAR schema with three different data tables for location, metadata and the actual data facts.  The database is available via an Amazon S3 bucket that can be downloaded and ingested in any PostgreSQL environment.  We also provide programmatic access via an API using a microservice architecture on AWS Lambda.</div><br />",
+            "short_description": "Exposome Data Warehouse",
+            "project_key": "EDW",
+            "permission_scheme": "PUBLIC",
+            "agreement_forms_required": true,
+            "project_supervisor": "michael_mcduffie@hms.harvard.edu",
+            "is_contest": false,
+            "visible": true
+        }
     }
 ]
