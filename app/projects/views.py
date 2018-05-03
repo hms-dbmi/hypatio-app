@@ -463,7 +463,7 @@ def grant_access_with_view_permissions(request):
     return HttpResponse(200)
 
 
-def _create_agreement_form_list(project, user):
+def _create_agreement_form_list(project, user, current_step):
 
     # Order by name descending temporarily so the n2c2 ROC appears before DUA
     agreement_forms = project.agreement_forms.order_by('-name')
@@ -563,7 +563,7 @@ def project_details(request, project_key):
         current_step = "jwt"
 
     # Check to see if any of the agreement forms have been signed and not rejected by an admin
-    agreement_forms_list = _create_agreement_form_list(project, user)
+    agreement_forms_list = _create_agreement_form_list(project, user, current_step)
 
     try:
         # Only allow a user onto the project participation page if they are on an Active team and they have VIEW permissions
