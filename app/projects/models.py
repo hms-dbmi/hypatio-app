@@ -55,9 +55,10 @@ def get_institution_logo_upload_path(instance, filename):
 class Institution(models.Model):
     """
     This represents an institution such as a university that might be co-sponsoring a challenge.
+    The logo image file should live under static/institutionlogos/.
     """
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
-    logo = models.ImageField(upload_to=get_institution_logo_upload_path, blank=True, null=True)
+    logo_path = models.CharField(max_length=300, blank=True, null=True)
 
     def __str__(self):
         return '%s' % (self.name)
@@ -66,12 +67,13 @@ class Institution(models.Model):
 class AgreementForm(models.Model):
     """
     This represents the type of forms that a user might need to sign to be granted access to
-    a data set, such as a data use agreement or rules of conduct. The form file should be an html file.
+    a data set, such as a data use agreement or rules of conduct. The form file should be an html file
+    that lives under static/agreementforms/.
     """
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
     short_name = models.CharField(max_length=6, blank=False, null=False)
     created = models.DateTimeField(auto_now_add=True)
-    form_html = models.FileField(upload_to=get_agreement_form_upload_path, validators=[FileExtensionValidator(allowed_extensions=['html'])])
+    form_file_path = models.CharField(max_length=300, blank=True, null=True)
 
     def __str__(self):
         return '%s' % (self.name)
@@ -81,7 +83,7 @@ class DataProject(models.Model):
     """
     This represents a data project that users can access, along with its permissions and requirements.
     A DataProject can be simply a data set or it can be a data contest as recognized by the is_contest
-    flag.
+    flag. The submission form file should be an html file that lives under static/submissionforms/.
     """
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name of project", unique=True)
     project_key = models.CharField(max_length=100, blank=True, null=True, verbose_name="Project Key", unique=True)
@@ -97,7 +99,7 @@ class DataProject(models.Model):
     visible = models.BooleanField(default=False, blank=False, null=False)
     registration_open = models.BooleanField(default=False, blank=False, null=False)
     accepting_user_submissions = models.BooleanField(default=False, blank=False, null=False)
-    submission_form_html = models.FileField(upload_to=get_submission_form_upload_path, validators=[FileExtensionValidator(allowed_extensions=['html'])], blank=True, null=True)
+    submission_form_file_path = models.CharField(max_length=300, blank=True, null=True)
 
     def __str__(self):
         return '%s' % (self.project_key)
@@ -130,19 +132,32 @@ class Team(models.Model):
     status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
 
     def get_count_of_submissions_made(self):
-        """Returns the total number of submissions that a team's participants have made for its challenge."""
+        """
+        Returns the total number of submissions that a team's participants have made for its challenge.
+        """
 
-        submissions = 0
-        participants = self.participant_set.all()
-        for p in participants:
-            submissions += p.participantsubmission_set.count()
+        submissions = self.get_submissions().count()
         return submissions
 
     def get_number_of_submissions_left(self):
-        """Returns the number of submissions left that a team may make."""
+        """
+        Returns the number of submissions left that a team may make.
+        """
 
         # TODO: abstract this number to the DataProjects class?
         return 3 - self.get_count_of_submissions_made()
+
+    def get_submissions(self):
+        """
+        Returns a queryset of the (non-deleted) ParticipantSubmission records for this team.
+        """
+
+        participants = self.participant_set.all()
+
+        return ParticipantSubmission.objects.filter(
+            participant__in=participants,
+            deleted=False
+        )
 
     def __str__(self):
         return '%s' % self.team_leader.email
@@ -233,6 +248,7 @@ class ParticipantSubmission(models.Model):
     uuid = models.UUIDField(null=False, unique=True, primary_key=True, default=None)
     location = models.CharField(max_length=12, default=None, blank=True, null=True)
     submission_info = models.TextField(default=None, blank=True, null=True)
+    deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return '%s' % (self.uuid)

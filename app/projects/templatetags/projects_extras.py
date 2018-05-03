@@ -9,9 +9,9 @@ from django.utils.safestring import mark_safe
 register = template.Library()
 
 @register.filter
-def get_html_form_file_contents(form_file_name):
+def get_html_form_file_contents(form_file_path):
 
-    form_path = os.path.join(settings.MEDIA_ROOT, form_file_name)
+    form_path = os.path.join(settings.STATIC_ROOT, form_file_path)
     return open(form_path, 'r').read()
 
 @register.filter

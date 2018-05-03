@@ -12,10 +12,10 @@ from .models import ParticipantSubmission
 from .models import TeamSubmissionsDownload
 
 class DataprojectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'project_key', 'is_contest', 'project_supervisor') #, 'project_url')
+    list_display = ('name', 'project_key', 'is_contest', 'project_supervisor')
 
 class AgreementformAdmin(admin.ModelAdmin):
-    list_display = ('name', 'short_name', 'form_html')
+    list_display = ('name', 'short_name', 'form_file_path')
 
 class SignedagreementformAdmin(admin.ModelAdmin):
     list_display = ('user', 'agreement_form', 'date_signed', 'status')
@@ -27,7 +27,7 @@ class ParticipantAdmin(admin.ModelAdmin):
     list_display = ('user', 'data_challenge', 'team')
 
 class InstitutionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'logo')
+    list_display = ('name', 'logo_path')
 
 class DataGateAdmin(admin.ModelAdmin):
     list_display = ('project', 'data_location_type', 'data_location')
@@ -39,7 +39,7 @@ class HostedFileDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'hosted_file', 'download_date')
 
 class ParticipantSubmissionAdmin(admin.ModelAdmin):
-    list_display = ('participant', 'upload_date', 'uuid', 'location')
+    list_display = ('participant', 'upload_date', 'uuid', 'location', 'deleted')
 
 class TeamSubmissionsDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'team', 'download_date')
