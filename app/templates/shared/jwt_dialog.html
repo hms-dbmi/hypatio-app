@@ -6,6 +6,7 @@
             </div>
         </h2>
     </div>
+    {% if current_step == 'jwt' %}
     <div class="panel-body">
         Below is your JWT which you can use to authenticate yourself with DBMI APIs. Proceed with caution! Treat this
         long string as you would a password! It represents your identity and anyone who has it can access the same
@@ -13,4 +14,5 @@
         <br /><br />
         <textarea class="form-control" readonly>{{ user_jwt }}</textarea>
     </div>
+    {% endif %}
 </div>
