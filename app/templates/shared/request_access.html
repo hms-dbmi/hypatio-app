@@ -8,26 +8,27 @@
             </div>
         </h2>
     </div>
+    {% if current_step == 'request_access' %}
     <div class="panel-body">
+            {% if user_access_request %}
+                Your request is being reviewed. Please use the 'Contact Us' link for any further questions.
+            {% else %}
+                <form name="dua_access_form" action="/projects/submit_user_permission_request/" method="post">
+                    <input type="hidden" id="project_key" name="project_key" value="{{ project }}" />
+                    In order to gain access to this data an administrator will have to contact you with further steps. Click below to confirm your request. <br /><br />
 
-        {% if user_access_request %}
-            Your request is being reviewed. Please use the 'Contact Us' link for any further questions.
-        {% else %}
-            <form name="dua_access_form" action="/projects/submit_user_permission_request/" method="post">
-                <input type="hidden" id="project_key" name="project_key" value="{{ project }}" />
-                In order to gain access to this data an administrator will have to contact you with further steps. Click below to confirm your request. <br /><br />
+                    <button type="submit" class="btn btn-primary">Request Access</button>
+                    <input type="hidden" id="dua_id" name="dua_id" value="" />
+                    <input type="hidden" id="agreement_text" name="agreement_text" value="" />
 
-                <button type="submit" class="btn btn-primary">Request Access</button>
-                <input type="hidden" id="dua_id" name="dua_id" value="" />
-                <input type="hidden" id="agreement_text" name="agreement_text" value="" />
+                    <img name="loading" id="loading" src="{% static 'gears.svg' %}" style="display:none;">
+                    <div id="status" style="color: green; font-size: 1.5em;"></div>
 
-                <img name="loading" id="loading" src="{% static 'gears.svg' %}" style="display:none;">
-                <div id="status" style="color: green; font-size: 1.5em;"></div>
-
-                {% csrf_token %}
-            </form>
-        {% endif %}
+                    {% csrf_token %}
+                </form>
+            {% endif %}
     </div>
+    {% endif %}
 </div>
 
 <script type="application/javascript">
