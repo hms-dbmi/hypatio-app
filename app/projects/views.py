@@ -34,8 +34,8 @@ from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 from hypatio.sciauthz_services import SciAuthZ
-from hypatio.scireg_services import get_user_profile, get_current_user_profile
-
+from hypatio.scireg_services import get_user_profile
+from hypatio.scireg_services import get_current_user_profile
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
