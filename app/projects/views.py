@@ -486,9 +486,9 @@ def _create_agreement_form_list(project, user, current_step):
 
         agreement_forms_list.append({'agreement_form_name': agreement_form.name,
                                      'agreement_form_id': agreement_form.id,
-                                     'agreement_form_file': agreement_form.form_html.name,
+                                     'agreement_form_path': agreement_form.form_file_path,
                                      'already_signed': already_signed})
-    return agreement_forms_list
+    return agreement_forms_list, current_step
 
 
 def _project_access_request(user_access_requests, project):
@@ -527,7 +527,7 @@ def project_details(request, project_key):
     is_manager = sciauthz.user_has_manage_permission(request, project_key)
     user_access_requests = sciauthz.current_user_access_requests()
     user_access_request = _project_access_request(user_access_requests, project)
-    print("UAR %s" % user_access_request)
+
     # Check for a returning task and set messages accordingly
     get_task_context_data(request)
 
@@ -563,7 +563,7 @@ def project_details(request, project_key):
         current_step = "jwt"
 
     # Check to see if any of the agreement forms have been signed and not rejected by an admin
-    agreement_forms_list = _create_agreement_form_list(project, user, current_step)
+    agreement_forms_list, current_step = _create_agreement_form_list(project, user, current_step)
 
     try:
         # Only allow a user onto the project participation page if they are on an Active team and they have VIEW permissions
