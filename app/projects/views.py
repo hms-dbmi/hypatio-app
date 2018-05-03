@@ -578,8 +578,10 @@ def project_details(request, project_key):
     team_has_pending_members = Participant.objects.filter(team=team, team_approved=False)
 
     # If all other steps completed, then last step will be team
-    if current_step is None:
+    if current_step is None and project.is_contest:
         current_step = "team"
+    else:
+        current_step = "request_access"
 
     final_signed_agreement_forms = SignedAgreementForm.objects.filter(project=project,
                                                                       user=user,
