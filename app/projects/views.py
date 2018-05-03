@@ -578,7 +578,9 @@ def project_details(request, project_key):
     team_has_pending_members = Participant.objects.filter(team=team, team_approved=False)
 
     # If all other steps completed, then last step will be team
-    if current_step is None:
+    if current_step is None and not project.is_contest:
+        current_step = "request_access"
+    elif current_step is None:
         current_step = "team"
 
     final_signed_agreement_forms = SignedAgreementForm.objects.filter(project=project,
@@ -599,7 +601,7 @@ def project_details(request, project_key):
                "user_jwt": user_jwt,
                "user_access_request": user_access_request}
 
-    if not access_granted:
+    if not access_granted or not project.is_contest:
         return render(request, 'project_signup.html', context)
     else:
         return render(request, 'project_participate.html', context)
