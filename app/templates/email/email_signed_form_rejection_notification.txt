@@ -1,4 +1,4 @@
-This is a notification that a {{ signed_form.project.name }} challenge administrator has rejected the {{ signed_form.agreement_form.name }} form that you signed on {{ signed_form.date_signed }}. A contest administrator provided the following reason why:
+This is a notification that a {{ signed_form.project.name }} challenge administrator has rejected the {{ signed_form.agreement_form.name }} form that you signed on {{ signed_form.date_signed }}. A challenge administrator provided the following reason why:
 
 {{ administrator_message }}
 
