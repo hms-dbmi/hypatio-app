@@ -202,7 +202,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
 
 @public_user_auth_and_jwt
-def list_data_contests(request, template_name='datacontests/list.html'):
+def list_data_challenges(request, template_name='datacontests/list.html'):
 
     all_data_contests = DataProject.objects.filter(is_contest=True, visible=True)
     data_contests = []
