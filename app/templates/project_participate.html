@@ -129,14 +129,29 @@
         {% if project.accepting_user_submissions %}
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Contest Submission</a></h2>
+                <h2 class="panel-title">Challenge Submission</a></h2>
             </div>
             <div class="panel-body">
             {% if team.get_number_of_submissions_left == 0 %}
                 Your team has used up all of its available submissions.
             {% else %}
-                <div class="alert alert-danger" role="alert">
+
+                <!-- TODO UNCOMMENT THIS OUT WHEN IT'S TIME TO ALLOW OFFICIAL SUBMISSIONS -->
+                <!-- <div class="alert alert-danger" role="alert">
                     Please use the form below to submit an official solution on behalf of your team. <strong>For the file upload, only .zip files will be accepted.</strong> While any member of the team may submit a solution, the total submissions for a team is capped at 3. <strong>Your team has {{ team.get_number_of_submissions_left }} submissions left</strong> before reaching that cap.
+                </div> -->
+
+                <!-- TODO DELETE THIS WHEN SUBMISSIONS GO LIVE -->
+                <div class="alert alert-info" role="alert">
+                    <p style="margin-bottom: 15px;"><strong>Submission testing is now available!</strong></p>
+
+                    <p style="margin-bottom: 15px;">On Monday, May 7 at 9AM EST, we will begin accepting official submissions for the N2C2 challenge through this form. Until then, you may test the submission process by completing this form and uploading a file.</p>
+                    
+                    <p style="margin-bottom: 15px;"><strong>We will delete all test submissions by 8AM EST.</strong></p>
+                    
+                    <p style="margin-bottom: 15px;">For the file upload, <strong>only .zip files</strong> will be accepted. While any member of the team may submit a solution, the total submissions allowed for a team is capped at three.</p>
+                    
+                    <p style="margin-bottom: 15px;">The submitter of a solution or their team leader may delete a solution after it has been submitted. Doing so frees up a submission attempt. To delete a solution, click the View button next to the solution listed under "Your Submissions" on the left.</p>
                 </div>
 
                 <form id="participant-submission-form">           

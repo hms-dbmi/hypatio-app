@@ -35,7 +35,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_user_profile
-
+from hypatio.scireg_services import get_current_user_profile
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -202,7 +202,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
 
 @public_user_auth_and_jwt
-def list_data_contests(request, template_name='datacontests/list.html'):
+def list_data_challenges(request, template_name='datacontests/list.html'):
 
     all_data_contests = DataProject.objects.filter(is_contest=True, visible=True)
     data_contests = []
@@ -462,6 +462,46 @@ def grant_access_with_view_permissions(request):
 
     return HttpResponse(200)
 
+
+def _create_agreement_form_list(project, user, current_step):
+
+    # Order by name descending temporarily so the n2c2 ROC appears before DUA
+    agreement_forms = project.agreement_forms.order_by('-name')
+
+    agreement_forms_list = []
+
+    for agreement_form in agreement_forms:
+        signed_agreement_forms = SignedAgreementForm.objects.filter(project=project,
+                                                                    user=user,
+                                                                    agreement_form=agreement_form,
+                                                                    status__in=["P", "A"])
+
+        if signed_agreement_forms.count() > 0:
+            already_signed = True
+        else:
+            already_signed = False
+
+        if current_step is None and not already_signed:
+            current_step = agreement_form.name
+
+        agreement_forms_list.append({'agreement_form_name': agreement_form.name,
+                                     'agreement_form_id': agreement_form.id,
+                                     'agreement_form_path': agreement_form.form_file_path,
+                                     'already_signed': already_signed})
+    return agreement_forms_list, current_step
+
+
+def _project_access_request(user_access_requests, project):
+
+    if user_access_requests is not None and 'results' in user_access_requests:
+        user_access_requests = user_access_requests["results"]
+        for access_request in user_access_requests:
+            if access_request["item"] == project.project_key:
+                return access_request
+
+    return None
+
+
 @public_user_auth_and_jwt
 def project_details(request, project_key):
 
@@ -469,9 +509,6 @@ def project_details(request, project_key):
         project = get_object_or_404(DataProject, project_key=project_key, visible=True)
         return render(request, 'project_login_or_register.html', {'project': project})
 
-    registration_form = None
-    agreement_forms_list = []
-    access_granted = False
     current_step = None
     user = request.user
 
@@ -488,15 +525,14 @@ def project_details(request, project_key):
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(request, project_key)
-
-    # The JWT token that will get passed in API calls
-    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
+    user_access_requests = sciauthz.current_user_access_requests()
+    user_access_request = _project_access_request(user_access_requests, project)
 
     # Check for a returning task and set messages accordingly
     get_task_context_data(request)
 
     # Make a request to SciReg to grab email verification and profile information
-    profile_registration_info = requests.get(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, verify=settings.VERIFY_REQUESTS).json()
+    profile_registration_info = get_current_user_profile(user_jwt)
 
     if profile_registration_info.get('count', 0) != 0:
         profile_registration_info = profile_registration_info["results"][0]
@@ -523,28 +559,11 @@ def project_details(request, project_key):
     if current_step is None and not profile_completed:
         current_step = "complete_profile"
 
-    # Order by name descending temporarily so the n2c2 ROC appears before DUA
-    agreement_forms = project.agreement_forms.order_by('-name')
+    if current_step is None and profile_completed and project.show_jwt:
+        current_step = "jwt"
 
     # Check to see if any of the agreement forms have been signed and not rejected by an admin
-    for agreement_form in agreement_forms:
-        signed_agreement_forms = SignedAgreementForm.objects.filter(project=project,
-                                                                    user=user,
-                                                                    agreement_form=agreement_form,
-                                                                    status__in=["P", "A"])
-
-        if signed_agreement_forms.count() > 0:
-            already_signed = True
-        else:
-            already_signed = False
-
-        if current_step is None and not already_signed:
-            current_step = agreement_form.name
-
-        agreement_forms_list.append({'agreement_form_name': agreement_form.name,
-                                     'agreement_form_id': agreement_form.id,
-                                     'agreement_form_path': agreement_form.form_file_path,
-                                     'already_signed': already_signed})
+    agreement_forms_list, current_step = _create_agreement_form_list(project, user, current_step)
 
     try:
         # Only allow a user onto the project participation page if they are on an Active team and they have VIEW permissions
@@ -559,13 +578,14 @@ def project_details(request, project_key):
     team_has_pending_members = Participant.objects.filter(team=team, team_approved=False)
 
     # If all other steps completed, then last step will be team
-    if current_step is None:
+    if current_step is None and not project.is_contest:
+        current_step = "request_access"
+    elif current_step is None:
         current_step = "team"
 
     final_signed_agreement_forms = SignedAgreementForm.objects.filter(project=project,
                                                                       user=user,
                                                                       status__in=["P", "A"])
-
     context = {"project": project,
                "agreement_forms_list": agreement_forms_list,
                "participant": participant,
@@ -577,9 +597,11 @@ def project_details(request, project_key):
                "institution": project.institution,
                "registration_form": registration_form,
                "current_step": current_step,
-               "final_signed_agreement_forms": final_signed_agreement_forms}
+               "final_signed_agreement_forms": final_signed_agreement_forms,
+               "user_jwt": user_jwt,
+               "user_access_request": user_access_request}
 
-    if not access_granted:
+    if not access_granted or not project.is_contest:
         return render(request, 'project_signup.html', context)
     else:
         return render(request, 'project_participate.html', context)
