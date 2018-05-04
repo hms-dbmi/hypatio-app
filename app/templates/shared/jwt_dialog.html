@@ -1,0 +1,18 @@
+<div class="panel panel-default">
+    <div class="panel-heading project-registration-step" role="tab" id="heading-team">
+        <h2 class="panel-title">
+            <div class="{% if current_step == 'jwt' %}current-step-header{% else %}blocked-step-header{% endif %}">
+                <span>Using your JWT</span>
+            </div>
+        </h2>
+    </div>
+    {% if current_step == 'jwt' %}
+    <div class="panel-body">
+        Below is your JWT which you can use to authenticate yourself with DBMI APIs. Proceed with caution! Treat this
+        long string as you would a password! It represents your identity and anyone who has it can access the same
+        resources as you. Refer to your project's instructions for specifics on how to use this token.
+        <br /><br />
+        <textarea class="form-control" readonly>{{ user_jwt }}</textarea>
+    </div>
+    {% endif %}
+</div>

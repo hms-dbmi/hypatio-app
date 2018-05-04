@@ -1,7 +1,7 @@
 from django.conf.urls import url
 
 from .views import list_data_projects
-from .views import list_data_contests
+from .views import list_data_challenges
 from .views import request_access
 from .views import submit_user_permission_request
 from .views import manage_contest
@@ -32,7 +32,7 @@ from .views_files import delete_participantsubmission
 urlpatterns = (
     url(r'^$', list_data_projects),
     url(r'^list_data_projects/$', list_data_projects),
-    url(r'^list_data_contests/$', list_data_contests),
+    url(r'^list_data_challenges/$', list_data_challenges),
     url(r'^request_access/$', request_access),
     url(r'^submit_user_permission_request/$', submit_user_permission_request),
     url(r'^manage/(?P<project_key>[^/]+)/$', manage_contest, name='manage_contest'),
@@ -49,7 +49,7 @@ urlpatterns = (
     url(r'^delete_team/$', delete_team),
     url(r'^save_team_comment/$', save_team_comment),
     url(r'^change_signed_form_status/$', change_signed_form_status),
-    url(r'^download_signed_form/$', download_signed_form),    
+    url(r'^download_signed_form/$', download_signed_form),
     url(r'^team_signup_form/(P<project_key>[^/]+)/$', team_signup_form),
     url(r'^signed_agreement_form/$', signed_agreement_form),
     url(r'^download_dataset/$', download_dataset),
