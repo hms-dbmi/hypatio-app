@@ -36,14 +36,22 @@
     </div>
     <div class="form-group">
         <label for="professional-title">Professional Title</label>
-        <input type="text" class="form-control" id="professional-title" required>
+        <input type="text" class="form-control" id="professional-title" placeholder="Student, professor, postdoc, etc" required>
     </div>
     <div class="form-group">
         <label for="date">Date</label>
-        <input type="date" class="form-control" id="date" required>
+        <input type="date" class="form-control" id="date" value="" required>
     </div>
 
     <label class="checkbox-inline">
         <input type="checkbox" id="i-agree" value="Yes" required> I agree to the terms and conditions above. By clicking the "I Agree" checkbox I certify that this is my legal signature.
     </label>
 </div>
+
+<script type="application/javascript">
+    // Default to today's date
+    $(document).ready(function(){
+        var today = new Date();
+        document.getElementById("date").valueAsDate = today;
+    });
+</script>
