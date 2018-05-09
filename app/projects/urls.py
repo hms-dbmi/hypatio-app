@@ -10,6 +10,7 @@ from .views import save_signed_agreement_form
 from .views import project_details
 from .views import signout
 from .views import manage_team
+from .views import DataProjectView
 
 from .views_teams import join_team
 from .views_teams import leave_team
@@ -56,5 +57,6 @@ urlpatterns = (
     url(r'^upload_participantsubmission_file/$', upload_participantsubmission_file),
     url(r'^download_team_submissions/$', download_team_submissions),
     url(r'^delete_participantsubmission/$', delete_participantsubmission),
-    url(r'^(?P<project_key>[^/]+)/$', project_details),
+    # url(r'^(?P<project_key>[^/]+)/$', project_details),
+    url(r'^(?P<project_key>[^/]+)/$', DataProjectView.as_view()),
 )
