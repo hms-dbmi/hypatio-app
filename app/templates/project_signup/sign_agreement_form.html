@@ -1,0 +1,19 @@
+{% load projects_extras %}
+
+<form name="agreement_form_container" action="/save_signed_agreement_form/" method="post">
+    <div class="agreement_form_contents">
+        {{ step.agreement_form.form_file_path|get_html_form_file_contents | safe }}
+    </div>
+
+    <input type="hidden" class="project_key" name="project_key" value="{{ project.project_key }}" />
+    <input type="hidden" class="agreement_form_id" name="agreement_form_id" value="{{ step.agreement_form.id }}" />
+    <input type="hidden" class="agreement_text" name="agreement_text" value="" />
+
+    <hr>
+
+    <div class="submit_form">
+        <input name="submit_form" type="submit" class="btn btn-primary" value="Submit" />
+    </div>
+
+    {% csrf_token %}
+</form>

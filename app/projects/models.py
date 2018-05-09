@@ -90,16 +90,20 @@ class DataProject(models.Model):
     institution = models.ForeignKey(Institution, blank=True, null=True, on_delete=models.PROTECT)
     description = models.TextField(blank=True, null=True, verbose_name="Description")
     short_description = models.CharField(max_length=255, blank=True, null=True, verbose_name="Short Description")
-    permission_scheme = models.CharField(max_length=100, default="PRIVATE", verbose_name="Permission Scheme")
-    agreement_forms_required = models.BooleanField(default=True)
-    agreement_forms = models.ManyToManyField(AgreementForm, blank=True, related_name='data_project_agreement_forms')
     project_supervisor = models.CharField(max_length=255, blank=True, null=True, verbose_name="Project Supervisor")
-    # TODO change to a choice field and create an enumerable of options (contest, data project)
-    is_contest = models.BooleanField(default=False, blank=False, null=False)
+
     visible = models.BooleanField(default=False, blank=False, null=False)
+    permission_scheme = models.CharField(max_length=100, default="PRIVATE", verbose_name="Permission Scheme")
     registration_open = models.BooleanField(default=False, blank=False, null=False)
+
+    agreement_forms = models.ManyToManyField(AgreementForm, blank=True, related_name='data_project_agreement_forms')
+
+    is_contest = models.BooleanField(default=False, blank=False, null=False)
+    has_teams = models.BooleanField(default=False, blank=False, null=False)
+
     accepting_user_submissions = models.BooleanField(default=False, blank=False, null=False)
     submission_form_file_path = models.CharField(max_length=300, blank=True, null=True)
+
     show_jwt = models.BooleanField(default=False, blank=False, null=False)
 
 

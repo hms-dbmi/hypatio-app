@@ -26,16 +26,20 @@ def send_confirmation_email(user_jwt, current_uri):
     requests.post(send_confirm_email_url, headers=build_headers_with_jwt(user_jwt), data=json.dumps(email_confirm_data))
 
 
-def check_email_confirmation(user_jwt):
+def get_user_email_confirmation_status(user_jwt):
+    """
+    Makes a request to SciReg to see if this user has verified their email address.
+    Returns True or False.
+    """
 
     response = requests.get(settings.SCIREG_REGISTRATION_URL, headers=build_headers_with_jwt(user_jwt))
 
     try:
         email_status = response.json()['results'][0]['email_confirmed']
     except KeyError:
-        email_status = None
+        email_status = False
     except IndexError:
-        email_status = None
+        email_status = False
 
     return email_status
 

@@ -11,6 +11,8 @@ from django.db.models import Count
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView
 
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
@@ -36,6 +38,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_user_profile
 from hypatio.scireg_services import get_current_user_profile
+from hypatio.scireg_services import get_user_email_confirmation_status
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -98,7 +101,7 @@ def signed_agreement_form(request, template_name='signed_agreement_form.html'):
 
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
-    is_manager = sciauthz.user_has_manage_permission(request, project_key)
+    is_manager = sciauthz.user_has_manage_permission(project_key)
 
     project = get_object_or_404(DataProject, project_key=project_key)
     signed_form = get_object_or_404(SignedAgreementForm, id=signed_agreement_form_id, project=project)
@@ -135,7 +138,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
             return logout_redirect(request)
 
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-        is_manager = sciauthz.user_has_manage_permission(request, 'n2c2-t1')
+        is_manager = sciauthz.user_has_manage_permission('n2c2-t1')
         user_permissions = sciauthz.current_user_permissions()
         user_access_requests = sciauthz.current_user_access_requests()
 
@@ -224,7 +227,7 @@ def list_data_challenges(request, template_name='datacontests/list.html'):
             all_data_contests = DataProject.objects.filter(is_contest=True)
 
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-        is_manager = sciauthz.user_has_manage_permission(request, 'n2c2-t1')
+        is_manager = sciauthz.user_has_manage_permission('n2c2-t1')
 
     # Build the dictionary with all project and permission information needed
     for data_contest in all_data_contests:
@@ -256,7 +259,7 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-    is_manager = sciauthz.user_has_manage_permission(request, project_key)
+    is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
         logger.debug('[HYPATIO][DEBUG][manage_team] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
@@ -348,7 +351,7 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-    is_manager = sciauthz.user_has_manage_permission(request, project_key)
+    is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
         logger.debug('[HYPATIO][DEBUG][manage_contest] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
@@ -427,7 +430,7 @@ def grant_access_with_view_permissions(request):
     logger.debug('[HYPATIO][DEBUG] Granting authorization request ' + authorization_request_id + ' and view permissions to ' + person_email + ' for project ' + project + '.')
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-    is_manager = sciauthz.user_has_manage_permission(request, project)
+    is_manager = sciauthz.user_has_manage_permission(project)
 
     if not is_manager:
         logger.debug('[HYPATIO][DEBUG] User ' + user.email + ' does not have MANAGE permissions for item ' + project + '.')
@@ -524,7 +527,7 @@ def project_details(request, project_key):
         return logout_redirect(request)
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-    is_manager = sciauthz.user_has_manage_permission(request, project_key)
+    is_manager = sciauthz.user_has_manage_permission(project_key)
     user_access_requests = sciauthz.current_user_access_requests()
     user_access_request = _project_access_request(user_access_requests, project)
 
@@ -605,3 +608,308 @@ def project_details(request, project_key):
         return render(request, 'project_signup.html', context)
     else:
         return render(request, 'project_participate.html', context)
+
+
+
+
+@method_decorator(public_user_auth_and_jwt, name='dispatch')
+class DataProjectView(TemplateView):
+    """
+    Builds and renders screens related to DataProject signup and participation.
+    """
+
+    project = None
+    template_name = None
+    user_jwt = None
+    participant = None
+
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Sets up the instance.
+        """
+
+        # Get the project key from the URL.
+        project_key = self.kwargs['project_key']
+
+        # If this project does not exist, display a 404 Error.
+        try:
+            self.project = DataProject.objects.get(project_key=project_key)
+        except ObjectDoesNotExist:
+            error_message = "The project you searched for does not exist."
+            return render(request, '404.html', {'error_message': error_message})
+
+        # Add the user's jwt to the class instance.
+        self.user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+        # Add the participant to the class instance if available.
+        try:
+            self.participant = Participant.objects.get(
+                user=self.request.user,
+                data_challenge=self.project
+            )
+        except ObjectDoesNotExist:
+            pass
+
+        return super(DataProjectView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        """
+        Dynamically builds the context for rendering the view based on information
+        about the user and the DataProject.
+        """
+
+        # Get super's context.
+        context = super(DataProjectView, self).get_context_data(**kwargs)
+
+        # Prepare the common context.
+        self.get_base_context_data(context)
+
+        # Determine which context is appropriate for this user.
+        if not self.request.user.is_authenticated():
+            self.get_unregistered_context(context)
+        elif not self.is_user_granted_access(context):
+            self.get_signup_context(context)
+        else:
+            self.get_participate_context(context)
+
+        return context
+
+    def get_base_context_data(self, context):
+        """
+        Include all common context items here. Initiates the steps list. Each step
+        is a dictionary holding information about how to render the step. A step
+        should include a title, a template to render, and a status.
+        """
+
+        # Add the project to the context.
+        context['project'] = self.project
+
+        # Initialize the steps list.
+        context['steps'] = []
+
+        # Initialize tracking of which step is the current step.
+        context['current_step'] = None
+
+        # Check if the user is a manager of this DataProject.
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, self.user_jwt, self.request.user.email)
+        context['is_manager'] = sciauthz.user_has_manage_permission(self.project.project_key)
+        context['has_view_permission'] = sciauthz.user_has_single_permission(self.project.project_key, "VIEW")
+
+    def get_unregistered_context(self, context):
+        """
+        Adds to the view's context anything needed for unregistered users to
+        be able to learn about this DataProject.
+        """
+
+        # Set the template that should be rendered.
+        self.template_name = 'project_login_or_register.html'
+
+        return context
+
+    def get_signup_context(self, context):
+        """
+        Adds to the view's context anything needed for users to get access to
+        this DataProject.
+        """
+
+        # Verify email step.
+        self.step_verify_email(context)
+
+        # SciReg complete profile step.
+        self.step_complete_profile(context)
+
+        # Agreement forms step (if needed).
+        self.step_sign_agreement_forms(context)
+
+        # Team setup step (if needed).
+        self.step_setup_team(context)
+
+        # Set the template that should be rendered.
+        self.template_name = 'project_signup.html'
+
+        return context
+
+    def get_participate_context(self, context):
+        """
+        Adds to the view's context anything needed for participating in a DataProject
+        once a user has been granted access to it.
+        """
+
+        # Set the template that should be rendered.
+        self.template_name = ''
+
+        return context
+
+    def get_step_status(self, context, step_name, step_complete):
+        """
+        Returns the status this step should have. If the given step is incomplete and we do not
+        already have a current_step in context, then this step is the current step and update
+        context to note this. If this step is incomplete but another step has already been deemed
+        the current step, then this is a future step.
+        """
+
+        if step_complete:
+            return 'completed_step'
+        elif context['current_step'] is None:
+            context['current_step'] = step_name
+            return 'current_step'
+        else:
+            return 'future_step'
+
+    def step_verify_email(self, context):
+        """
+        Builds the context needed for users to verify their email address. This is
+        a required step.
+        """
+
+        email_verified = get_user_email_confirmation_status(self.user_jwt)
+        step_status = self.get_step_status(context, 'verify_email', email_verified)
+
+        # Describe the step.
+        step = {
+            'title': 'Verify Your Email',
+            'template': 'project_signup/verify_email.html',
+            'status': step_status
+        }
+
+        context['steps'].append(step)
+
+    def step_complete_profile(self, context):
+        """
+        Builds the context needed for users to complete their SciReg profile. This is
+        a required step.
+        """
+
+        scireg_profile_results = get_current_user_profile(self.user_jwt)
+
+        try:
+            profile_data = scireg_profile_results["results"][0]
+
+            # Populate our RegistrationForm with SciReg data and check if required fields are completed.
+            registration_form = RegistrationForm(profile_data)
+            profile_complete = registration_form.is_valid()
+
+            # If the profile is incomplete, use the initial parameter to prevent binding the form data
+            # which causes form errors not needed at this time.
+            if not profile_complete:
+                registration_form = RegistrationForm(initial=profile_data)
+
+        except (KeyError, IndexError):
+            profile_complete = False
+
+            # User does not have a registration object in SciReg. Prepare one for them.
+            registration_form = RegistrationForm(
+                initial={'email': self.request.user.email},
+                new_registration=True
+            )
+
+        context['registration_form'] = registration_form
+
+        step_status = self.get_step_status(context, 'complete_profile', profile_complete)
+
+        # Describe the step.
+        step = {
+            'title': 'Complete Your Profile',
+            'template': 'project_signup/complete_profile.html',
+            'status': step_status
+        }
+
+        context['steps'].append(step)
+
+    def step_sign_agreement_forms(self, context):
+        """
+        Builds the context needed for users to complete any required agreement forms.
+        This is an optional step depending on the data project. One step will be added
+        for each agreement form required by this DataProject.
+        """
+
+        # Do not include this step if this project does not have any agreement forms.
+        if self.project.agreement_forms.count() == 0:
+            return
+
+        agreement_forms = self.project.agreement_forms.order_by('-name')
+
+        # Each form will be a separate step.
+        for form in agreement_forms:
+
+            # Only include Pending or Approved forms when searching.
+            signed_forms = SignedAgreementForm.objects.filter(
+                user=self.request.user,
+                project=self.project,
+                agreement_form=form,
+                status__in=["P", "A"]
+            )
+
+            complete = signed_forms.count() > 0
+            status = self.get_step_status(context, form.short_name, complete)
+
+            # Describe the step.
+            step = {
+                'title': 'Form: {name}'.format(name=form.name),
+                'template': 'project_signup/sign_agreement_form.html',
+                'status': status,
+                'agreement_form': form
+            }
+
+            context['steps'].append(step)
+
+    def step_setup_team(self, context):
+        """
+        Builds the context needed for users to create or join a team. This is an
+        optional step depending on the data project.
+        """
+
+        # Do not include this step if this project does not involve teams.
+        if not self.project.has_teams:
+            return
+
+        # If a user has a Participant record, then they have already been associated
+        # with a team.
+        if self.participant is not None:
+            context['participant'] = self.participant
+            context['team'] = self.participant.team
+
+            context['team_has_pending_members'] = Participant.objects.filter(
+                team=self.participant.team,
+                team_approved=False
+            )
+
+        # This step is never completed.
+        status = self.get_step_status(context, 'setup_team', False)
+
+        # Describe the step.
+        step = {
+            'title': 'Join or Create a Team',
+            'template': 'project_signup/setup_team.html',
+            'status': status
+        }
+
+        context['steps'].append(step)
+
+    def is_user_granted_access(self, context):
+        """
+        Determines whether or not a user has met all the necessary requirements to be
+        considered having been granted access to participate in this DataProject.
+        """
+
+        # Check for VIEW permissions in SciAuthZ.
+        if not context['has_view_permission'] or not context['is_manager']:
+            return False
+
+        # Additional requirements if a DataProject requires teams.
+        if self.project.has_teams:
+
+            # Make sure the user has a Participant record.
+            if self.participant is None:
+                return False
+
+            # Make sure the team leader has accepted this user onto their team.
+            if not self.participant.team_approved:
+                return False
+
+            # Make sure the team has been approved by administrators.
+            if not self.participant.team.status == 'Active':
+                return False
+
+        # If no issues, then the user been granted access.
+        return True
