@@ -1,0 +1,23 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Submissions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for participant in panel.team.participant_set.all %}
+        <tr>
+            <td>
+                {{ participant.user.email }}
+                {% if team.team_leader == participant.user %}
+                    &nbsp;&nbsp;<span class="label label-primary">Team leader</span>
+                {% endif %}
+            </td>
+            <td>
+                {{ participant.participantsubmission_set.all|length }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

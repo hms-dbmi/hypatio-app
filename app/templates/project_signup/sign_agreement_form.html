@@ -5,7 +5,7 @@
         {{ step.agreement_form.form_file_path|get_html_form_file_contents | safe }}
     </div>
 
-    <input type="hidden" class="project_key" name="project_key" value="{{ project.project_key }}" />
+    <input type="hidden" class="project_key" name="project_key" value="{{ step.project.project_key }}" />
     <input type="hidden" class="agreement_form_id" name="agreement_form_id" value="{{ step.agreement_form.id }}" />
     <input type="hidden" class="agreement_text" name="agreement_text" value="" />
 
