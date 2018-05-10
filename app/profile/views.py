@@ -61,7 +61,7 @@ def profile(request, template_name='profile/profile.html'):
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-    is_manager = sciauthz.user_has_manage_permission(request, 'n2c2-t1')
+    is_manager = sciauthz.user_has_manage_permission('n2c2-t1')
 
     # The JWT token that will get passed in API calls
     jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}

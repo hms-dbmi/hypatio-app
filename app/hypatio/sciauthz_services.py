@@ -37,7 +37,7 @@ class SciAuthZ:
         self.AUTHORIZATION_REQUEST_GRANT_URL = authorization_request_grant_url
 
     # Check if this user has SciAuthZ manage permissions on the given item
-    def user_has_manage_permission(self, request, item):
+    def user_has_manage_permission(self, item):
 
         is_manager = False
         sciauthz_item = 'Hypatio.' + item

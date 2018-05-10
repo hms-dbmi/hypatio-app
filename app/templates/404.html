@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load bootstrap3 %}
+
+{% block headscripts %}
+{% endblock %}
+
+{% block tab_name %}404 Error{% endblock %}
+{% block title %}404 Error{% endblock %}
+{% block subtitle %}Something is missing...{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    {% include 'messages.html' %}
+{% endif %}
+
+<div class="row">
+    <div class="col-md-12">
+        <p class="lead">
+            {{ error_message }}
+        </p>
+    </div>
+</div>
+
+{% endblock %}

@@ -7,14 +7,13 @@ from .views import submit_user_permission_request
 from .views import manage_contest
 from .views import signed_agreement_form
 from .views import save_signed_agreement_form
-from .views import project_details
 from .views import signout
 from .views import manage_team
+from .views import DataProjectView
 
 from .views_teams import join_team
 from .views_teams import leave_team
 from .views_teams import create_team
-from .views_teams import team_signup_form
 from .views_teams import approve_team_join
 from .views_teams import reject_team_join
 from .views_teams import finalize_team
@@ -50,11 +49,10 @@ urlpatterns = (
     url(r'^save_team_comment/$', save_team_comment),
     url(r'^change_signed_form_status/$', change_signed_form_status),
     url(r'^download_signed_form/$', download_signed_form),
-    url(r'^team_signup_form/(P<project_key>[^/]+)/$', team_signup_form),
     url(r'^signed_agreement_form/$', signed_agreement_form),
     url(r'^download_dataset/$', download_dataset),
     url(r'^upload_participantsubmission_file/$', upload_participantsubmission_file),
     url(r'^download_team_submissions/$', download_team_submissions),
     url(r'^delete_participantsubmission/$', delete_participantsubmission),
-    url(r'^(?P<project_key>[^/]+)/$', project_details),
+    url(r'^(?P<project_key>[^/]+)/$', DataProjectView.as_view()),
 )

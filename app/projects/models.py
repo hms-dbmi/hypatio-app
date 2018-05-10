@@ -35,7 +35,6 @@ def get_agreement_form_upload_path(instance, filename):
     file_extension = filename.split('.')[-1]
     return '%s/%s.%s' % (form_directory, file_name, file_extension)
 
-
 def get_submission_form_upload_path(instance, filename):
 
     form_directory = 'submissionforms/'
@@ -43,14 +42,12 @@ def get_submission_form_upload_path(instance, filename):
     file_extension = filename.split('.')[-1]
     return '%s/%s.%s' % (form_directory, file_name, file_extension)
 
-
 def get_institution_logo_upload_path(instance, filename):
 
     form_directory = 'institutionlogos/'
     file_name = uuid.uuid4()
     file_extension = filename.split('.')[-1]
     return '%s/%s.%s' % (form_directory, file_name, file_extension)
-
 
 class Institution(models.Model):
     """
@@ -62,7 +59,6 @@ class Institution(models.Model):
 
     def __str__(self):
         return '%s' % (self.name)
-
 
 class AgreementForm(models.Model):
     """
@@ -78,7 +74,6 @@ class AgreementForm(models.Model):
     def __str__(self):
         return '%s' % (self.name)
 
-
 class DataProject(models.Model):
     """
     This represents a data project that users can access, along with its permissions and requirements.
@@ -90,28 +85,30 @@ class DataProject(models.Model):
     institution = models.ForeignKey(Institution, blank=True, null=True, on_delete=models.PROTECT)
     description = models.TextField(blank=True, null=True, verbose_name="Description")
     short_description = models.CharField(max_length=255, blank=True, null=True, verbose_name="Short Description")
-    permission_scheme = models.CharField(max_length=100, default="PRIVATE", verbose_name="Permission Scheme")
-    agreement_forms_required = models.BooleanField(default=True)
-    agreement_forms = models.ManyToManyField(AgreementForm, blank=True, related_name='data_project_agreement_forms')
     project_supervisor = models.CharField(max_length=255, blank=True, null=True, verbose_name="Project Supervisor")
-    # TODO change to a choice field and create an enumerable of options (contest, data project)
-    is_contest = models.BooleanField(default=False, blank=False, null=False)
+
     visible = models.BooleanField(default=False, blank=False, null=False)
+    permission_scheme = models.CharField(max_length=100, default="PRIVATE", verbose_name="Permission Scheme")
     registration_open = models.BooleanField(default=False, blank=False, null=False)
+
+    agreement_forms = models.ManyToManyField(AgreementForm, blank=True, related_name='data_project_agreement_forms')
+
+    is_contest = models.BooleanField(default=False, blank=False, null=False)
+    has_teams = models.BooleanField(default=False, blank=False, null=False)
+
     accepting_user_submissions = models.BooleanField(default=False, blank=False, null=False)
     submission_form_file_path = models.CharField(max_length=300, blank=True, null=True)
+
     show_jwt = models.BooleanField(default=False, blank=False, null=False)
 
 
     def __str__(self):
         return '%s' % (self.project_key)
 
-
 class DataGate(models.Model):
     project = models.ForeignKey(DataProject)
     data_location_type = models.CharField(max_length=50, choices=DATA_LOCATION_TYPE)
     data_location = models.CharField(max_length=250)
-
 
 class SignedAgreementForm(models.Model):
     """
@@ -123,7 +120,6 @@ class SignedAgreementForm(models.Model):
     date_signed = models.DateTimeField(auto_now_add=True)
     agreement_text = models.TextField(blank=False)
     status = models.CharField(max_length=1, null=False, blank=False, default='P', choices=SIGNED_FORM_STATUSES)
-
 
 class Team(models.Model):
     """
@@ -151,7 +147,7 @@ class Team(models.Model):
 
     def get_submissions(self):
         """
-        Returns a queryset of the (non-deleted) ParticipantSubmission records for this team.
+        Returns a queryset of the non-deleted ParticipantSubmission records for this team.
         """
 
         participants = self.participant_set.all()
@@ -163,7 +159,6 @@ class Team(models.Model):
 
     def __str__(self):
         return '%s' % self.team_leader.email
-
 
 class Participant(models.Model):
     user = models.OneToOneField(User)
@@ -198,9 +193,18 @@ class Participant(models.Model):
         self.team_wait_on_leader_email = None
         self.team_pending = False
 
+    def get_submissions(self):
+        """
+        Returns a queryset of the non-deleted ParticipantSubmission records for this participant.
+        """
+
+        return ParticipantSubmission.objects.filter(
+            participant=self,
+            deleted=False
+        )
+
     def __str__(self):
         return '%s - %s' % (self.user, self.data_challenge)
-
 
 class HostedFile(models.Model):
     """
@@ -218,7 +222,6 @@ class HostedFile(models.Model):
     def __str__(self):
         return '%s - %s' % (self.project, self.long_name)
 
-
 class HostedFileDownload(models.Model):
     """
     Tracks who is attempting to download a hosted file.
@@ -227,7 +230,6 @@ class HostedFileDownload(models.Model):
     user = models.ForeignKey(User)
     hosted_file = models.ForeignKey(HostedFile)
     download_date = models.DateTimeField(auto_now_add=True)
-
 
 class TeamComment(models.Model):
     user = models.ForeignKey(User)
