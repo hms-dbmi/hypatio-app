@@ -1,13 +1,13 @@
-{% if team.team_leader == user %}
-    {% if team.status == "Active" %}
+{% if step.team.team_leader == user %}
+    {% if step.team.status == "Active" %}
         <div class="alert alert-success" role="alert">
             Your team has been activated by the challenge administrators. Please wait for the data sets to be released.
         </div>
-    {% elif team.status == "Deactivated" %}
+    {% elif step.team.status == "Deactivated" %}
         <div class="alert alert-danger" role="alert">
             Your team was deactivated by challenge administrators.
         </div>
-    {% elif team.status == "Ready" %}
+    {% elif step.team.status == "Ready" %}
         <div class="alert alert-warning" role="alert">
             You marked your team as finalized. Please wait for a challenge administrator to approve your team.
         </div>
@@ -17,7 +17,7 @@
         </div>
     {% endif %}
 
-    {% if team_has_pending_members %}
+    {% if step.team_has_pending_members %}
         <div class="alert alert-danger" role="alert">
             You have a pending request from someone wishing to join your team. Please use the Accept or Reject button below to complete the request.
         </div>
@@ -31,18 +31,18 @@
             </tr>
         </thead>
         <tbody>
-            {% for participant in team.participant_set.all %}
+            {% for participant in step.team.participant_set.all %}
             <tr>
                 <td>{{ participant.user.email }}</td>
                 <td>
                 {% if participant.team_approved %}
                     Approved
                 {% elif participant.team_pending %}
-                    <button type="button" class="btn btn-success btn-xs accept-participant" data-project="{{ project.project_key }}" data-participant="{{ participant.user.email }}">
+                    <button type="button" class="btn btn-success btn-xs accept-participant" data-project="{{ step.project.project_key }}" data-participant="{{ participant.user.email }}">
                         <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Accept
                     </button>
 
-                    <button type="button" class="btn btn-danger btn-xs reject-participant" data-project="{{ project.project_key }}" data-participant="{{ participant.user.email }}">
+                    <button type="button" class="btn btn-danger btn-xs reject-participant" data-project="{{ step.project.project_key }}" data-participant="{{ participant.user.email }}">
                         <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Reject
                     </button>
                 {% else %}
@@ -54,28 +54,28 @@
         </tbody>
     </table>
 
-    {% if team.status == "Pending" and not team_has_pending_members %}
-    <button type="button" class="btn btn-danger finalize-team" data-project="{{ project.project_key }}" data-team="{{ team.team_leader.email }}">
+    {% if step.team.status == "Pending" and not step.team_has_pending_members %}
+    <button type="button" class="btn btn-danger finalize-team" data-project="{{ step.project.project_key }}" data-team="{{ step.team.team_leader.email }}">
         <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> Finalize
     </button>
     {% endif %}
 {% else %}
-    {% if participant.team_wait_on_leader %}
-        <p>No action needed at this time. We are waiting for your team leader <span class="label label-default">{{ participant.team_wait_on_leader_email }}</span> to create a team and approve your access. </p>
+    {% if step.participant.team_wait_on_leader %}
+        <p>No action needed at this time. We are waiting for your team leader <span class="label label-default">{{ step.participant.team_wait_on_leader_email }}</span> to create a team and approve your access. </p>
         <hr>
         <p>Is your team leader using a different email address? Click the button below to return to the team join step.</p>
 
         <form action="/projects/leave_team/" method="post">
             {% csrf_token %}
-            <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
+            <input name="project_key" type="hidden" value="{{ step.project.project_key }}"/>
             <button class="btn btn-default btn-sm" type="submit">Restart Team Setup</button>
         </form>
 
-    {%  elif participant.team_pending %}
-        No action needed at this time. We are waiting for your team leader {{ team.team_leader }} to approve your request to join the team.
-    {%  elif participant.team_approved %}
+    {%  elif step.participant.team_pending %}
+        No action needed at this time. We are waiting for your team leader {{ step.team.team_leader }} to approve your request to join the team.
+    {%  elif step.participant.team_approved %}
         <div class="alert alert-success alert-dismissible" role="alert">
-            You have been approved to join team {{ participant.team }}. Please wait for your team to be finalized by your team leader and/or reviewed by the challenge administrators before your team can participate.
+            You have been approved to join team {{ step.participant.team }}. Please wait for your team to be finalized by your team leader and/or reviewed by the challenge administrators before your team can participate.
         </div>
     {% else %}
         <div class="alert alert-warning" role="alert">
@@ -89,7 +89,7 @@
                 <form action="/projects/join_team/" method="post">
                     {% csrf_token %}
 
-                    <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
+                    <input name="project_key" type="hidden" value="{{ step.project.project_key }}"/>
 
                     <div class="input-group">
                         <input class="form-control" type="email" name="team_leader" placeholder="Team leader's email..." required/>
@@ -123,7 +123,7 @@
                             {% csrf_token %}
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
 
-                            <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
+                            <input name="project_key" type="hidden" value="{{ step.project.project_key }}"/>
                             <button type="submit" class="btn btn-primary">Sign me up!</button>
                         </form>
                     </div>
