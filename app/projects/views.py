@@ -369,16 +369,7 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
 
     for person in users_without_a_team:
         email = person.email
-
-        # TODO: commented out because these are too many api calls to make
-        # Make a request to SciReg for a specific person's user information
-        # user_info_json = get_user_profile(user_jwt, email, project_key)
-
-        # if user_info_json['count'] != 0:
-        #     user_info = user_info_json["results"][0]
-        # else:
-        #     user_info = None
-        
+       
         signed_agreement_forms = []
 
         # For each of the available agreement forms for this project, display only latest version completed by the user
@@ -393,11 +384,12 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
         })
 
     # Simple statistics for display
-    total_teams = teams.count()
-    total_participants = Participant.objects.filter(data_challenge=project).count()
-    countries_represented = '?' # TODO
-    total_submissions = 0 # TODO
-    teams_with_any_submission = 0 # TODO
+    all_participants = Participant.objects.filter(data_challenge=project)
+    all_submissions = ParticipantSubmission.objects.filter(
+        participant__in=all_participants,
+        deleted=False
+    )
+    teams_with_any_submission = all_submissions.select_related('participant').select_related('team')
 
     institution = project.institution
 
@@ -407,11 +399,10 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
                                            "project": project,
                                            "teams": teams,
                                            "users_without_a_team_details": users_without_a_team_details,
-                                           "total_teams": total_teams,
-                                           "total_participants": total_participants,
-                                           "countries_represented": countries_represented,
-                                           "total_submissions": total_submissions,
-                                           "teams_with_any_submission": teams_with_any_submission,
+                                           "total_teams": teams.count(),
+                                           "total_participants": all_participants.count(),
+                                           "total_submissions": all_submissions.count(),
+                                           "teams_with_any_submission": teams_with_any_submission.count(),
                                            "institution": institution})
 
 @method_decorator(public_user_auth_and_jwt, name='dispatch')
