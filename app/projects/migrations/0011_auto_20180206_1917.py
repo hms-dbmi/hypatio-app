@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=100, verbose_name='name')),
-                ('logo', models.FileField(blank=True, null=True, upload_to=projects.models.get_institution_logo_upload_path)),
+                ('logo', models.FileField(blank=True, null=True, upload_to=projects.models.models.get_institution_logo_upload_path)),
             ],
         ),
         migrations.AlterField(
