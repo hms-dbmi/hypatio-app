@@ -28,6 +28,17 @@
         }
     },
     {
+        "model": "projects.agreementform",
+        "pk": 9,
+        "fields": {
+            "name": "Payer Database Access Request",
+            "short_name": "AREQ",
+            "created": "2018-01-01T00:00:00+00:00",
+            "form_file_path": "payerdb",
+            "type": "DJANGO"
+        }
+    },
+    {
         "model": "projects.dataproject",
         "pk": 6,
         "fields": {
@@ -37,7 +48,6 @@
             "short_description": "2018 Track 1: Cohort Selection for Clinical Trials",
             "project_key": "n2c2-t1",
             "permission_scheme": "PRIVATE",
-            "agreement_forms_required": true,
             "agreement_forms": [1, 2],
             "project_supervisor": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": true,
@@ -55,7 +65,6 @@
             "short_description": "Three Clinical Trials of Nutritional Supplements for Retinitis Pigmentosa",
             "project_key": "BERSON",
             "permission_scheme": "PRIVATE",
-            "agreement_forms_required": false,
             "project_supervisor": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": false,
             "visible": true
@@ -98,7 +107,6 @@
             "short_description": "A database of human exposomes and phenomes from the US National Health and Nutrition Examination Survey",
             "project_key": "NHANES",
             "permission_scheme": "PUBLIC",
-            "agreement_forms_required": false,
             "project_supervisor": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": false,
             "visible": true
@@ -114,7 +122,6 @@
             "short_description": "NIH/NCATS Global Rare Diseases Patient Registry i2b2/tranSMART Data Repository",
             "project_key": "GRDR",
             "permission_scheme": "PUBLIC",
-            "agreement_forms_required": true,
             "project_supervisor": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": false,
             "visible": true
@@ -130,7 +137,6 @@
             "short_description": "Simons Simplex Collection",
             "project_key": "SSC",
             "permission_scheme": "PUBLIC",
-            "agreement_forms_required": true,
             "project_supervisor": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": false,
             "visible": true
@@ -146,7 +152,21 @@
             "short_description": "Exposome Data Warehouse",
             "project_key": "EDW",
             "permission_scheme": "PUBLIC",
-            "agreement_forms_required": true,
+            "project_supervisor": "michael_mcduffie@hms.harvard.edu",
+            "is_contest": false,
+            "visible": true
+        }
+    },
+    {
+        "model": "projects.dataproject",
+        "pk": 8,
+        "fields": {
+            "name": "Commercial Health Insurance Payer Database",
+            "institution": null,
+            "description": "<h3>What resources do you provide?</h3> <ul><li>Payer database of a large commercial health insurance company</li> <li>R packages to facilitate access to the database resources</li> <li>R packages to implement standard workflows</li> <li>Large scale analytic database / data mining platforms (SciDB, Apache Spark, etc.)</li> </ul><h3>How can I use these resources?</h3> <p>Getting started is easy. You will be asked to fill out a Healthcare Data Science Program Access Request describing your team and what you’d like to do with the data, and we’ll contact you shortly. Applications are reviewed by program leadership on a monthly basis. Because we have many researchers in the HMS community who are working with us, we maintain an active roster of teams and their respective projects.</p> <p>If your project is approved, you will be required to sign a data use agreement that outlines the terms, conditions and purposes related to your access to the HDS resources.</p>",
+            "short_description": "Payer Database",
+            "project_key": "PAYERDB",
+            "permission_scheme": "PUBLIC",
             "project_supervisor": "michael_mcduffie@hms.harvard.edu",
             "is_contest": false,
             "visible": true
