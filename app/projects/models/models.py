@@ -9,6 +9,9 @@ FILE_SERVICE_URL = 'FILE_SERVICE_URL'
 EXTERNAL_APP_URL = 'EXTERNAL_APP_URL'
 S3_BUCKET = 'S3_BUCKET'
 
+AGREEMENT_FORM_TYPE_STATIC = 'STATIC'
+AGREEMENT_FORM_TYPE_DJANGO = 'DJANGO'
+
 DATA_LOCATION_TYPE = (
     (FILE_SERVICE_URL, 'FileService Signed URL'),
     (EXTERNAL_APP_URL, 'External Application URL'),
@@ -26,6 +29,11 @@ SIGNED_FORM_STATUSES = (
     ('P', 'Pending Approval'),
     ('A', 'Approved'),
     ('R', 'Rejected'),
+)
+
+AGREEMENT_FORM_TYPE = (
+    (AGREEMENT_FORM_TYPE_STATIC, 'STATIC'),
+    (AGREEMENT_FORM_TYPE_DJANGO, 'DJANGO')
 )
 
 def get_agreement_form_upload_path(instance, filename):
@@ -70,6 +78,7 @@ class AgreementForm(models.Model):
     short_name = models.CharField(max_length=6, blank=False, null=False)
     created = models.DateTimeField(auto_now_add=True)
     form_file_path = models.CharField(max_length=300, blank=True, null=True)
+    type = models.CharField(max_length=50, choices=AGREEMENT_FORM_TYPE, blank=True, null=True)
 
     def __str__(self):
         return '%s' % (self.name)
@@ -256,6 +265,15 @@ class ParticipantSubmission(models.Model):
 
     def __str__(self):
         return '%s' % (self.uuid)
+
+
+class ParticipantProject(models.Model):
+    name = models.CharField(max_length=20)
+    funding_status = models.CharField(max_length=250)
+
+    class Meta:
+        abstract = True
+
 
 class TeamSubmissionsDownload(models.Model):
     """

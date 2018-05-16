@@ -1,44 +1,36 @@
 import json
 import logging
-import sys
-import requests
 from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
-from django.db.models import Count
-from django.shortcuts import render
-from django.shortcuts import redirect
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect
+from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
-
-from pyauth0jwt.auth0authenticate import user_auth_and_jwt
-from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
-from pyauth0jwt.auth0authenticate import validate_request as validate_jwt
-from pyauth0jwt.auth0authenticate import logout_redirect
-
-from .models import DataProject
-from .models import Participant
-from .models import Team
-from .models import AgreementForm
-from .models import SignedAgreementForm
-from .models import HostedFile
-from .models import HostedFileDownload
-from .models import TeamComment
-from .models import ParticipantSubmission
-
-from profile.views import get_task_context_data
-from profile.forms import RegistrationForm
-
-from django.http import HttpResponse
-from django.core.exceptions import ObjectDoesNotExist
-
 from hypatio.sciauthz_services import SciAuthZ
-from hypatio.scireg_services import get_user_profile
 from hypatio.scireg_services import get_current_user_profile
 from hypatio.scireg_services import get_user_email_confirmation_status
+from hypatio.scireg_services import get_user_profile
+from profile.forms import RegistrationForm
+from projects.steps.dynamic_form import SignAgreementFormsStepInitializer
+
+from pyauth0jwt.auth0authenticate import logout_redirect
+from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
+from pyauth0jwt.auth0authenticate import user_auth_and_jwt
+from pyauth0jwt.auth0authenticate import validate_request as validate_jwt
+from .models import AgreementForm
+from .models import DataProject
+from .models import HostedFile
+from .models import HostedFileDownload
+from .models import Participant
+from .models import SignedAgreementForm
+from .models import Team
+from .models import TeamComment
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -59,6 +51,17 @@ def request_access(request, template_name='dataprojects/access_request.html'):
 
     return render(request, template_name, {"project_key": request.POST['project_key'],
                                            "agreement_forms": agreement_forms})
+
+
+@user_auth_and_jwt
+def save_dynamic_signed_agreement_form(request):
+
+    agreement_form_id = request.POST['agreement_form_id']
+    project_key = request.POST['project_key']
+    model_name = request.POST['model_name']
+
+    return HttpResponse(200)
+
 
 @user_auth_and_jwt
 def save_signed_agreement_form(request):
@@ -650,31 +653,15 @@ class DataProjectView(TemplateView):
         if self.project.agreement_forms.count() == 0:
             return
 
-        agreement_forms = self.project.agreement_forms.order_by('-name')
+        agreement_form_intializer = SignAgreementFormsStepInitializer()
 
-        # Each form will be a separate step.
-        for form in agreement_forms:
+        current_step, steps = agreement_form_intializer.update_context(project=self.project,
+                                                                       user=self.request.user,
+                                                                       current_step=context["current_step"])
 
-            # Only include Pending or Approved forms when searching.
-            signed_forms = SignedAgreementForm.objects.filter(
-                user=self.request.user,
-                project=self.project,
-                agreement_form=form,
-                status__in=["P", "A"]
-            )
+        context["current_step"] = current_step
 
-            complete = signed_forms.count() > 0
-            status = self.get_step_status(context, form.short_name, complete)
-
-            # Describe the step. Include here any variables that the template will need.
-            step = {
-                'title': 'Form: {name}'.format(name=form.name),
-                'template': 'project_signup/sign_agreement_form.html',
-                'status': status,
-                'agreement_form': form,
-                'project': self.project
-            }
-
+        for step in steps:
             context['steps'].append(step)
 
     def step_show_jwt(self, context):

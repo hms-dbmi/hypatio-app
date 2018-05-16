@@ -1,0 +1,24 @@
+{% load projects_extras %}
+{% load bootstrap3 %}
+
+<form action="//" method="post">
+    {% csrf_token %}
+
+    {{ step.form.render_title | safe }}
+
+    {% bootstrap_form step.form %}
+
+    {% buttons %}
+        <button type="submit" class="btn btn-primary">
+            {% bootstrap_icon "star" %} Submit
+        </button>
+    {% endbuttons %}
+
+    <input type="hidden" name="return_url" value="{{ step.return_url }}"/>
+    <input type="hidden" name="model_name" value="{{ step.model_name }}"/>
+    <input type="hidden" name="agreement_form_id" value="{{ step.agreement_form.id }}"/>
+    <input type="hidden" name="project_key" value="{{ step.project }}"/>
+
+
+</form>
+
