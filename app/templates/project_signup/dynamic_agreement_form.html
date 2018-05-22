@@ -1,7 +1,7 @@
 {% load projects_extras %}
 {% load bootstrap3 %}
 
-<form action="//" method="post">
+<form action="/save_dynamic_signed_agreement_form/" method="post">
     {% csrf_token %}
 
     {{ step.form.render_title | safe }}

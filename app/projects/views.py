@@ -32,6 +32,8 @@ from .models import SignedAgreementForm
 from .models import Team
 from .models import TeamComment
 
+from .steps.dynamic_form import save_dynamic_form
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
@@ -55,10 +57,12 @@ def request_access(request, template_name='dataprojects/access_request.html'):
 
 @user_auth_and_jwt
 def save_dynamic_signed_agreement_form(request):
-
+    user = request.user
     agreement_form_id = request.POST['agreement_form_id']
     project_key = request.POST['project_key']
     model_name = request.POST['model_name']
+
+    save_dynamic_form(agreement_form_id, project_key, model_name, request.POST, user)
 
     return HttpResponse(200)
 

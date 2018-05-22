@@ -35,10 +35,33 @@ class AgreementFormTest(TestCase):
 
     def test_submit_agreement_form(self):
 
-        agreement_form_id = self.test_project_1.agreement_forms.id
+        agreement_form_id = self.test_project_1.agreement_forms.first().id
         project_key = self.test_project_1.project_key
         model_name = "payerdb"
-        submit_form = {"id_name":"TEST_NAME"}
-        user = self.super_user
 
-        save_dynamic_form(agreement_form_id, project_key, model_name, submit_form, user)
+        submit_form = {"agreement_form_id": agreement_form_id,
+                       "model_name": model_name,
+                       "project_key": project_key,
+                       "name": "TEST_NAME",
+                       "title": "TEST_TITLE",
+                       "harvard_address": "TEST_ADDRESS",
+                       "phone": "TEST_PHONE",
+                       "primary_department": "TEST_PRIMARY_DEPARTMENT",
+                       "specific_aims": "TEST_AIMS",
+                       "number_team_access": "TEST_NUM_ACCESS",
+                       "team_sql": "TEST_SQL",
+                       "team_r": "TEST_R",
+                       "team_orchestra": "TEST_ORCHESTRA",
+                       "team_windows": "TEST_WINDOWS",
+                       "team_analysis": "TEST_ANALYSIS",
+                       "team_interests": "TEST_INTERESTS",
+                       "funding": "TEST_FUNDING",
+                       "protocol_number": "TEST_PROTOCOL_NUMBER",
+                       "signature": "TEST_ID_SIGNATURE"}
+
+        save_dynamic_form(agreement_form_id=agreement_form_id,
+                          project_key=project_key,
+                          model_name=model_name,
+                          posted_form=submit_form,
+                          user=self.super_user)
+
