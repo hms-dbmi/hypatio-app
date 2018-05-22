@@ -61,8 +61,9 @@ def save_dynamic_signed_agreement_form(request):
     agreement_form_id = request.POST['agreement_form_id']
     project_key = request.POST['project_key']
     model_name = request.POST['model_name']
+    agreement_text = request.POST['agreement_text']
 
-    save_dynamic_form(agreement_form_id, project_key, model_name, request.POST, user)
+    save_dynamic_form(agreement_form_id, project_key, model_name, request.POST, user, agreement_text=agreement_text)
 
     return HttpResponse(200)
 

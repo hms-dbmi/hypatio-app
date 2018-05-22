@@ -39,9 +39,7 @@ class AgreementFormTest(TestCase):
         project_key = self.test_project_1.project_key
         model_name = "payerdb"
 
-        submit_form = {"agreement_form_id": agreement_form_id,
-                       "model_name": model_name,
-                       "project_key": project_key,
+        submit_form = {
                        "name": "TEST_NAME",
                        "title": "TEST_TITLE",
                        "harvard_address": "TEST_ADDRESS",
@@ -63,5 +61,6 @@ class AgreementFormTest(TestCase):
                           project_key=project_key,
                           model_name=model_name,
                           posted_form=submit_form,
-                          user=self.super_user)
+                          user=self.super_user,
+                          agreement_text="THIS IS AGREEMENT TEXT LA LA <DIV></DIV>")
 
