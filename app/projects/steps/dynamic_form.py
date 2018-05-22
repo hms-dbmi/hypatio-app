@@ -30,20 +30,19 @@ def save_dynamic_form(agreement_form_id, project_key, model_name, posted_form, u
     agreement_form = AgreementForm.objects.get(id=agreement_form_id)
     project = DataProject.objects.get(project_key=project_key)
 
-    payer_db_form_type = agreement_form_factory(model_name)
-
-    payer_db_form = payer_db_form_type(posted_form)
-
-    payer_db_form.save()
+    dynamic_form_type = agreement_form_factory(model_name)
+    dynamic_form = dynamic_form_type(posted_form)
+    dynamic_form_instance = dynamic_form.save(commit=False)
+    dynamic_form_instance.agreement_form = agreement_form
+    dynamic_form_instance.user = user
+    dynamic_form_instance.project = project
+    dynamic_form_instance.save()
 
 
 def agreement_form_factory(form_name, form_input=None):
 
     if form_name == "payerdb":
-        if form_input:
-            return AccessRequestForm
-        else:
-            return AccessRequestForm
+        return AccessRequestForm
 
     return None
 
