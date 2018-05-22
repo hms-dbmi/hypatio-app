@@ -101,12 +101,12 @@
             <div class="panel-body">
                 <ul class="list-group">
                     <li class="list-group-item">
-                        <span class="badge">{{ total_teams }}</span> 
-                        Teams
+                        <span class="badge">{{ approved_teams }}</span> 
+                        Approved Teams
                     </li>
                     <li class="list-group-item">
-                        <span class="badge">{{ total_participants }}</span> 
-                        Total Participants
+                        <span class="badge">{{ approved_participants }}</span> 
+                        Approved Participants
                     </li>
                     <li class="list-group-item">
                         <span class="badge">{{ total_submissions }}</span> 
@@ -116,6 +116,20 @@
                         <span class="badge">{{ teams_with_any_submission }}</span> 
                         Teams With Submissions
                     </li>
+                </ul>
+
+                <hr>
+
+                <p><strong>Countries Represented</strong></p>
+
+                <ul class="list-group">
+                {% for participating_country in participating_countries %}
+                    <li class="list-group-item">
+                        <span class="badge">{{ participating_country.n }}</span>
+                        {% get_country participating_country.country as country %}
+                        {{ country.name }}
+                    </li>
+                {% endfor %}
                 </ul>
             </div>
         </div>
