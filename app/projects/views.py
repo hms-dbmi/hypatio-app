@@ -16,6 +16,7 @@ from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_current_user_profile
 from hypatio.scireg_services import get_user_email_confirmation_status
 from hypatio.scireg_services import get_user_profile
+from hypatio.scireg_services import get_distinct_countries_participating
 from profile.forms import RegistrationForm
 from projects.steps.dynamic_form import SignAgreementFormsStepInitializer
 
@@ -28,6 +29,7 @@ from .models import DataProject
 from .models import HostedFile
 from .models import HostedFileDownload
 from .models import Participant
+from .models import ParticipantSubmission
 from .models import SignedAgreementForm
 from .models import Team
 from .models import TeamComment
@@ -44,6 +46,7 @@ def signout(request):
     response = redirect(settings.AUTH0_LOGOUT_URL)
     response.delete_cookie('DBMI_JWT', domain=settings.COOKIE_DOMAIN)
     return response
+
 
 @user_auth_and_jwt
 def request_access(request, template_name='dataprojects/access_request.html'):
@@ -86,6 +89,7 @@ def save_signed_agreement_form(request):
 
     return HttpResponse(200)
 
+
 @user_auth_and_jwt
 def submit_user_permission_request(request):
 
@@ -99,6 +103,7 @@ def submit_user_permission_request(request):
     sciauthz.current_user_request_access(data_request)
 
     return HttpResponse(200)
+
 
 @user_auth_and_jwt
 def signed_agreement_form(request, template_name='shared/signed_agreement_form.html'):
@@ -122,6 +127,7 @@ def signed_agreement_form(request, template_name='shared/signed_agreement_form.h
                                                "participant": participant})
     else:
         return HttpResponse(403)
+
 
 @public_user_auth_and_jwt
 def list_data_projects(request, template_name='dataprojects/list.html'):
@@ -211,6 +217,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
 
+
 @public_user_auth_and_jwt
 def list_data_challenges(request, template_name='datacontests/list.html'):
 
@@ -255,6 +262,7 @@ def list_data_challenges(request, template_name='datacontests/list.html'):
                                            "is_manager": is_manager,
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
+
 
 @user_auth_and_jwt
 def manage_team(request, project_key, team_leader, template_name='datacontests/manageteams.html'):
@@ -346,6 +354,7 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
                                                    "downloads": downloads,
                                                    "uploads": uploads})
 
+
 @user_auth_and_jwt
 def manage_contest(request, project_key, template_name='datacontests/managecontests.html'):
 
@@ -390,13 +399,18 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
             'participant': person
         })
 
-    # Simple statistics for display
-    all_participants = Participant.objects.filter(data_challenge=project)
+    approved_teams = teams.filter(status='Active')
+
+    approved_participants = Participant.objects.filter(team__in=approved_teams)
+
     all_submissions = ParticipantSubmission.objects.filter(
-        participant__in=all_participants,
+        participant__in=approved_participants,
         deleted=False
     )
+
     teams_with_any_submission = all_submissions.select_related('participant').select_related('team')
+
+    countries = get_distinct_countries_participating(user_jwt, approved_participants, project_key)
 
     institution = project.institution
 
@@ -406,11 +420,13 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
                                            "project": project,
                                            "teams": teams,
                                            "users_without_a_team_details": users_without_a_team_details,
-                                           "total_teams": teams.count(),
-                                           "total_participants": all_participants.count(),
+                                           "approved_teams": approved_teams.count(),
+                                           "approved_participants": approved_participants.count(),
                                            "total_submissions": all_submissions.count(),
                                            "teams_with_any_submission": teams_with_any_submission.count(),
+                                           "participating_countries": countries,
                                            "institution": institution})
+
 
 @method_decorator(public_user_auth_and_jwt, name='dispatch')
 class DataProjectView(TemplateView):
