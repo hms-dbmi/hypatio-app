@@ -10,6 +10,7 @@ from .models import HostedFile
 from .models import HostedFileDownload
 from .models import ParticipantSubmission
 from .models import TeamSubmissionsDownload
+from .models import PayerDBForm
 
 class DataprojectAdmin(admin.ModelAdmin):
     list_display = ('name', 'project_key', 'is_contest', 'project_supervisor')
@@ -44,6 +45,10 @@ class ParticipantSubmissionAdmin(admin.ModelAdmin):
 class TeamSubmissionsDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'team', 'download_date')
 
+class PayerDBFormAdmin(admin.ModelAdmin):
+    list_display = ('user', 'agreement_form', 'date_signed', 'status')
+
+
 admin.site.register(DataProject, DataprojectAdmin)
 admin.site.register(AgreementForm, AgreementformAdmin)
 admin.site.register(SignedAgreementForm, SignedagreementformAdmin)
@@ -55,3 +60,4 @@ admin.site.register(HostedFile, HostedFileAdmin)
 admin.site.register(HostedFileDownload, HostedFileDownloadAdmin)
 admin.site.register(ParticipantSubmission, ParticipantSubmissionAdmin)
 admin.site.register(TeamSubmissionsDownload, TeamSubmissionsDownloadAdmin)
+admin.site.register(PayerDBForm, PayerDBFormAdmin)

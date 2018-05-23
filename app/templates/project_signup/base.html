@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load projects_extras %}
+{% load bootstrap3 %}
+
+{% block headscripts %}
+{% endblock %}
+
+{% block tab_name %}{{ project.name }}{% endblock %}
+{% block title %}{{ project.name }}{% endblock %}
+{% block subtitle %}{{ project.short_description }}{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    {% include 'messages.html' %}
+{% endif %}
+
+<div class="row">
+    
+    <div class="col-md-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Description</a>
+                </h2>
+            </div>
+            <div class="panel-body">
+                {% autoescape off %}
+                {{ project.description }}
+                {% endautoescape %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+    
+    {% if not project.registration_open and not user.is_superuser %}
+        <div class="alert alert-danger" role="alert">
+            Registration is not open for {{ project.short_description }} at this time. If you believe this is in error please contact the project leader or use the form above to contact DBMI's Technology Core.
+        </div>
+    {% else %}
+        {% if project.is_contest %}
+            <div class="alert alert-info" role="alert">
+                To compete in {{ project.short_description }}, please complete the registration process below one step at a time. <strong>All members of your team must complete all registration steps before your account can be activated. <span style="color: #a94442;">Students must have a faculty member as team leader in order to participate.</span></strong>
+            </div>
+        {% else %}
+            <div class="alert alert-danger" role="alert">
+                To request access to this dataset please complete registration steps below</a>.
+            </div>
+        {% endif %}
+
+        {% for step in steps %}
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab">
+                    <h2 class="panel-title">
+                        <div class="{% if step.status == 'completed_step' %}
+                                    completed-step-header
+                                    {% elif step.status == 'current_step' %}
+                                    current-step-header
+                                    {% else %}
+                                    blocked-step-header
+                                    {% endif %}">
+                            <span>{{ step.title }}</span>
+                        </div>
+                    </h2>
+                </div>
+                {% if step.status == 'current_step' %}
+                <div class="panel-body">
+                    {% include step.template %}
+                </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block footerscripts %}
+<script type="application/javascript">
+    $('form[name=agreement_form_container]').submit(function(e){
+        e.preventDefault();
+
+        // Grab the div element holding the agreement form and the user's inputs. The form file should have
+        // wrapped in a <div class="form-content"> all the form except for any JavaScript so that no JS gets
+        // included in the saved form string.
+        var agreement_form_contents = $(this).find(".agreement_form_contents").find(".form-content");
+
+        // Replace each input field within the form with its value, so we have one complete agreement form as a string
+        agreement_form_contents.find("input").each(function() {
+
+            // For a radio or checkbox, checked inputs should turn into X's
+            if ($(this).is(':radio') || $(this).is(':checkbox')) {
+                if ($(this).is(':checked')) {
+                    $(this).replaceWith("[X]");
+                } else {
+                    $(this).replaceWith("[ ]");
+                }
+            } else {
+                $(this).replaceWith($(this).val());
+            }
+        });
+
+        agreement_form_contents.find("textarea").each(function() {
+            $(this).replaceWith($(this).val());
+        });
+
+        // Find the div element where we want to paste the string containing the completed form
+        var agreement_text_container = $(this).find(".agreement_text");
+
+        // Move the content of the agreement_form block into an input in order to be captured by jQuery serialize
+        agreement_text_container.val(agreement_form_contents.text());
+
+        var submit_button = $(this).find(".submit_form");
+
+        $.post($(this).attr('action'), $(this).serialize(), function(res){
+            // $("#loading").hide();
+        }).done(function() {
+            notify('success', "Agreement form submitted!", 'thumbs-up');
+
+            // Refresh the page so the user does not see this button again
+            setTimeout(function(){
+                window.location = window.location.pathname
+            },1000);
+        }).fail(function() {
+            submit_button.replaceWith("<h3><span class='label label-danger'>Form save failed. Please try again in a few minutes.</span></h3>");            
+        });
+    });
+</script>
+
+<script type="application/javascript">
+    $('form[name=user_permission_request_form]').submit(function(e){
+        e.preventDefault();
+
+        var submit_button = $(this).find("#submit_user_permission_request");
+
+        $.post($(this).attr('action'), $(this).serialize(), function(res){
+            // $("#loading").hide();
+        }).done(function() {
+            notify('success', "Permission request submitted!", 'thumbs-up');
+
+            // Refresh the page so the user does not see this button again
+            setTimeout(function(){
+                window.location = window.location.pathname
+            },1000);
+        }).fail(function() {
+            submit_button.replaceWith("<h3><span class='label label-danger'>Request failed. Please try again in a few minutes.</span></h3>");            
+        });
+    });
+</script>
+{% endblock %}

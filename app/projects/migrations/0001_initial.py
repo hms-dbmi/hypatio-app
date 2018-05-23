@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=100, verbose_name='name')),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('form_html', models.FileField(upload_to=projects.models.get_agreement_form_upload_path)),
+                ('form_html', models.FileField(upload_to=projects.models.models.get_agreement_form_upload_path)),
             ],
         ),
         migrations.CreateModel(

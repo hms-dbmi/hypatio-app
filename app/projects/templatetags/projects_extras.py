@@ -60,7 +60,6 @@ def modal_contact_form_button(text='Contact us', classes='btn btn-primary btn-md
         <button class='contact-form-button {}'>{}</button>
     """.format(classes, text))
 
-
 @register.simple_tag
 def modal_contact_form_link(text='Contact us', classes=''):
 
