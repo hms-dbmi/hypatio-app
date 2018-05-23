@@ -26,7 +26,7 @@ class ProjectStep:
         return "title : %s project : %s" % (self.title, self.project)
 
 
-def save_dynamic_form(agreement_form_id, project_key, model_name, posted_form, user):
+def save_dynamic_form(agreement_form_id, project_key, model_name, posted_form, user, agreement_text):
     agreement_form = AgreementForm.objects.get(id=agreement_form_id)
     project = DataProject.objects.get(project_key=project_key)
 
@@ -34,6 +34,7 @@ def save_dynamic_form(agreement_form_id, project_key, model_name, posted_form, u
     dynamic_form = dynamic_form_type(posted_form)
     dynamic_form_instance = dynamic_form.save(commit=False)
     dynamic_form_instance.agreement_form = agreement_form
+    dynamic_form_instance.agreement_text = agreement_text
     dynamic_form_instance.user = user
     dynamic_form_instance.project = project
     dynamic_form_instance.save()

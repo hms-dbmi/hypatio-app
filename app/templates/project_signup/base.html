@@ -100,6 +100,10 @@
             }
         });
 
+        agreement_form_contents.find("textarea").each(function() {
+            $(this).replaceWith($(this).val());
+        });
+
         // Find the div element where we want to paste the string containing the completed form
         var agreement_text_container = $(this).find(".agreement_text");
 
