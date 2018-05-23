@@ -94,7 +94,7 @@ def download_team_submissions(request):
         # Check Permissions in SciAuthZ
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
-        is_manager = sciauthz.user_has_manage_permission(request, project_key)
+        is_manager = sciauthz.user_has_manage_permission(project_key)
 
         if not is_manager:
             logger.debug("[views_files][download_team_submissions] - No Access for user " + request.user.email)
@@ -359,7 +359,7 @@ def delete_participantsubmission(request):
 
         user_is_submitter = submission.participant.user == request.user
         user_is_team_leader = team.team_leader == request.user.email
-        user_is_manager = sciauthz.user_has_manage_permission(request, project.project_key)
+        user_is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
         # Check that the user is either the team leader, the original submitter, or a manager
         if not user_is_submitter and not user_is_team_leader and not user_is_manager:

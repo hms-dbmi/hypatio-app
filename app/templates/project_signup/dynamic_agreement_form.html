@@ -1,0 +1,28 @@
+{% load projects_extras %}
+{% load bootstrap3 %}
+
+<form name="agreement_form_container" action="/save_dynamic_signed_agreement_form/" method="post">
+
+    {% csrf_token %}
+
+    <div class="agreement_form_contents">
+        <div>
+            {{ step.form.render_title | safe }}
+
+            {% bootstrap_form step.form %}
+        </div>
+    </div>
+
+    {% buttons %}
+        <button type="submit" class="btn btn-primary">
+            {% bootstrap_icon "star" %} Submit
+        </button>
+    {% endbuttons %}
+
+    <input type="hidden" name="return_url" value="{{ step.return_url }}"/>
+    <input type="hidden" name="model_name" value="{{ step.model_name }}"/>
+    <input type="hidden" name="agreement_form_id" value="{{ step.agreement_form.id }}"/>
+    <input type="hidden" name="project_key" value="{{ step.project }}"/>
+    <input type="hidden" class="agreement_text" name="agreement_text" value="" />
+</form>
+

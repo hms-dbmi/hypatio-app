@@ -383,23 +383,6 @@ def join_team(request):
 
     return redirect('/projects/' + request.POST.get('project_key') + '/')
 
-# TODO What is this used for?
-@user_auth_and_jwt
-def team_signup_form(request, project_key):
-
-    try:
-        participant = Participant.objects.get(user=request.user)
-    except ObjectDoesNotExist:
-        participant = None
-
-    try:
-        teams = Team.objects.get(data_project__project_key=project_key)
-    except ObjectDoesNotExist:
-        teams = None
-
-    return render(request, "teams/manageteam.html", {"participant": participant,
-                                                     "teams": teams})
-
 @user_auth_and_jwt
 def create_team(request):
     """
