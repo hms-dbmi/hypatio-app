@@ -409,7 +409,7 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
         deleted=False
     )
 
-    teams_with_any_submission = all_submissions.select_related('participant').select_related('team')
+    teams_with_any_submission = all_submissions.values('participant__team').distinct()
 
     countries = get_distinct_countries_participating(user_jwt, approved_participants, project_key)
 
