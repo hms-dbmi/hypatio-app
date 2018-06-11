@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from projects.models import SignedAgreementForm
 from projects.models import AGREEMENT_FORM_TYPE_STATIC
 
@@ -6,24 +5,9 @@ from projects.forms.payerdb import AccessRequestForm
 
 from projects.models import AgreementForm
 from projects.models import DataProject
-from projects.models import PayerDBForm
 
-from datetime import datetime
-
-class ProjectStep:
-
-    template = None
-    status = None
-    agreement_form = None
-    return_url = None
-    model_name = None
-
-    def __init__(self, title, project):
-        self.title = title
-        self.project = project
-
-    def __str__(self):
-        return "title : %s project : %s" % (self.title, self.project)
+from .project_step import ProjectStep
+from .project_step import ProjectStepInitializer
 
 
 def save_dynamic_form(agreement_form_id, project_key, model_name, posted_form, user, agreement_text):
@@ -46,13 +30,6 @@ def agreement_form_factory(form_name, form_input=None):
         return AccessRequestForm
 
     return None
-
-
-class ProjectStepInitializer(ABC):
-
-    @abstractmethod
-    def update_context(self):
-        pass
 
 
 class SignAgreementFormsStepInitializer(ProjectStepInitializer):

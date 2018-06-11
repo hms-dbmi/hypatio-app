@@ -2,6 +2,7 @@ from django.db import models
 
 from .models import ParticipantProject
 from .models import SignedAgreementForm
+from .models import Participant
 
 from django.contrib.auth.models import User
 
@@ -33,8 +34,19 @@ class PayerDBForm(SignedAgreementForm):
                                       "them during the study period.")
 
 
+class PayerDBParticipant(Participant):
+    # Admin facing fields.
+    dua_signed = models.BooleanField(default=False)
+    dua_sign_date = models.DateField()
+
+    access_status = models.CharField(max_length=255, blank=False, null=True, verbose_name="Access Status")
+    ecommons_id = models.CharField(max_length=255, blank=False, null=True, verbose_name="eCommons")
+    ip_address = models.CharField(max_length=255, blank=False, null=True, verbose_name="IP Address")
+
+
 class PayerDBProject(ParticipantProject):
-    specific_aims = models.CharField(max_length=255, blank=False, null=True, verbose_name="Specific Aims")
+
+    funding_status = models.CharField(max_length=250)
 
     def __str__(self):
         return '%s' % (self.uuid)
