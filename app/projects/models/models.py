@@ -9,14 +9,12 @@ FILE_SERVICE_URL = 'FILE_SERVICE_URL'
 EXTERNAL_APP_URL = 'EXTERNAL_APP_URL'
 S3_BUCKET = 'S3_BUCKET'
 
-AGREEMENT_FORM_TYPE_STATIC = 'STATIC'
-AGREEMENT_FORM_TYPE_DJANGO = 'DJANGO'
-
 DATA_LOCATION_TYPE = (
     (FILE_SERVICE_URL, 'FileService Signed URL'),
     (EXTERNAL_APP_URL, 'External Application URL'),
     (S3_BUCKET, 'S3 Bucket directly accessed by Hyatio')
 )
+
 
 TEAM_STATUS = (
     ('Pending', 'Pending'),
@@ -25,16 +23,32 @@ TEAM_STATUS = (
     ('Deactivated', 'Deactivated')
 )
 
+
 SIGNED_FORM_STATUSES = (
     ('P', 'Pending Approval'),
     ('A', 'Approved'),
     ('R', 'Rejected'),
 )
 
+AGREEMENT_FORM_TYPE_STATIC = 'STATIC'
+AGREEMENT_FORM_TYPE_DJANGO = 'DJANGO'
+
 AGREEMENT_FORM_TYPE = (
     (AGREEMENT_FORM_TYPE_STATIC, 'STATIC'),
     (AGREEMENT_FORM_TYPE_DJANGO, 'DJANGO')
 )
+
+
+PERMISSION_SCHEME_PRIVATE = "PRIVATE"
+PERMISSION_SCHEME_PUBLIC = "PUBLIC"
+PERMISSION_SCHEME_EXTERNALLY_GRANTED = "EXTERNALLY_GRANTED"
+
+PERMISSION_SCHEME = (
+    (PERMISSION_SCHEME_PRIVATE, "PRIVATE"),
+    (PERMISSION_SCHEME_PUBLIC, "PUBLIC"),
+    (PERMISSION_SCHEME_EXTERNALLY_GRANTED, "EXTERNALLY_GRANTED")
+)
+
 
 def get_agreement_form_upload_path(instance, filename):
 
@@ -57,6 +71,7 @@ def get_institution_logo_upload_path(instance, filename):
     file_extension = filename.split('.')[-1]
     return '%s/%s.%s' % (form_directory, file_name, file_extension)
 
+
 class Institution(models.Model):
     """
     This represents an institution such as a university that might be co-sponsoring a challenge.
@@ -67,6 +82,7 @@ class Institution(models.Model):
 
     def __str__(self):
         return '%s' % (self.name)
+
 
 class AgreementForm(models.Model):
     """
@@ -82,6 +98,7 @@ class AgreementForm(models.Model):
 
     def __str__(self):
         return '%s' % (self.name)
+
 
 class DataProject(models.Model):
     """
@@ -269,7 +286,6 @@ class ParticipantSubmission(models.Model):
 
 class ParticipantProject(models.Model):
     name = models.CharField(max_length=20)
-    funding_status = models.CharField(max_length=250)
 
     class Meta:
         abstract = True
