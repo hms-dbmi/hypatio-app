@@ -1,10 +1,11 @@
 from django.db import models
+from django.dispatch import receiver
 
 from .models import ParticipantProject
 from .models import SignedAgreementForm
 from .models import Participant
 
-from django.contrib.auth.models import User
+from ..models import Team
 
 
 class PayerDBForm(SignedAgreementForm):
@@ -34,10 +35,24 @@ class PayerDBForm(SignedAgreementForm):
                                       "them during the study period.")
 
 
+@receiver(models.signals.post_save, sender=PayerDBForm)
+def execute_after_save(sender, instance, created, *args, **kwargs):
+    if created:
+        #TODO: Catch error if user already created team.
+        new_team = Team(team_leader=instance.user,
+                        data_project=instance.project)
+        new_team.save()
+
+        new_participant = PayerDBParticipant(user=instance.user,
+                                             data_challenge=instance.project,
+                                             team = new_team)
+        new_participant.save()
+
+
 class PayerDBParticipant(Participant):
     # Admin facing fields.
     dua_signed = models.BooleanField(default=False)
-    dua_sign_date = models.DateField()
+    dua_sign_date = models.DateField(null=True)
 
     access_status = models.CharField(max_length=255, blank=False, null=True, verbose_name="Access Status")
     ecommons_id = models.CharField(max_length=255, blank=False, null=True, verbose_name="eCommons")
