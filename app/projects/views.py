@@ -4,7 +4,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth import logout
-from django.contrib.auth.models import User
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -15,8 +15,7 @@ from django.views.generic import TemplateView
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_current_user_profile
 from hypatio.scireg_services import get_user_email_confirmation_status
-from hypatio.scireg_services import get_user_profile
-from hypatio.scireg_services import get_distinct_countries_participating
+
 from profile.forms import RegistrationForm
 from projects.steps.dynamic_form import SignAgreementFormsStepInitializer
 
@@ -26,16 +25,16 @@ from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import validate_request as validate_jwt
 from .models import AgreementForm
 from .models import DataProject
-from .models import HostedFile
-from .models import HostedFileDownload
+
 from .models import Participant
-from .models import ParticipantSubmission
 from .models import SignedAgreementForm
-from .models import Team
-from .models import TeamComment
+from .models import AGREEMENT_FORM_TYPE_STATIC
+
 from .models import PERMISSION_SCHEME_EXTERNALLY_GRANTED
 
 from .steps.dynamic_form import save_dynamic_form
+from .steps.dynamic_form import agreement_form_factory
+
 from projects.steps.pending_review import PendingReviewStepInitializer
 
 # Get an instance of a logger
@@ -109,7 +108,7 @@ def submit_user_permission_request(request):
 
 
 @user_auth_and_jwt
-def signed_agreement_form(request, template_name='shared/signed_agreement_form.html'):
+def signed_agreement_form(request):
 
     project_key = request.GET['project_key']
     signed_agreement_form_id = request.GET['signed_form_id']
@@ -123,10 +122,28 @@ def signed_agreement_form(request, template_name='shared/signed_agreement_form.h
     participant = Participant.objects.get(data_challenge=project, user=signed_form.user)
 
     if is_manager or signed_form.user == request.user:
+
+        if not signed_form.agreement_form.type or signed_form.agreement_form.type == AGREEMENT_FORM_TYPE_STATIC:
+            template_name = "shared/signed_agreement_form.html"
+            filled_out_signed_form = None
+        else:
+            template_name = "shared/dynamic_signed_agreement_form.html"
+
+            # We need to get both the type of form, and the model underlying that form, dynamically.
+            # Get an instance of the form based on file path.
+            form_object = agreement_form_factory(signed_form.agreement_form.form_file_path)
+
+            # Get an instance of the model that was saved from the form.
+            filled_out_form_instance = get_object_or_404(form_object._meta.model, signedagreementform_ptr_id=signed_agreement_form_id)
+
+            # Populate the form with data from the model so we can render it with django bootstrap.
+            filled_out_signed_form = form_object(instance=filled_out_form_instance)
+
         return render(request, template_name, {"user": request.user,
                                                "ssl_setting": settings.SSL_SETTING,
                                                "is_manager": is_manager,
                                                "signed_form": signed_form,
+                                               "filled_out_signed_form": filled_out_signed_form,
                                                "participant": participant})
     else:
         return HttpResponse(403)
@@ -265,170 +282,6 @@ def list_data_challenges(request, template_name='datacontests/list.html'):
                                            "is_manager": is_manager,
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
-
-
-@user_auth_and_jwt
-def manage_team(request, project_key, team_leader, template_name='datacontests/manageteams.html'):
-    """
-    Populates the team management modal popup on the contest management screen.
-    """
-
-    user = request.user
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
-
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-    is_manager = sciauthz.user_has_manage_permission(project_key)
-
-    if not is_manager:
-        logger.debug('[HYPATIO][DEBUG][manage_team] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
-        return HttpResponse(403)
-
-    project = DataProject.objects.get(project_key=project_key)
-    team = Team.objects.get(data_project=project, team_leader__email=team_leader)
-    num_required_forms = project.agreement_forms.count()
-
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
-
-    # Collect all the team member information needed
-    team_member_details = []
-    team_participants = team.participant_set.all()
-    team_accepted_forms = 0
-
-    for member in team_participants:
-        email = member.user.email
-
-        # Make a request to SciReg for a specific person's user information
-        user_info_json = get_user_profile(user_jwt, email, project_key)
-
-        if user_info_json['count'] != 0:
-            user_info = user_info_json["results"][0]
-        else:
-            user_info = None
-
-        signed_agreement_forms = []
-        signed_accepted_agreement_forms = 0
-
-        # For each of the available agreement forms for this project, display only latest version completed by the user
-        for agreement_form in project.agreement_forms.all():
-            signed_form = SignedAgreementForm.objects.filter(user__email=email,
-                                                             project=project,
-                                                             agreement_form=agreement_form).last()
-
-            if signed_form is not None:
-                signed_agreement_forms.append(signed_form)
-
-                if signed_form.status == 'A':
-                    team_accepted_forms += 1
-                    signed_accepted_agreement_forms += 1
-
-        team_member_details.append({
-            'email': email,
-            'user_info': user_info,
-            'signed_agreement_forms': signed_agreement_forms,
-            'signed_accepted_agreement_forms': signed_accepted_agreement_forms,
-            'participant': member
-        })
-
-    # Check whether this team has completed all the necessary forms and they have been accepted by challenge admins
-    total_required_forms_for_team = project.agreement_forms.count() * team_participants.count()
-    team_has_all_forms_complete = total_required_forms_for_team == team_accepted_forms
-
-    institution = project.institution
-
-    # Get the comments made about this team by challenge administrators
-    comments = TeamComment.objects.filter(team=team)
-
-    # Get a history of files downloaded and uploaded by members of this team
-    files = HostedFile.objects.filter(project=project)
-    team_users = User.objects.filter(participant__in=team_participants)
-    downloads = HostedFileDownload.objects.filter(hosted_file__in=files, user__in=team_users)
-    uploads = team.get_submissions()
-
-    return render(request, template_name, context={"user": user,
-                                                   "ssl_setting": settings.SSL_SETTING,
-                                                   "is_manager": is_manager,
-                                                   "project": project,
-                                                   "team": team,
-                                                   "team_members": team_member_details,
-                                                   "num_required_forms": num_required_forms,
-                                                   "team_has_all_forms_complete": team_has_all_forms_complete,
-                                                   "institution": institution,
-                                                   "comments": comments,
-                                                   "downloads": downloads,
-                                                   "uploads": uploads})
-
-
-@user_auth_and_jwt
-def manage_contest(request, project_key, template_name='datacontests/managecontests.html'):
-
-    project = DataProject.objects.get(project_key=project_key)
-
-    # This dictionary will hold all user requests and permissions
-    user_details = {}
-
-    user = request.user
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
-
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-    is_manager = sciauthz.user_has_manage_permission(project_key)
-
-    if not is_manager:
-        logger.debug('[HYPATIO][DEBUG][manage_contest] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
-        return HttpResponse(403)
-
-    teams = Team.objects.filter(data_project=project)
-
-    # A person who has filled out a form for a project but not yet joined a team
-    users_with_a_team = Participant.objects.filter(team__in=teams).values_list('user', flat=True).distinct()
-    users_who_signed_forms = SignedAgreementForm.objects.filter(project=project).values_list('user', flat=True).distinct()
-    users_without_a_team = User.objects.filter(id__in=users_who_signed_forms).exclude(id__in=users_with_a_team)
-
-    # Collect additional information about these participants who aren't on teams yet
-    users_without_a_team_details = []
-
-    for person in users_without_a_team:
-        email = person.email
-       
-        signed_agreement_forms = []
-
-        # For each of the available agreement forms for this project, display only latest version completed by the user
-        for agreement_form in project.agreement_forms.all():
-            signed_agreement_forms.append(SignedAgreementForm.objects.filter(user__email=email, project=project, agreement_form=agreement_form).last())
-
-        users_without_a_team_details.append({
-            'email': email,
-            # 'user_info': user_info,
-            'signed_agreement_forms': signed_agreement_forms,
-            'participant': person
-        })
-
-    approved_teams = teams.filter(status='Active')
-
-    approved_participants = Participant.objects.filter(team__in=approved_teams)
-
-    all_submissions = ParticipantSubmission.objects.filter(
-        participant__in=approved_participants,
-        deleted=False
-    )
-
-    teams_with_any_submission = all_submissions.values('participant__team').distinct()
-
-    countries = get_distinct_countries_participating(user_jwt, approved_participants, project_key)
-
-    institution = project.institution
-
-    return render(request, template_name, {"user": user,
-                                           "ssl_setting": settings.SSL_SETTING,
-                                           "is_manager": is_manager,
-                                           "project": project,
-                                           "teams": teams,
-                                           "users_without_a_team_details": users_without_a_team_details,
-                                           "approved_teams": approved_teams.count(),
-                                           "approved_participants": approved_participants.count(),
-                                           "total_submissions": all_submissions.count(),
-                                           "teams_with_any_submission": teams_with_any_submission.count(),
-                                           "participating_countries": countries,
-                                           "institution": institution})
 
 
 @method_decorator(public_user_auth_and_jwt, name='dispatch')
@@ -914,6 +767,10 @@ class DataProjectView(TemplateView):
 
         # Does user have VIEW or MANAGE permissions?
         if not context['has_view_permission'] and not context['is_manager']:
+            return False
+
+        # If the permission is managed outside this project, return false
+        if self.project.permission_scheme == PERMISSION_SCHEME_EXTERNALLY_GRANTED:
             return False
 
         # Additional requirements if a DataProject requires teams.
