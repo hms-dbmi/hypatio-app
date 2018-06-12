@@ -131,10 +131,12 @@ class DataProject(models.Model):
     def __str__(self):
         return '%s' % (self.project_key)
 
+
 class DataGate(models.Model):
     project = models.ForeignKey(DataProject)
     data_location_type = models.CharField(max_length=50, choices=DATA_LOCATION_TYPE)
     data_location = models.CharField(max_length=250)
+
 
 class SignedAgreementForm(models.Model):
     """
@@ -147,11 +149,16 @@ class SignedAgreementForm(models.Model):
     agreement_text = models.TextField(blank=False)
     status = models.CharField(max_length=1, null=False, blank=False, default='P', choices=SIGNED_FORM_STATUSES)
 
+
 class Team(models.Model):
+
+    class Meta:
+        unique_together = ('team_leader', 'data_project',)
+
     """
     This model describes a team of participants that are competing in a data challenge.
     """
-    team_leader = models.OneToOneField(User)
+    team_leader = models.ForeignKey(User)
     data_project = models.ForeignKey(DataProject)
     status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
 
@@ -186,8 +193,9 @@ class Team(models.Model):
     def __str__(self):
         return '%s' % self.team_leader.email
 
+
 class Participant(models.Model):
-    user = models.OneToOneField(User)
+    user = models.ForeignKey(User)
     data_challenge = models.ForeignKey(DataProject)
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE)
     team_wait_on_leader_email = models.CharField(max_length=100, blank=True, null=True)

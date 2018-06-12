@@ -4,8 +4,10 @@ from .steps.dynamic_form import SignAgreementFormsStepInitializer
 from .steps.dynamic_form import save_dynamic_form
 
 from .models import AgreementForm
+from .models import PayerDBForm
 from .models import AGREEMENT_FORM_TYPE_DJANGO
 from .models import DataProject
+from .models import Team
 
 
 class AgreementFormTest(TestCase):
@@ -64,3 +66,8 @@ class AgreementFormTest(TestCase):
                           user=self.super_user,
                           agreement_text="THIS IS AGREEMENT TEXT LA LA <DIV></DIV>")
 
+        # Did we save the form okay?
+        assert PayerDBForm.objects.filter(name="TEST_NAME").exists()
+
+        # Did we create the team?
+        assert Team.objects.filter(team_leader=self.super_user).exists()
