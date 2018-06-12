@@ -33,8 +33,10 @@ from .models import ParticipantSubmission
 from .models import SignedAgreementForm
 from .models import Team
 from .models import TeamComment
+from .models import PERMISSION_SCHEME_EXTERNALLY_GRANTED
 
 from .steps.dynamic_form import save_dynamic_form
+from projects.steps.pending_review import PendingReviewStepInitializer
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -551,6 +553,9 @@ class DataProjectView(TemplateView):
         # Team setup step (if needed).
         self.step_setup_team(context)
 
+        # Static page that lets user know to wait.
+        self.step_pending_review(context)
+
         # Set the template that should be rendered.
         self.template_name = 'project_signup/base.html'
 
@@ -733,6 +738,19 @@ class DataProjectView(TemplateView):
             'project': self.project,
             'access_requested': access_requested
         }
+
+        context['steps'].append(step)
+
+    def step_pending_review(self, context):
+        """
+        Show a static page letting user know their request is pending.
+        """
+
+        if self.project.permission_scheme != PERMISSION_SCHEME_EXTERNALLY_GRANTED:
+            return
+
+        step = PendingReviewStepInitializer().update_context(project=self.project,
+                                                                                context=context)
 
         context['steps'].append(step)
 
