@@ -106,7 +106,7 @@ class DataProject(models.Model):
     A DataProject can be simply a data set or it can be a data contest as recognized by the is_contest
     flag. The submission form file should be an html file that lives under static/submissionforms/.
     """
-    name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name of project", unique=True)
+    name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name of project", unique=False)
     project_key = models.CharField(max_length=100, blank=True, null=True, verbose_name="Project Key", unique=True)
     institution = models.ForeignKey(Institution, blank=True, null=True, on_delete=models.PROTECT)
     description = models.TextField(blank=True, null=True, verbose_name="Description")
