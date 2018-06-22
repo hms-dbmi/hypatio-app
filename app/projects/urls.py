@@ -10,6 +10,7 @@ from .views_manage import manage_project_team
 from .views import signed_agreement_form
 from .views import save_signed_agreement_form
 from .views import save_dynamic_signed_agreement_form
+from .views import save_signed_external_agreement_form
 from .views import signout
 from .views_manage import manage_team
 from .views import DataProjectView
@@ -43,6 +44,7 @@ urlpatterns = (
     url(r'^manage_project/(?P<project_key>[^/]+)/(?P<team_leader>[^/]+)/$', manage_project_team),
     url(r'^save_signed_agreement_form', save_signed_agreement_form),
     url(r'^save_dynamic_signed_agreement_form', save_dynamic_signed_agreement_form),
+    url(r'^save_signed_external_agreement_form', save_signed_external_agreement_form),
     url(r'^signout/$', signout),
     url(r'^join_team/$', join_team),
     url(r'^leave_team/$', leave_team),

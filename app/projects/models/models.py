@@ -2,8 +2,8 @@ import uuid
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
-
 
 FILE_SERVICE_URL = 'FILE_SERVICE_URL'
 EXTERNAL_APP_URL = 'EXTERNAL_APP_URL'
@@ -32,10 +32,12 @@ SIGNED_FORM_STATUSES = (
 
 AGREEMENT_FORM_TYPE_STATIC = 'STATIC'
 AGREEMENT_FORM_TYPE_DJANGO = 'DJANGO'
+AGREEMENT_FORM_TYPE_EXTERNAL_LINK = 'EXTERNAL_LINK'
 
 AGREEMENT_FORM_TYPE = (
     (AGREEMENT_FORM_TYPE_STATIC, 'STATIC'),
-    (AGREEMENT_FORM_TYPE_DJANGO, 'DJANGO')
+    (AGREEMENT_FORM_TYPE_DJANGO, 'DJANGO'),
+    (AGREEMENT_FORM_TYPE_EXTERNAL_LINK, 'EXTERNAL LINK')
 )
 
 
@@ -87,17 +89,27 @@ class Institution(models.Model):
 class AgreementForm(models.Model):
     """
     This represents the type of forms that a user might need to sign to be granted access to
-    a data set, such as a data use agreement or rules of conduct. The form file should be an html file
-    that lives under static/agreementforms/.
+    a data set, such as a data use agreement or rules of conduct. If this is derived from an
+    html file, look at get_agreement_form_upload_path() to see where the file should be stored.
+    If this agreement form lives on an external web page, supply the URL in the external_link
+    field.
     """
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
     short_name = models.CharField(max_length=6, blank=False, null=False)
+    description = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
     form_file_path = models.CharField(max_length=300, blank=True, null=True)
+    external_link = models.CharField(max_length=300, blank=True, null=True)
     type = models.CharField(max_length=50, choices=AGREEMENT_FORM_TYPE, blank=True, null=True)
 
     def __str__(self):
         return '%s' % (self.name)
+
+    def clean(self):
+        if self.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK and self.form_file_path is not None:
+            raise ValidationError("An external link form should not have the form file path field populated.")
+        if self.type != AGREEMENT_FORM_TYPE_EXTERNAL_LINK and self.external_link is not None:
+            raise ValidationError("If the form type is not an external link, the external link field should not be populated.")
 
 
 class DataProject(models.Model):
