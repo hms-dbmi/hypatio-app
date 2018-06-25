@@ -29,6 +29,7 @@ from .models import DataProject
 from .models import Participant
 from .models import SignedAgreementForm
 from .models import AGREEMENT_FORM_TYPE_STATIC
+from .models import AGREEMENT_FORM_TYPE_DJANGO
 
 from .models import PERMISSION_SCHEME_EXTERNALLY_GRANTED
 
@@ -93,6 +94,41 @@ def save_signed_agreement_form(request):
 
 
 @user_auth_and_jwt
+def save_signed_external_agreement_form(request):
+    """
+    We cannot track if someone has signed a form on an external website, but we can at least
+    track that they have clicked the link to visit that website. With this record created,
+    an administrator can then manually verify the form on that external site and track their
+    approval within Hypatio.
+    """
+
+    agreement_form_id = request.POST['agreement_form_id']
+    project_key = request.POST['project_key']
+
+    agreement_form = AgreementForm.objects.get(id=agreement_form_id)
+    project = DataProject.objects.get(project_key=project_key)
+
+    # Only create a new record if one does not already exist
+    try:
+        signed_form = SignedAgreementForm.objects.get(
+            user=request.user,
+            agreement_form=agreement_form,
+            project=project
+        )
+    except ObjectDoesNotExist:
+        agreement_text = 'The Participant accessed this form via the 3rd party website. Check there if signed appropriately.'
+        signed_agreement_form = SignedAgreementForm(
+            user=request.user,
+            agreement_form=agreement_form,
+            project=project,
+            date_signed=datetime.now(),
+            agreement_text=agreement_text
+        )
+        signed_agreement_form.save()
+
+    return HttpResponse(200)
+
+@user_auth_and_jwt
 def submit_user_permission_request(request):
 
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
@@ -123,10 +159,7 @@ def signed_agreement_form(request):
 
     if is_manager or signed_form.user == request.user:
 
-        if not signed_form.agreement_form.type or signed_form.agreement_form.type == AGREEMENT_FORM_TYPE_STATIC:
-            template_name = "shared/signed_agreement_form.html"
-            filled_out_signed_form = None
-        else:
+        if signed_form.agreement_form.type == AGREEMENT_FORM_TYPE_DJANGO:
             template_name = "shared/dynamic_signed_agreement_form.html"
 
             # We need to get both the type of form, and the model underlying that form, dynamically.
@@ -138,6 +171,9 @@ def signed_agreement_form(request):
 
             # Populate the form with data from the model so we can render it with django bootstrap.
             filled_out_signed_form = form_object(instance=filled_out_form_instance)
+        else:
+            template_name = "shared/signed_agreement_form.html"
+            filled_out_signed_form = None
 
         return render(request, template_name, {"user": request.user,
                                                "ssl_setting": settings.SSL_SETTING,
