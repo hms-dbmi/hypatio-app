@@ -13,6 +13,7 @@ from .models import ParticipantProject
 from .models import TeamSubmissionsDownload
 from .models import AGREEMENT_FORM_TYPE_STATIC
 from .models import AGREEMENT_FORM_TYPE_DJANGO
+from .models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK
 from .models import PERMISSION_SCHEME
 from .models import PERMISSION_SCHEME_EXTERNALLY_GRANTED
 

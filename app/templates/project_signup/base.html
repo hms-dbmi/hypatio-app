@@ -56,6 +56,8 @@
                                     completed-step-header
                                     {% elif step.status == 'current_step' %}
                                     current-step-header
+                                    {% elif step.status == 'permanent_step' %}
+                                    current-step-header
                                     {% else %}
                                     blocked-step-header
                                     {% endif %}">
@@ -63,7 +65,7 @@
                         </div>
                     </h2>
                 </div>
-                {% if step.status == 'current_step' %}
+                {% if step.status == 'current_step' or step.status == 'permanent_step' %}
                 <div class="panel-body">
                     {% include step.template %}
                 </div>

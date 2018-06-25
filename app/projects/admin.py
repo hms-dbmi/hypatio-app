@@ -16,7 +16,7 @@ class DataprojectAdmin(admin.ModelAdmin):
     list_display = ('name', 'project_key', 'is_contest', 'project_supervisor')
 
 class AgreementformAdmin(admin.ModelAdmin):
-    list_display = ('name', 'short_name', 'form_file_path')
+    list_display = ('name', 'short_name', 'type', 'form_file_path')
 
 class SignedagreementformAdmin(admin.ModelAdmin):
     list_display = ('user', 'agreement_form', 'date_signed', 'status')

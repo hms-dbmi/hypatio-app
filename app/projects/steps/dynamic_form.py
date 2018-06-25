@@ -1,5 +1,6 @@
 from projects.models import SignedAgreementForm
 from projects.models import AGREEMENT_FORM_TYPE_STATIC
+from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK
 
 from projects.forms.payerdb import AccessRequestForm
 
@@ -34,13 +35,18 @@ def agreement_form_factory(form_name, form_input=None):
 
 class SignAgreementFormsStepInitializer(ProjectStepInitializer):
     @staticmethod
-    def get_step_status(current_step, step_name, step_complete):
+    def get_step_status(current_step, step_name, form_type, step_complete):
         """
         Returns the status this step should have. If the given step is incomplete and we do not
         already have a current_step in context, then this step is the current step and update
         context to note this. If this step is incomplete but another step has already been deemed
-        the current step, then this is a future step.
+        the current step, then this is a future step. Permanent steps are ones that should always
+        be displayed as long as all prior steps are complete.
         """
+
+        # Once all prior steps are complete, display external forms permanently
+        if form_type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK and current_step is None:
+            return current_step, 'permanent_step'
 
         if step_complete:
             return current_step, 'completed_step'
@@ -66,7 +72,7 @@ class SignAgreementFormsStepInitializer(ProjectStepInitializer):
             )
 
             complete = signed_forms.count() > 0
-            current_step, status = self.get_step_status(current_step, form.short_name, complete)
+            current_step, status = self.get_step_status(current_step, form.short_name, form.type, complete)
 
             step = ProjectStep(title='Form: {name}'.format(name=form.name),
                                project=project)
@@ -75,6 +81,8 @@ class SignAgreementFormsStepInitializer(ProjectStepInitializer):
 
             if not form.type or form.type == AGREEMENT_FORM_TYPE_STATIC:
                 step.template = 'project_signup/sign_agreement_form.html'
+            elif form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
+                step.template = 'project_signup/external_agreement_form.html'
             else:
                 step.template = 'project_signup/dynamic_agreement_form.html'
                 step.form = agreement_form_factory(form.form_file_path)
@@ -86,4 +94,3 @@ class SignAgreementFormsStepInitializer(ProjectStepInitializer):
             steps.append(step)
 
         return current_step, steps
-
