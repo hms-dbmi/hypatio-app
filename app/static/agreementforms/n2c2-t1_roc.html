@@ -51,7 +51,7 @@
 <script type="application/javascript">
     // Default to today's date
     $(document).ready(function(){
-        var today = new Date();
-        document.getElementById("date").valueAsDate = today;
+        var today = $.datepicker.formatDate('yy-mm-dd', new Date());
+        $('#date').val(today);
     });
 </script>
