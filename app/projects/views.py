@@ -378,7 +378,7 @@ class DataProjectView(TemplateView):
         self.get_base_context_data(context)
 
         # Determine which context is appropriate for this user.
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated() or self.user_jwt is None:
             self.get_unregistered_context(context)
         elif not self.is_user_granted_access(context):
             self.get_signup_context(context)
