@@ -33,6 +33,7 @@ def manage_project(request, project_key, template_name='manage/manageprojects.ht
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
+    has_manage_permissions = sciauthz.user_has_any_manage_permissions()
 
     project = DataProject.objects.get(project_key=project_key)
 
@@ -44,7 +45,7 @@ def manage_project(request, project_key, template_name='manage/manageprojects.ht
     teams = Team.objects.filter(data_project=project)
 
     return render(request, template_name, context={"user": user,
-                                                   "is_manager": is_manager,
+                                                   "has_manage_permissions": has_manage_permissions,
                                                    "project": project,
                                                    "teams": teams,
                                                    })
@@ -101,6 +102,7 @@ def manage_project_team(request, project_key, team_leader, template_name='manage
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
+    has_manage_permissions = sciauthz.user_has_any_manage_permissions()
 
     if not is_manager:
         logger.debug(
@@ -126,7 +128,7 @@ def manage_project_team(request, project_key, team_leader, template_name='manage
 
     return render(request, template_name, context={"user": user,
                                                    "ssl_setting": settings.SSL_SETTING,
-                                                   "is_manager": is_manager,
+                                                   "has_manage_permissions": has_manage_permissions,
                                                    "project": project,
                                                    "team": team,
                                                    "team_members": team_member_details,
@@ -147,6 +149,7 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
+    has_manage_permissions = sciauthz.user_has_any_manage_permissions()
 
     if not is_manager:
         logger.debug(
@@ -214,7 +217,7 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
 
     return render(request, template_name, context={"user": user,
                                                    "ssl_setting": settings.SSL_SETTING,
-                                                   "is_manager": is_manager,
+                                                   "has_manage_permissions": has_manage_permissions,
                                                    "project": project,
                                                    "team": team,
                                                    "team_members": team_member_details,
@@ -238,6 +241,7 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
+    has_manage_permissions = sciauthz.user_has_any_manage_permissions()
 
     if not is_manager:
         logger.debug(
@@ -289,7 +293,7 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
 
     return render(request, template_name, {"user": user,
                                            "ssl_setting": settings.SSL_SETTING,
-                                           "is_manager": is_manager,
+                                           "has_manage_permissions": has_manage_permissions,
                                            "project": project,
                                            "teams": teams,
                                            "users_without_a_team_details": users_without_a_team_details,
