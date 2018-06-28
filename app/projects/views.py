@@ -128,6 +128,7 @@ def save_signed_external_agreement_form(request):
 
     return HttpResponse(200)
 
+
 @user_auth_and_jwt
 def submit_user_permission_request(request):
 
@@ -152,6 +153,7 @@ def signed_agreement_form(request):
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
+    has_manage_permissions = sciauthz.user_has_any_manage_permissions()
 
     project = get_object_or_404(DataProject, project_key=project_key)
     signed_form = get_object_or_404(SignedAgreementForm, id=signed_agreement_form_id, project=project)
@@ -177,6 +179,7 @@ def signed_agreement_form(request):
 
         return render(request, template_name, {"user": request.user,
                                                "ssl_setting": settings.SSL_SETTING,
+                                               "has_manage_permissions": has_manage_permissions,
                                                "is_manager": is_manager,
                                                "signed_form": signed_form,
                                                "filled_out_signed_form": filled_out_signed_form,
@@ -194,7 +197,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
     projects_with_view_permissions = []
     projects_with_access_requests = {}
 
-    is_manager = False
+    has_manage_permissions = False
 
     if not request.user.is_authenticated():
         user = None
@@ -207,7 +210,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
             return logout_redirect(request)
 
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-        is_manager = sciauthz.user_has_manage_permission('n2c2-t1')
+        has_manage_permissions = sciauthz.user_has_any_manage_permissions()
         user_permissions = sciauthz.current_user_permissions()
         user_access_requests = sciauthz.current_user_access_requests()
 
@@ -269,7 +272,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
     return render(request, template_name, {"data_projects": data_projects,
                                            "user": user,
                                            "ssl_setting": settings.SSL_SETTING,
-                                           "is_manager": is_manager,
+                                           "has_manage_permissions": has_manage_permissions,
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
 
@@ -280,7 +283,7 @@ def list_data_challenges(request, template_name='datacontests/list.html'):
     all_data_contests = DataProject.objects.filter(is_contest=True, visible=True)
     data_contests = []
 
-    is_manager = False
+    has_manage_permissions = False
 
     if not request.user.is_authenticated():
         user = None
@@ -297,7 +300,7 @@ def list_data_challenges(request, template_name='datacontests/list.html'):
             all_data_contests = DataProject.objects.filter(is_contest=True)
 
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-        is_manager = sciauthz.user_has_manage_permission('n2c2-t1')
+        has_manage_permissions = sciauthz.user_has_any_manage_permissions()
 
     # Build the dictionary with all project and permission information needed
     for data_contest in all_data_contests:
@@ -315,7 +318,7 @@ def list_data_challenges(request, template_name='datacontests/list.html'):
     return render(request, template_name, {"data_contests": data_contests,
                                            "user": user,
                                            "ssl_setting": settings.SSL_SETTING,
-                                           "is_manager": is_manager,
+                                           "has_manage_permissions": has_manage_permissions,
                                            "account_server_url": settings.ACCOUNT_SERVER_URL,
                                            "profile_server_url": settings.SCIREG_SERVER_URL})
 
@@ -396,7 +399,7 @@ class DataProjectView(TemplateView):
         # Check if the user is a manager of this DataProject.
         if self.request.user.is_authenticated():
             sciauthz = SciAuthZ(settings.AUTHZ_BASE, self.user_jwt, self.request.user.email)
-            context['is_manager'] = sciauthz.user_has_manage_permission(self.project.project_key)
+            context['has_manage_permissions'] = sciauthz.user_has_manage_permission(self.project.project_key)
             context['has_view_permission'] = sciauthz.user_has_single_permission(self.project.project_key, "VIEW")
 
     def get_unregistered_context(self, context):
@@ -802,7 +805,7 @@ class DataProjectView(TemplateView):
         """
 
         # Does user have VIEW or MANAGE permissions?
-        if not context['has_view_permission'] and not context['is_manager']:
+        if not context['has_view_permission'] and not context['has_manage_permissions']:
             return False
 
         # If the permission is managed outside this project, return false

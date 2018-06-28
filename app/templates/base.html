@@ -215,13 +215,9 @@
                             <ul class="dropdown-menu">
                                 <li><a href="/profile">Profile</a></li>
                                 
-                                {% if is_manager %}
-                                    <!-- <li role="separator" class="divider"></li>
-                                    <li><a href="/projects/managedataprojects">Manage Projects</a></li> -->
-                                    
-                                    {# TODO remove the project_key eventually #}
+                                {% if has_manage_permissions %}
                                     <li role="separator" class="divider"></li>
-                                    <li><a href="/projects/manage/n2c2-t2/">Manage Challenges</a></li>
+                                    <li><a href="/projects/manage/n2c2-t2/">Manage Projects</a></li>
                                 {% endif %}
                                 
                                 <li role="separator" class="divider"></li>
