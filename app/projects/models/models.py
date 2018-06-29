@@ -79,6 +79,7 @@ class Institution(models.Model):
     This represents an institution such as a university that might be co-sponsoring a challenge.
     The logo image file should live under static/institutionlogos/.
     """
+
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
     logo_path = models.CharField(max_length=300, blank=True, null=True)
 
@@ -94,6 +95,7 @@ class AgreementForm(models.Model):
     If this agreement form lives on an external web page, supply the URL in the external_link
     field.
     """
+
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
     short_name = models.CharField(max_length=6, blank=False, null=False)
     description = models.TextField(blank=True)
@@ -118,6 +120,7 @@ class DataProject(models.Model):
     A DataProject can be simply a data set or it can be a data contest as recognized by the is_contest
     flag. The submission form file should be an html file that lives under static/submissionforms/.
     """
+
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name of project", unique=False)
     project_key = models.CharField(max_length=100, blank=True, null=True, verbose_name="Project Key", unique=True)
     institution = models.ForeignKey(Institution, blank=True, null=True, on_delete=models.PROTECT)
@@ -139,7 +142,6 @@ class DataProject(models.Model):
 
     show_jwt = models.BooleanField(default=False, blank=False, null=False)
 
-
     def __str__(self):
         return '%s' % (self.project_key)
 
@@ -154,6 +156,7 @@ class SignedAgreementForm(models.Model):
     """
     This represents the fully signed agreement form.
     """
+
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     agreement_form = models.ForeignKey(AgreementForm, on_delete=models.PROTECT)
     project = models.ForeignKey(DataProject)
@@ -163,16 +166,16 @@ class SignedAgreementForm(models.Model):
 
 
 class Team(models.Model):
-
-    class Meta:
-        unique_together = ('team_leader', 'data_project',)
-
     """
     This model describes a team of participants that are competing in a data challenge.
     """
+
     team_leader = models.ForeignKey(User)
     data_project = models.ForeignKey(DataProject)
     status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
+
+    class Meta:
+        unique_together = ('team_leader', 'data_project',)
 
     def get_count_of_submissions_made(self):
         """

@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import datetime
+import dateutil.parser
 
 from django.conf import settings
 from django.contrib.auth import logout
@@ -540,6 +541,7 @@ class DataProjectView(TemplateView):
                 registration_form = RegistrationForm(initial=profile_data)
 
         except (KeyError, IndexError):
+            profile_data = None
             profile_complete = False
 
             # User does not have a registration object in SciReg. Prepare one for them.
@@ -548,7 +550,20 @@ class DataProjectView(TemplateView):
                 new_registration=True
             )
 
-        step_status = self.get_step_status(context, 'complete_profile', profile_complete)
+        step_complete = profile_complete
+
+        if profile_data is not None:
+            try:
+                profile_last_updated_date = dateutil.parser.parse(profile_data['last_updated']).date()
+                days_since_last_profile_update = (datetime.now().date() - profile_last_updated_date).days
+
+                # Mark this step as incomplete if it has been more than two weeks since a user has updated their profile
+                if days_since_last_profile_update >= 14:
+                    step_complete = False
+            except KeyError:
+                pass
+
+        step_status = self.get_step_status(context, 'complete_profile', step_complete)
 
         # Describe the step. Include here any variables that the template will need.
         step = {
@@ -641,8 +656,7 @@ class DataProjectView(TemplateView):
         if self.project.permission_scheme != PERMISSION_SCHEME_EXTERNALLY_GRANTED:
             return
 
-        step = PendingReviewStepInitializer().update_context(project=self.project,
-                                                                                context=context)
+        step = PendingReviewStepInitializer().update_context(project=self.project, context=context)
 
         context['steps'].append(step)
 
