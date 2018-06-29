@@ -45,8 +45,11 @@ class SignAgreementFormsStepInitializer(ProjectStepInitializer):
         """
 
         # Once all prior steps are complete, display external forms permanently
-        if form_type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK and current_step is None:
-            return current_step, 'permanent_step'
+        if form_type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
+            if current_step is None:
+                return current_step, 'permanent_step'
+            else:
+                return current_step, 'future_step'
 
         if step_complete:
             return current_step, 'completed_step'
@@ -63,6 +66,7 @@ class SignAgreementFormsStepInitializer(ProjectStepInitializer):
 
         # Each form will be a separate step.
         for form in agreement_forms:
+
             # Only include Pending or Approved forms when searching.
             signed_forms = SignedAgreementForm.objects.filter(
                 user=user,
