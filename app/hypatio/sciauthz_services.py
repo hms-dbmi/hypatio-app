@@ -141,3 +141,17 @@ class SciAuthZ:
             return False
         else:
             return False
+
+    def user_has_any_manage_permissions(self):
+        """
+        A method used to see if this user has MANAGE permissions for any project within this application.
+        """
+
+        user_permissions = self.current_user_permissions()
+
+        if user_permissions is not None and 'results' in user_permissions:
+            for permission in user_permissions["results"]:
+                if 'Hypatio' in permission['item'] and permission['permission'] == "MANAGE":
+                    return True
+
+        return False
