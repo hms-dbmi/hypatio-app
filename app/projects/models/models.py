@@ -2,21 +2,19 @@ import uuid
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
-
 
 FILE_SERVICE_URL = 'FILE_SERVICE_URL'
 EXTERNAL_APP_URL = 'EXTERNAL_APP_URL'
 S3_BUCKET = 'S3_BUCKET'
-
-AGREEMENT_FORM_TYPE_STATIC = 'STATIC'
-AGREEMENT_FORM_TYPE_DJANGO = 'DJANGO'
 
 DATA_LOCATION_TYPE = (
     (FILE_SERVICE_URL, 'FileService Signed URL'),
     (EXTERNAL_APP_URL, 'External Application URL'),
     (S3_BUCKET, 'S3 Bucket directly accessed by Hyatio')
 )
+
 
 TEAM_STATUS = (
     ('Pending', 'Pending'),
@@ -25,16 +23,34 @@ TEAM_STATUS = (
     ('Deactivated', 'Deactivated')
 )
 
+
 SIGNED_FORM_STATUSES = (
     ('P', 'Pending Approval'),
     ('A', 'Approved'),
     ('R', 'Rejected'),
 )
 
+AGREEMENT_FORM_TYPE_STATIC = 'STATIC'
+AGREEMENT_FORM_TYPE_DJANGO = 'DJANGO'
+AGREEMENT_FORM_TYPE_EXTERNAL_LINK = 'EXTERNAL_LINK'
+
 AGREEMENT_FORM_TYPE = (
     (AGREEMENT_FORM_TYPE_STATIC, 'STATIC'),
-    (AGREEMENT_FORM_TYPE_DJANGO, 'DJANGO')
+    (AGREEMENT_FORM_TYPE_DJANGO, 'DJANGO'),
+    (AGREEMENT_FORM_TYPE_EXTERNAL_LINK, 'EXTERNAL LINK')
 )
+
+
+PERMISSION_SCHEME_PRIVATE = "PRIVATE"
+PERMISSION_SCHEME_PUBLIC = "PUBLIC"
+PERMISSION_SCHEME_EXTERNALLY_GRANTED = "EXTERNALLY_GRANTED"
+
+PERMISSION_SCHEME = (
+    (PERMISSION_SCHEME_PRIVATE, "PRIVATE"),
+    (PERMISSION_SCHEME_PUBLIC, "PUBLIC"),
+    (PERMISSION_SCHEME_EXTERNALLY_GRANTED, "EXTERNALLY_GRANTED")
+)
+
 
 def get_agreement_form_upload_path(instance, filename):
 
@@ -57,31 +73,46 @@ def get_institution_logo_upload_path(instance, filename):
     file_extension = filename.split('.')[-1]
     return '%s/%s.%s' % (form_directory, file_name, file_extension)
 
+
 class Institution(models.Model):
     """
     This represents an institution such as a university that might be co-sponsoring a challenge.
     The logo image file should live under static/institutionlogos/.
     """
+
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
     logo_path = models.CharField(max_length=300, blank=True, null=True)
 
     def __str__(self):
         return '%s' % (self.name)
 
+
 class AgreementForm(models.Model):
     """
     This represents the type of forms that a user might need to sign to be granted access to
-    a data set, such as a data use agreement or rules of conduct. The form file should be an html file
-    that lives under static/agreementforms/.
+    a data set, such as a data use agreement or rules of conduct. If this is derived from an
+    html file, look at get_agreement_form_upload_path() to see where the file should be stored.
+    If this agreement form lives on an external web page, supply the URL in the external_link
+    field.
     """
+
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
     short_name = models.CharField(max_length=6, blank=False, null=False)
+    description = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
     form_file_path = models.CharField(max_length=300, blank=True, null=True)
+    external_link = models.CharField(max_length=300, blank=True, null=True)
     type = models.CharField(max_length=50, choices=AGREEMENT_FORM_TYPE, blank=True, null=True)
 
     def __str__(self):
         return '%s' % (self.name)
+
+    def clean(self):
+        if self.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK and self.form_file_path is not None:
+            raise ValidationError("An external link form should not have the form file path field populated.")
+        if self.type != AGREEMENT_FORM_TYPE_EXTERNAL_LINK and self.external_link is not None:
+            raise ValidationError("If the form type is not an external link, the external link field should not be populated.")
+
 
 class DataProject(models.Model):
     """
@@ -89,7 +120,8 @@ class DataProject(models.Model):
     A DataProject can be simply a data set or it can be a data contest as recognized by the is_contest
     flag. The submission form file should be an html file that lives under static/submissionforms/.
     """
-    name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name of project", unique=True)
+
+    name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name of project", unique=False)
     project_key = models.CharField(max_length=100, blank=True, null=True, verbose_name="Project Key", unique=True)
     institution = models.ForeignKey(Institution, blank=True, null=True, on_delete=models.PROTECT)
     description = models.TextField(blank=True, null=True, verbose_name="Description")
@@ -110,19 +142,21 @@ class DataProject(models.Model):
 
     show_jwt = models.BooleanField(default=False, blank=False, null=False)
 
-
     def __str__(self):
         return '%s' % (self.project_key)
+
 
 class DataGate(models.Model):
     project = models.ForeignKey(DataProject)
     data_location_type = models.CharField(max_length=50, choices=DATA_LOCATION_TYPE)
     data_location = models.CharField(max_length=250)
 
+
 class SignedAgreementForm(models.Model):
     """
     This represents the fully signed agreement form.
     """
+
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     agreement_form = models.ForeignKey(AgreementForm, on_delete=models.PROTECT)
     project = models.ForeignKey(DataProject)
@@ -130,13 +164,18 @@ class SignedAgreementForm(models.Model):
     agreement_text = models.TextField(blank=False)
     status = models.CharField(max_length=1, null=False, blank=False, default='P', choices=SIGNED_FORM_STATUSES)
 
+
 class Team(models.Model):
     """
     This model describes a team of participants that are competing in a data challenge.
     """
-    team_leader = models.OneToOneField(User)
+
+    team_leader = models.ForeignKey(User)
     data_project = models.ForeignKey(DataProject)
     status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
+
+    class Meta:
+        unique_together = ('team_leader', 'data_project',)
 
     def get_count_of_submissions_made(self):
         """
@@ -169,8 +208,9 @@ class Team(models.Model):
     def __str__(self):
         return '%s' % self.team_leader.email
 
+
 class Participant(models.Model):
-    user = models.OneToOneField(User)
+    user = models.ForeignKey(User)
     data_challenge = models.ForeignKey(DataProject)
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE)
     team_wait_on_leader_email = models.CharField(max_length=100, blank=True, null=True)
@@ -269,7 +309,6 @@ class ParticipantSubmission(models.Model):
 
 class ParticipantProject(models.Model):
     name = models.CharField(max_length=20)
-    funding_status = models.CharField(max_length=250)
 
     class Meta:
         abstract = True

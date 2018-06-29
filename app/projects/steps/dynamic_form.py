@@ -1,29 +1,14 @@
-from abc import ABC, abstractmethod
 from projects.models import SignedAgreementForm
 from projects.models import AGREEMENT_FORM_TYPE_STATIC
+from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK
 
 from projects.forms.payerdb import AccessRequestForm
 
 from projects.models import AgreementForm
 from projects.models import DataProject
-from projects.models import PayerDBForm
 
-from datetime import datetime
-
-class ProjectStep:
-
-    template = None
-    status = None
-    agreement_form = None
-    return_url = None
-    model_name = None
-
-    def __init__(self, title, project):
-        self.title = title
-        self.project = project
-
-    def __str__(self):
-        return "title : %s project : %s" % (self.title, self.project)
+from .project_step import ProjectStep
+from .project_step import ProjectStepInitializer
 
 
 def save_dynamic_form(agreement_form_id, project_key, model_name, posted_form, user, agreement_text):
@@ -48,22 +33,23 @@ def agreement_form_factory(form_name, form_input=None):
     return None
 
 
-class ProjectStepInitializer(ABC):
-
-    @abstractmethod
-    def update_context(self):
-        pass
-
-
 class SignAgreementFormsStepInitializer(ProjectStepInitializer):
     @staticmethod
-    def get_step_status(current_step, step_name, step_complete):
+    def get_step_status(current_step, step_name, form_type, step_complete):
         """
         Returns the status this step should have. If the given step is incomplete and we do not
         already have a current_step in context, then this step is the current step and update
         context to note this. If this step is incomplete but another step has already been deemed
-        the current step, then this is a future step.
+        the current step, then this is a future step. Permanent steps are ones that should always
+        be displayed as long as all prior steps are complete.
         """
+
+        # Once all prior steps are complete, display external forms permanently
+        if form_type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
+            if current_step is None:
+                return current_step, 'permanent_step'
+            else:
+                return current_step, 'future_step'
 
         if step_complete:
             return current_step, 'completed_step'
@@ -80,6 +66,7 @@ class SignAgreementFormsStepInitializer(ProjectStepInitializer):
 
         # Each form will be a separate step.
         for form in agreement_forms:
+
             # Only include Pending or Approved forms when searching.
             signed_forms = SignedAgreementForm.objects.filter(
                 user=user,
@@ -89,7 +76,7 @@ class SignAgreementFormsStepInitializer(ProjectStepInitializer):
             )
 
             complete = signed_forms.count() > 0
-            current_step, status = self.get_step_status(current_step, form.short_name, complete)
+            current_step, status = self.get_step_status(current_step, form.short_name, form.type, complete)
 
             step = ProjectStep(title='Form: {name}'.format(name=form.name),
                                project=project)
@@ -98,6 +85,8 @@ class SignAgreementFormsStepInitializer(ProjectStepInitializer):
 
             if not form.type or form.type == AGREEMENT_FORM_TYPE_STATIC:
                 step.template = 'project_signup/sign_agreement_form.html'
+            elif form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
+                step.template = 'project_signup/external_agreement_form.html'
             else:
                 step.template = 'project_signup/dynamic_agreement_form.html'
                 step.form = agreement_form_factory(form.form_file_path)
@@ -109,4 +98,3 @@ class SignAgreementFormsStepInitializer(ProjectStepInitializer):
             steps.append(step)
 
         return current_step, steps
-

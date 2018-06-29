@@ -48,16 +48,17 @@ def download_dataset(request):
 
     logger.debug("[views_files][download_dataset] - Attempting file download.")
 
+    file_id = request.GET.get("file_id")
+    file_to_download = get_object_or_404(HostedFile, id=file_id)
+    project_key = file_to_download.project.project_key
+
     # Check Permissions in SciAuthZ
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
 
-    if not sciauthz.user_has_single_permission("n2c2-t1", "VIEW"):
+    if not sciauthz.user_has_single_permission(project_key, "VIEW"):
         logger.debug("[views_files][download_dataset] - No Access for user " + request.user.email)
         return HttpResponse("You do not have access to download this file.", status=403)
-
-    file_id = request.GET.get("file_id")
-    file_to_download = get_object_or_404(HostedFile, id=file_id)
 
     # Save a record of this person downloading this file
     HostedFileDownload.objects.create(user=request.user, hosted_file=file_to_download)
@@ -206,20 +207,21 @@ def upload_participantsubmission_file(request):
     if request.method == 'POST':
         logger.debug('post')
 
+        # Assembles the form and runs validation.
+        filename = request.POST.get('filename')
+        project = request.POST.get('project')
+
+        if not filename or not project:
+            logger.error('No filename or no project!')
+            return HttpResponse('Filename and project are required', status=400)
+
         # Check that user has permissions to be submitting files for this project.
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
 
-        if not sciauthz.user_has_single_permission("n2c2-t1", "VIEW"):
+        if not sciauthz.user_has_single_permission(project, "VIEW"):
             logger.debug("[views_files][upload_participantsubmission_file] - No Access for user " + request.user.email)
             return HttpResponse("You do not have access to upload this file.", status=403)
-
-        # Assembles the form and runs validation.
-        filename = request.POST.get('filename')
-        project = request.POST.get('project')
-        if not filename or not project:
-            logger.error('No filename or no project!')
-            return HttpResponse('Filename and project are required', status=400)
 
         if filename.split(".")[-1] != "zip":
             logger.error('Not a zip file.')
@@ -338,18 +340,18 @@ def delete_participantsubmission(request):
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
 
-        if not sciauthz.user_has_single_permission("n2c2-t1", "VIEW"):
-            logger.debug(
-                "[views_files][delete_participantsubmission] - No Access for user %s",
-                request.user.email
-            )
-            return HttpResponse("You do not have access to delete this file.", status=403)
-
         submission_uuid = request.POST.get('submission_uuid')
         submission = ParticipantSubmission.objects.get(uuid=submission_uuid)
 
         project = submission.participant.data_challenge
         team = submission.participant.team
+
+        if not sciauthz.user_has_single_permission(project.project_key, "VIEW"):
+            logger.debug(
+                "[views_files][delete_participantsubmission] - No Access for user %s",
+                request.user.email
+            )
+            return HttpResponse("You do not have access to delete this file.", status=403)
 
         logger.debug(
             '[views_files][delete_participantsubmission] - %s is trying to delete submission %s',
