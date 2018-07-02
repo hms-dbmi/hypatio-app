@@ -28,11 +28,12 @@
             type : "POST",
             data: data,
             success : function(json) {
+                // Reload the page so that the next step becomes visible
+                location.reload();
             },
             error : function(xhr,errmsg,err) {
                 notify('danger', 'Failed to record this action.', 'exclamation-sign');
             }
         });
-
 });
 </script>
