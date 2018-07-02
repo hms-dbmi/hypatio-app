@@ -44,15 +44,12 @@ class SignAgreementFormsStepInitializer(ProjectStepInitializer):
         be displayed as long as all prior steps are complete.
         """
 
-        # Once all prior steps are complete, display external forms permanently
-        if form_type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
-            if current_step is None:
+        if step_complete:
+            # Continue to display externally linked forms even after a user has clicked them once
+            if form_type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
                 return current_step, 'permanent_step'
             else:
-                return current_step, 'future_step'
-
-        if step_complete:
-            return current_step, 'completed_step'
+                return current_step, 'completed_step'
         elif current_step is None:
             return step_name, 'current_step'
         else:
