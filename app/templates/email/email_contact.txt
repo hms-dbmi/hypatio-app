@@ -1,4 +1,6 @@
 Name: {{ from_name }}
 Email: {{ from_email }}
+Project: {{ project }}
+
 Comment:
 {{ message }}
