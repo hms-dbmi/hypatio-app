@@ -1,17 +1,19 @@
 import logging
 
-from django.conf import settings
-from django.shortcuts import render
 from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
 
-from .forms import ContactForm
+from contact.forms import ContactForm
+
+from projects.models import DataProject
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
+from django.conf import settings
 from django.contrib import messages
-
-from django.template.loader import render_to_string
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import EmailMultiAlternatives
+from django.shortcuts import render
+from django.template.loader import render_to_string
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -33,13 +35,23 @@ def contact_form(request):
                 'from_email': form.cleaned_data['email'],
                 'from_name': form.cleaned_data['name'],
                 'message': form.cleaned_data['message'],
+                'project': form.cleaned_data['project']
             }
 
-            # List out the recipients.
-            recipients = settings.CONTACT_FORM_RECIPIENTS.split(',')
+            # If the message is related to a project, set the recipient to the project supervisor
+            try:
+                project = DataProject.objects.get(project_key=form.cleaned_data['project'])
+
+                if project.project_supervisor != '':
+                    recipients = [project.project_supervisor]
+                else:
+                    recipients = settings.CONTACT_FORM_RECIPIENTS.split(',')
+
+            except ObjectDoesNotExist:
+                recipients = settings.CONTACT_FORM_RECIPIENTS.split(',')
 
             # Send it out.
-            success = email_send(subject='DBMI Portal - Contact Form Inquiry',
+            success = email_send(subject='DBMI Portal - Contact Inquiry Received',
                                  recipients=recipients,
                                  email_template='email_contact',
                                  extra=context)
