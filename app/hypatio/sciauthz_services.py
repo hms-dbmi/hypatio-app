@@ -83,13 +83,24 @@ class SciAuthZ:
 
         return user_access_request
 
-    def create_profile_permission(self, grantee_email):
+    def create_profile_permission(self, grantee_email, project):
         logger.debug('[HYPATIO][create_profile_permission] - Creating Profile Permissions')
 
         modified_headers = self.JWT_HEADERS
         modified_headers['Content-Type'] = 'application/x-www-form-urlencoded'
 
-        profile_permission = requests.post(self.CREATE_PROFILE_PERMISSION, headers=modified_headers, data={"grantee_email": grantee_email}, verify=settings.VERIFY_REQUESTS)
+        data = {
+            "grantee_email": grantee_email,
+            "item": 'Hypatio.' + project
+        }
+
+        profile_permission = requests.post(
+            self.CREATE_PROFILE_PERMISSION,
+            headers=modified_headers,
+            data=data,
+            verify=settings.VERIFY_REQUESTS
+        )
+
         return profile_permission
 
     def create_view_permission(self, project, grantee_email):

@@ -379,7 +379,7 @@ def join_team(request):
 
     # Create record to allow leader access to profile.
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
-    sciauthz.create_profile_permission(team_leader)
+    sciauthz.create_profile_permission(team_leader, project_key)
 
     return redirect('/projects/' + request.POST.get('project_key') + '/')
 
