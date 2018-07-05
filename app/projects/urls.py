@@ -4,16 +4,18 @@ from .views import list_data_projects
 from .views import list_data_challenges
 from .views import request_access
 from .views import submit_user_permission_request
-from .views_manage import manage_contest
-from .views_manage import manage_project
-from .views_manage import manage_project_team
 from .views import signed_agreement_form
 from .views import save_signed_agreement_form
 from .views import save_dynamic_signed_agreement_form
 from .views import save_signed_external_agreement_form
 from .views import signout
-from .views_manage import manage_team
 from .views import DataProjectView
+
+from .views_manage import manage_team
+from .views_manage import manage_contest
+from .views_manage import manage_project
+from .views_manage import manage_project_team
+from .views_manage import download_email_list_of_ready_participants
 
 from .views_teams import join_team
 from .views_teams import leave_team
@@ -62,5 +64,6 @@ urlpatterns = (
     url(r'^upload_participantsubmission_file/$', upload_participantsubmission_file),
     url(r'^download_team_submissions/$', download_team_submissions),
     url(r'^delete_participantsubmission/$', delete_participantsubmission),
+    url(r'^download_email_list_of_ready_participants/$', download_email_list_of_ready_participants),
     url(r'^(?P<project_key>[^/]+)/$', DataProjectView.as_view()),
 )
