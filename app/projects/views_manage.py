@@ -1,9 +1,10 @@
 import logging
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.shortcuts import render
-from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 
@@ -229,6 +230,43 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
                                                    "uploads": uploads})
 
 
+@user_auth_and_jwt
+def download_email_list_of_ready_participants(request):
+    """
+    Downloads a text file containing the email addresses of all participants on teams
+    marked as ready to activate.
+    """
+
+    logger.debug("[views_manage][get_all_participant_emails] - Attempting file download.")
+
+    project_key = request.GET.get("project")
+    project = get_object_or_404(DataProject, project_key=project_key)
+
+    # Check Permissions in SciAuthZ
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    is_manager = sciauthz.user_has_manage_permission(project_key)
+
+    if not is_manager:
+        logger.debug("[views_manage][get_all_participant_emails] - No Access for user " + request.user.email)
+        return HttpResponse("You do not have access to download this file.", status=403)
+
+    # Find all the participans on teams marked Ready to Activate
+    ready_teams = Team.objects.filter(data_project=project, status='Ready')
+    ready_participants = Participant.objects.filter(team__in=ready_teams)
+
+    # Build a string that will be the contents of the file
+    file_contents = ""
+    for participant in ready_participants:
+        file_contents += participant.user.email + "\n"
+
+    response = HttpResponse(file_contents, content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="%s"' % 'pending_participants.txt'
+
+    return response
+
+
+# TODO REFACTOR INTO CLASS BASED VIEW
 @user_auth_and_jwt
 def manage_contest(request, project_key, template_name='datacontests/managecontests.html'):
     project = DataProject.objects.get(project_key=project_key)
