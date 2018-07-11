@@ -158,7 +158,11 @@ def signed_agreement_form(request):
 
     project = get_object_or_404(DataProject, project_key=project_key)
     signed_form = get_object_or_404(SignedAgreementForm, id=signed_agreement_form_id, project=project)
-    participant = Participant.objects.get(data_challenge=project, user=signed_form.user)
+
+    try:
+        participant = Participant.objects.get(data_challenge=project, user=signed_form.user)
+    except ObjectDoesNotExist:
+        participant = None
 
     if is_manager or signed_form.user == request.user:
 
