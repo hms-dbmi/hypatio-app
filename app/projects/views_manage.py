@@ -304,8 +304,15 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
 
         # For each of the available agreement forms for this project, display only latest version completed by the user
         for agreement_form in project.agreement_forms.all():
-            signed_agreement_forms.append(SignedAgreementForm.objects.filter(user__email=email, project=project,
-                                                                             agreement_form=agreement_form).last())
+
+            signed_form = SignedAgreementForm.objects.filter(
+                user__email=email,
+                project=project,
+                agreement_form=agreement_form
+            ).last()
+
+            if signed_form:
+                signed_agreement_forms.append(signed_form)
 
         users_without_a_team_details.append({
             'email': email,
