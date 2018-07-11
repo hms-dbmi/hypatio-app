@@ -336,13 +336,13 @@ def join_team(request):
     team_leader = request.POST.get("team_leader")
 
     try:
-        participant = Participant.objects.get(user=request.user)
+        participant = Participant.objects.get(user=request.user, data_challenge=project)
     except ObjectDoesNotExist:
         participant = create_participant(request.user, project)
 
     try:
         # If this team leader has already created a team, add the person to the team in a pending status
-        team = Team.objects.get(team_leader__email__iexact=team_leader)
+        team = Team.objects.get(team_leader__email__iexact=team_leader, data_project=project)
 
         # Only allow a new participant to join a team that is still in a pending or ready state
         if team.status in ['Pending', 'Ready']:
