@@ -79,11 +79,16 @@ def change_signed_form_status(request):
                                    email_template='email_signed_form_rejection_notification',
                                    extra=context)
 
-        participant = Participant.objects.get(user=affected_user, data_challenge=signed_form.project)
-        team = participant.team
+        # If the user is a participant on a team, then the team status may need to be changed
+        try:
+            participant = Participant.objects.get(user=affected_user, data_challenge=signed_form.project)
+            team = participant.team
+        except ObjectDoesNotExist:
+            participant = None
+            team = None
 
         # If the team is in an Active status, move the team status down to Ready and remove everyone's VIEW permissions
-        if team.status == "Active":
+        if team is not None and team.status == "Active":
             team.status = "Ready"
             team.save()
 
