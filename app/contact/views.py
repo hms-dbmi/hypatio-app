@@ -42,7 +42,7 @@ def contact_form(request):
             try:
                 project = DataProject.objects.get(project_key=form.cleaned_data['project'])
 
-                if project.project_supervisors != '':
+                if project.project_supervisors != '' and project.project_supervisors is not None:
                     recipients = project.project_supervisors.split(',')
                 else:
                     recipients = settings.CONTACT_FORM_RECIPIENTS.split(',')
