@@ -119,6 +119,7 @@ class DataProject(models.Model):
     This represents a data project that users can access, along with its permissions and requirements.
     A DataProject can be simply a data set or it can be a data contest as recognized by the is_contest
     flag. The submission form file should be an html file that lives under static/submissionforms/.
+    Project_supervisors should be a comma delimited string of email addresses.
     """
 
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name of project", unique=False)
@@ -126,7 +127,7 @@ class DataProject(models.Model):
     institution = models.ForeignKey(Institution, blank=True, null=True, on_delete=models.PROTECT)
     description = models.TextField(blank=True, null=True, verbose_name="Description")
     short_description = models.CharField(max_length=255, blank=True, null=True, verbose_name="Short Description")
-    project_supervisor = models.CharField(max_length=255, blank=True, null=True, verbose_name="Project Supervisor")
+    project_supervisors = models.CharField(max_length=1024, blank=True, null=True, verbose_name="Project Supervisors (comma-delimited, no spaces)")
 
     visible = models.BooleanField(default=False, blank=False, null=False)
     permission_scheme = models.CharField(max_length=100, default="PRIVATE", verbose_name="Permission Scheme")
