@@ -49,7 +49,7 @@
             "project_key": "n2c2-t1",
             "permission_scheme": "PRIVATE",
             "agreement_forms": [1, 2],
-            "project_supervisor": "nathaniel_bessa@hms.harvard.edu",
+            "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": true,
             "visible": true,
             "submission_form_file_path": "submissionforms/n2c2-t1.html"
@@ -65,7 +65,7 @@
             "short_description": "Three Clinical Trials of Nutritional Supplements for Retinitis Pigmentosa",
             "project_key": "BERSON",
             "permission_scheme": "PRIVATE",
-            "project_supervisor": "nathaniel_bessa@hms.harvard.edu",
+            "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": false,
             "visible": true
         }
@@ -107,7 +107,7 @@
             "short_description": "A database of human exposomes and phenomes from the US National Health and Nutrition Examination Survey",
             "project_key": "NHANES",
             "permission_scheme": "PUBLIC",
-            "project_supervisor": "nathaniel_bessa@hms.harvard.edu",
+            "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": false,
             "visible": true
         }
@@ -122,7 +122,7 @@
             "short_description": "NIH/NCATS Global Rare Diseases Patient Registry i2b2/tranSMART Data Repository",
             "project_key": "GRDR",
             "permission_scheme": "PUBLIC",
-            "project_supervisor": "nathaniel_bessa@hms.harvard.edu",
+            "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": false,
             "visible": true
         }
@@ -137,7 +137,7 @@
             "short_description": "Simons Simplex Collection",
             "project_key": "SSC",
             "permission_scheme": "PUBLIC",
-            "project_supervisor": "nathaniel_bessa@hms.harvard.edu",
+            "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": false,
             "visible": true
         }
@@ -152,7 +152,7 @@
             "short_description": "Exposome Data Warehouse",
             "project_key": "EDW",
             "permission_scheme": "PUBLIC",
-            "project_supervisor": "michael_mcduffie@hms.harvard.edu",
+            "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": false,
             "visible": true
         }
@@ -167,7 +167,7 @@
             "short_description": "Payer Database",
             "project_key": "PAYERDB",
             "permission_scheme": "PUBLIC",
-            "project_supervisor": "michael_mcduffie@hms.harvard.edu",
+            "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
             "is_contest": false,
             "visible": true
         }
