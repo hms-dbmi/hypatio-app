@@ -13,6 +13,7 @@ from hypatio.sciauthz_services import SciAuthZ
 from .models import DataProject
 from .models import Team
 from .models import TeamComment
+from .models import AgreementForm
 from .models import SignedAgreementForm
 from .models import HostedFile
 from .models import HostedFileDownload
@@ -231,13 +232,14 @@ def manage_team(request, project_key, team_leader, template_name='datacontests/m
 
 
 @user_auth_and_jwt
-def download_email_list_of_ready_participants(request):
+def download_email_list(request):
     """
-    Downloads a text file containing the email addresses of all participants on teams
-    marked as ready to activate.
+    Downloads a text file containing the email addresses of participants of a given project
+    with filters accepted as GET parameters. Accepted filters include: team, team status,
+    agreement form ID, and agreement form status.
     """
 
-    logger.debug("[views_manage][get_all_participant_emails] - Attempting file download.")
+    logger.debug("[views_manage][download_email_list] - Attempting file download.")
 
     project_key = request.GET.get("project")
     project = get_object_or_404(DataProject, project_key=project_key)
@@ -248,17 +250,55 @@ def download_email_list_of_ready_participants(request):
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
-        logger.debug("[views_manage][get_all_participant_emails] - No Access for user " + request.user.email)
+        logger.debug("[views_manage][download_email_list] - No Access for user " + request.user.email)
         return HttpResponse("You do not have access to download this file.", status=403)
 
-    # Find all the participans on teams marked Ready to Activate
-    ready_teams = Team.objects.filter(data_project=project, status='Ready')
-    ready_participants = Participant.objects.filter(team__in=ready_teams)
+    # Filters used to determine the list of participants
+    filter_team = request.GET.get("team-id", None)
+    filter_team_status = request.GET.get("team-status", None)
+    filter_signed_agreement_form = request.GET.get("agreement-form-id", None)
+    filter_signed_agreement_form_status = request.GET.get("agreement-form-status", None)
+
+    # Apply filters that narrow the scope of teams
+    teams = Team.objects.filter(data_project=project)
+
+    if filter_team:
+        teams = teams.filter(id=filter_team)
+    if filter_team_status:
+        teams = teams.filter(status=filter_team_status)
+
+    # Apply filters that narrow the list of participants
+    participants = Participant.objects.filter(team__in=teams)
+
+    if filter_signed_agreement_form:
+        agreement_form = AgreementForm.objects.get(id=filter_signed_agreement_form)
+
+        # Find all signed instances of this form
+        signed_forms = SignedAgreementForm.objects.filter(agreement_form=agreement_form)
+        if filter_signed_agreement_form_status:
+            signed_forms = signed_forms.filter(status=filter_signed_agreement_form_status)
+
+        # Narrow down the participant list with just those who have these signed forms
+        signed_forms_users = signed_forms.values_list('user', flat=True)
+        participants = participants.filter(user__in=signed_forms_users)
 
     # Build a string that will be the contents of the file
     file_contents = ""
-    for participant in ready_participants:
-        file_contents += participant.user.email + "\n"
+    for participant in participants:
+
+        # TODO MIGHT NEED TO MAKE A SCIREG METHOD TO PASS ALL EMAILS AT ONCE
+        # OTHERWISE SCIREG IS MAKING INDIVIDUAL CALLS TO SCIAUTHZ FOR EACH.
+
+        # Get the person's first and last name
+        try:
+            profile = get_user_profile(user_jwt, participant.user.email, project_key)
+            first_name = profile["results"][0]['first_name']
+            last_name = profile["results"][0]['last_name']
+        except (KeyError, IndexError):
+            first_name = ""
+            last_name = ""
+
+        file_contents += participant.user.email + " " + first_name + " " + last_name +  "\n"
 
     response = HttpResponse(file_contents, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename="%s"' % 'pending_participants.txt'
