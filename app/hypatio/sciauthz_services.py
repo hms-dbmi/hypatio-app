@@ -140,18 +140,15 @@ class SciAuthZ:
             user_permissions = requests.get(f.url, headers=self.JWT_HEADERS, verify=settings.VERIFY_REQUESTS).json()
         except JSONDecodeError:
             logger.debug("[SCIAUTHZ][user_has_single_permission] - No Valid permissions returned.")
-            user_permissions = {"count": 0}
+            return False
 
-        if user_permissions["count"] > 0:
-
+        if user_permissions is not None and 'results' in user_permissions:
             # A user may have multiple permissions, check if one of them is the one we're looking for
             for permission in user_permissions["results"]:
                 if permission["permission"] == value:
                     return True
 
-            return False
-        else:
-            return False
+        return False
 
     def user_has_any_manage_permissions(self):
         """
