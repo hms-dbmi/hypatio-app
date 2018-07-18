@@ -15,7 +15,7 @@ from .views_manage import manage_team
 from .views_manage import manage_contest
 from .views_manage import manage_project
 from .views_manage import manage_project_team
-from .views_manage import download_email_list_of_ready_participants
+from .views_manage import download_email_list
 
 from .views_teams import join_team
 from .views_teams import leave_team
@@ -64,6 +64,6 @@ urlpatterns = (
     url(r'^upload_participantsubmission_file/$', upload_participantsubmission_file),
     url(r'^download_team_submissions/$', download_team_submissions),
     url(r'^delete_participantsubmission/$', delete_participantsubmission),
-    url(r'^download_email_list_of_ready_participants/$', download_email_list_of_ready_participants),
+    url(r'^download_email_list/$', download_email_list),
     url(r'^(?P<project_key>[^/]+)/$', DataProjectView.as_view()),
 )
