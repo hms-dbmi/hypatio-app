@@ -318,12 +318,21 @@ def reject_team_join(request):
 
 @user_auth_and_jwt
 def leave_team(request):
-    project_key = request.POST.get("project_key")
-    project = DataProject.objects.get(project_key=project_key)
+    """
+    Removes the participant from whatever team they are currently on or have requested to be on.
+    """
 
-    team_leader = request.POST.get("team_leader")
+    project_key = request.POST.get("project_key", "")
 
-    participant = Participant.objects.get(user=request.user)
+    logger.debug("[HYPATIO][leave_team] User " + request.user.email + " trying to leave their current team for project " + project_key + ".")
+
+    try:
+        project = DataProject.objects.get(project_key=project_key)
+    except ObjectDoesNotExist:
+        logger.error("[HYPATIO][leave_team] DataProject not found for given project_key: " + project_key)
+        return HttpResponse(500)
+
+    participant = Participant.objects.get(user=request.user, data_challenge=project)
     participant.team = None
     participant.pending = False
     participant.approved = False
