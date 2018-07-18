@@ -289,14 +289,16 @@ def download_email_list(request):
         # TODO MIGHT NEED TO MAKE A SCIREG METHOD TO PASS ALL EMAILS AT ONCE
         # OTHERWISE SCIREG IS MAKING INDIVIDUAL CALLS TO SCIAUTHZ FOR EACH.
 
+        first_name = ""
+        last_name = ""
+
         # Get the person's first and last name
-        try:
-            profile = get_user_profile(user_jwt, participant.user.email, project_key)
-            first_name = profile["results"][0]['first_name']
-            last_name = profile["results"][0]['last_name']
-        except (KeyError, IndexError):
-            first_name = ""
-            last_name = ""
+        # try:
+        #     profile = get_user_profile(user_jwt, participant.user.email, project_key)
+        #     first_name = profile["results"][0]['first_name']
+        #     last_name = profile["results"][0]['last_name']
+        # except (KeyError, IndexError):
+        #     pass
 
         file_contents += participant.user.email + " " + first_name + " " + last_name +  "\n"
 
