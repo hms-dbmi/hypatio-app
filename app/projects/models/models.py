@@ -16,18 +16,27 @@ DATA_LOCATION_TYPE = (
 )
 
 
+TEAM_PENDING = 'Pending'
+TEAM_READY = 'Ready'
+TEAM_ACTIVE = 'Active'
+TEAM_DEACTIVATED = 'Deactivated'
+
 TEAM_STATUS = (
-    ('Pending', 'Pending'),
-    ('Ready', 'Ready to be activated'),
-    ('Active', 'Activated'),
-    ('Deactivated', 'Deactivated')
+    (TEAM_PENDING, 'Pending'),
+    (TEAM_READY, 'Ready to be activated'),
+    (TEAM_ACTIVE, 'Activated'),
+    (TEAM_DEACTIVATED, 'Deactivated')
 )
 
 
+SIGNED_FORM_PENDING_APPROVAL = 'P'
+SIGNED_FORM_APPROVED = 'A'
+SIGNED_FORM_REJECTED = 'R'
+
 SIGNED_FORM_STATUSES = (
-    ('P', 'Pending Approval'),
-    ('A', 'Approved'),
-    ('R', 'Rejected'),
+    (SIGNED_FORM_PENDING_APPROVAL, 'Pending Approval'),
+    (SIGNED_FORM_APPROVED, 'Approved'),
+    (SIGNED_FORM_REJECTED, 'Rejected'),
 )
 
 AGREEMENT_FORM_TYPE_STATIC = 'STATIC'
