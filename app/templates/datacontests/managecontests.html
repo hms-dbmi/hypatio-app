@@ -136,16 +136,17 @@
 
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Downloads</h2>
+                <h2 class="panel-title">Reports</h2>
             </div>
             <div class="panel-body">
-            {% for form in project.agreement_forms.all %}
-                {% if form.type == "EXTERNAL_LINK" %}
-                    <a href="/download_email_list/?project={{ project.project_key }}&team-status=Ready&agreement-form-id={{ form.id }}&agreement-form-status=P" class="btn btn-sm btn-primary btn-block" download>
-                        {{ form.name }} Forms to Approve
-                    </a>
-                {% endif %}
-            {% endfor %}
+                <p><i>Please only click once and wait for the download to complete. This may take a few moments.</i></p>
+                {% for form in project.agreement_forms.all %}
+                    {% if form.type == "EXTERNAL_LINK" %}
+                        <p><a href="/download_email_list/?project={{ project.project_key }}&team-status=Ready&agreement-form-id={{ form.id }}&agreement-form-status=P" class="btn btn-sm btn-primary btn-block" download>
+                            {{ form.name }} Forms to Approve
+                        </a></p>
+                    {% endif %}
+                {% endfor %}
             </div>
     </div>
 </div>
