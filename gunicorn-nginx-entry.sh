@@ -20,6 +20,8 @@ EMAIL_HOST_USER=$(aws ssm get-parameters --names $PS_PATH.email_host_user --with
 EMAIL_HOST_PASSWORD=$(aws ssm get-parameters --names $PS_PATH.email_host_password --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 EMAIL_PORT=$(aws ssm get-parameters --names $PS_PATH.email_port --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 
+RAVEN_URL=$(aws ssm get-parameters --names $PS_PATH.raven_url --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
+
 export COOKIE_DOMAIN
 export SITE_URL=$SITE_URL
 export ALLOWED_HOSTS=$ALLOWED_HOSTS
@@ -39,6 +41,8 @@ export EMAIL_HOST
 export EMAIL_HOST_USER
 export EMAIL_HOST_PASSWORD
 export EMAIL_PORT
+
+export RAVEN_URL
 
 ACCOUNT_SERVER_URL=$(aws ssm get-parameters --names $PS_PATH.authentication_login_url --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
 SCIREG_SERVER_URL=$(aws ssm get-parameters --names $PS_PATH.register_user_url --with-decryption --region us-east-1 | jq -r '.Parameters[].Value')
