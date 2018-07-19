@@ -235,6 +235,11 @@ FILESERVICE_SERVICE_TOKEN = os.environ.get('FILESERVICE_SERVICE_TOKEN')
 LOGGING = {
     'version': 1,
     'handlers': {
+        'sentry': {
+            'level': 'ERROR', # To capture more than ERROR, change to WARNING, INFO, etc.
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+            'tags': {'service': 'HYPATIO'},
+        },
         'console': {
             'class': 'logging.StreamHandler',
             'stream': sys.stdout,
@@ -259,6 +264,16 @@ LOGGING = {
             'handlers': ['console', 'file_error'],
             'level': 'ERROR',
             'propagate': True,
+        },
+        'raven': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'sentry.errors': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+            'propagate': False,
         },
     },
 }
