@@ -61,12 +61,12 @@ def get_current_user_profile(user_jwt):
     return profile
 
 
-def get_user_profile(user_jwt, email_of_profile, project):
+def get_user_profile(user_jwt, email_of_profile, project_key):
 
     f = furl(settings.SCIREG_REGISTRATION_URL)
 
     f.args["email"] = email_of_profile
-    f.args["project"] = 'Hypatio.' + project
+    f.args["project"] = 'Hypatio.' + project_key
 
     try:
         profile = requests.get(f.url, headers=build_headers_with_jwt(user_jwt)).json()
@@ -76,7 +76,7 @@ def get_user_profile(user_jwt, email_of_profile, project):
     return profile
 
 
-def get_distinct_countries_participating(user_jwt, participants, project):
+def get_distinct_countries_participating(user_jwt, participants, project_key):
     """
     Takes a QuerySet of participants' emails and returns a dictionary
     containing the unique countries of these participants and a count for each.
@@ -90,7 +90,7 @@ def get_distinct_countries_participating(user_jwt, participants, project):
 
     data = {
         'emails': emails_list_string,
-        'project': 'Hypatio.' + project,
+        'project': 'Hypatio.' + project_key,
     }
 
     try:
@@ -100,3 +100,29 @@ def get_distinct_countries_participating(user_jwt, participants, project):
         return None
 
     return countries
+
+
+def get_names(user_jwt, participants, project_key):
+    """
+    Takes a QuerySet of participants' emails and returns a dictionary
+    containing the first and last names of each participant.
+    """
+
+    url = settings.SCIREG_REGISTRATION_URL + 'get_names/'
+
+    # From a QuerySet of participants, get a list of their emails
+    emails = list(participants.values_list('user__email', flat=True))
+    emails_list_string = ",".join(emails)
+
+    data = {
+        'emails': emails_list_string,
+        'project': 'Hypatio.' + project_key,
+    }
+
+    try:
+        names = requests.post(url, headers=build_headers_with_jwt(user_jwt), data=json.dumps(data)).json()
+    except Exception:
+        logger.error('Failed to get names of participants from SciReg.')
+        return None
+
+    return names

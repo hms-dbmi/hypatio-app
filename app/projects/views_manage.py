@@ -1,4 +1,5 @@
 import logging
+import json
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -22,6 +23,7 @@ from .models import ParticipantSubmission
 
 from hypatio.scireg_services import get_distinct_countries_participating
 from hypatio.scireg_services import get_user_profile
+from hypatio.scireg_services import get_names
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -282,23 +284,23 @@ def download_email_list(request):
         signed_forms_users = signed_forms.values_list('user', flat=True)
         participants = participants.filter(user__in=signed_forms_users)
 
+    # Query SciReg to get a dictionary of first and last names for each participant
+    names = json.loads(get_names(user_jwt, participants, project_key))
+
     # Build a string that will be the contents of the file
     file_contents = ""
     for participant in participants:
 
-        # TODO MIGHT NEED TO MAKE A SCIREG METHOD TO PASS ALL EMAILS AT ONCE
-        # OTHERWISE SCIREG IS MAKING INDIVIDUAL CALLS TO SCIAUTHZ FOR EACH.
-
         first_name = ""
         last_name = ""
 
-        # Get the person's first and last name
-        # try:
-        #     profile = get_user_profile(user_jwt, participant.user.email, project_key)
-        #     first_name = profile["results"][0]['first_name']
-        #     last_name = profile["results"][0]['last_name']
-        # except (KeyError, IndexError):
-        #     pass
+        # Look in our dictionary of names from SciReg for this participant
+        try:
+            name = names[participant.user.email]
+            first_name = name['first_name']
+            last_name = name['last_name']
+        except (KeyError, IndexError):
+            pass
 
         file_contents += participant.user.email + " " + first_name + " " + last_name +  "\n"
 
