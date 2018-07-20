@@ -11,7 +11,7 @@ furl==1.0.1
 mock==2.0.0
 mysqlclient==1.3.9
 Pillow==5.0.0
-py-auth0-jwt==0.2.14
+py-auth0-jwt==0.3.0
 py-auth0-jwt-rest==0.1.2
 python-pstore==0.8
 PyJWT==1.6.1
