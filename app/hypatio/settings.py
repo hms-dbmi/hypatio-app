@@ -235,6 +235,10 @@ FILESERVICE_SERVICE_TOKEN = os.environ.get('FILESERVICE_SERVICE_TOKEN')
 LOGGING = {
     'version': 1,
     'handlers': {
+        'sentry': {
+            'level': 'ERROR',
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+        },
         'console': {
             'class': 'logging.StreamHandler',
             'stream': sys.stdout,
@@ -260,6 +264,16 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'raven': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'sentry.errors': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+            'propagate': False,
+        },
     },
 }
 
@@ -268,6 +282,7 @@ RAVEN_CONFIG = {
     # If you are using git, you can also automatically configure the
     # release based on the git info.
     'release': '1',
+    'site': 'HYPATIO'
 }
 
 try:
