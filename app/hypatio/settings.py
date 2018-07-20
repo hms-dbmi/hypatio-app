@@ -236,9 +236,8 @@ LOGGING = {
     'version': 1,
     'handlers': {
         'sentry': {
-            'level': 'ERROR', # To capture more than ERROR, change to WARNING, INFO, etc.
+            'level': 'ERROR',
             'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
-            'tags': {'service': 'HYPATIO'},
         },
         'console': {
             'class': 'logging.StreamHandler',
@@ -283,6 +282,7 @@ RAVEN_CONFIG = {
     # If you are using git, you can also automatically configure the
     # release based on the git info.
     'release': '1',
+    'name': 'HYPATIO'
 }
 
 try:
