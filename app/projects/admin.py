@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import DataProject
 from .models import AgreementForm
 from .models import SignedAgreementForm
@@ -14,6 +15,7 @@ from .models import PayerDBForm
 
 class DataprojectAdmin(admin.ModelAdmin):
     list_display = ('name', 'project_key', 'is_contest')
+    list_filter = ('is_contest', )
 
 class AgreementformAdmin(admin.ModelAdmin):
     list_display = ('name', 'short_name', 'type', 'form_file_path')
@@ -23,9 +25,13 @@ class SignedagreementformAdmin(admin.ModelAdmin):
 
 class TeamAdmin(admin.ModelAdmin):
     list_display = ('team_leader', 'data_project')
+    list_filter = ('data_project', )
+    search_fields = ('data_project__project_key', 'team_leader__email')
 
 class ParticipantAdmin(admin.ModelAdmin):
     list_display = ('user', 'data_challenge', 'team')
+    list_filter = ('data_challenge', )
+    search_fields = ('data_challenge__project_key', 'team__team_leader__email', 'user__email')
 
 class InstitutionAdmin(admin.ModelAdmin):
     list_display = ('name', 'logo_path')
@@ -35,12 +41,16 @@ class DataGateAdmin(admin.ModelAdmin):
 
 class HostedFileAdmin(admin.ModelAdmin):
     list_display = ('long_name', 'project', 'file_name', 'file_location_type', 'file_location')
+    list_filter = ('project', )
+    search_fields = ('project__project_key', 'file_name', )
 
 class HostedFileDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'hosted_file', 'download_date')
 
 class ParticipantSubmissionAdmin(admin.ModelAdmin):
     list_display = ('participant', 'upload_date', 'uuid', 'location', 'deleted')
+    list_filter = ('participant__data_challenge', )
+    search_fields = ('participant__data_challenge__project_key', 'participant__user__email', )
 
 class TeamSubmissionsDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'team', 'download_date')

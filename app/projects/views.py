@@ -309,8 +309,7 @@ def list_data_challenges(request, template_name='datacontests/list.html'):
 
     # Build the dictionary with all project and permission information needed
     for data_contest in all_data_contests:
-        logger.debug(data_contest.name)
-        
+
         # Package all the necessary information into one dictionary
         contest = {"name": data_contest.name,
                         "short_description": data_contest.short_description,
