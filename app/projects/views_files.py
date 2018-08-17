@@ -436,8 +436,7 @@ def delete_challengetasksubmission(request):
         context = {
             'deleted_by': deleted_by,
             'project': project.project_key,
-            'submission_uuid': submission_uuid,
-            # 'submissions_left': team.get_number_of_submissions_left()
+            'submission_uuid': submission_uuid
         }
 
         emails = [member.user.email for member in team.participant_set.all()]
