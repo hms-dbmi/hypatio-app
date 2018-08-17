@@ -29,6 +29,7 @@ from .models import DataProject
 
 from .models import Participant
 from .models import SignedAgreementForm
+from .models import ChallengeTaskSubmission
 from .models import AGREEMENT_FORM_TYPE_STATIC
 from .models import AGREEMENT_FORM_TYPE_DJANGO
 
@@ -469,20 +470,17 @@ class DataProjectView(TemplateView):
         context['left_panels'] = []
         context['right_panels'] = []
 
-        # Add a panel for displaying submitted solutions (if needed).
-        self.panel_submissions(context)
-
         # Add a panel for displaying team members (if needed).
         self.panel_team_members(context)
 
         # Add a panel for displaying your signed agreement forms (if needed).
         self.panel_signed_agreement_forms(context)
 
-        # Add a panel for a solution submission form (if needed).
-        self.panel_submit_solution(context)
-
         # Add a panel for available downloads.
         self.panel_available_downloads(context)
+
+        # Add a panel for a solution submission form (if needed).
+        self.panel_submit_task_solutions(context)
 
         # Set the template that should be rendered.
         self.template_name = 'project_participate/base.html'
@@ -701,34 +699,6 @@ class DataProjectView(TemplateView):
 
         context['steps'].append(step)
 
-    def panel_submissions(self, context):
-        """
-        Builds the context needed for a user to view submitted solutions associated
-        with them. If this Participant has no team, then they will only see their
-        submissions. If this Participant does have a team, they will see the team's
-        submissions. This is an optional panel depending on the DataProject.
-        """
-
-        # Do not include this panel if this project does not accept submissions.
-        if not self.project.accepting_user_submissions:
-            return
-
-        # Either get a team or individual's submissions
-        if self.participant.team is not None:
-            submissions = self.participant.team.get_submissions()
-        else:
-            submissions = self.participant.get_submissions()
-
-        # Describe the panel. Include here any variables that the template will need.
-        panel = {
-            'title': 'Solutions Submitted',
-            'template': 'project_participate/solutions_submitted.html',
-            'submissions': submissions
-        }
-
-        # Add the panel to the left column.
-        context['left_panels'].append(panel)
-
     def panel_team_members(self, context):
         """
         Builds the context needed for a user to see who is on their team. This is
@@ -776,22 +746,48 @@ class DataProjectView(TemplateView):
         # Add the panel to the left column.
         context['left_panels'].append(panel)
 
-    def panel_submit_solution(self, context):
+    def panel_submit_task_solutions(self, context):
         """
-        Builds the context needed for a user to submit a solution for a data
-        challenge. This is an optional step depending on the DataProject.
+        Builds the context needed for a user to submit solutions for a data
+        challenge's task. A data challenge may require more than one solution. This
+        is an optional step depending on the DataProject.
         """
 
-        # Do not include this panel if this project does not accept solutions.
-        if not self.project.accepting_user_submissions:
+        tasks = self.project.challengetask_set.all()
+
+        # Do not include this panel if this project does not have any tasks        
+        if tasks.count() == 0:
             return
+
+        task_details = []
+
+        for task in tasks:
+
+            # Get the submissions for this task already submitted by the team.
+            submissions = ChallengeTaskSubmission.objects.filter(
+                challenge_task=task,
+                participant__in=self.participant.team.participant_set.all(),
+                deleted=False
+            )
+
+            total_submissions = submissions.count()
+
+            task_context = {
+                'task': task,
+                'submissions': submissions,
+                'total_submissions': total_submissions,
+                'submissions_left': task.max_submissions - total_submissions
+            }
+
+            task_details.append(task_context)
 
         # Describe the panel. Include here any variables that the template will need.
         panel = {
-            'title': 'Submit Your Solution',
+            'title': 'Tasks to Complete',
             'template': 'project_participate/submit_solution.html',
             'team': self.participant.team,
-            'project': self.project
+            'project': self.project,
+            'task_details': task_details
         }
 
         # Add the panel to the right column.

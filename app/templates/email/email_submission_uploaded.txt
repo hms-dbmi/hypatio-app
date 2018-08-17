@@ -1,4 +1,6 @@
-Team member {{ submitter }} has submitted a solution on behalf of your team. Out of {{ max_submissions }} max submissions, your team has now made {{ submission_count }} submissions. 
+Team member {{ submitter }} has submitted a solution to task {{ task }} for project {{ challenge.name }} on behalf of your team. 
+
+Out of {{ max_submissions }} max submissions for this particular task, your team has now made {{ submission_count }} submissions. Your team may delete this or a previous submission and resubmit if you wish to. 
 
 Submission metadata:
 {{ submission_info }}

@@ -9,7 +9,8 @@ from .models import Institution
 from .models import DataGate
 from .models import HostedFile
 from .models import HostedFileDownload
-from .models import ParticipantSubmission
+from .models import ChallengeTask
+from .models import ChallengeTaskSubmission
 from .models import TeamSubmissionsDownload
 from .models import PayerDBForm
 
@@ -47,10 +48,13 @@ class HostedFileAdmin(admin.ModelAdmin):
 class HostedFileDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'hosted_file', 'download_date')
 
-class ParticipantSubmissionAdmin(admin.ModelAdmin):
-    list_display = ('participant', 'upload_date', 'uuid', 'location', 'deleted')
-    list_filter = ('participant__data_challenge', )
-    search_fields = ('participant__data_challenge__project_key', 'participant__user__email', )
+class ChallengeTaskAdmin(admin.ModelAdmin):
+    list_display = ('data_project', 'title', 'enabled', 'opened_time', 'closed_time')
+
+class ChallengeTaskSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('participant', 'challenge_task', 'upload_date', 'uuid')
+    list_filter = ('participant__data_challenge', 'challenge_task')
+    search_fields = ('participant__data_challenge__project_key', 'participant__user__email', 'challenge_task__title')
 
 class TeamSubmissionsDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'team', 'download_date')
@@ -68,6 +72,7 @@ admin.site.register(Institution, InstitutionAdmin)
 admin.site.register(DataGate, DataGateAdmin)
 admin.site.register(HostedFile, HostedFileAdmin)
 admin.site.register(HostedFileDownload, HostedFileDownloadAdmin)
-admin.site.register(ParticipantSubmission, ParticipantSubmissionAdmin)
+admin.site.register(ChallengeTask, ChallengeTaskAdmin)
+admin.site.register(ChallengeTaskSubmission, ChallengeTaskSubmissionAdmin)
 admin.site.register(TeamSubmissionsDownload, TeamSubmissionsDownloadAdmin)
 admin.site.register(PayerDBForm, PayerDBFormAdmin)

@@ -332,6 +332,13 @@ def leave_team(request):
         logger.error("[HYPATIO][leave_team] DataProject not found for given project_key: " + project_key)
         return HttpResponse(500)
 
+    # Remove VIEW permissions on the DataProject
+    # sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+    # sciauthz.remove_view_permission(project_key, request.user.email)
+
+    # TODO remove team leader's scireg permissions
+    # ...
+
     participant = Participant.objects.get(user=request.user, data_challenge=project)
     participant.team = None
     participant.pending = False
