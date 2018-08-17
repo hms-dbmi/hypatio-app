@@ -249,9 +249,9 @@
                         <p class="lead">{% block subtitle %}{% endblock %}</p>
                     </div>
                     <div class="col-md-6 hms-logo-nav hidden-xs hidden-sm">
-                        {% if institution %}
+                        {% if project.institution %}
                         <div class="col-md-6">
-                            <img src="{% static institution.logo_path %}">
+                            <img src="{% static project.institution.logo_path %}">
                         </div>
                         {% endif %}
                         <div class="col-md-offset-6">
