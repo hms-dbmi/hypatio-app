@@ -3,11 +3,11 @@
 {% for signed_form in panel.signed_forms %}
     <h4>{{ signed_form.agreement_form.name }}</h4>
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-9">
             Signed {{ signed_form.date_signed|timezone:"America/New_York" }} (EST)
         </div>
-        <div class="col-md-4">
-            <a class="btn btn-default btn-sm" href="/projects/signed_agreement_form/?signed_form_id={{ signed_form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">View</a>
+        <div class="col-md-3">
+            <a class="btn btn-default btn-sm pull-right" href="/projects/signed_agreement_form/?signed_form_id={{ signed_form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">View</a>
         </div>
     </div>
 {% endfor %}

@@ -1,39 +1,88 @@
 {% load projects_extras %}
+{% load tz %}
 
-{% if panel.team.get_number_of_submissions_left == 0 %}
-    Your team has used up all of its available submissions.
-{% else %}
+<div class="alert alert-info" role="alert">
+    Please use the form(s) below to submit an official solution on behalf of your team for a task. <strong>Only .zip files will be accepted.</strong> While any member of the team may submit a solution, each task has a limited number of submissions allowed. Teams may delete previous submissions and resubmit.
+</div>
 
-    <div class="alert alert-info" role="alert">
-        Please use the form below to submit an official solution on behalf of your team. <strong>For the file upload, only .zip files will be accepted.</strong> While any member of the team may submit a solution, the total submissions for a team is capped at 3. <strong>Your team has {{ panel.team.get_number_of_submissions_left }} submission(s) left</strong> before reaching that cap.
-    </div>
+{% for task_detail in panel.task_details %}
+<div class="well">
+    <h4>Task {{ forloop.counter }}: {{ task_detail.task.title }} <span class="label label-danger pull-right">{{ task_detail.submissions_left }} submissions left</span></h4>
+    <p>{{ task_detail.task.description }}</p>
 
-    <form id="participant-submission-form">           
-        {% if panel.project.submission_form_file_path %}
-            <div class="submission_form_contents">
-                {{ panel.project.submission_form_file_path|get_html_form_file_contents | safe }}
+    {% if task_detail.submissions_left == 0 %}
+        <p><i>Your team has used up all of its available submissions.</i></p>
+    {% else %}
+        <form class="participant-submission-form">    
+
+            {% if task_detail.task.submission_form_file_path %}
+                <div class="submission_form_contents">
+                    {{ task_detail.task.submission_form_file_path|get_html_form_file_contents | safe }}
+                </div>
+            {% endif %}
+                            
+            <div class="form-group">
+                <label class="btn btn-primary file-upload-browse">
+                    Click to select a zip file <input class="file-upload-file" name="file" type="file" style="display: none;" accept=".zip">
+                </label>
+
+                <input class="file-upload-filename" name="filename" type="text" hidden="true" />
+                <input class="file-upload-project" name="project_key" type="text" hidden="true" value="{{ panel.project.project_key }}" />
+                <input class="file-upload-project" name="task_id" type="text" hidden="true" value="{{ task_detail.task.id }}" />
+                <button type="submit" class="btn btn-danger file-upload-submit" style="display: none;"
+                data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> Uploading file..."></button>
             </div>
-        {% endif %}
-                        
-        <div class="form-group">
-            <label class="btn btn-default" id="file-upload-browse">
-                Click to select a zip file... <input id="file-upload-file" name="file" type="file" style="display: none;" accept=".zip">
-            </label>
+
+            {% csrf_token %}
+        </form>
+    {% endif %}
+
+    <hr>
+
+    <ul class="list-group">
+        <li class="list-group-item"><strong>Prior Submissions</strong></li>
+    {% for submission in task_detail.submissions %}
+        <li class="list-group-item">
+            <small>{{ submission.participant.user.email }} on {{ submission.upload_date|timezone:"America/New_York" }} (EST)</small>
+        
+            <button class="btn btn-default btn-xs pull-right view-submission-info" data-toggle="modal" data-target="#submission-info-modal" data-submission-uuid="{{ submission.uuid }}">View or Delete</button>
+
+            {# Hide the submission metadata json here #}
+            <div class="submission-info-details" style="display: none;">
+                {{ submission.submission_info }}
+            </div>
+        </li>
+    {% endfor %}
+    </ul>
+</div>
+{% endfor %}
+
+<!-- Modal -->
+<div class="modal fade" id="submission-info-modal" tabindex="-1" role="dialog" aria-labelledby="submission-info-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="submission-info-modal">Submission Info</h4>
+            </div>
+            <div class="modal-body">
+                <pre id="submission-info-display">
+                    ...
+                </pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-default" id="delete-submission">Delete Submission</button>
+                <button type="button" class="btn btn-danger" id="delete-submission-confirm" data-submission-uuid="" style="display: none;">Are you sure? Click to confirm and delete</button>
+                
+                <div class="model-error alert alert-danger text-center" style="display: none; margin-top: 10px;"></div>
+            </div>
         </div>
+    </div>
+</div>
 
-        <div class="form-group">                        
-            <input id="file-upload-filename" name="filename" type="text" hidden="true" />
-            <input id="file-upload-project" name="project" type="text" hidden="true" value="{{ panel.project.project_key }}" />
-            <button id="file-upload-submit" type="submit" class="btn btn-danger" style="display: none;"
-            data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> Uploading file..."></button>
-        </div>
 
-        {% csrf_token %}
-    </form>
-
-{% endif %}
-
-<!-- Handle upload/submission of a solution -->
+<!-- Handle upload and submission of a challenge task -->
 <script type="application/javascript">
 
     function objectifyForm( formArray ) {
@@ -47,22 +96,22 @@
     $(document).ready(function() {
 
         // Automatically update the filename field when a file is selected by the user.
-        $(document).on('change', '#file-upload-file', function () {
+        $(document).on('change', '.file-upload-file', function () {
             var input = $(this);
             var fileName = input.val().replace(/\\/g, '/').replace(/.*\//, '');
 
-            $('#file-upload-submit').text('Submit ' + fileName);
-            $('#file-upload-browse').hide();
-            $('#file-upload-submit').show();
+            $(this).parent().parent().find('.file-upload-submit').text('Submit ' + fileName);
+            $(this).parent().parent().find('.file-upload-browse').hide();
+            $(this).parent().parent().find('.file-upload-submit').show();
 
-            $('#file-upload-filename').val(fileName);
+            $(this).parent().parent().find('.file-upload-filename').val(fileName);
         });
 
         // Set the handler for the participant submission form.
-        $(document).on('submit', '#participant-submission-form', function (event) {
+        $(document).on('submit', '.participant-submission-form', function (event) {
 
             // Get the file.
-            var file = $("#participant-submission-form input[name=file]").prop('files')[0];
+            var file = $(this).find(".file-upload-file").prop('files')[0];
             if (file == null) {
                 error('A file has not been selected, please try again');
                 return false;
@@ -75,7 +124,7 @@
             }
 
             // Get the form data.
-            var form = objectifyForm($('#participant-submission-form').serializeArray());
+            var form = objectifyForm($(this).serializeArray());
 
             // Remove the file from the serialized form as it will not be needed yet.
             delete form['file'];
@@ -84,15 +133,15 @@
             form['content_type'] = file.content;
 
             // Disable the form and the buttons.
-            $("#file-upload-submit").button('loading');
+            $(this).find(".file-upload-submit").button('loading');
 
             $.ajax({
                 method: "POST",
                 data: form,
-                url: "/upload_participantsubmission_file/",
+                url: "/upload_challengetasksubmission_file/",
                 success: function (data, textStatus, jqXHR) {
                     console.log("submit.success: " + textStatus);
-                    upload(data["post"], data["file"], file, form);
+                    upload(data["post"], data["file"], file, form, $(this));
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.log("submit.error: " + errorThrown);
@@ -105,7 +154,7 @@
         });
 
         // Uploads the file to AWS S3.
-        function upload(post, fileRecord, file, submission_form) {
+        function upload(post, fileRecord, file, submission_form, form_element) {
             console.log('upload: ' + fileRecord["filename"]);
 
             // Construct the needed data using the policy for AWS
@@ -131,22 +180,16 @@
                         // Add a progress handler
                         var xhr = $.ajaxSettings.xhr();
                         xhr.upload.onprogress = progress;
-
-                        // Allow aborting the upload.
-                        $('#file-upload-close-button').click(function() {
-
-                            xhr.abort();
-                        });
                         return xhr;
                     },
                     success: function (data, textStatus, jqXHR) {
                         console.log('upload.success: ' + textStatus);
 
                         // Do not allow the upload to be cancelled at this point.
-                        $("#participant-submission-form :input").prop("disabled", true);
+                        // $("#participant-submission-form :input").prop("disabled", true);
 
                         // Inform the server that the upload completed.
-                        complete(fileRecord, submission_form);
+                        complete(fileRecord, submission_form, form_element);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log('upload.error: ' + errorThrown + ', ' + textStatus);
@@ -154,15 +197,15 @@
                         // Check if aborted.
                         if( !jqXHR.getAllResponseHeaders() ) {
                             // Cancelled notification.
-                            aborted();
+                            aborted(form_element);
                         } else {
-                            error('Something happened, please try again');
+                            error('Something happened, please try again', form_element);
                         }
                     }
                 });
         }
 
-        function complete(fileRecord, submission_form) {
+        function complete(fileRecord, submission_form, form_element) {
             console.log('complete: ' + fileRecord["filename"]);
             
             // Combine information about the fileservice metadata on the file with the 
@@ -173,12 +216,12 @@
             $.ajax({
                 method: "PATCH",
                 data: fileRecord,
-                url: "/upload_participantsubmission_file/",
+                url: "/upload_challengetasksubmission_file/",
                 success: function (data, textStatus, jqXHR) {
                     console.log("complete.success: " + textStatus);
 
                     // Notify.
-                    success();
+                    success(form_element);
 
                     // Refresh the page.
                     setTimeout(function(){
@@ -189,7 +232,7 @@
                     console.log("complete.error: " + errorThrown);
 
                     // Error with message.
-                    error('Something happened, please try again');
+                    error('Something happened, please try again', form_element);
                 }
             });
         }
@@ -202,22 +245,80 @@
             }
         }
 
-        function error(message) {
-            $('#file-upload-submit').text('File failed to upload');
+        function error(message, form_element) {
+            form_element.find('.file-upload-submit').text('File failed to upload');
             notify('danger', message, 'glyphicon glyphicon-remove');
         }
 
-        function aborted() {
-            $('#file-upload-submit').text('File uploaded canceled');
+        function aborted(form_element) {
+            form_element.find('.file-upload-submit').text('File uploaded canceled');
             notify('warning', 'The upload was cancelled', 'glyphicon glyphicon-warning-sign');
         }
 
-        function success() {
+        function success(form_element) {
             // Add a little delay
             setTimeout(function(){
-                $('#file-upload-submit').text('File uploaded successfully!');                
+                form_element.find('.file-upload-submit').text('File uploaded successfully!');                
                 notify('success', 'The upload has completed successfully! Refreshing page.', 'glyphicon glyphicon-ok');
             }, 500);
         }
+    });
+</script>
+
+<!-- Populate the submission info modal with data about the selected submission -->
+<script type="application/javascript">
+    $('.view-submission-info').on('click', function() {
+        var submission_uuid = $(this).data('submission-uuid');
+
+        // Grab the information from an adjacent div
+        var submission_info = $(this).next(".submission-info-details").text();
+        
+        // Parse the string into an actual json
+        var submission_info_json  = JSON.parse(submission_info);
+        var submission_info_json_prettyprint = JSON.stringify(submission_info_json, null, 4);
+
+        // Paste the json into the modal and pretty print it
+        $('#submission-info-display').html(submission_info_json_prettyprint);
+
+        // Update the submission-uuid data attribute
+        $('#delete-submission-confirm').attr('data-submission-uuid', submission_uuid);
+    });
+</script>
+
+<!-- When someone clicks the delete button, display the confirm button -->
+<script type="application/javascript">
+    $('#delete-submission').on('click', function() {
+        $('#delete-submission').hide();
+        $('#delete-submission-confirm').show();
+    });
+
+    $('#delete-submission-confirm').on('click', function() {
+        var submission_uuid = $(this).data('submission-uuid');
+
+        $.ajax({
+            method: "POST",
+            data: {"submission_uuid": submission_uuid},
+            url: "/delete_challengetasksubmission/",
+            success: function (data, textStatus, jqXHR) {
+                $('#delete-submission-confirm').removeClass('btn-danger');
+                $('#delete-submission-confirm').addClass('btn-success');
+                $('#delete-submission-confirm').text('Submission deleted. Refreshing page...');
+
+                // Refresh the page.
+                setTimeout(function(){
+                    window.location = window.location.pathname
+                }, 1500);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('#delete-submission-confirm').text(errorThrown);
+                $('.model-error').text(jqXHR.responseText + " Refreshing page...");
+                $('.model-error').show();
+
+                // Refresh the page.
+                setTimeout(function(){
+                    window.location = window.location.pathname
+                }, 5000);
+            }
+        });
     });
 </script>

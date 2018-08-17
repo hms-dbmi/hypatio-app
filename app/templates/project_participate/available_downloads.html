@@ -1,3 +1,7 @@
+{% if panel.project.hostedfile_set.all|length == 0 %}
+    No files are available for download at this time.
+{% endif %}
+
 {% for file in panel.project.hostedfile_set.all %}
     {% if file.enabled or user.is_superuser %}
         <h4>{{ file.long_name }}</h4>
