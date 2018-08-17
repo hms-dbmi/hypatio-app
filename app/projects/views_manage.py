@@ -19,7 +19,7 @@ from .models import SignedAgreementForm
 from .models import HostedFile
 from .models import HostedFileDownload
 from .models import Participant
-from .models import ParticipantSubmission
+from .models import ChallengeTaskSubmission
 
 from hypatio.scireg_services import get_distinct_countries_participating
 from hypatio.scireg_services import get_user_profile
@@ -145,7 +145,7 @@ def manage_project_team(request, project_key, team_leader, template_name='manage
 @user_auth_and_jwt
 def manage_team(request, project_key, team_leader, template_name='datacontests/manageteams.html'):
     """
-    Populates the team management modal popup on the contest management screen.
+    Populates the team management screen.
     """
 
     user = request.user
@@ -369,7 +369,7 @@ def manage_contest(request, project_key, template_name='datacontests/manageconte
 
     approved_participants = Participant.objects.filter(team__in=approved_teams)
 
-    all_submissions = ParticipantSubmission.objects.filter(
+    all_submissions = ChallengeTaskSubmission.objects.filter(
         participant__in=approved_participants,
         deleted=False
     )
