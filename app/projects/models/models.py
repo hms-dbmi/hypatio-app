@@ -278,12 +278,17 @@ class HostedFile(models.Model):
     # Files can optionally be grouped under a set within a project
     hostedfileset = models.ForeignKey(HostedFileSet, blank=True, null=True)
 
-    # Should the file appear on the front end
+    # Should the file appear on the front end (and when)
     enabled = models.BooleanField(default=False)
+    opened_time = models.DateTimeField(blank=True, null=True)
+    closed_time = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return '%s - %s' % (self.project, self.long_name)
 
+    def clean(self):
+        if self.opened_time is not None and self.closed_time is not None and (self.opened_time > self.closed_time or self.closed_time < self.opened_time):
+            raise ValidationError("Closed time must be a datetime after opened time")
 
 class HostedFileDownload(models.Model):
     """
@@ -312,17 +317,27 @@ class ChallengeTask(models.Model):
     """
 
     data_project = models.ForeignKey(DataProject)
+
+    # How should the task be displayed on the front end
     title = models.CharField(max_length=200, default=None, blank=False, null=False)
     description = models.CharField(max_length=2000, blank=True, null=True)
+
+    # Optional path to an html file that contains a form that should be completed when uploading a task solution
     submission_form_file_path = models.CharField(max_length=300, blank=True, null=True)
+
     max_submissions = models.IntegerField(default=1, blank=False, null=False)
+
+    # Should the task appear on the front end (and when)
+    enabled = models.BooleanField(default=False, blank=False, null=False)
     opened_time = models.DateTimeField(blank=True, null=True)
     closed_time = models.DateTimeField(blank=True, null=True)
-    enabled = models.BooleanField(default=False, blank=False, null=False)
 
     def __str__(self):
         return '%s: %s' % (self.data_project.project_key, self.title)
 
+    def clean(self):
+        if self.opened_time is not None and self.closed_time is not None and (self.opened_time > self.closed_time or self.closed_time < self.opened_time):
+            raise ValidationError("Closed time must be a datetime after opened time")
 
 class ChallengeTaskSubmission(models.Model):
     """
