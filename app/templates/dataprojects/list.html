@@ -1,17 +1,6 @@
 {% extends 'base.html' %}
 
 {% block headscripts %}
-<script>
-    function spawn_modal_access_popup(div_id, project_key)
-    {
-        jQuery( "#request_access_div_" +  div_id).load("/projects/request_access/", {"project_key": project_key, 'csrfmiddlewaretoken': '{{ csrf_token }}'})
-            .dialog({
-                width: 600,
-                height: 500,
-                modal: true
-            });
-    }
-    </script>
 {% endblock %}
 
 {% block title %}Data Sets{% endblock %}

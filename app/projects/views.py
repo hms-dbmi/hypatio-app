@@ -24,15 +24,15 @@ from pyauth0jwt.auth0authenticate import logout_redirect
 from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import validate_request as validate_jwt
-from .models import AgreementForm
-from .models import DataProject
 
+from .models import AgreementForm
+from .models import ChallengeTaskSubmission
+from .models import DataProject
+from .models import HostedFile
 from .models import Participant
 from .models import SignedAgreementForm
-from .models import ChallengeTaskSubmission
 from .models import AGREEMENT_FORM_TYPE_STATIC
 from .models import AGREEMENT_FORM_TYPE_DJANGO
-
 from .models import PERMISSION_SCHEME_EXTERNALLY_GRANTED
 
 from .steps.dynamic_form import save_dynamic_form
@@ -50,16 +50,6 @@ def signout(request):
     response = redirect(settings.AUTH0_LOGOUT_URL)
     response.delete_cookie('DBMI_JWT', domain=settings.COOKIE_DOMAIN)
     return response
-
-
-@user_auth_and_jwt
-def request_access(request, template_name='dataprojects/access_request.html'):
-
-    project = DataProject.objects.get(project_key=request.POST['project_key'])
-    agreement_forms = project.agreement_forms.all()
-
-    return render(request, template_name, {"project_key": request.POST['project_key'],
-                                           "agreement_forms": agreement_forms})
 
 
 @user_auth_and_jwt
@@ -706,7 +696,7 @@ class DataProjectView(TemplateView):
         """
 
         # Do not include this panel if this project does not have teams.
-        if not self.project.has_teams and self.participant.team is not None:
+        if not self.project.has_teams or (self.participant is not None and self.participant.team is not None):
             return
 
         # Describe the panel. Include here any variables that the template will need.
@@ -732,7 +722,7 @@ class DataProjectView(TemplateView):
         # Get this user's signed agreement forms that have a pending or approved state.
         signed_forms = SignedAgreementForm.objects.filter(
             project=self.project,
-            user=self.participant.user,
+            user=self.request.user,
             status__in=["P", "A"]
         )
 
@@ -796,19 +786,42 @@ class DataProjectView(TemplateView):
     def panel_available_downloads(self, context):
         """
         Builds the context needed for a user to be able to download data sets
-        belonging to this DataProject. The downloads panel will always be
-        displayed, but there will not always be a download available to the user.
+        belonging to this DataProject. Will a panel for every HostedFileSet and another
+        for any files not belonging to a set.
         """
 
-        # Describe the panel. Include here any variables that the template will need.
-        panel = {
-            'title': 'Available Downloads',
-            'template': 'project_participate/available_downloads.html',
-            'project': self.project
-        }
+        # Create a panel for each HostedFileSet
+        for file_set in self.project.hostedfileset_set.all():
 
-        # Add the panel to the right column.
-        context['right_panels'].append(panel)
+            # Describe the panel. Include here any variables that the template will need.
+            panel = {
+                'title': file_set.title + ' Downloads',
+                'template': 'project_participate/available_downloads.html',
+                'project': self.project,
+                'files': file_set.hostedfile_set.all()
+            }
+
+            # Add the panel to the right column.
+            context['right_panels'].append(panel)
+
+        # Add another panel for files that do not belong to a HostedFileSet
+        files_without_a_set = HostedFile.objects.filter(
+            project=self.project,
+            hostedfileset=None
+        )
+
+        if files_without_a_set.count() > 0:
+
+            # Describe the panel. Include here any variables that the template will need.
+            panel = {
+                'title': 'Available Downloads',
+                'template': 'project_participate/available_downloads.html',
+                'project': self.project,
+                'files': files_without_a_set
+            }
+
+            # Add the panel to the right column.
+            context['right_panels'].append(panel)
 
     def is_user_granted_access(self, context):
         """
