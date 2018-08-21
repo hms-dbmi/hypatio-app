@@ -774,7 +774,7 @@ class DataProjectView(TemplateView):
         # Describe the panel. Include here any variables that the template will need.
         panel = {
             'title': 'Tasks to Complete',
-            'template': 'project_participate/submit_solution.html',
+            'template': 'project_participate/complete_tasks.html',
             'team': self.participant.team,
             'project': self.project,
             'task_details': task_details
