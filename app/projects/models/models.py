@@ -247,17 +247,38 @@ class Participant(models.Model):
         return '%s - %s' % (self.user, self.data_challenge)
 
 
+class HostedFileSet(models.Model):
+    """
+    An optional grouping for hosted files within a project.
+    """
+
+    title = models.CharField(max_length=100, blank=False, null=False)
+    project = models.ForeignKey(DataProject)
+
+    def __str__(self):
+        return self.title
+
+
 class HostedFile(models.Model):
     """
     Tracks the files belonging to projects that users will be able to download.
     """
 
+    project = models.ForeignKey(DataProject)
+
+    # How the file should be displayed on the front end
     long_name = models.CharField(max_length=100, blank=False, null=False)
     description = models.CharField(max_length=2000, blank=True, null=True)
+
+    # Information for where to find the file
     file_name = models.CharField(max_length=100, blank=False, null=False)
     file_location_type = models.CharField(max_length=100, blank=False, null=False, choices=DATA_LOCATION_TYPE)
     file_location = models.CharField(max_length=100, blank=False, null=False)
-    project = models.ForeignKey(DataProject)
+
+    # Files can optionally be grouped under a set within a project
+    hostedfileset = models.ForeignKey(HostedFileSet, blank=True, null=True)
+
+    # Should the file appear on the front end
     enabled = models.BooleanField(default=False)
 
     def __str__(self):

@@ -1,17 +1,19 @@
-{% if panel.project.hostedfile_set.all|length == 0 %}
-    No files are available for download at this time.
-{% endif %}
-
-{% for file in panel.project.hostedfile_set.all %}
+<table class="table table-striped" style="margin-bottom: 0px;">
+{% for file in panel.files %}
     {% if file.enabled or user.is_superuser %}
-        <h4>{{ file.long_name }}</h4>
-        <div class="row">
-            <div class="col-md-9">
+    <tr>
+        <td>
+            <h5>{{ file.long_name }}</h5>
+            {% if file.description %}
                 {{ file.description }}
-            </div>
-            <div class="col-md-3">
-                <a href="/download_dataset/?file_id={{ file.id }}" class="btn btn-default download-file-button" download>Download</a>
-            </div>
-        </div>
+            {% endif %}
+        </td>
+        <td>
+            <span class="align-middle">
+                <a href="/download_dataset/?file_id={{ file.id }}" class="btn btn-default download-file-button pull-right" download>Download</a>
+            </span>
+        </td>
+    </tr>
     {% endif %}
 {% endfor %}
+</table>
