@@ -8,7 +8,9 @@
 {% for task_detail in panel.task_details %}
 <div class="well">
     <h4>Task {{ forloop.counter }}: {{ task_detail.task.title }} <span class="label label-danger pull-right">{{ task_detail.submissions_left }} submissions left</span></h4>
-    <p>{{ task_detail.task.description }}</p>
+    {% if task_detail.task.description is not None %}
+        <p>{{ task_detail.task.description }}</p>
+    {% endif %}
 
     {% if task_detail.submissions_left == 0 %}
         <p><i>Your team has used up all of its available submissions.</i></p>
