@@ -407,7 +407,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
         // Hide the submit button until a form option is selected
-        $('#dua-type-select').parent().parent().find(".submit_form").find("input[name='submit_form']").hide();
+        $('#dua-type-select').parent().parent().parent().find(".submit_form").find("input[name='submit_form']").hide();
 
         // Display either the academic or corporate form depending on the selection
         $('#form-type').change(function() {
@@ -432,7 +432,7 @@
             }
 
             // Display the submit button again
-            $('#dua-type-select').parent().parent().find(".submit_form").find("input[name='submit_form']").show();
+            $('#dua-type-select').parent().parent().parent().find(".submit_form").find("input[name='submit_form']").show();
         });
 
         // Academic form: When someone clicks what kind of registrant they are, hide the opposite form section
@@ -443,8 +443,8 @@
                 $('#individual-questions').show();
                 $('#corporation-questions').hide();
 
-                $("#individual-questions :input").prop('required',true);
-                $("#corporation-questions :input").prop('required',false);
+                // $("#individual-questions :input").prop('required',true);
+                // $("#corporation-questions :input").prop('required',false);
                 $("#corporation-questions :input").val('');
             }
 
@@ -452,9 +452,9 @@
                 $('#individual-questions').hide();
                 $('#corporation-questions').show();
 
-                $("#individual-questions :input").prop('required',false);
+                // $("#individual-questions :input").prop('required',false);
                 $("#individual-questions :input").val('');                
-                $("#corporation-questions :input").prop('required',true);
+                // $("#corporation-questions :input").prop('required',true);
             }
         });
         
@@ -467,8 +467,8 @@
                 $('#commercial-individual-questions').show();
                 $('#commercial-corporation-questions').hide();
 
-                $("#commercial-individual-questions :input").prop('required',true);
-                $("#commercial-corporation-questions :input").prop('required',false);
+                // $("#commercial-individual-questions :input").prop('required',true);
+                // $("#commercial-corporation-questions :input").prop('required',false);
                 $("#commercial-corporation-questions :input").val('');
             }
 
@@ -476,9 +476,9 @@
                 $('#commercial-individual-questions').hide();
                 $('#commercial-corporation-questions').show();
 
-                $("#commercial-individual-questions :input").prop('required',false);
+                // $("#commercial-individual-questions :input").prop('required',false);
                 $("#commercial-individual-questions :input").val('');                
-                $("#commercial-corporation-questions :input").prop('required',true);
+                // $("#commercial-corporation-questions :input").prop('required',true);
             }
         });
     });
