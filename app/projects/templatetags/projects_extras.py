@@ -1,12 +1,18 @@
 from django import template
 from django.conf import settings
+from django.utils.timezone import utc
 
 import os
+import datetime
 import furl
+import logging
 
 from django.utils.safestring import mark_safe
 
 register = template.Library()
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 @register.filter
 def get_html_form_file_contents(form_file_path):
@@ -66,3 +72,41 @@ def modal_contact_form_link(text='Contact us', classes=''):
     return mark_safe("""
         <a href=# class='contact-form-button {}'>{}</a>
     """.format(classes, text))
+
+@register.simple_tag
+def is_hostedfile_currently_enabled(hostedfile):
+
+    # If the file is not marked as enabled, it should not be displayed.
+    if not hostedfile.enabled:
+        return False
+
+    # If there is an opened and closed time, the current time must be within that window
+    if hostedfile.opened_time is not None and hostedfile.closed_time is not None:
+        return (datetime.datetime.utcnow().replace(tzinfo=utc) > hostedfile.opened_time) and (datetime.datetime.utcnow().replace(tzinfo=utc) < hostedfile.closed_time)
+
+    if hostedfile.opened_time is not None:
+        return datetime.datetime.utcnow().replace(tzinfo=utc) > hostedfile.opened_time
+
+    if hostedfile.closed_time is not None:
+        return datetime.datetime.utcnow().replace(tzinfo=utc) < hostedfile.closed_time
+
+    return True
+
+@register.simple_tag
+def is_challengetask_currently_enabled(challengetask):
+
+    # If the task is not marked as enabled, it should not be displayed.
+    if not challengetask.enabled:
+        return False
+
+    # If there is an opened and closed time, the current time must be within that window
+    if challengetask.opened_time is not None and challengetask.closed_time is not None:
+        return (datetime.datetime.utcnow().replace(tzinfo=utc) > challengetask.opened_time) and (datetime.datetime.utcnow().replace(tzinfo=utc) < challengetask.closed_time)
+
+    if challengetask.opened_time is not None:
+        return datetime.datetime.utcnow().replace(tzinfo=utc) > challengetask.opened_time
+
+    if challengetask.closed_time is not None:
+        return datetime.datetime.utcnow().replace(tzinfo=utc) < challengetask.closed_time
+
+    return True

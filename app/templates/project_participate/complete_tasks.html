@@ -6,57 +6,61 @@
 </div>
 
 {% for task_detail in panel.task_details %}
-<div class="well">
-    <h4>Task {{ forloop.counter }}: {{ task_detail.task.title }} <span class="label label-danger pull-right">{{ task_detail.submissions_left }} submissions left</span></h4>
-    {% if task_detail.task.description is not None %}
-        <p>{{ task_detail.task.description }}</p>
-    {% endif %}
-
-    {% if task_detail.submissions_left == 0 %}
-        <p><i>Your team has used up all of its available submissions.</i></p>
-    {% else %}
-        <form class="participant-submission-form">    
-
-            {% if task_detail.task.submission_form_file_path %}
-                <div class="submission_form_contents">
-                    {{ task_detail.task.submission_form_file_path|get_html_form_file_contents | safe }}
-                </div>
+    {# Only display tasks that are enabled and within the availability window #}
+    {% is_challengetask_currently_enabled task_detail.task as task_enabled %}
+    {% if task_enabled %}
+        <div class="well">
+            <h4>Task {{ forloop.counter }}: {{ task_detail.task.title }} <span class="label label-danger pull-right">{{ task_detail.submissions_left }} submissions left</span></h4>
+            {% if task_detail.task.description is not None %}
+                <p>{{ task_detail.task.description }}</p>
             {% endif %}
-                            
-            <div class="form-group">
-                <label class="btn btn-primary file-upload-browse">
-                    Click to select a zip file <input class="file-upload-file" name="file" type="file" style="display: none;" accept=".zip">
-                </label>
 
-                <input class="file-upload-filename" name="filename" type="text" hidden="true" />
-                <input class="file-upload-project" name="project_key" type="text" hidden="true" value="{{ panel.project.project_key }}" />
-                <input class="file-upload-project" name="task_id" type="text" hidden="true" value="{{ task_detail.task.id }}" />
-                <button type="submit" class="btn btn-danger file-upload-submit" style="display: none;"
-                data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> Uploading file..."></button>
-            </div>
+            {% if task_detail.submissions_left == 0 %}
+                <p><i>Your team has used up all of its available submissions.</i></p>
+            {% else %}
+                <form class="participant-submission-form">    
 
-            {% csrf_token %}
-        </form>
+                    {% if task_detail.task.submission_form_file_path %}
+                        <div class="submission_form_contents">
+                            {{ task_detail.task.submission_form_file_path|get_html_form_file_contents | safe }}
+                        </div>
+                    {% endif %}
+                                    
+                    <div class="form-group">
+                        <label class="btn btn-primary file-upload-browse">
+                            Click to select a zip file <input class="file-upload-file" name="file" type="file" style="display: none;" accept=".zip">
+                        </label>
+
+                        <input class="file-upload-filename" name="filename" type="text" hidden="true" />
+                        <input class="file-upload-project" name="project_key" type="text" hidden="true" value="{{ panel.project.project_key }}" />
+                        <input class="file-upload-project" name="task_id" type="text" hidden="true" value="{{ task_detail.task.id }}" />
+                        <button type="submit" class="btn btn-danger file-upload-submit" style="display: none;"
+                        data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> Uploading file..."></button>
+                    </div>
+
+                    {% csrf_token %}
+                </form>
+            {% endif %}
+
+            <hr>
+
+            <ul class="list-group">
+                <li class="list-group-item"><strong>Prior Submissions</strong></li>
+            {% for submission in task_detail.submissions %}
+                <li class="list-group-item">
+                    <small>{{ submission.participant.user.email }} on {{ submission.upload_date|timezone:"America/New_York" }} (EST)</small>
+                
+                    <button class="btn btn-default btn-xs pull-right view-submission-info" data-toggle="modal" data-target="#submission-info-modal" data-submission-uuid="{{ submission.uuid }}">View or Delete</button>
+
+                    {# Hide the submission metadata json here #}
+                    <div class="submission-info-details" style="display: none;">
+                        {{ submission.submission_info }}
+                    </div>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
     {% endif %}
-
-    <hr>
-
-    <ul class="list-group">
-        <li class="list-group-item"><strong>Prior Submissions</strong></li>
-    {% for submission in task_detail.submissions %}
-        <li class="list-group-item">
-            <small>{{ submission.participant.user.email }} on {{ submission.upload_date|timezone:"America/New_York" }} (EST)</small>
-        
-            <button class="btn btn-default btn-xs pull-right view-submission-info" data-toggle="modal" data-target="#submission-info-modal" data-submission-uuid="{{ submission.uuid }}">View or Delete</button>
-
-            {# Hide the submission metadata json here #}
-            <div class="submission-info-details" style="display: none;">
-                {{ submission.submission_info }}
-            </div>
-        </li>
-    {% endfor %}
-    </ul>
-</div>
 {% endfor %}
 
 <!-- Modal -->

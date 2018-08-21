@@ -1,14 +1,21 @@
+{% load projects_extras %}
+{% load tz %}
+
 <table class="table table-striped" style="margin-bottom: 0px;">
 {% for file in panel.files %}
-    {% if file.enabled or user.is_superuser %}
+    {# Only display files that are enabled and within the availability window #}
+    {% is_hostedfile_currently_enabled file as file_enabled %}
+    {% if file_enabled %}
     <tr>
         <td>
             <h5>{{ file.long_name }}</h5>
+            <p><small>{% if file.opened_time %}Available for download from (EST) {{ file.opened_time|timezone:"America/New_York" }}{% endif %}{% if file.closed_time %} until {{ file.closed_time|timezone:"America/New_York" }}{% endif %}</small></p>
+
             {% if file.description %}
-                {{ file.description }}
+                <p>{{ file.description }}</p>
             {% endif %}
         </td>
-        <td>
+        <td style="vertical-align: middle">
             <span class="align-middle">
                 <a href="/download_dataset/?file_id={{ file.id }}" class="btn btn-default download-file-button pull-right" download>Download</a>
             </span>
