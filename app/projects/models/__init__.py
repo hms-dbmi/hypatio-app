@@ -6,6 +6,7 @@ from .models import SignedAgreementForm
 from .models import Team
 from .models import Participant
 from .models import HostedFile
+from .models import HostedFileSet
 from .models import HostedFileDownload
 from .models import TeamComment
 from .models import ChallengeTask
