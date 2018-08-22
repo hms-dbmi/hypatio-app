@@ -17,7 +17,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 3,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "De-identification Ground Truth Set",
@@ -33,7 +33,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 4,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "De-identification Test Set",
@@ -49,7 +49,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 5,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "De-identification Training Set",
@@ -65,7 +65,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 6,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Smoking Ground Truth Set",
@@ -81,7 +81,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 7,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Smoking Test Set",
@@ -97,7 +97,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 8,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Smoking Training Set",
@@ -113,7 +113,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 9,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Annotation Sheet for the Obesity Challenge (PDF)",
@@ -129,7 +129,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 10,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Obesity Training Records (XML)",
@@ -145,7 +145,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 11,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Annotations for Training Records (XML)",
@@ -161,7 +161,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 12,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Textual Annotations for Training Records (XML)",
@@ -177,7 +177,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 13,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Intuitive Annotations for Training Records (XML)",
@@ -193,7 +193,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 14,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Addendum to the Intuitive Annotations for Training Records (XML)",
@@ -209,7 +209,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 15,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Addendum to the Textual Annotations for Training Records (XML)",
@@ -225,7 +225,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 16,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "The second set of Obesity Training Records (XML)",
@@ -241,7 +241,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 17,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Annotations for the second set of Obesity Training Records (XML)",
@@ -257,7 +257,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 18,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Template File for Textual Judgments (XML)",
@@ -273,7 +273,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 19,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Template File for Intuitive Judgments (XML)",
@@ -289,7 +289,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 20,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Test Records (XML)",
@@ -305,7 +305,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 21,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Ground Truth for Textual Judgments on Test Data",
@@ -321,7 +321,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 22,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Ground Truth for Intuitive Judgments on Test Data",
@@ -337,7 +337,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 23,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Ground Truth for Textual and Intuitive Test Data",
@@ -353,7 +353,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 24,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Neil Barrett system outputs",
@@ -369,7 +369,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 25,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Mary Elaine Califf system outputs",
@@ -385,7 +385,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 26,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Aaron Cohen system outputs",
@@ -401,7 +401,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 27,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "David Cummo system outputs",
@@ -417,7 +417,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 28,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Jon DeShazo system outputs",
@@ -433,7 +433,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 29,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Oana Frunza system outputs",
@@ -449,7 +449,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 30,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Kazuo Hara system outputs",
@@ -465,7 +465,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 31,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Henk Harkema system outputs",
@@ -481,7 +481,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 32,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Vahid Jazayeri system outputs",
@@ -497,7 +497,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 33,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Brian Mac Namee system outputs",
@@ -513,7 +513,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 34,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Michael Matthews system outputs",
@@ -529,7 +529,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 35,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Mitchell Medow system outputs",
@@ -545,7 +545,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 36,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Stephane Meystre system outputs",
@@ -561,7 +561,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 37,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Goran Nenadic system outputs",
@@ -577,7 +577,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 38,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Mariana Lara Neves system outputs",
@@ -593,7 +593,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 39,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Ted Pedersen system outputs",
@@ -609,7 +609,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 40,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Gy\u00f6rgy Szarvas system outputs",
@@ -625,7 +625,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 41,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Domonkos Tikk system outputs",
@@ -641,7 +641,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 42,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "System Outputs for the Top 10",
@@ -657,7 +657,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 43,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Community Ground Truth for the Test Data",
@@ -673,7 +673,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 44,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Test Files (released August 17)",
@@ -689,7 +689,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 45,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Input / Output Formats (updated June 10)",
@@ -705,7 +705,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 46,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Preliminary Annotation Guidelines (updated June 12)",
@@ -721,7 +721,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 47,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Training Sets",
@@ -737,7 +737,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 48,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Training Ground Truth (updated June 11)",
@@ -753,7 +753,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 49,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Concept assertion relation training data",
@@ -769,7 +769,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 50,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Reference standard for test data",
@@ -785,7 +785,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 51,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Test data",
@@ -801,7 +801,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 52,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "1C. i2b2 Co-reference on Ground Truth Concepts, Testing Groundtruth",
@@ -817,7 +817,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 53,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "1C. i2b2 Co-reference on Ground Truth Concepts, Testing",
@@ -833,7 +833,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 54,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "i2b2 Corpus, Partners Portion, Training",
@@ -849,7 +849,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 55,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "i2b2 Corpus, Beth Israel Portion, Training",
@@ -865,7 +865,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 56,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "MAE",
@@ -881,7 +881,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 57,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Readme",
@@ -897,7 +897,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 58,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Sample Data",
@@ -913,7 +913,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 59,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Training Data Batch #1",
@@ -929,7 +929,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 60,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Training Data Batch #2",
@@ -945,7 +945,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 61,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Evaluation Scripts",
@@ -961,7 +961,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 62,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Full training set with original temporal relations",
@@ -977,7 +977,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 63,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Sample Input/Output Formats",
@@ -993,7 +993,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 64,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Evaluation: Test Data",
@@ -1009,7 +1009,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 65,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Evaluation: EVENT/TIMEX3 Groundtruth",
@@ -1025,7 +1025,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 66,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Evaluation: Test Data Groundtruth",
@@ -1041,7 +1041,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 67,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "I2B2 2012 Submissions",
@@ -1057,7 +1057,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 68,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Readme file for sample data",
@@ -1073,7 +1073,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 69,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Track1: De-identification Annotation Task sample data",
@@ -1089,7 +1089,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 70,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Training: PHI Gold Set 1",
@@ -1105,7 +1105,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 71,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Training: PHI Gold Set 2",
@@ -1121,7 +1121,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 72,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Track2: Identifying Risk Factors sample data",
@@ -1137,7 +1137,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 73,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Training: RiskFactors Gold Set 1",
@@ -1153,7 +1153,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 74,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Training: RiskFactors Complete Set 1",
@@ -1169,7 +1169,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 75,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Training: RiskFactors Complete Set 1 MAE",
@@ -1185,7 +1185,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 76,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Training: RiskFactors Gold Set 2",
@@ -1201,7 +1201,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 77,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Training: RiskFactors Complete Set 2",
@@ -1217,7 +1217,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 78,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Training: RiskFactors Complete Set 2 MAE",
@@ -1233,7 +1233,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 79,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Evaluation scripts master - 1.2.1",
@@ -1249,7 +1249,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 80,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Testing: PHI Set no Tags",
@@ -1265,7 +1265,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 81,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Testing: PHI Gold Set - Fixed",
@@ -1281,7 +1281,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 82,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Testing: RiskFactors Set no Tags",
@@ -1297,7 +1297,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 83,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Testing: RiskFactors Gold Set",
@@ -1313,7 +1313,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 84,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Testing: RiskFactors Complete Set",
@@ -1329,7 +1329,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 85,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Testing: RiskFactors Complete Set MAE",
@@ -1345,7 +1345,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 86,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Workshop: 2014 Workshop Papers",
@@ -1361,7 +1361,7 @@
 },
 {
     "model": "projects.hostedfile",
-    "pk": 87,
+    "pk": null,
     "fields": {
         "project": 5,
         "long_name": "Workshop: 2014 Workshop Slides",
