@@ -146,6 +146,7 @@
                     <thead>
                         <tr>
                             <th>Person</th>
+                            <th>Task</th>
                             <th>Date</th>
                             <th></th>
                         </tr>
@@ -154,6 +155,7 @@
                         {% for upload in uploads %}
                         <tr>
                             <td>{{ upload.participant.user.email }}</td>
+                            <td>{{ upload.challenge_task.title }}</td>
                             <td>{{ upload.upload_date|timezone:"America/New_York" }} (EST)</td>
                             <td>
                                 <button class="btn btn-default btn-xs submission-delete">Delete</button>
@@ -268,7 +270,7 @@
         $.ajax({
             method: "POST",
             data: {"submission_uuid": submission_uuid},
-            url: "/delete_participantsubmission/",
+            url: "/delete_challengetasksubmission/",
             success: function (data, textStatus, jqXHR) {
                 button.removeClass('btn-danger');
                 button.addClass('btn-success');

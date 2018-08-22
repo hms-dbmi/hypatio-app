@@ -1,0 +1,82 @@
+[
+{
+    "model": "projects.hostedfileset",
+    "pk": 1,
+    "fields": {
+        "title": "Data Set 1A",
+        "project": 5
+    }
+},
+{
+    "model": "projects.hostedfileset",
+    "pk": 2,
+    "fields": {
+        "title": "Data Set 1B",
+        "project": 5
+    }
+},
+{
+    "model": "projects.hostedfileset",
+    "pk": 3,
+    "fields": {
+        "title": "Data Set 1C",
+        "project": 5
+    }
+},
+{
+    "model": "projects.hostedfileset",
+    "pk": 4,
+    "fields": {
+        "title": "2008 Obesity Challenge",
+        "project": 5
+    }
+},
+{
+    "model": "projects.hostedfileset",
+    "pk": 5,
+    "fields": {
+        "title": "2009 Medication Challenge",
+        "project": 5
+    }
+},
+{
+    "model": "projects.hostedfileset",
+    "pk": 6,
+    "fields": {
+        "title": "2010 Relations Challenge",
+        "project": 5
+    }
+},
+{
+    "model": "projects.hostedfileset",
+    "pk": 7,
+    "fields": {
+        "title": "2011 Coreference Challenge",
+        "project": 5
+    }
+},
+{
+    "model": "projects.hostedfileset",
+    "pk": 8,
+    "fields": {
+        "title": "2012 Temporal Relations Challenge",
+        "project": 5
+    }
+},
+{
+    "model": "projects.hostedfileset",
+    "pk": 9,
+    "fields": {
+        "title": "2014 De-identification and Heart Disease Risk Factors Challenge",
+        "project": 5
+    }
+},
+{
+    "model": "projects.hostedfileset",
+    "pk": 10,
+    "fields": {
+        "title": "2016 CEGS N-GRID RDoC for Psychiatry Challenge",
+        "project": 5
+    }
+}
+]

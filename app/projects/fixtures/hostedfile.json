@@ -1,0 +1,1378 @@
+[
+{
+    "model": "projects.hostedfile",
+    "pk": null,
+    "fields": {
+        "project": 5,
+        "long_name": "Unannotated set for the de-identification and smoking challenges",
+        "description": null,
+        "file_name": "unannotated_records_deid_smoking.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 1,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 3,
+    "fields": {
+        "project": 5,
+        "long_name": "De-identification Ground Truth Set",
+        "description": null,
+        "file_name": "deid_surrogate_test_all_groundtruth_version2.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 2,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 4,
+    "fields": {
+        "project": 5,
+        "long_name": "De-identification Test Set",
+        "description": null,
+        "file_name": "deid_surrogate_test_all_version2.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 2,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 5,
+    "fields": {
+        "project": 5,
+        "long_name": "De-identification Training Set",
+        "description": null,
+        "file_name": "deid_surrogate_train_all_version2.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 2,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 6,
+    "fields": {
+        "project": 5,
+        "long_name": "Smoking Ground Truth Set",
+        "description": null,
+        "file_name": "smokers_surrogate_test_all_groundtruth_version2.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 3,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 7,
+    "fields": {
+        "project": 5,
+        "long_name": "Smoking Test Set",
+        "description": null,
+        "file_name": "smokers_surrogate_test_all_version2.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 3,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 8,
+    "fields": {
+        "project": 5,
+        "long_name": "Smoking Training Set",
+        "description": null,
+        "file_name": "smokers_surrogate_train_all_version2.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 3,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 9,
+    "fields": {
+        "project": 5,
+        "long_name": "Annotation Sheet for the Obesity Challenge (PDF)",
+        "description": null,
+        "file_name": "NLP_Obesity_Annotation_Sheet.pdf",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 10,
+    "fields": {
+        "project": 5,
+        "long_name": "Obesity Training Records (XML)",
+        "description": null,
+        "file_name": "obesity_patient_records_training.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 11,
+    "fields": {
+        "project": 5,
+        "long_name": "Annotations for Training Records (XML)",
+        "description": null,
+        "file_name": "obesity_standoff_annotations_training.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 12,
+    "fields": {
+        "project": 5,
+        "long_name": "Textual Annotations for Training Records (XML)",
+        "description": null,
+        "file_name": "obesity_standoff_textual_annotations_training.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 13,
+    "fields": {
+        "project": 5,
+        "long_name": "Intuitive Annotations for Training Records (XML)",
+        "description": null,
+        "file_name": "obesity_standoff_intuitive_annotations_training.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 14,
+    "fields": {
+        "project": 5,
+        "long_name": "Addendum to the Intuitive Annotations for Training Records (XML)",
+        "description": null,
+        "file_name": "obesity_standoff_annotations_training_addendum.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 15,
+    "fields": {
+        "project": 5,
+        "long_name": "Addendum to the Textual Annotations for Training Records (XML)",
+        "description": null,
+        "file_name": "obesity_standoff_annotations_training_addendum2.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 16,
+    "fields": {
+        "project": 5,
+        "long_name": "The second set of Obesity Training Records (XML)",
+        "description": null,
+        "file_name": "obesity_patient_records_training2.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 17,
+    "fields": {
+        "project": 5,
+        "long_name": "Annotations for the second set of Obesity Training Records (XML)",
+        "description": null,
+        "file_name": "obesity_standoff_annotations_training_addendum3.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 18,
+    "fields": {
+        "project": 5,
+        "long_name": "Template File for Textual Judgments (XML)",
+        "description": null,
+        "file_name": "obesity_standoff_annotations_test_textual_template.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 19,
+    "fields": {
+        "project": 5,
+        "long_name": "Template File for Intuitive Judgments (XML)",
+        "description": null,
+        "file_name": "obesity_standoff_annotations_test_intuitive_template.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 20,
+    "fields": {
+        "project": 5,
+        "long_name": "Test Records (XML)",
+        "description": null,
+        "file_name": "obesity_patient_records_test.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 21,
+    "fields": {
+        "project": 5,
+        "long_name": "Ground Truth for Textual Judgments on Test Data",
+        "description": null,
+        "file_name": "obesity_standoff_annotations_test_textual.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 22,
+    "fields": {
+        "project": 5,
+        "long_name": "Ground Truth for Intuitive Judgments on Test Data",
+        "description": null,
+        "file_name": "obesity_standoff_annotations_test_intuitive.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 23,
+    "fields": {
+        "project": 5,
+        "long_name": "Ground Truth for Textual and Intuitive Test Data",
+        "description": null,
+        "file_name": "obesity_standoff_annotations_test.xml",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 24,
+    "fields": {
+        "project": 5,
+        "long_name": "Neil Barrett system outputs",
+        "description": null,
+        "file_name": "system_outputs_Barrett.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 25,
+    "fields": {
+        "project": 5,
+        "long_name": "Mary Elaine Califf system outputs",
+        "description": null,
+        "file_name": "system_outputs_Califf.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 26,
+    "fields": {
+        "project": 5,
+        "long_name": "Aaron Cohen system outputs",
+        "description": null,
+        "file_name": "system_outputs_Cohen.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 27,
+    "fields": {
+        "project": 5,
+        "long_name": "David Cummo system outputs",
+        "description": null,
+        "file_name": "system_outputs_Cummo.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 28,
+    "fields": {
+        "project": 5,
+        "long_name": "Jon DeShazo system outputs",
+        "description": null,
+        "file_name": "system_outputs_DeShazo.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 29,
+    "fields": {
+        "project": 5,
+        "long_name": "Oana Frunza system outputs",
+        "description": null,
+        "file_name": "system_outputs_Frunza.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 30,
+    "fields": {
+        "project": 5,
+        "long_name": "Kazuo Hara system outputs",
+        "description": null,
+        "file_name": "system_outputs_Hara.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 31,
+    "fields": {
+        "project": 5,
+        "long_name": "Henk Harkema system outputs",
+        "description": null,
+        "file_name": "system_outputs_Harkema.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 32,
+    "fields": {
+        "project": 5,
+        "long_name": "Vahid Jazayeri system outputs",
+        "description": null,
+        "file_name": "system_outputs_Jazayeri.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 33,
+    "fields": {
+        "project": 5,
+        "long_name": "Brian Mac Namee system outputs",
+        "description": null,
+        "file_name": "system_outputs_MacNamee.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 34,
+    "fields": {
+        "project": 5,
+        "long_name": "Michael Matthews system outputs",
+        "description": null,
+        "file_name": "system_outputs_Matthews.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 35,
+    "fields": {
+        "project": 5,
+        "long_name": "Mitchell Medow system outputs",
+        "description": null,
+        "file_name": "system_outputs_Medow.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 36,
+    "fields": {
+        "project": 5,
+        "long_name": "Stephane Meystre system outputs",
+        "description": null,
+        "file_name": "system_outputs_Meystre.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 37,
+    "fields": {
+        "project": 5,
+        "long_name": "Goran Nenadic system outputs",
+        "description": null,
+        "file_name": "system_outputs_Nenadic.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 38,
+    "fields": {
+        "project": 5,
+        "long_name": "Mariana Lara Neves system outputs",
+        "description": null,
+        "file_name": "system_outputs_Neves.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 39,
+    "fields": {
+        "project": 5,
+        "long_name": "Ted Pedersen system outputs",
+        "description": null,
+        "file_name": "system_outputs_Pedersen.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 40,
+    "fields": {
+        "project": 5,
+        "long_name": "Gy\u00f6rgy Szarvas system outputs",
+        "description": null,
+        "file_name": "system_outputs_Szarvas.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 41,
+    "fields": {
+        "project": 5,
+        "long_name": "Domonkos Tikk system outputs",
+        "description": null,
+        "file_name": "system_outputs_Tikk.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 4,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 42,
+    "fields": {
+        "project": 5,
+        "long_name": "System Outputs for the Top 10",
+        "description": null,
+        "file_name": "TeamSubmissions.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 5,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 43,
+    "fields": {
+        "project": 5,
+        "long_name": "Community Ground Truth for the Test Data",
+        "description": null,
+        "file_name": "annotations_ground_truth.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 5,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 44,
+    "fields": {
+        "project": 5,
+        "long_name": "Test Files (released August 17)",
+        "description": null,
+        "file_name": "train.test.released.8.17.09.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 5,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 45,
+    "fields": {
+        "project": 5,
+        "long_name": "Input / Output Formats (updated June 10)",
+        "description": null,
+        "file_name": "Input-Output.Formats.6.10.pdf",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 5,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 46,
+    "fields": {
+        "project": 5,
+        "long_name": "Preliminary Annotation Guidelines (updated June 12)",
+        "description": null,
+        "file_name": "Preliminary.Annotation.Guidelines.6.12.pdf",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 5,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 47,
+    "fields": {
+        "project": 5,
+        "long_name": "Training Sets",
+        "description": null,
+        "file_name": "training.sets.released.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 5,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 48,
+    "fields": {
+        "project": 5,
+        "long_name": "Training Ground Truth (updated June 11)",
+        "description": null,
+        "file_name": "training.ground.truth.01.06.11.2009.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 5,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 49,
+    "fields": {
+        "project": 5,
+        "long_name": "Concept assertion relation training data",
+        "description": null,
+        "file_name": "concept_assertion_relation_training_data.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 6,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 50,
+    "fields": {
+        "project": 5,
+        "long_name": "Reference standard for test data",
+        "description": null,
+        "file_name": "reference_standard_for_test_data.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 6,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 51,
+    "fields": {
+        "project": 5,
+        "long_name": "Test data",
+        "description": null,
+        "file_name": "test_data.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 6,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 52,
+    "fields": {
+        "project": 5,
+        "long_name": "1C. i2b2 Co-reference on Ground Truth Concepts, Testing Groundtruth",
+        "description": null,
+        "file_name": "Task_1C_Test_groundtruth.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 7,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 53,
+    "fields": {
+        "project": 5,
+        "long_name": "1C. i2b2 Co-reference on Ground Truth Concepts, Testing",
+        "description": null,
+        "file_name": "Task_1C.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 7,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 54,
+    "fields": {
+        "project": 5,
+        "long_name": "i2b2 Corpus, Partners Portion, Training",
+        "description": null,
+        "file_name": "i2b2_Partners_Train_Release.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 7,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 55,
+    "fields": {
+        "project": 5,
+        "long_name": "i2b2 Corpus, Beth Israel Portion, Training",
+        "description": null,
+        "file_name": "i2b2_Beth_Train_Release.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 7,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 56,
+    "fields": {
+        "project": 5,
+        "long_name": "MAE",
+        "description": null,
+        "file_name": "MAE.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 8,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 57,
+    "fields": {
+        "project": 5,
+        "long_name": "Readme",
+        "description": null,
+        "file_name": "readme.txt",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 8,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 58,
+    "fields": {
+        "project": 5,
+        "long_name": "Sample Data",
+        "description": null,
+        "file_name": "SampleData.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 8,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 59,
+    "fields": {
+        "project": 5,
+        "long_name": "Training Data Batch #1",
+        "description": null,
+        "file_name": "2012-06-18.release.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 8,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 60,
+    "fields": {
+        "project": 5,
+        "long_name": "Training Data Batch #2",
+        "description": null,
+        "file_name": "2012-07-06.release.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 8,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 61,
+    "fields": {
+        "project": 5,
+        "long_name": "Evaluation Scripts",
+        "description": null,
+        "file_name": "TemporalEvaluationScripts.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 8,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 62,
+    "fields": {
+        "project": 5,
+        "long_name": "Full training set with original temporal relations",
+        "description": null,
+        "file_name": "2012-07-15.original-annotation.release.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 8,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 63,
+    "fields": {
+        "project": 5,
+        "long_name": "Sample Input/Output Formats",
+        "description": null,
+        "file_name": "sample_input_output_formats.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 8,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 64,
+    "fields": {
+        "project": 5,
+        "long_name": "Evaluation: Test Data",
+        "description": null,
+        "file_name": "2012-08-06.test-data-release.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 8,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 65,
+    "fields": {
+        "project": 5,
+        "long_name": "Evaluation: EVENT/TIMEX3 Groundtruth",
+        "description": null,
+        "file_name": "2012-08-08.test-data.event-timex-groundtruth.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 8,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 66,
+    "fields": {
+        "project": 5,
+        "long_name": "Evaluation: Test Data Groundtruth",
+        "description": null,
+        "file_name": "2012-08-23.test-data.groundtruth.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 8,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 67,
+    "fields": {
+        "project": 5,
+        "long_name": "I2B2 2012 Submissions",
+        "description": null,
+        "file_name": "i2b2_2012_submissions.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 8,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 68,
+    "fields": {
+        "project": 5,
+        "long_name": "Readme file for sample data",
+        "description": null,
+        "file_name": "2014_readme.txt",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 69,
+    "fields": {
+        "project": 5,
+        "long_name": "Track1: De-identification Annotation Task sample data",
+        "description": null,
+        "file_name": "Track1-de-indentification.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 70,
+    "fields": {
+        "project": 5,
+        "long_name": "Training: PHI Gold Set 1",
+        "description": null,
+        "file_name": "2014_training-PHI-Gold-Set1.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 71,
+    "fields": {
+        "project": 5,
+        "long_name": "Training: PHI Gold Set 2",
+        "description": null,
+        "file_name": "training-PHI-Gold-Set2.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 72,
+    "fields": {
+        "project": 5,
+        "long_name": "Track2: Identifying Risk Factors sample data",
+        "description": null,
+        "file_name": "Track2-RiskFactors.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 73,
+    "fields": {
+        "project": 5,
+        "long_name": "Training: RiskFactors Gold Set 1",
+        "description": null,
+        "file_name": "training-RiskFactors-Gold-Set1.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 74,
+    "fields": {
+        "project": 5,
+        "long_name": "Training: RiskFactors Complete Set 1",
+        "description": null,
+        "file_name": "training-RiskFactors-Complete-Set1.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 75,
+    "fields": {
+        "project": 5,
+        "long_name": "Training: RiskFactors Complete Set 1 MAE",
+        "description": null,
+        "file_name": "training-RiskFactors-Complete-Set1-MAE.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 76,
+    "fields": {
+        "project": 5,
+        "long_name": "Training: RiskFactors Gold Set 2",
+        "description": null,
+        "file_name": "training-RiskFactors-Gold-Set2.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 77,
+    "fields": {
+        "project": 5,
+        "long_name": "Training: RiskFactors Complete Set 2",
+        "description": null,
+        "file_name": "training-RiskFactors-Complete-Set2.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 78,
+    "fields": {
+        "project": 5,
+        "long_name": "Training: RiskFactors Complete Set 2 MAE",
+        "description": null,
+        "file_name": "training-RiskFactors-Complete-Set2-MAE.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 79,
+    "fields": {
+        "project": 5,
+        "long_name": "Evaluation scripts master - 1.2.1",
+        "description": null,
+        "file_name": "i2b2_evaluation_scripts-master.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 80,
+    "fields": {
+        "project": 5,
+        "long_name": "Testing: PHI Set no Tags",
+        "description": null,
+        "file_name": "testing-PHI-noTags.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 81,
+    "fields": {
+        "project": 5,
+        "long_name": "Testing: PHI Gold Set - Fixed",
+        "description": null,
+        "file_name": "testing-PHI-Gold-fixed.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 82,
+    "fields": {
+        "project": 5,
+        "long_name": "Testing: RiskFactors Set no Tags",
+        "description": null,
+        "file_name": "testing-RiskFactors-noTags.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 83,
+    "fields": {
+        "project": 5,
+        "long_name": "Testing: RiskFactors Gold Set",
+        "description": null,
+        "file_name": "testing-RiskFactors-Gold.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 84,
+    "fields": {
+        "project": 5,
+        "long_name": "Testing: RiskFactors Complete Set",
+        "description": null,
+        "file_name": "testing-RiskFactors-Complete.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 85,
+    "fields": {
+        "project": 5,
+        "long_name": "Testing: RiskFactors Complete Set MAE",
+        "description": null,
+        "file_name": "testing-RiskFactors-Complete-MAE.tar.gz",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 86,
+    "fields": {
+        "project": 5,
+        "long_name": "Workshop: 2014 Workshop Papers",
+        "description": null,
+        "file_name": "i2b2_2014_workshop_papers.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+},
+{
+    "model": "projects.hostedfile",
+    "pk": 87,
+    "fields": {
+        "project": 5,
+        "long_name": "Workshop: 2014 Workshop Slides",
+        "description": null,
+        "file_name": "workshop_slides.zip",
+        "file_location_type": "S3_BUCKET",
+        "file_location": "nlp",
+        "hostedfileset": 9,
+        "enabled": true,
+        "opened_time": null,
+        "closed_time": null
+    }
+}
+]
