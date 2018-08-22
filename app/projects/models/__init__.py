@@ -6,9 +6,11 @@ from .models import SignedAgreementForm
 from .models import Team
 from .models import Participant
 from .models import HostedFile
+from .models import HostedFileSet
 from .models import HostedFileDownload
 from .models import TeamComment
-from .models import ParticipantSubmission
+from .models import ChallengeTask
+from .models import ChallengeTaskSubmission
 from .models import ParticipantProject
 from .models import TeamSubmissionsDownload
 from .models import AGREEMENT_FORM_TYPE_STATIC

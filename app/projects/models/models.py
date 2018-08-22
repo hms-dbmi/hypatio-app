@@ -147,9 +147,6 @@ class DataProject(models.Model):
     is_contest = models.BooleanField(default=False, blank=False, null=False)
     has_teams = models.BooleanField(default=False, blank=False, null=False)
 
-    accepting_user_submissions = models.BooleanField(default=False, blank=False, null=False)
-    submission_form_file_path = models.CharField(max_length=300, blank=True, null=True)
-
     show_jwt = models.BooleanField(default=False, blank=False, null=False)
 
     def __str__(self):
@@ -187,30 +184,14 @@ class Team(models.Model):
     class Meta:
         unique_together = ('team_leader', 'data_project',)
 
-    def get_count_of_submissions_made(self):
-        """
-        Returns the total number of submissions that a team's participants have made for its challenge.
-        """
-
-        submissions = self.get_submissions().count()
-        return submissions
-
-    def get_number_of_submissions_left(self):
-        """
-        Returns the number of submissions left that a team may make.
-        """
-
-        # TODO: abstract this number to the DataProjects class?
-        return 3 - self.get_count_of_submissions_made()
-
     def get_submissions(self):
         """
-        Returns a queryset of the non-deleted ParticipantSubmission records for this team.
+        Returns a queryset of the non-deleted ChallengeTaskSubmission records for this team.
         """
 
         participants = self.participant_set.all()
 
-        return ParticipantSubmission.objects.filter(
+        return ChallengeTaskSubmission.objects.filter(
             participant__in=participants,
             deleted=False
         )
@@ -254,10 +235,10 @@ class Participant(models.Model):
 
     def get_submissions(self):
         """
-        Returns a queryset of the non-deleted ParticipantSubmission records for this participant.
+        Returns a queryset of the non-deleted ChallengeTaskSubmission records for this participant.
         """
 
-        return ParticipantSubmission.objects.filter(
+        return ChallengeTaskSubmission.objects.filter(
             participant=self,
             deleted=False
         )
@@ -265,21 +246,49 @@ class Participant(models.Model):
     def __str__(self):
         return '%s - %s' % (self.user, self.data_challenge)
 
+
+class HostedFileSet(models.Model):
+    """
+    An optional grouping for hosted files within a project.
+    """
+
+    title = models.CharField(max_length=100, blank=False, null=False)
+    project = models.ForeignKey(DataProject)
+
+    def __str__(self):
+        return self.title
+
+
 class HostedFile(models.Model):
     """
     Tracks the files belonging to projects that users will be able to download.
     """
 
+    project = models.ForeignKey(DataProject)
+
+    # How the file should be displayed on the front end
     long_name = models.CharField(max_length=100, blank=False, null=False)
     description = models.CharField(max_length=2000, blank=True, null=True)
+
+    # Information for where to find the file
     file_name = models.CharField(max_length=100, blank=False, null=False)
     file_location_type = models.CharField(max_length=100, blank=False, null=False, choices=DATA_LOCATION_TYPE)
     file_location = models.CharField(max_length=100, blank=False, null=False)
-    project = models.ForeignKey(DataProject)
+
+    # Files can optionally be grouped under a set within a project
+    hostedfileset = models.ForeignKey(HostedFileSet, blank=True, null=True)
+
+    # Should the file appear on the front end (and when)
     enabled = models.BooleanField(default=False)
+    opened_time = models.DateTimeField(blank=True, null=True)
+    closed_time = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return '%s - %s' % (self.project, self.long_name)
+
+    def clean(self):
+        if self.opened_time is not None and self.closed_time is not None and (self.opened_time > self.closed_time or self.closed_time < self.opened_time):
+            raise ValidationError("Closed time must be a datetime after opened time")
 
 class HostedFileDownload(models.Model):
     """
@@ -290,6 +299,7 @@ class HostedFileDownload(models.Model):
     hosted_file = models.ForeignKey(HostedFile)
     download_date = models.DateTimeField(auto_now_add=True)
 
+
 class TeamComment(models.Model):
     user = models.ForeignKey(User)
     team = models.ForeignKey(Team)
@@ -299,13 +309,45 @@ class TeamComment(models.Model):
     def __str__(self):
         return '%s %s %s' % (self.user, self.team, self.date)
 
-class ParticipantSubmission(models.Model):
+
+class ChallengeTask(models.Model):
+    """
+    Describes a task that a data challenge might require. User's submissions for tasks are captured
+    in the ChallengeTaskSubmission model.
+    """
+
+    data_project = models.ForeignKey(DataProject)
+
+    # How should the task be displayed on the front end
+    title = models.CharField(max_length=200, default=None, blank=False, null=False)
+    description = models.CharField(max_length=2000, blank=True, null=True)
+
+    # Optional path to an html file that contains a form that should be completed when uploading a task solution
+    submission_form_file_path = models.CharField(max_length=300, blank=True, null=True)
+
+    max_submissions = models.IntegerField(default=1, blank=False, null=False)
+
+    # Should the task appear on the front end (and when)
+    enabled = models.BooleanField(default=False, blank=False, null=False)
+    opened_time = models.DateTimeField(blank=True, null=True)
+    closed_time = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return '%s: %s' % (self.data_project.project_key, self.title)
+
+    def clean(self):
+        if self.opened_time is not None and self.closed_time is not None and (self.opened_time > self.closed_time or self.closed_time < self.opened_time):
+            raise ValidationError("Closed time must be a datetime after opened time")
+
+class ChallengeTaskSubmission(models.Model):
     """
     Captures the files that participants are submitting for their challenges. Through the Participant model
     you can get to what team and project this submission pertains to. The location field is for fileservice
     integration. The submission_form_answers field stores any answers a participant might provide when
     submitting their work.
     """
+
+    challenge_task = models.ForeignKey(ChallengeTask)
     participant = models.ForeignKey(Participant)
     upload_date = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(null=False, unique=True, primary_key=True, default=None)
@@ -331,5 +373,5 @@ class TeamSubmissionsDownload(models.Model):
 
     user = models.ForeignKey(User)
     team = models.ForeignKey(Team)
-    participant_submissions = models.ManyToManyField(ParticipantSubmission)
+    participant_submissions = models.ManyToManyField(ChallengeTaskSubmission)
     download_date = models.DateTimeField(auto_now_add=True)
