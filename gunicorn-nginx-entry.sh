@@ -79,8 +79,6 @@ echo $SSL_CERT_CHAIN | base64 -d >> /etc/nginx/ssl/server.crt
 cd /app/
 
 python manage.py migrate
-python manage.py loaddata hostedfileset
-python manage.py loaddata hostedfile
 if [ ! -d static ]; then
   mkdir static
 fi
