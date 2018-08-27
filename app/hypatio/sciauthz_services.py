@@ -60,12 +60,14 @@ class SciAuthZ:
     def current_user_permissions(self):
 
         try:
+            # TODO Do you need to specify email here?
             user_permissions = requests.get(self.USER_PERMISSIONS_URL + "?email=" + self.CURRENT_USER_EMAIL, headers=self.JWT_HEADERS, verify=settings.VERIFY_REQUESTS).json()
         except JSONDecodeError:
             user_permissions = None
 
         return user_permissions
 
+    # TODO remove
     def current_user_access_requests(self):
 
         try:
@@ -75,6 +77,7 @@ class SciAuthZ:
 
         return user_access_requests
 
+    # TODO remove
     def current_user_request_access(self, access_request):
         try:
             user_access_request = requests.post(self.AUTHORIZATION_REQUEST_URL, headers=self.JWT_HEADERS, data=json.dumps(access_request), verify=settings.VERIFY_REQUESTS)
@@ -83,6 +86,7 @@ class SciAuthZ:
 
         return user_access_request
 
+    # TODO is this creating 3 times over??
     def create_profile_permission(self, grantee_email, project):
         logger.debug('[HYPATIO][create_profile_permission] - Creating Profile Permissions')
 
