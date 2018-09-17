@@ -606,9 +606,10 @@ class DataProjectView(TemplateView):
             return
 
         # TODO Check for access 
-        access_requested = self.has_user_requested_access(user_access_requests)
-
-         # This step is never completed, it is usually the last step.
+        # access_requested = self.has_user_requested_access(user_access_requests)
+        access_requested = False
+        
+        # This step is never completed, it is usually the last step.
         status = self.get_step_status(context, 'request_access', False)
 
         # Describe the step. Include here any variables that the template will need.
