@@ -33,6 +33,8 @@ from projects.models import TeamSubmissionsDownload
 from projects.models import Participant
 from projects.models import Team
 
+from projects.templatetags import projects_extras
+
 from contact.views import email_send
 
 from contact.views import email_send
@@ -53,10 +55,12 @@ def download_dataset(request):
     file_to_download = get_object_or_404(HostedFile, uuid=file_uuid)
     project_key = file_to_download.project.project_key
 
-    # TODO should check if this file is enabled for download
-    # ...
+    # Check if this file is enabled for download.
+    if not projects_extras.is_hostedfile_currently_enabled(file_to_download):
+        logger.debug("[views_files][download_dataset] - File not allowed for download attempted by " + request.user.email)
+        return HttpResponse("You do not have access to download this file.", status=403)
 
-    # Check Permissions in SciAuthZ
+    # Check for necessary permissions in SciAuthZ.
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
 
@@ -64,7 +68,7 @@ def download_dataset(request):
         logger.debug("[views_files][download_dataset] - No Access for user " + request.user.email)
         return HttpResponse("You do not have access to download this file.", status=403)
 
-    # Save a record of this person downloading this file
+    # Save a record of this person downloading this file.
     HostedFileDownload.objects.create(user=request.user, hosted_file=file_to_download)
 
     s3_filename = file_to_download.file_location + "/" + file_to_download.file_name
