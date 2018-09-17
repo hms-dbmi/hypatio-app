@@ -95,7 +95,6 @@ class Institution(models.Model):
     def __str__(self):
         return '%s' % (self.name)
 
-
 class AgreementForm(models.Model):
     """
     This represents the type of forms that a user might need to sign to be granted access to
@@ -122,11 +121,10 @@ class AgreementForm(models.Model):
         if self.type != AGREEMENT_FORM_TYPE_EXTERNAL_LINK and self.external_link is not None:
             raise ValidationError("If the form type is not an external link, the external link field should not be populated.")
 
-
 class DataProject(models.Model):
     """
     This represents a data project that users can access, along with its permissions and requirements.
-    A DataProject can be simply a data set or it can be a data contest as recognized by the is_contest
+    A DataProject can be simply a data set or it can be a data challenge as recognized by the is_challenge
     flag. The submission form file should be an html file that lives under static/submissionforms/.
     Project_supervisors should be a comma delimited string of email addresses.
     """
@@ -144,7 +142,9 @@ class DataProject(models.Model):
 
     agreement_forms = models.ManyToManyField(AgreementForm, blank=True, related_name='data_project_agreement_forms')
 
-    is_contest = models.BooleanField(default=False, blank=False, null=False)
+    # TODO Eventually this flag could be replaced as even non "challenges" will be able to accept uploads and support teams
+    is_challenge = models.BooleanField(default=False, blank=False, null=False)
+
     has_teams = models.BooleanField(default=False, blank=False, null=False)
 
     show_jwt = models.BooleanField(default=False, blank=False, null=False)
@@ -152,12 +152,11 @@ class DataProject(models.Model):
     def __str__(self):
         return '%s' % (self.project_key)
 
-
+# TODO remove
 class DataGate(models.Model):
     project = models.ForeignKey(DataProject)
     data_location_type = models.CharField(max_length=50, choices=DATA_LOCATION_TYPE)
     data_location = models.CharField(max_length=250)
-
 
 class SignedAgreementForm(models.Model):
     """
@@ -170,7 +169,6 @@ class SignedAgreementForm(models.Model):
     date_signed = models.DateTimeField(auto_now_add=True)
     agreement_text = models.TextField(blank=False)
     status = models.CharField(max_length=1, null=False, blank=False, default='P', choices=SIGNED_FORM_STATUSES)
-
 
 class Team(models.Model):
     """
@@ -198,7 +196,6 @@ class Team(models.Model):
 
     def __str__(self):
         return '%s' % self.team_leader.email
-
 
 class Participant(models.Model):
     user = models.ForeignKey(User)
@@ -246,7 +243,6 @@ class Participant(models.Model):
     def __str__(self):
         return '%s - %s' % (self.user, self.data_challenge)
 
-
 class HostedFileSet(models.Model):
     """
     An optional grouping for hosted files within a project.
@@ -258,7 +254,6 @@ class HostedFileSet(models.Model):
     def __str__(self):
         return self.title
 
-
 class HostedFile(models.Model):
     """
     Tracks the files belonging to projects that users will be able to download.
@@ -266,19 +261,22 @@ class HostedFile(models.Model):
 
     project = models.ForeignKey(DataProject)
 
-    # How the file should be displayed on the front end
+    # This UUID should be used in all templates instead of the pk id.
+    uuid = models.UUIDField(null=False, unique=True, editable=False, default=uuid.uuid4)
+
+    # How the file should be displayed on the front end.
     long_name = models.CharField(max_length=100, blank=False, null=False)
     description = models.CharField(max_length=2000, blank=True, null=True)
 
-    # Information for where to find the file
+    # Information for where to find the file.
     file_name = models.CharField(max_length=100, blank=False, null=False)
     file_location_type = models.CharField(max_length=100, blank=False, null=False, choices=DATA_LOCATION_TYPE)
     file_location = models.CharField(max_length=100, blank=False, null=False)
 
-    # Files can optionally be grouped under a set within a project
+    # Files can optionally be grouped under a set within a project.
     hostedfileset = models.ForeignKey(HostedFileSet, blank=True, null=True)
 
-    # Should the file appear on the front end (and when)
+    # Should the file appear on the front end (and when).
     enabled = models.BooleanField(default=False)
     opened_time = models.DateTimeField(blank=True, null=True)
     closed_time = models.DateTimeField(blank=True, null=True)
@@ -299,7 +297,6 @@ class HostedFileDownload(models.Model):
     hosted_file = models.ForeignKey(HostedFile)
     download_date = models.DateTimeField(auto_now_add=True)
 
-
 class TeamComment(models.Model):
     user = models.ForeignKey(User)
     team = models.ForeignKey(Team)
@@ -308,7 +305,6 @@ class TeamComment(models.Model):
 
     def __str__(self):
         return '%s %s %s' % (self.user, self.team, self.date)
-
 
 class ChallengeTask(models.Model):
     """
@@ -358,13 +354,16 @@ class ChallengeTaskSubmission(models.Model):
     def __str__(self):
         return '%s' % (self.uuid)
 
-
+# TODO remove
 class ParticipantProject(models.Model):
+    """
+    Used by the PayerDB. Is this still needed?
+    """
+
     name = models.CharField(max_length=20)
 
     class Meta:
         abstract = True
-
 
 class TeamSubmissionsDownload(models.Model):
     """

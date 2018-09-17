@@ -49,9 +49,12 @@ def download_dataset(request):
 
     logger.debug("[views_files][download_dataset] - Attempting file download.")
 
-    file_id = request.GET.get("file_id")
-    file_to_download = get_object_or_404(HostedFile, id=file_id)
+    file_uuid = request.GET.get("file_uuid")
+    file_to_download = get_object_or_404(HostedFile, uuid=file_uuid)
     project_key = file_to_download.project.project_key
+
+    # TODO should check if this file is enabled for download
+    # ...
 
     # Check Permissions in SciAuthZ
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
