@@ -50,7 +50,7 @@
             "permission_scheme": "PRIVATE",
             "agreement_forms": [1, 2],
             "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
-            "is_contest": true,
+            "is_challenge": true,
             "visible": true,
             "submission_form_file_path": "submissionforms/n2c2-t1.html"
         }
@@ -66,7 +66,7 @@
             "project_key": "BERSON",
             "permission_scheme": "PRIVATE",
             "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
-            "is_contest": false,
+            "is_challenge": false,
             "visible": true
         }
     },
@@ -108,7 +108,7 @@
             "project_key": "NHANES",
             "permission_scheme": "PUBLIC",
             "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
-            "is_contest": false,
+            "is_challenge": false,
             "visible": true
         }
     },
@@ -123,7 +123,7 @@
             "project_key": "GRDR",
             "permission_scheme": "PUBLIC",
             "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
-            "is_contest": false,
+            "is_challenge": false,
             "visible": true
         }
     },
@@ -138,7 +138,7 @@
             "project_key": "SSC",
             "permission_scheme": "PUBLIC",
             "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
-            "is_contest": false,
+            "is_challenge": false,
             "visible": true
         }
     },
@@ -153,7 +153,7 @@
             "project_key": "EDW",
             "permission_scheme": "PUBLIC",
             "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
-            "is_contest": false,
+            "is_challenge": false,
             "visible": true
         }
     },
@@ -168,7 +168,7 @@
             "project_key": "PAYERDB",
             "permission_scheme": "PUBLIC",
             "project_supervisors": "nathaniel_bessa@hms.harvard.edu",
-            "is_contest": false,
+            "is_challenge": false,
             "visible": true
         }
     }

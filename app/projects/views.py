@@ -187,7 +187,7 @@ def signed_agreement_form(request):
 @public_user_auth_and_jwt
 def list_data_projects(request, template_name='dataprojects/list.html'):
 
-    all_data_projects = DataProject.objects.filter(is_contest=False, visible=True)
+    all_data_projects = DataProject.objects.filter(is_challenge=False, visible=True)
 
     data_projects = []
     projects_with_view_permissions = []
@@ -276,7 +276,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
 @public_user_auth_and_jwt
 def list_data_challenges(request, template_name='datacontests/list.html'):
 
-    all_data_contests = DataProject.objects.filter(is_contest=True, visible=True)
+    all_data_contests = DataProject.objects.filter(is_challenge=True, visible=True)
     data_contests = []
 
     has_manage_permissions = False
@@ -293,7 +293,7 @@ def list_data_challenges(request, template_name='datacontests/list.html'):
             return logout_redirect(request)
 
         if request.user.is_superuser:
-            all_data_contests = DataProject.objects.filter(is_contest=True)
+            all_data_contests = DataProject.objects.filter(is_challenge=True)
 
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
         has_manage_permissions = sciauthz.user_has_any_manage_permissions()
@@ -834,7 +834,7 @@ class DataProjectView(TemplateView):
         if not context['has_view_permission'] and not context['has_manage_permissions']:
             return False
 
-        # If the permission is managed outside this project, return false
+        # If the permission is managed outside this project, return false.
         if self.project.permission_scheme == PERMISSION_SCHEME_EXTERNALLY_GRANTED:
             return False
 
