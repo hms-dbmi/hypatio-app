@@ -16,8 +16,8 @@ from .models import TeamSubmissionsDownload
 from .models import PayerDBForm
 
 class DataprojectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'project_key', 'is_contest')
-    list_filter = ('is_contest', )
+    list_display = ('name', 'project_key', 'is_challenge')
+    list_filter = ('is_challenge', )
 
 class AgreementformAdmin(admin.ModelAdmin):
     list_display = ('name', 'short_name', 'type', 'form_file_path')
