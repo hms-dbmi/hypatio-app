@@ -13,19 +13,15 @@ class SciAuthZ:
     USER_PERMISSIONS_URL = None
     JWT_HEADERS = None
     CURRENT_USER_EMAIL = None
-    AUTHORIZATION_REQUEST_URL = None
 
     def __init__(self, authz_base, jwt, user_email):
 
         user_permissions_url = authz_base + "/user_permission/"
-        authorization_request_url = authz_base + "/authorization_requests/"
-        authorization_request_grant_url = authz_base + "/authorization_request_change/"
         create_profile_permission = authz_base + "/user_permission/create_registration_permission_record/"
         create_view_permission = authz_base + "/user_permission/create_item_view_permission_record/"
         remove_view_permission = authz_base + "/user_permission/remove_item_view_permission_record/"
 
         self.USER_PERMISSIONS_URL = user_permissions_url
-        self.AUTHORIZATION_REQUEST_URL = authorization_request_url
         self.CREATE_PROFILE_PERMISSION = create_profile_permission
         self.CREATE_ITEM_PERMISSION = create_view_permission
         self.REMOVE_ITEM_PERMISSION = remove_view_permission
@@ -34,7 +30,6 @@ class SciAuthZ:
 
         self.JWT_HEADERS = jwt_headers
         self.CURRENT_USER_EMAIL = user_email
-        self.AUTHORIZATION_REQUEST_GRANT_URL = authorization_request_grant_url
 
     # Check if this user has SciAuthZ manage permissions on the given item
     def user_has_manage_permission(self, item):
@@ -66,25 +61,6 @@ class SciAuthZ:
             user_permissions = None
 
         return user_permissions
-
-    # TODO remove
-    def current_user_access_requests(self):
-
-        try:
-            user_access_requests = requests.get(self.AUTHORIZATION_REQUEST_URL, headers=self.JWT_HEADERS, verify=settings.VERIFY_REQUESTS).json()
-        except JSONDecodeError:
-            user_access_requests = None
-
-        return user_access_requests
-
-    # TODO remove
-    def current_user_request_access(self, access_request):
-        try:
-            user_access_request = requests.post(self.AUTHORIZATION_REQUEST_URL, headers=self.JWT_HEADERS, data=json.dumps(access_request), verify=settings.VERIFY_REQUESTS)
-        except JSONDecodeError:
-            user_access_request = None
-
-        return user_access_request
 
     # TODO is this creating 3 times over??
     def create_profile_permission(self, grantee_email, project):
