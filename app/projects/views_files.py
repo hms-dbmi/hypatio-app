@@ -273,6 +273,11 @@ def upload_challengetasksubmission_file(request):
             logger.error('Task not found with id {id}'.format(id=task_id))
             return HttpResponse('Task not found', status=400)
 
+        # Only allow a submission if the task is still open.
+        if not projects_extras.is_challengetask_currently_enabled(task):
+            logger.error("[views_files][upload_challengetasksubmission_file] - User " + request.user.email + " is trying to submit task " + task.title + " after close time.")
+            return HttpResponse("This task is no longer open for submissions", status=400)
+
         # Prepare the metadata.
         metadata = {
             'project': project_key,
@@ -325,7 +330,7 @@ def upload_challengetasksubmission_file(request):
             submission_info['submitted_by'] = request.user.email
             submission_info['team_leader'] = participant.team.team_leader.email
             submission_info['task'] = task.title
-            submission_info['submitted_on'] = datetime.strftime(datetime.now(), "%Y%m%d_%H%M")
+            submission_info['submitted_on'] = datetime.strftime(datetime.now(), "%Y%m%d_%H%M") + " (UTC)"
 
             submission_info_json = json.dumps(submission_info, indent=4)
 
