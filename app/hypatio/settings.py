@@ -133,8 +133,6 @@ SCIREG_SERVER_URL = os.environ.get("SCIREG_SERVER_URL", "")
 AUTHZ_BASE = os.environ.get("AUTHZ_BASE", "")
 
 USER_PERMISSIONS_URL = AUTHZ_BASE + "/user_permission/"
-AUTHORIZATION_REQUEST_URL = AUTHZ_BASE + "/authorization_requests/"
-AUTHORIZATION_REQUEST_GRANT_URL = AUTHZ_BASE + "/authorization_request_change/"
 
 SCIREG_REGISTRATION_URL = SCIREG_SERVER_URL + "/api/register/"
 

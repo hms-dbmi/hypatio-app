@@ -309,7 +309,7 @@ def download_email_list(request):
 
     return response
 
-
+# TODO REMOVE "CONTEST" EVERYWHERE AND MAKE THIS WORK REGARDLESS OF CHALLENGE OR NOT
 # TODO REFACTOR INTO CLASS BASED VIEW
 @user_auth_and_jwt
 def manage_contest(request, project_key, template_name='datacontests/managecontests.html'):

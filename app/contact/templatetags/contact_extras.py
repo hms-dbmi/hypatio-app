@@ -8,13 +8,6 @@ import os
 register = template.Library()
 
 @register.simple_tag
-def modal_contact_form_button(text='Contact us', classes='btn btn-primary btn-md'):
-
-    return mark_safe("""
-        <button class='contact-form-button {}'>{}</button>
-    """.format(classes, text))
-
-@register.simple_tag
 def modal_contact_form_link(text='Contact us', classes=''):
 
     return mark_safe("""
