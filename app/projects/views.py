@@ -31,13 +31,14 @@ from .models import DataProject
 from .models import HostedFile
 from .models import Participant
 from .models import SignedAgreementForm
-from .models import AGREEMENT_FORM_TYPE_STATIC
 from .models import AGREEMENT_FORM_TYPE_DJANGO
 from .models import PERMISSION_SCHEME_EXTERNALLY_GRANTED
 
+# TODO REMOVE?
 from .steps.dynamic_form import save_dynamic_form
 from .steps.dynamic_form import agreement_form_factory
 
+# TODO REMOVE?
 from projects.steps.pending_review import PendingReviewStepInitializer
 
 # Get an instance of a logger
@@ -346,8 +347,7 @@ class DataProjectView(TemplateView):
         about the user and the DataProject.
         """
 
-        # Get super's context. This is the dictionary of variables for the base template
-        # being rendered.
+        # Get super's context. This is the dictionary of variables for the base template being rendered.
         context = super(DataProjectView, self).get_context_data(**kwargs)
 
         # Prepare the common context.
@@ -848,5 +848,5 @@ class DataProjectView(TemplateView):
 
         # TODO UPDATE THIS FOR NEW METHOD OF REQUESTING ACCESS...
         # ...
-        
+
         return False

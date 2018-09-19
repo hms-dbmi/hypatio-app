@@ -29,117 +29,23 @@ from hypatio.scireg_services import get_names
 logger = logging.getLogger(__name__)
 
 
-@user_auth_and_jwt
-def manage_project(request, project_key, template_name='manage/manageprojects.html'):
-
-    user = request.user
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
-
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-    is_manager = sciauthz.user_has_manage_permission(project_key)
-    has_manage_permissions = sciauthz.user_has_any_manage_permissions()
-
-    project = DataProject.objects.get(project_key=project_key)
-
-    if not is_manager:
-        logger.debug(
-            '[HYPATIO][DEBUG][manage_team] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
-        return HttpResponse(403)
-
-    teams = Team.objects.filter(data_project=project)
-
-    return render(request, template_name, context={"user": user,
-                                                   "has_manage_permissions": has_manage_permissions,
-                                                   "project": project,
-                                                   "teams": teams,
-                                                   })
-
-#TODO: Use this more widely.
-def prepare_participant_details(participants, user_jwt, project):
-
-    team_member_details = []
-    team_accepted_forms = 0
-
-    for member in participants:
-        email = member.user.email
-
-        # Make a request to SciReg for a specific person's user information
-        user_info_json = get_user_profile(user_jwt, email, project.project_key)
-
-        if user_info_json['count'] != 0:
-            user_info = user_info_json["results"][0]
-        else:
-            user_info = None
-
-        signed_agreement_forms = []
-        signed_accepted_agreement_forms = 0
-
-        # For each of the available agreement forms for this project, display only latest version completed by the user
-        for agreement_form in project.agreement_forms.all():
-            signed_form = SignedAgreementForm.objects.filter(user__email=email,
-                                                             project=project,
-                                                             agreement_form=agreement_form).last()
-
-            if signed_form is not None:
-                signed_agreement_forms.append(signed_form)
-
-                if signed_form.status == 'A':
-                    team_accepted_forms += 1
-                    signed_accepted_agreement_forms += 1
-
-        team_member_details.append({
-            'email': email,
-            'user_info': user_info,
-            'signed_agreement_forms': signed_agreement_forms,
-            'signed_accepted_agreement_forms': signed_accepted_agreement_forms,
-            'participant': member
-        })
-
-    return team_member_details, team_accepted_forms
 
 
-@user_auth_and_jwt
-def manage_project_team(request, project_key, team_leader, template_name='manage/manage_project_teams.html'):
 
-    user = request.user
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-    is_manager = sciauthz.user_has_manage_permission(project_key)
-    has_manage_permissions = sciauthz.user_has_any_manage_permissions()
 
-    if not is_manager:
-        logger.debug(
-            '[HYPATIO][DEBUG][manage_team] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
-        return HttpResponse(403)
 
-    project = DataProject.objects.get(project_key=project_key)
-    team = Team.objects.get(data_project=project, team_leader__email=team_leader)
-    num_required_forms = project.agreement_forms.count()
 
-    # Collect all the team member information needed
-    team_participants = team.participant_set.all()
-    team_member_details, team_accepted_forms = prepare_participant_details(team_participants, user_jwt, project)
+# TODO REMOVE THIS ENTIRE FILE!!
 
-    # Check whether this team has completed all the necessary forms and they have been accepted by challenge admins
-    total_required_forms_for_team = project.agreement_forms.count() * team_participants.count()
-    team_has_all_forms_complete = total_required_forms_for_team == team_accepted_forms
 
-    institution = project.institution
 
-    # Get the comments made about this team by challenge administrators
-    comments = TeamComment.objects.filter(team=team)
 
-    return render(request, template_name, context={"user": user,
-                                                   "ssl_setting": settings.SSL_SETTING,
-                                                   "has_manage_permissions": has_manage_permissions,
-                                                   "project": project,
-                                                   "team": team,
-                                                   "team_members": team_member_details,
-                                                   "num_required_forms": num_required_forms,
-                                                   "team_has_all_forms_complete": team_has_all_forms_complete,
-                                                   "institution": institution,
-                                                   "comments": comments})
+
+
+
+
+
 
 
 @user_auth_and_jwt
@@ -309,6 +215,7 @@ def download_email_list(request):
 
     return response
 
+# TODO DELETE THIS FILE, REPLACED BY DataProjectManageView
 # TODO REMOVE "CONTEST" EVERYWHERE AND MAKE THIS WORK REGARDLESS OF CHALLENGE OR NOT
 # TODO REFACTOR INTO CLASS BASED VIEW
 @user_auth_and_jwt

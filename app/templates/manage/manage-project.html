@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load countries %}
+
+{% block headscripts %}
+<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
+{% endblock %}
+
+{% block title %}
+{{ project.project_key }} Management
+{% endblock %}
+
+{% block content %}
+
+if has_teams
+    teams list
+    participants without teams list
+else
+    participants list
+
+statistics
+    if has_teams
+        team statistics
+    user statistics
+
+reports
+
+{% endblock %}
