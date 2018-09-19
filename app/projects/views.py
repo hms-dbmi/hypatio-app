@@ -123,15 +123,12 @@ def save_signed_external_agreement_form(request):
 
 @user_auth_and_jwt
 def submit_user_permission_request(request):
+    """
+    TODO comment
+    """
 
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
-
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
-
-    data_request = {"user": request.user.email,
-                    "item": request.POST['project_key']}
-
-    sciauthz.current_user_request_access(data_request)
+    # TODO Update this to create a new permission request record
+    # ...
 
     return HttpResponse(200)
 
@@ -187,7 +184,7 @@ def signed_agreement_form(request):
 @public_user_auth_and_jwt
 def list_data_projects(request, template_name='dataprojects/list.html'):
 
-    all_data_projects = DataProject.objects.filter(is_contest=False, visible=True)
+    all_data_projects = DataProject.objects.filter(is_challenge=False, visible=True)
 
     data_projects = []
     projects_with_view_permissions = []
@@ -208,7 +205,6 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
         has_manage_permissions = sciauthz.user_has_any_manage_permissions()
         user_permissions = sciauthz.current_user_permissions()
-        user_access_requests = sciauthz.current_user_access_requests()
 
         logger.debug('[HYPATIO][DEBUG] User Permissions: ' + json.dumps(user_permissions))
 
@@ -218,21 +214,6 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
             for user_permission in user_permissions:
                 if user_permission['permission'] == 'VIEW':
                     projects_with_view_permissions.append(user_permission['item'])
-
-        # Get all of the user's permission requests
-        access_requests_url = settings.AUTHORIZATION_REQUEST_URL + "?email=" + user.email
-
-        logger.debug('[HYPATIO][DEBUG] access_requests_url: ' + access_requests_url)
-        logger.debug('[HYPATIO][DEBUG] User Permission Requests: ' + json.dumps(user_access_requests))
-
-        if user_access_requests is not None and 'results' in user_access_requests:
-            user_access_requests = user_access_requests["results"]
-
-            for access_request in user_access_requests:
-                projects_with_access_requests[access_request['item']] = {
-                    'date_requested': access_request['date_requested'],
-                    'request_granted': access_request['request_granted'],
-                    'date_request_granted': access_request['date_request_granted']}
 
     # Build the dictionary with all project and permission information needed
     for project in all_data_projects:
@@ -276,7 +257,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
 @public_user_auth_and_jwt
 def list_data_challenges(request, template_name='datacontests/list.html'):
 
-    all_data_contests = DataProject.objects.filter(is_contest=True, visible=True)
+    all_data_contests = DataProject.objects.filter(is_challenge=True, visible=True)
     data_contests = []
 
     has_manage_permissions = False
@@ -293,7 +274,7 @@ def list_data_challenges(request, template_name='datacontests/list.html'):
             return logout_redirect(request)
 
         if request.user.is_superuser:
-            all_data_contests = DataProject.objects.filter(is_contest=True)
+            all_data_contests = DataProject.objects.filter(is_challenge=True)
 
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
         has_manage_permissions = sciauthz.user_has_any_manage_permissions()
@@ -616,16 +597,19 @@ class DataProjectView(TemplateView):
         This is an optional step depending on the DataProject.
         """
 
+        # -----------------------------------------------------------
+        # TODO this is where the new access request logic should live
+        # -----------------------------------------------------------
+
         # Only display this step if it is a private data set with no agreement forms
         if not (self.project.permission_scheme == "PRIVATE" and self.project.agreement_forms.count() == 0):
             return
 
-        # Check SciAuthZ for any access requests by this user
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, self.user_jwt, self.request.user.email)
-        user_access_requests = sciauthz.current_user_access_requests()
-        access_requested = self.has_user_requested_access(user_access_requests)
-
-         # This step is never completed, it is usually the last step.
+        # TODO Check for access 
+        # access_requested = self.has_user_requested_access(user_access_requests)
+        access_requested = False
+        
+        # This step is never completed, it is usually the last step.
         status = self.get_step_status(context, 'request_access', False)
 
         # Describe the step. Include here any variables that the template will need.
@@ -834,7 +818,7 @@ class DataProjectView(TemplateView):
         if not context['has_view_permission'] and not context['has_manage_permissions']:
             return False
 
-        # If the permission is managed outside this project, return false
+        # If the permission is managed outside this project, return false.
         if self.project.permission_scheme == PERMISSION_SCHEME_EXTERNALLY_GRANTED:
             return False
 
@@ -862,9 +846,7 @@ class DataProjectView(TemplateView):
         Returns a boolean.
         """
 
-        if access_requests is not None and 'results' in access_requests:
-            for access_request in access_requests['results']:
-                if access_request['item'] == self.project.project_key:
-                    return True
+        # TODO UPDATE THIS FOR NEW METHOD OF REQUESTING ACCESS...
+        # ...
         
         return False

@@ -9,18 +9,21 @@ def create_n2c2t1_submission_type(apps, schema_editor):
     DataProject = apps.get_model("projects", "dataproject")
     DataProjectSubmissionType = apps.get_model("projects", "dataprojectsubmissiontype")
 
-    n2c2t1_project = DataProject.objects.get(project_key="n2c2-t1")
+    try:
+        n2c2t1_project = DataProject.objects.get(project_key="n2c2-t1")
 
-    DataProjectSubmissionType.objects.create(
-        data_project=n2c2t1_project,
-        title='Task',
-        description='',
-        submission_form_file_path='n2c2-t1.html',
-        max_submissions=3,
-        opened_time=None,
-        closed_time=None,
-        enabled=True,
-    )
+        DataProjectSubmissionType.objects.create(
+            data_project=n2c2t1_project,
+            title='Task',
+            description='',
+            submission_form_file_path='n2c2-t1.html',
+            max_submissions=3,
+            opened_time=None,
+            closed_time=None,
+            enabled=True,
+        )
+    except Exception:
+        pass
 
 
 def convert_dataprojectsubmissions(apps, schema_editor):
@@ -32,13 +35,16 @@ def convert_dataprojectsubmissions(apps, schema_editor):
     DataProjectSubmissionType = apps.get_model("projects", "dataprojectsubmissiontype")
     DataProjectSubmission = apps.get_model("projects", "dataprojectsubmission")
 
-    n2c2t1_project = DataProject.objects.get(project_key="n2c2-t1")
-    n2c2t1_submissiontype = DataProjectSubmissionType.objects.get(data_project=n2c2t1_project)
+    try:
+        n2c2t1_project = DataProject.objects.get(project_key="n2c2-t1")
+        n2c2t1_submissiontype = DataProjectSubmissionType.objects.get(data_project=n2c2t1_project)
 
-    # Set the submission type for every submission
-    for submission in DataProjectSubmission.objects.all():
-        submission.dataprojectsubmissiontype = n2c2t1_submissiontype
-        submission.save()
+        # Set the submission type for every submission
+        for submission in DataProjectSubmission.objects.all():
+            submission.dataprojectsubmissiontype = n2c2t1_submissiontype
+            submission.save()
+    except Exception:
+        pass
 
 
 class Migration(migrations.Migration):

@@ -18,3 +18,4 @@ PyJWT==1.6.1
 PyMySQL==0.7.9
 raven==6.1.0
 requests==2.11.1
+sqlparse==0.2.4
