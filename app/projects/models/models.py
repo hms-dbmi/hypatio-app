@@ -201,15 +201,14 @@ class Participant(models.Model):
     user = models.ForeignKey(User)
     data_challenge = models.ForeignKey(DataProject)
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE)
+
+    # TODO remove or consolidate all these fields
     team_wait_on_leader_email = models.CharField(max_length=100, blank=True, null=True)
     team_wait_on_leader = models.BooleanField(default=False)
     team_pending = models.BooleanField(default=False)
     team_approved = models.BooleanField(default=False)
 
-    @property
-    def is_on_team(self):
-        return self.team is not None and self.team_approved
-
+    # TODO remove all these?
     def assign_pending(self, team):
         self.set_pending()
         self.team = team
