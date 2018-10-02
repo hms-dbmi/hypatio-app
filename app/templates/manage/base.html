@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load countries %}
+{% load projects_extras %}
+
+{% block headscripts %}
+<!-- For DataTables -->
+<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.min.css' %}">
+{% endblock %}
+
+{% block title %}
+{{ project.project_key }} Management
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Details</h2>
+            </div>
+            <div class="panel-body" id="project-details">
+                {% include 'manage/project-details.html' with project=project %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Registration</h2>
+            </div>
+            <div class="panel-body">
+                <div class="form-group" id="registration-status">
+                    {% include 'manage/registration-status.html' with project=project %}
+                </div>
+                <hr>
+                <div class="form-group" id="visible-status">
+                    {% include 'manage/visible-status.html' with project=project %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Reports and Statistics</h2>
+            </div>
+            <div class="panel-body">
+                Coming soon...
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Agreement Forms</h2>
+            </div>
+            <div class="panel-body">
+                {% for agreement_form in project.agreement_forms.all %}
+                <div class="row">
+                    <div class="col-sm-12">
+                        <h5>{{ agreement_form.name }}</h5>
+
+                        {% if agreement_form.type == "EXTERNAL_LINK" %}
+                            <a href="{{ agreement_form.external_link }}" target="_blank">Go to external webpage</a>
+                        {% elif agreement_form.type == "STATIC" %}
+                            <a class="preview-agreement-form"
+                                data-toggle="modal"
+                                data-target="#modal-preview-agreement-form"
+                                ic-target="#preview-agreement-form-body"
+                                ic-get-from="{% url 'manage:get-static-agreement-form-html' %}"
+                                ic-include='{"project-key": "{{ project.project_key }}", "form-id": "{{ agreement_form.id }}"}'>
+                                See preview
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <hr>
+                {% endfor %}
+                <p class="help-block">Please contact a DBMI Tech-Core developer for help with adding or editing an agreement form.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Files</h2>
+            </div>
+            <div class="panel-body">
+                {% for hosted_file in project.hostedfile_set.all %}
+                <div class="row">
+                    <div class="col-sm-8">
+                        <h5>
+                            {{ hosted_file.long_name }}
+                        </h5>
+                    </div>
+                    
+                    <div class="col-sm-4">
+                        <div class="pull-right">
+                            <a class="btn btn-default pull-right edit-agreement-form-button" 
+                                href="#" 
+                                role="button" 
+                                data-toggle="modal" 
+                                data-target="#modal-edit-hosted-file"
+                                ic-get-from="{% url 'manage:get-hosted-file-edit-form' %}"
+                                ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
+                                ic-target="#modal-edit-hosted-file-body">
+                                Edit
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                {% endfor %}
+                <button class="btn btn-primary pull-right">Add another</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Tasks</h2>
+            </div>
+            <div class="panel-body">
+                Coming soon...
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Downloads</h2>
+            </div>
+            <div class="panel-body">
+                Visualization here...
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Uploads</h2>
+            </div>
+            <div class="panel-body">
+                Visualization here...
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        {% if project.has_teams %}
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Team List</h2>
+            </div>
+            <div class="panel-body">
+                <table id="team-table" class="table table-bordered table-hover table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Team</th>
+                            <th>Members</th>
+                            <th>Status</th>
+                            <th>Has Access to Data</th>
+                            <th>Downloaded Data</th>
+                            <th>Completed a Task</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for team in project.team_set.all %}
+                        <tr class="team-row" data-team="{{ team }}">
+                            <td>{{ team }}</td>
+                            <td>{{ team.participant_set.all.count }}</td>
+                            <td class="team-status-column">
+                            {% if team.status == "Pending" %}
+                                Pending
+                            {% elif team.status == "Ready" %}
+                                <span class="label label-warning">Ready to Activate</span>
+                            {% elif team.status == "Active" %}
+                                Active
+                            {% elif team.status == "Deactivated" %}
+                                Deactivated
+                            {% endif %}
+                            </td>
+                            <td>TBD</td>
+                            <td>TBD</td>
+                            <td>TBD</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Full Participant List</h2>
+            </div>
+                <div class="panel-body">
+                    <table id="team-table" class="table table-bordered table-hover table-responsive">
+                        <thead>
+                            <tr>
+                                <th>Person</th>
+                                {% if project.has_teams %}
+                                <th>Team</th>
+                                {% endif %}
+                                <th>Has Access to Data</th>
+                                <th>Downloaded Data</th>
+                                <th>Completed a Task</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="participant-row">
+                                <td>TBD</td>
+                                {% if project.has_teams %}
+                                <td>TBD</td>
+                                {% endif %}
+                                <td>TBD</td>
+                                <td>TBD</td>
+                                <td>TBD</td>
+                                <td>TBD</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">User List</h2>
+            </div>
+            <div class="panel-body">
+                <table id="team-table" class="table table-bordered table-hover table-responsive">
+                    <thead>
+                        <tr>
+                            <th>User email</th>
+                            <th>Access Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for participant in project.participant_set.all %}
+                        <tr class="team-row" data-team="{{ team }}">
+                            <td>{{ participant.user.email }}</td>
+                            <td>TBD</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div id="modal-preview-agreement-form" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h5 class="modal-title">Preview agreement form</h5>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info" role="alert">
+                    This is a preview of how your form is displayed to users registering for your data project. If you see anything that needs to be changed, please reach out to a DBMI Tech-Core developer for assistance.
+                </div>
+
+                <div id="preview-agreement-form-body">
+                    ...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-edit-hosted-file" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h5 class="modal-title">Edit File</h5>
+            </div>
+
+            <div class="modal-body" id="modal-edit-hosted-file-body">
+                {# Loaded via Intercooler.js #}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footerscripts %}
+<script type="application/javascript">
+    // Turn the team table into a DataTable
+    // $(document).ready(function() {
+    //     $('#team-table').DataTable();
+    // });
+</script>
+
+<script type="application/javascript">
+    // When clicking a team row, open a new window for team managment
+    // $(document).ready(function() {
+    //     $('#team-table').on("click", ".team-row", function() {
+    //         var team = $(this).data('team');
+    //         window.open("./" + team);
+            
+    //         // Because the user may now delete the team or change its status, mention
+    //         // that they should refresh the page to see any changes
+    //         var teamStatus = $(this).find('.team-status-column');
+    //         teamStatus.html('<span class="label label-default">Refresh to see changes</span>');
+    //     });
+    // });
+</script>
+
+<script type="application/javascript">
+    // Populate the edit agreement form modal with the values present in the link
+    // $('.edit-agreement-form-button').on('click', function() {
+
+    //     var form_name = $(this).data('form-name');
+    //     var form_short_name = $(this).data('form-short-name');
+    //     var form_description = $(this).data('form-description');
+    //     var form_type = $(this).data('form-type');
+    //     var form_file_location = $(this).data('form-file-location');
+    //     var form_external_link = $(this).data('form-external-link');
+
+    //     $('#edit-agreement-form input[name=agreement-form-name').val(form_name);
+    //     $('#edit-agreement-form input[name=agreement-form-short-name').val(form_short_name);
+    //     $('#edit-agreement-form textarea[name=agreement-form-description').html(form_description);
+    //     $('#edit-agreement-form input[name=agreement-form-html-file').val(form_file_location);        // TODO
+    //     $('#edit-agreement-form input[name=agreement-form-external-link').val(form_external_link);
+
+    //     if (form_type == "STATIC") {
+    //         $('#agreement-form-type-html').prop('checked', true);
+    //         $('#agreement-form-type-external').prop('checked', false);
+            
+    //         $('#agreement-form-html-file-block').show();
+    //         $('#agreement-form-external-link-block').hide();
+    //     } else if (form_type == "EXTERNAL_LINK") {
+    //         $('#agreement-form-type-html').prop('checked', false);
+    //         $('#agreement-form-type-external').prop('checked', true);
+            
+    //         $('#agreement-form-html-file-block').hide();
+    //         $('#agreement-form-external-link-block').show();
+    //     }
+    // });
+
+    // // Adjust agreement form questions based on form type change
+    // $('#agreement-form-type-html').on('click', function() {
+    //     $('#agreement-form-html-file-block').show();
+    //     $('#agreement-form-external-link-block').hide();
+    // });
+    // $('#agreement-form-type-external').on('click', function() {
+    //     $('#agreement-form-html-file-block').hide();
+    //     $('#agreement-form-external-link-block').show();
+    // });
+</script>
+{% endblock %}

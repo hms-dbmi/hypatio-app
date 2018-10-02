@@ -9,9 +9,9 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
-from projects.models import DataProject
-
 from hypatio.sciauthz_services import SciAuthZ
+
+from projects.models import DataProject
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ class DataProjectManageView(TemplateView):
     """
 
     project = None
-    template_name = 'manage/manage-project.html'
+    template_name = 'manage/base.html'
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -33,7 +33,6 @@ class DataProjectManageView(TemplateView):
         # Get the project key from the URL.
         project_key = self.kwargs['project_key']
 
-        # If this project does not exist, display a 404 Error.
         try:
             self.project = DataProject.objects.get(project_key=project_key)
         except ObjectDoesNotExist:
@@ -42,7 +41,6 @@ class DataProjectManageView(TemplateView):
 
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-        # If the user does not have MANAGE permissions on the project, return a 403 error.
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
         is_manager = sciauthz.user_has_manage_permission(project_key)
 
