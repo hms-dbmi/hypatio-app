@@ -16,18 +16,8 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-4">
-        <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Details</h2>
-            </div>
-            <div class="panel-body" id="project-details">
-                {% include 'manage/project-details.html' with project=project %}
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="panel panel-default">
+    <div class="col-md-3">
+        <div class="panel panel-primary">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Registration</h2>
             </div>
@@ -42,8 +32,20 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="panel panel-default">
+
+    <div class="col-md-9">
+        <div class="panel panel-primary">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Details</h2>
+            </div>
+            <div class="panel-body" id="project-details">
+                {% include 'manage/project-details.html' with project=project %}
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="col-md-4">
+        <div class="panel panel-primary">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Reports and Statistics</h2>
             </div>
@@ -51,12 +53,12 @@
                 Coming soon...
             </div>
         </div>
-    </div>
+    </div> -->
 </div>
 
 <div class="row">
     <div class="col-lg-4">
-        <div class="panel panel-default">
+        <div class="panel panel-primary">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Agreement Forms</h2>
             </div>
@@ -88,7 +90,7 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="panel panel-default">
+        <div class="panel panel-primary">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Files</h2>
             </div>
@@ -99,6 +101,12 @@
                         <h5>
                             {{ hosted_file.long_name }}
                         </h5>
+                        {% is_hostedfile_currently_enabled hosted_file as file_enabled %}
+                        {% if file_enabled %}
+                        Downloads currently enabled
+                        {% else %}
+                        Downloads currently disabled
+                        {% endif %}
                     </div>
                     
                     <div class="col-sm-4">
@@ -124,7 +132,7 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="panel panel-default">
+        <div class="panel panel-primary">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Tasks</h2>
             </div>
@@ -137,7 +145,7 @@
 
 <div class="row">
     <div class="col-md-6">
-        <div class="panel panel-default">
+        <div class="panel panel-primary">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Downloads</h2>
             </div>
@@ -147,7 +155,7 @@
         </div>
     </div>
     <div class="col-md-6">
-        <div class="panel panel-default">
+        <div class="panel panel-primary">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Uploads</h2>
             </div>
@@ -161,7 +169,7 @@
 <div class="row">
     <div class="col-lg-12">
         {% if project.has_teams %}
-        <div class="panel panel-default">
+        <div class="panel panel-primary">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Team List</h2>
             </div>
@@ -202,17 +210,18 @@
                 </table>
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 
 <div class="row">
     <div class="col-lg-12">
-        <div class="panel panel-default">
+        <div class="panel panel-primary">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Full Participant List</h2>
             </div>
                 <div class="panel-body">
-                    <table id="team-table" class="table table-bordered table-hover table-responsive">
+                    <table id="participant-table" class="table table-bordered table-hover table-responsive">
                         <thead>
                             <tr>
                                 <th>Person</th>
@@ -226,45 +235,23 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% for participant in project.participant_set.all %}
                             <tr class="participant-row">
-                                <td>TBD</td>
+                                <td>{{ participant.user.email }}</td>
                                 {% if project.has_teams %}
-                                <td>TBD</td>
+                                <td>{{ participant.team.team_leader.email }}</td>
                                 {% endif %}
                                 <td>TBD</td>
                                 <td>TBD</td>
                                 <td>TBD</td>
                                 <td>TBD</td>
                             </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
-        {% else %}
-        <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">User List</h2>
-            </div>
-            <div class="panel-body">
-                <table id="team-table" class="table table-bordered table-hover table-responsive">
-                    <thead>
-                        <tr>
-                            <th>User email</th>
-                            <th>Access Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for participant in project.participant_set.all %}
-                        <tr class="team-row" data-team="{{ team }}">
-                            <td>{{ participant.user.email }}</td>
-                            <td>TBD</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
         </div>
-        {% endif %}
     </div>
 </div>
 
@@ -306,10 +293,11 @@
 
 {% block footerscripts %}
 <script type="application/javascript">
-    // Turn the team table into a DataTable
-    // $(document).ready(function() {
-    //     $('#team-table').DataTable();
-    // });
+    // Initialize DataTables
+    $(document).ready(function() {
+        $('#team-table').DataTable();
+        $('#participant-table').DataTable();
+    });
 </script>
 
 <script type="application/javascript">

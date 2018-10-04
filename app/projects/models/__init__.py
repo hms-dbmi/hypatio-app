@@ -1,7 +1,6 @@
 from .models import Institution
 from .models import AgreementForm
 from .models import DataProject
-from .models import DataGate
 from .models import SignedAgreementForm
 from .models import Team
 from .models import Participant

@@ -1,19 +1,24 @@
-from django.contrib.admin.widgets import AdminDateWidget
-from django.forms import ModelForm
-from django.forms import DateTimeInput
+from django import forms
 
+from projects.models import DataProject
 from projects.models import HostedFile
 
-# TODO:
-# convert the edit-hosted-file-form to a form here
-# ... figure out how to do a datetime widget, maybe use django admin's.
-# convert the other forms to django forms 
+# TODO Convert all other manual forms into Django forms
+# ...
 
-class EditHostedFileForm(ModelForm):
+class EditHostedFileForm(forms.ModelForm):
+    project = forms.ModelChoiceField(queryset=DataProject.objects.all(), widget=forms.HiddenInput)
+
+    # Temporarily hidden fields for now
+    file_name = forms.CharField(widget=forms.HiddenInput)
+    file_location = forms.CharField(widget=forms.HiddenInput)
+
     class Meta:
         model = HostedFile
-        fields = ['long_name', 'description', 'enabled', 'opened_time', 'closed_time']
-
+        fields = ['project', 'long_name', 'description', 'file_name', 'file_location', 'enabled', 'opened_time', 'closed_time']
         widgets = {
-            'opened_time': AdminDateWidget()
+            'long_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': '5'}),
+            'opened_time': forms.DateTimeInput(attrs={'class': 'form-control', 'placeholder': 'MM/DD/YYYY HH:MM'}),
+            'closed_time': forms.DateTimeInput(attrs={'class': 'form-control', 'placeholder': 'MM/DD/YYYY HH:MM'}),
         }

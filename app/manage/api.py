@@ -152,6 +152,7 @@ def set_dataproject_details(request):
         'manage/project-details.html',
         context={
             'project': project,
+            'message': "Changes saved!"
         }
     )
 
@@ -232,6 +233,46 @@ def get_hosted_file_edit_form(request):
         context={
             'form': edit_hosted_file_form,
             'file': hosted_file
-        }
+        },
+        request=request
     )
     return HttpResponse(response_html)
+
+@user_auth_and_jwt
+def process_hosted_file_edit_form_submission(request):
+    """
+    An HTTP POST endpoint for processing a submitted form for editing a hosted file.
+    """
+
+    user = request.user
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+    file_uuid = request.POST.get("file-uuid")
+    project_id = request.POST.get("project")
+    project = get_object_or_404(DataProject, id=project_id)
+
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    is_manager = sciauthz.user_has_manage_permission(project.project_key)
+
+    if not is_manager:
+        logger.debug(
+            '[HYPATIO][DEBUG][get_static_agreement_form_html] User {email} does not have MANAGE permissions for item {project_key}.',
+            email=user.email,
+            project_key=project.project_key
+        )
+        return HttpResponse("Error: permissions.", status=403)
+
+    hosted_file = HostedFile.objects.get(project=project, uuid=file_uuid)
+    edit_hosted_file_form = EditHostedFileForm(request.POST, instance=hosted_file)
+
+    # TODO show error messages
+    if not edit_hosted_file_form.is_valid():
+        return HttpResponse(edit_hosted_file_form.errors.as_json(), status=400)
+
+    try:
+        edit_hosted_file_form.save()
+    except Exception:
+        # TODO do something on failure
+        return HttpResponse("Error: failed to save object", status=500)
+
+    return HttpResponse("File updated.", status=200)
