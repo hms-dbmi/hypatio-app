@@ -6,7 +6,6 @@ from .models import SignedAgreementForm
 from .models import Team
 from .models import Participant
 from .models import Institution
-from .models import DataGate
 from .models import HostedFile
 from .models import HostedFileSet
 from .models import HostedFileDownload
@@ -38,11 +37,8 @@ class ParticipantAdmin(admin.ModelAdmin):
 class InstitutionAdmin(admin.ModelAdmin):
     list_display = ('name', 'logo_path')
 
-class DataGateAdmin(admin.ModelAdmin):
-    list_display = ('project', 'data_location_type', 'data_location')
-
 class HostedFileAdmin(admin.ModelAdmin):
-    list_display = ('long_name', 'project', 'hostedfileset', 'file_name', 'file_location_type', 'file_location')
+    list_display = ('long_name', 'project', 'hostedfileset', 'file_name', 'file_location')
     list_filter = ('project', )
     search_fields = ('project__project_key', 'file_name', )
 
@@ -73,7 +69,6 @@ admin.site.register(SignedAgreementForm, SignedagreementformAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(Institution, InstitutionAdmin)
-admin.site.register(DataGate, DataGateAdmin)
 admin.site.register(HostedFile, HostedFileAdmin)
 admin.site.register(HostedFileSet, HostedFileSetAdmin)
 admin.site.register(HostedFileDownload, HostedFileDownloadAdmin)

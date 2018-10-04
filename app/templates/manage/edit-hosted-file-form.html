@@ -1,9 +1,19 @@
-<form id="edit-hosted-file-form" method="post" ic-on-success="window.location.reload();" ic-on-error="" ic-target="" ic-post-to="">
+<form id="edit-hosted-file-form" method="post" ic-on-success="window.location.reload();" ic-on-error="displayErrorMessage(xhr);" ic-post-to="{% url 'manage:process-hosted-file-edit-form-submission' %}">
+    {% csrf_token %}
+
+    <input type="hidden" name="file-uuid" value="{{ file.uuid }}" required>
+
+    {# Hidden fields #}
+    {{ form.project }}
+    {{ form.file_name }}
+    {{ form.file_location }}
+
     <div class="row">
         <div class="col-md-12">
             <div class="form-group">
-                <label for="hosted-file-name">File title</label>
-                <input type="text" name="hosted-file-name" value="{{ file.long_name }}" class="form-control" required>
+                <label for="long_name">File title:</label>
+                <!-- <input type="text" name="hosted-file-name" value="{{ file.long_name }}" class="form-control" required> -->
+                {{ form.long_name }}
             </div>
         </div>
     </div>
@@ -11,8 +21,9 @@
     <div class="row">
         <div class="col-md-12">
             <div class="form-group">
-                <label for="hosted-file-name">File description</label>
-                <textarea name="hosted-file-description" rows="5" class="form-control">{{ file.description }}</textarea>
+                <label for="description">File description:</label>
+                <!-- <textarea name="hosted-file-description" rows="5" class="form-control">{{ file.description }}</textarea> -->
+                {{ form.description }}
                 <p class="help-block">Optionally provide a description for your file, such as instructions on how to use it or what to do with it.</p>
             </div>
         </div>
@@ -20,7 +31,7 @@
 
     <hr>
 
-    <div class="row" id="hosted-file-replace-button-row">
+    <!-- <div class="row" id="hosted-file-replace-button-row">
         <div class="col-md-12">
             <div class="form-group">
                 <button class="btn btn-primary" id="hosted-file-replace-button">Replace existing file?</button>
@@ -32,17 +43,17 @@
     <div class="row" id="hosted-file-upload-row"  style="display: none;">
         <div class="col-md-12">
             <div class="form-group">
-                <label for="hosted-file-upload">Select a file to upload</label>
+                <label for="hosted-file-upload">Select a file to upload:</label>
                 <input type="file" name="hosted-file-upload" class="form-control">
                 <p class="help-block">Your file will be uploaded to an AWS S3 bucket managed by HMS.</p>
             </div>
         </div>
     </div>
 
-    <hr>
+    <hr> -->
 
     <!-- SELECT2 WITH INSTANT ADD? -->
-    <div class="row">
+    <!-- <div class="row">
         <div class="col-md-12">
             <div class="form-group">
                 <label for="hosted-file-name">File group</label>
@@ -52,13 +63,16 @@
         </div>
     </div>
 
-    <hr>
+    <hr> -->
 
     <div class="row">
         <div class="col-md-12">
             <div class="form-group">
-                <label for="hosted-file-allow-downloads">Allow downloads</label>
-                <div class="radio">
+                <label for="hosted-file-allow-downloads" style="padding-right: 10px;">Allow downloads?</label>
+                {{ form.enabled }}
+            </div>
+        </div>
+                <!-- <div class="radio">
                     <label>
                         <input type="radio" name="hosted-file-allow-downloads" id="hosted-file-allow-downloads-yes" value="yes" {% if file.enabled %}checked{% endif %}> Yes
                     </label>
@@ -67,30 +81,31 @@
                     <label>
                         <input type="radio" name="hosted-file-allow-downloads" id="hosted-file-allow-downloads-no" value="no" {% if not file.enabled %}checked{% endif %}> No
                     </label>
-                </div>
-            </div>
-        </div>
+                </div> -->
     </div>
 
-    <!-- DO NOT DISPLAY IF ALLOW = FALSE -->
-    <!-- DISPLAY IN ONE ROW -->
     <div id="hosted-file-open-close-row" style="display: none;">
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
-                    <label for="hosted-file-open-time">Open downloading at</label>
+                    <label for="opened_time">Allow downloads starting from:</label>
                     {{ form.opened_time }}
-                    <!-- <input type="datetime" name="hosted-file-open-time" value="{{ file.opened_time }}" class="form-control" required> -->
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="form-group">
-                    <label for="hosted-file-open-time">Close downloading at</label>
-                    <input type="datetime" name="hosted-file-open-time" value="{{ file.closed_time }}" class="form-control" required>
+                    <label for="closed_time">Close downloads at:</label>
+                    {{ form.closed_time }}
                 </div>
             </div>
         </div>
-        <p class="help-block">Optionally provide an open/and or close time during which users will be able to download your file. If neither are provided, a registred and authorized user will be able to download the file now and indefinitely.</p>
+        <p class="help-block">Open and close times are optional. If not provided, the file will be available for download indefinitely as long as you have checked the Allow Downloads box. <strong>Please provide time in the 24 hour format and in UTC time.</strong> Click this <u><a href="https://www.timeanddate.com/worldclock/timezone/utc" target="_blank">link</a></u> to see the current UTC time.</p>
+    </div>
+
+    <div class="row" id="form-response-row" style="display: none; color: red;">
+        <div class="col-md-12" id="form-response-contents">
+            Response here
+        </div>
     </div>
 
     <hr>
@@ -108,17 +123,18 @@
 <script type="application/javascript">
     // Change display of the open/close times depending on file being enabled or that status being toggled.
     $(document).ready(function() {
-        if ($("#edit-hosted-file-form input[name=hosted-file-allow-downloads]:checked").val() == "yes") {
+        if ($("#edit-hosted-file-form input[name=enabled]").prop('checked')) {
             $('#hosted-file-open-close-row').show();
         } else {
             $('#hosted-file-open-close-row').hide();
         }
     });
-    $('#hosted-file-allow-downloads-yes').on('click', function() {
-        $('#hosted-file-open-close-row').show();
-    });
-    $('#hosted-file-allow-downloads-no').on('click', function() {
-        $('#hosted-file-open-close-row').hide();
+    $("#edit-hosted-file-form input[name=enabled]").on('click', function() {
+        if ($("#edit-hosted-file-form input[name=enabled]").prop('checked')) {
+            $('#hosted-file-open-close-row').show();
+        } else {
+            $('#hosted-file-open-close-row').hide();
+        }
     });
 </script>
 
@@ -128,4 +144,18 @@
         $('#hosted-file-replace-button-row').hide();
         $('#hosted-file-upload-row').show();
     });
+</script>
+
+<script type="application/javascript">
+    function displayErrorMessage(xhr) {
+        $('#form-response-row').show();
+
+        var form_response_contents = $('#form-response-contents');
+        console.log(xhr.responseText);
+        errors = JSON.parse(xhr.responseText);
+        console.log(errors);
+        $.each(errors, function (index, value) {
+            form_response_contents.append("<p>" + value + "</p>");
+        });
+    }
 </script>

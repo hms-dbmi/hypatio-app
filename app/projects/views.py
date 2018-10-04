@@ -229,11 +229,6 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
             user_requested_access_on = None
             user_requested_access = False
 
-        datagate = project.datagate_set.first()
-
-        if datagate:
-            project_data_url = datagate.data_location
-
         # Package all the necessary information into one dictionary
         project = {"name": project.name,
                    "short_description": project.short_description,
