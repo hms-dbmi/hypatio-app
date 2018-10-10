@@ -11,6 +11,7 @@ from projects.views import list_data_challenges
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^contact/', include('contact.urls')),
+    url(r'^manage/', include('manage.urls')),
     url(r'^projects/', include('projects.urls')),
     url(r'^profile/', include('profile.urls')),
     url(r'^data-sets/$', list_data_projects),

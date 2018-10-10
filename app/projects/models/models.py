@@ -5,17 +5,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 
-FILE_SERVICE_URL = 'FILE_SERVICE_URL'
-EXTERNAL_APP_URL = 'EXTERNAL_APP_URL'
-S3_BUCKET = 'S3_BUCKET'
-
-DATA_LOCATION_TYPE = (
-    (FILE_SERVICE_URL, 'FileService Signed URL'),
-    (EXTERNAL_APP_URL, 'External Application URL'),
-    (S3_BUCKET, 'S3 Bucket directly accessed by Hyatio')
-)
-
-
 TEAM_PENDING = 'Pending'
 TEAM_READY = 'Ready'
 TEAM_ACTIVE = 'Active'
@@ -27,7 +16,6 @@ TEAM_STATUS = (
     (TEAM_ACTIVE, 'Activated'),
     (TEAM_DEACTIVATED, 'Deactivated')
 )
-
 
 SIGNED_FORM_PENDING_APPROVAL = 'P'
 SIGNED_FORM_APPROVED = 'A'
@@ -152,12 +140,6 @@ class DataProject(models.Model):
     def __str__(self):
         return '%s' % (self.project_key)
 
-# TODO remove
-class DataGate(models.Model):
-    project = models.ForeignKey(DataProject)
-    data_location_type = models.CharField(max_length=50, choices=DATA_LOCATION_TYPE)
-    data_location = models.CharField(max_length=250)
-
 class SignedAgreementForm(models.Model):
     """
     This represents the fully signed agreement form.
@@ -201,15 +183,14 @@ class Participant(models.Model):
     user = models.ForeignKey(User)
     data_challenge = models.ForeignKey(DataProject)
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE)
+
+    # TODO remove or consolidate all these fields
     team_wait_on_leader_email = models.CharField(max_length=100, blank=True, null=True)
     team_wait_on_leader = models.BooleanField(default=False)
     team_pending = models.BooleanField(default=False)
     team_approved = models.BooleanField(default=False)
 
-    @property
-    def is_on_team(self):
-        return self.team is not None and self.team_approved
-
+    # TODO remove all these?
     def assign_pending(self, team):
         self.set_pending()
         self.team = team
@@ -268,9 +249,8 @@ class HostedFile(models.Model):
     long_name = models.CharField(max_length=100, blank=False, null=False)
     description = models.CharField(max_length=2000, blank=True, null=True)
 
-    # Information for where to find the file.
+    # Information for where to find the file in S3.
     file_name = models.CharField(max_length=100, blank=False, null=False)
-    file_location_type = models.CharField(max_length=100, blank=False, null=False, choices=DATA_LOCATION_TYPE)
     file_location = models.CharField(max_length=100, blank=False, null=False)
 
     # Files can optionally be grouped under a set within a project.
