@@ -126,7 +126,8 @@
                 </div>
                 <hr>
                 {% endfor %}
-                <button class="btn btn-primary pull-right">Add another</button>
+                <p class="help-block">Please contact a DBMI Tech-Core developer for help with adding a new data file.</p>
+                <!-- <button class="btn btn-primary pull-right">Add another</button> -->
             </div>
         </div>
     </div>
@@ -138,6 +139,26 @@
             </div>
             <div class="panel-body">
                 Coming soon...
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="panel panel-primary">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Reports</h2>
+            </div>
+            <div class="panel-body">
+                <p><i>Please only click once and wait for the download to complete. This may take a few moments.</i></p>
+                {% for form in project.agreement_forms.all %}
+                    {% if form.type == "EXTERNAL_LINK" %}
+                        <p><a href="/manage/download-email-list/?project={{ project.project_key }}&team-status=Ready&agreement-form-id={{ form.id }}&agreement-form-status=P" class="btn btn-sm btn-primary btn-block" download>
+                            {{ form.name }} Forms to Approve
+                        </a></p>
+                    {% endif %}
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -302,17 +323,17 @@
 
 <script type="application/javascript">
     // When clicking a team row, open a new window for team managment
-    // $(document).ready(function() {
-    //     $('#team-table').on("click", ".team-row", function() {
-    //         var team = $(this).data('team');
-    //         window.open("./" + team);
+    $(document).ready(function() {
+        $('#team-table').on("click", ".team-row", function() {
+            var team = $(this).data('team');
+            window.open("./" + team);
             
-    //         // Because the user may now delete the team or change its status, mention
-    //         // that they should refresh the page to see any changes
-    //         var teamStatus = $(this).find('.team-status-column');
-    //         teamStatus.html('<span class="label label-default">Refresh to see changes</span>');
-    //     });
-    // });
+            // Because the user may now delete the team or change its status, mention
+            // that they should refresh the page to see any changes
+            var teamStatus = $(this).find('.team-status-column');
+            teamStatus.html('<span class="label label-default">Refresh to see changes</span>');
+        });
+    });
 </script>
 
 <script type="application/javascript">

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load countries %}
 {% load tz %}
 
@@ -21,10 +22,10 @@
         <div class="pull-right">
             <div class="btn-toolbar" role="toolbar">
                 <div class="btn-group" role="group" aria-label="team-status-buttons">
-                    <button type="button" id="change-status-to-pending" class="btn team-status-buttons {% if team.status == "Pending" %}btn-primary{% else %}btn-default{% endif %}">Open</button>
-                    <button type="button" id="change-status-to-ready" class="btn team-status-buttons {% if team.status == "Ready" %}btn-warning{% else %}btn-default{% endif %}">Ready</button>
-                    <button type="button" id="change-status-to-active" class="btn team-status-buttons {% if team.status == "Active" %}btn-success{% else %}btn-default{% endif %}" {% if not team_has_all_forms_complete %}disabled{% endif %}>Activated</button>
-                    <button type="button" id="change-status-to-deactivated" class="btn team-status-buttons {% if team.status == "Deactivated" %}btn-primary{% else %}btn-default{% endif %}">Deactivated</button>
+                    <button type="button" id="change-status-to-pending" class="btn team-status-buttons {% if team.status == 'Pending' %}btn-primary{% else %}btn-default{% endif %}">Open</button>
+                    <button type="button" id="change-status-to-ready" class="btn team-status-buttons {% if team.status == 'Ready' %}btn-warning{% else %}btn-default{% endif %}">Ready</button>
+                    <button type="button" id="change-status-to-active" class="btn team-status-buttons {% if team.status == 'Active' %}btn-success{% else %}btn-default{% endif %}" {% if not team_has_all_forms_complete %}disabled{% endif %}>Activated</button>
+                    <button type="button" id="change-status-to-deactivated" class="btn team-status-buttons {% if team.status == 'Deactivated' %}btn-primary{% else %}btn-default{% endif %}">Deactivated</button>
                 </div>        
                 <div class="btn-group" role="group" aria-label="team-delete-button">            
                     <button type="button" id="delete-team" class="btn btn-danger">Delete team</button>
