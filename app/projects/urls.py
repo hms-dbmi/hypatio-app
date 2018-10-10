@@ -9,11 +9,9 @@ from .views import save_signed_external_agreement_form
 from .views import signout
 from .views import DataProjectView
 
-from .views_manage import manage_team
-from .views_manage import manage_contest
-from .views_manage import manage_project
-from .views_manage import manage_project_team
-from .views_manage import download_email_list
+# from .views_manage import manage_team
+# from .views_manage import manage_contest
+# from .views_manage import download_email_list
 
 from .views_teams import join_team
 from .views_teams import leave_team
@@ -35,10 +33,6 @@ from .views_files import delete_challengetasksubmission
 urlpatterns = (
     url(r'^$', list_data_projects),
     url(r'^submit_user_permission_request/$', submit_user_permission_request),
-    url(r'^manage/(?P<project_key>[^/]+)/$', manage_contest, name='manage_contest'),
-    url(r'^manage/(?P<project_key>[^/]+)/(?P<team_leader>[^/]+)/$', manage_team),
-    url(r'^manage_project/(?P<project_key>[^/]+)/$', manage_project, name='manage_project'),
-    url(r'^manage_project/(?P<project_key>[^/]+)/(?P<team_leader>[^/]+)/$', manage_project_team),
     url(r'^save_signed_agreement_form', save_signed_agreement_form),
     url(r'^save_dynamic_signed_agreement_form', save_dynamic_signed_agreement_form),
     url(r'^save_signed_external_agreement_form', save_signed_external_agreement_form),
@@ -59,6 +53,5 @@ urlpatterns = (
     url(r'^upload_challengetasksubmission_file/$', upload_challengetasksubmission_file),
     url(r'^download_team_submissions/$', download_team_submissions),
     url(r'^delete_challengetasksubmission/$', delete_challengetasksubmission),
-    url(r'^download_email_list/$', download_email_list),
     url(r'^(?P<project_key>[^/]+)/$', DataProjectView.as_view()),
 )

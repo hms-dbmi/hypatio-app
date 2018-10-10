@@ -13,16 +13,12 @@
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-
           gtag('config', 'UA-70908320-25');
         </script>
     
-        <!-- Latest compiled and minified CSS -->
-
-        <script src="https://code.jquery.com/jquery-3.1.1.min.js"
-                integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <script src="{% static 'plugins/jquery/jquery.js' %}"></script>
+        <link rel="{% static 'plugins/jquery/jquery-ui.css' %}">
+        <script src="{% static 'plugins/jquery/jquery-ui.js' %}"></script>
        
         {% load bootstrap3 %}
         {% bootstrap_css %}
@@ -35,7 +31,8 @@
         <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/vnd.microsoft.icon"/>
         <title>{% block tab_name %}DBMI Portal{% endblock %}</title>
 
-        <script type='text/javascript' src="{% static 'bootstrap-notify.min.js' %}"></script>
+        <script type='text/javascript' src="{% static 'plugins/bootstrap-notify/bootstrap-notify.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'plugins/intercooler/intercooler.min.js' %}"></script>
 
         <script type="application/javascript">
             

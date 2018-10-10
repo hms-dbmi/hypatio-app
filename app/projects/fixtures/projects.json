@@ -71,33 +71,6 @@
         }
     },
     {
-        "model": "projects.datagate",
-        "pk": 1,
-        "fields": {
-            "project": 2,
-            "data_location_type": "EXTERNAL_APP_URL",
-            "data_location": "https://nhanes.hms.harvard.edu/"
-        }
-    },
-    {
-        "model": "projects.datagate",
-        "pk": 2,
-        "fields": {
-            "project": 3,
-            "data_location_type": "EXTERNAL_APP_URL",
-            "data_location": "https://grdr.hms.harvard.edu/"
-        }
-    },
-    {
-        "model": "projects.datagate",
-        "pk": 3,
-        "fields": {
-            "project": 4,
-            "data_location_type": "EXTERNAL_APP_URL",
-            "data_location": "https://ssc.hms.harvard.edu/"
-        }
-    },
-    {
         "model": "projects.dataproject",
         "pk": 2,
         "fields": {

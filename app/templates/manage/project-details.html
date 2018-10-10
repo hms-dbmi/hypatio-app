@@ -1,0 +1,22 @@
+<form name="project-details" method="POST" ic-target="#project-details" ic-post-to="{% url 'manage:set-dataproject-details' %}" ic-include='{"project_key": "{{ project.project_key }}"}'>
+    <div class="form-group">
+        <label for="project-name">Project full name</label>
+        <input type="text" name="name" id="project-name" value="{{ project.name }}" class="form-control" required>
+        <p class="help-block">100 character limit.</p>
+    </div>
+    <div class="form-group">
+        <label for="project-short-description">Short description</label>
+        <input type="text" name="short-description" value="{{ project.short_description }}" class="form-control" required>
+        <p class="help-block">255 character limit.</p>
+    </div>
+    <div class="form-group">
+        <label for="project-name">Full description</label>
+        <textarea id="project-description" name="description" class="form-control" rows="4" required>{{ project.description }}</textarea>
+        <p class="help-block">HTML tags are supported here.</p>
+    </div>
+    <div class="pull-right">
+        {{ message }}&nbsp;&nbsp;
+        <button class="btn btn-default" type="cancel">Cancel changes</button>
+        <button class="btn btn-success" type="submit">Update</button>
+    </div>
+</form>
