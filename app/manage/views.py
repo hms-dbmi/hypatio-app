@@ -60,7 +60,7 @@ class DataProjectManageView(TemplateView):
 
         if not is_manager:
             logger.debug(
-                '[HYPATIO][DEBUG][manage_contest] User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                '[HYPATIO][DEBUG][DataProjectManageView] User {email} does not have MANAGE permissions for item {project_key}.'.format(
                     email=request.user.email,
                     project_key=project_key
                 )
@@ -83,7 +83,7 @@ class DataProjectManageView(TemplateView):
         return context
 
 @user_auth_and_jwt
-def manage_team(request, project_key, team_leader, template_name='datacontests/manageteams.html'):
+def manage_team(request, project_key, team_leader, template_name='manage/team.html'):
     """
     Populates the team management screen.
     """
