@@ -21,6 +21,6 @@ urlpatterns = [
     url(r'^get-static-agreement-form-html', get_static_agreement_form_html, name='get-static-agreement-form-html'),
     url(r'^get-hosted-file-edit-form', get_hosted_file_edit_form, name='get-hosted-file-edit-form'),
     url(r'^process-hosted-file-edit-form-submission', process_hosted_file_edit_form_submission, name='process-hosted-file-edit-form-submission'),
-    url(r'^(?P<project_key>[^/]+)/$', DataProjectManageView.as_view()),
+    url(r'^(?P<project_key>[^/]+)/$', DataProjectManageView.as_view(), name='manage-project'),
     url(r'^(?P<project_key>[^/]+)/(?P<team_leader>[^/]+)/$', manage_team),
 ]

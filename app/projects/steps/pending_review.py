@@ -9,7 +9,7 @@ class PendingReviewStepInitializer(ProjectStepInitializer):
 
         step = ProjectStep(title='Pending Review',
                            project=project,)
-        step.template = 'project_signup/pending_review.html'
+        step.template = 'projects/signup/pending-review.html'
         step.status = status
 
         return step
