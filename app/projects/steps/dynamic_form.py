@@ -81,11 +81,11 @@ class SignAgreementFormsStepInitializer(ProjectStepInitializer):
             step.agreement_form = form
 
             if not form.type or form.type == AGREEMENT_FORM_TYPE_STATIC:
-                step.template = 'project_signup/sign_agreement_form.html'
+                step.template = 'projects/signup/sign-agreement-form.html'
             elif form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
-                step.template = 'project_signup/external_agreement_form.html'
+                step.template = 'projects/signup/sign-external-agreement-form.html'
             else:
-                step.template = 'project_signup/dynamic_agreement_form.html'
+                step.template = 'projects/signup/dynamic-agreement-form.html'
                 step.form = agreement_form_factory(form.form_file_path)
                 step.return_url = "projects/%s/" % project.project_key
                 step.model_name = form.form_file_path

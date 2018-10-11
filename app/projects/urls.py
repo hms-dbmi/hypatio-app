@@ -9,10 +9,6 @@ from .views import save_signed_external_agreement_form
 from .views import signout
 from .views import DataProjectView
 
-# from .views_manage import manage_team
-# from .views_manage import manage_contest
-# from .views_manage import download_email_list
-
 from .views_teams import join_team
 from .views_teams import leave_team
 from .views_teams import create_team

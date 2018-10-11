@@ -33,7 +33,7 @@ class AgreementFormTest(TestCase):
                                                                  user=self.super_user,
                                                                  current_step=None)
         assert current_step == "AgreementForm1"
-        assert steps[0].template == "project_signup/dynamic_agreement_form.html"
+        assert steps[0].template == "projects/signup/dynamic-agreement-form.html"
 
     def test_submit_agreement_form(self):
 
