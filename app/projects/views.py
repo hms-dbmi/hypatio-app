@@ -155,20 +155,22 @@ def signed_agreement_form(request):
 
     if is_manager or signed_form.user == request.user:
 
+        # TODO can this be removed?
         if signed_form.agreement_form.type == AGREEMENT_FORM_TYPE_DJANGO:
-            template_name = "shared/dynamic_signed_agreement_form.html"
+            raise Exception('not implemented')
+            # template_name = "manage/view-signed-agreement-form.html"
 
-            # We need to get both the type of form, and the model underlying that form, dynamically.
-            # Get an instance of the form based on file path.
-            form_object = agreement_form_factory(signed_form.agreement_form.form_file_path)
+            # # We need to get both the type of form, and the model underlying that form, dynamically.
+            # # Get an instance of the form based on file path.
+            # form_object = agreement_form_factory(signed_form.agreement_form.form_file_path)
 
-            # Get an instance of the model that was saved from the form.
-            filled_out_form_instance = get_object_or_404(form_object._meta.model, signedagreementform_ptr_id=signed_agreement_form_id)
+            # # Get an instance of the model that was saved from the form.
+            # filled_out_form_instance = get_object_or_404(form_object._meta.model, signedagreementform_ptr_id=signed_agreement_form_id)
 
-            # Populate the form with data from the model so we can render it with django bootstrap.
-            filled_out_signed_form = form_object(instance=filled_out_form_instance)
+            # # Populate the form with data from the model so we can render it with django bootstrap.
+            # filled_out_signed_form = form_object(instance=filled_out_form_instance)
         else:
-            template_name = "shared/signed_agreement_form.html"
+            template_name = "manage/view-signed-agreement-form.html"
             filled_out_signed_form = None
 
         return render(request, template_name, {"user": request.user,
@@ -183,7 +185,7 @@ def signed_agreement_form(request):
 
 
 @public_user_auth_and_jwt
-def list_data_projects(request, template_name='dataprojects/list.html'):
+def list_data_projects(request, template_name='projects/list-data-projects.html'):
 
     all_data_projects = DataProject.objects.filter(is_challenge=False, visible=True)
 
@@ -251,7 +253,7 @@ def list_data_projects(request, template_name='dataprojects/list.html'):
 
 
 @public_user_auth_and_jwt
-def list_data_challenges(request, template_name='datacontests/list.html'):
+def list_data_challenges(request, template_name='projects/list-data-challenges.html'):
 
     all_data_contests = DataProject.objects.filter(is_challenge=True, visible=True)
     data_contests = []
@@ -380,7 +382,7 @@ class DataProjectView(TemplateView):
         """
 
         # Set the template that should be rendered.
-        self.template_name = 'shared/login_or_register.html'
+        self.template_name = 'projects/login-or-register.html'
 
         return context
 
@@ -420,7 +422,7 @@ class DataProjectView(TemplateView):
         self.step_pending_review(context)
 
         # Set the template that should be rendered.
-        self.template_name = 'project_signup/base.html'
+        self.template_name = 'projects/signup/base.html'
 
         return context
 
@@ -449,7 +451,7 @@ class DataProjectView(TemplateView):
         self.panel_submit_task_solutions(context)
 
         # Set the template that should be rendered.
-        self.template_name = 'project_participate/base.html'
+        self.template_name = 'projects/participate/base.html'
 
         return context
 
@@ -481,7 +483,7 @@ class DataProjectView(TemplateView):
         # Describe the step. Include here any variables that the template will need.
         step = {
             'title': 'Verify Your Email',
-            'template': 'project_signup/verify_email.html',
+            'template': 'projects/signup/verify-email.html',
             'status': step_status
         }
 
@@ -535,7 +537,7 @@ class DataProjectView(TemplateView):
         # Describe the step. Include here any variables that the template will need.
         step = {
             'title': 'Complete Your Profile',
-            'template': 'project_signup/complete_profile.html',
+            'template': 'projects/signup/complete-profile.html',
             'status': step_status,
             'registration_form': registration_form
         }
@@ -579,7 +581,7 @@ class DataProjectView(TemplateView):
         # Describe the step. Include here any variables that the template will need.
         step = {
             'title': 'Using Your JWT',
-            'template': 'project_signup/show_jwt.html',
+            'template': 'projects/signup/show-jwt.html',
             'status': status,
             'user_jwt': self.user_jwt
         }
@@ -610,7 +612,7 @@ class DataProjectView(TemplateView):
         # Describe the step. Include here any variables that the template will need.
         step = {
             'title': 'Request Access',
-            'template': 'project_signup/request_access.html',
+            'template': 'projects/signup/request-access.html',
             'status': status,
             'project': self.project,
             'access_requested': access_requested
@@ -658,7 +660,7 @@ class DataProjectView(TemplateView):
         # Describe the step. Include here any variables that the template will need.
         step = {
             'title': 'Join or Create a Team',
-            'template': 'project_signup/setup_team.html',
+            'template': 'projects/signup/setup-team.html',
             'status': status,
             'project': self.project,
             'participant': self.participant,
@@ -681,7 +683,7 @@ class DataProjectView(TemplateView):
         # Describe the panel. Include here any variables that the template will need.
         panel = {
             'title': 'Team Members',
-            'template': 'project_participate/team_members.html',
+            'template': 'projects/participate/team-members.html',
             'team': self.participant.team
         }
 
@@ -708,7 +710,7 @@ class DataProjectView(TemplateView):
         # Describe the panel. Include here any variables that the template will need.
         panel = {
             'title': 'Signed Agreement Forms',
-            'template': 'project_participate/signed_agreement_forms.html',
+            'template': 'projects/participate/signed-agreement-forms.html',
             'signed_forms': signed_forms
         }
 
@@ -753,7 +755,7 @@ class DataProjectView(TemplateView):
         # Describe the panel. Include here any variables that the template will need.
         panel = {
             'title': 'Tasks to Complete',
-            'template': 'project_participate/complete_tasks.html',
+            'template': 'projects/participate/complete-tasks.html',
             'team': self.participant.team,
             'project': self.project,
             'task_details': task_details
@@ -775,7 +777,7 @@ class DataProjectView(TemplateView):
             # Describe the panel. Include here any variables that the template will need.
             panel = {
                 'title': file_set.title + ' Downloads',
-                'template': 'project_participate/available_downloads.html',
+                'template': 'projects/participate/available-downloads.html',
                 'project': self.project,
                 'files': file_set.hostedfile_set.all()
             }
@@ -794,7 +796,7 @@ class DataProjectView(TemplateView):
             # Describe the panel. Include here any variables that the template will need.
             panel = {
                 'title': 'Available Downloads',
-                'template': 'project_participate/available_downloads.html',
+                'template': 'projects/participate/available-downloads.html',
                 'project': self.project,
                 'files': files_without_a_set
             }
