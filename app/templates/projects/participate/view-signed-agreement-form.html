@@ -44,7 +44,7 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-xs-12">
-                        <a href="/projects/download_signed_form/?form_id={{ signed_form.id }}" class="btn btn-default">Download</a> 
+                        <a href="{% url 'manage:download-signed-form' %}?form_id={{ signed_form.id }}" class="btn btn-default">Download</a> 
                         <button type="button" class="btn btn-success" id="approve-form">Approve</button>
                         <button type="button" class="btn btn-danger" id="reject-form">Reject</button>
                     </div>
@@ -95,7 +95,7 @@
             csrfmiddlewaretoken: '{{ csrf_token }}'
         };
 
-        $.post("/projects/change_signed_form_status/", request_data)
+        $.post("{% url 'manage:change-signed-form-status' %}", request_data)
             .done(function() {
                 location.reload();
             }).fail(function() {
@@ -111,7 +111,7 @@
             csrfmiddlewaretoken: '{{ csrf_token }}'
         };
 
-        $.post("/projects/change_signed_form_status/", request_data)
+        $.post("{% url 'manage:change-signed-form-status' %}", request_data)
             .done(function() {
                 location.reload();
             }).fail(function() {

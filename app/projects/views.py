@@ -158,7 +158,7 @@ def signed_agreement_form(request):
         # TODO can this be removed?
         if signed_form.agreement_form.type == AGREEMENT_FORM_TYPE_DJANGO:
             raise Exception('not implemented')
-            # template_name = "manage/view-signed-agreement-form.html"
+            # template_name = "projects/participate/view-signed-agreement-form.html"
 
             # # We need to get both the type of form, and the model underlying that form, dynamically.
             # # Get an instance of the form based on file path.
@@ -170,7 +170,7 @@ def signed_agreement_form(request):
             # # Populate the form with data from the model so we can render it with django bootstrap.
             # filled_out_signed_form = form_object(instance=filled_out_form_instance)
         else:
-            template_name = "manage/view-signed-agreement-form.html"
+            template_name = "projects/participate/view-signed-agreement-form.html"
             filled_out_signed_form = None
 
         return render(request, template_name, {"user": request.user,

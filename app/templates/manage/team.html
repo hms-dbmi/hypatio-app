@@ -168,7 +168,7 @@
                 </table>
                 
                 <div style="margin-top: 10px;">
-                    <a href="/download_team_submissions/?team={{ team.team_leader.email }}&project_key={{ project.project_key }}" class="btn-success btn download-file" download>
+                    <a href="{% url 'manage:download-team-submissions' %}?team={{ team.team_leader.email }}&project_key={{ project.project_key }}" class="btn-success btn download-file" download>
                         Download all files now
                     </a>
                 </div>
@@ -319,7 +319,7 @@
             csrfmiddlewaretoken: '{{ csrf_token }}',
         };
 
-        $.post("/projects/change_team_status/", request_data)
+        $.post("{% url 'manage:set-team-status' %}", request_data)
             .done(function() {
                 location.reload();
             }).fail(function() {
@@ -346,7 +346,7 @@
             csrfmiddlewaretoken: '{{ csrf_token }}',
         };
 
-        $.post("/projects/delete_team/", request_data)
+        $.post("{% url 'manage:delete-team' %}", request_data)
             .done(function() {
                 window.close();
             }).fail(function() {
@@ -370,7 +370,7 @@
             csrfmiddlewaretoken: '{{ csrf_token }}',
         };
 
-        $.post("/projects/save_team_comment/", request_data)
+        $.post("{% url 'manage:save-team-comment' %}", request_data)
             .done(function() {
                 location.reload();
             }).fail(function() {
