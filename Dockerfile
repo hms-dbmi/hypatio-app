@@ -24,6 +24,8 @@ RUN apk add --no-cache --update \
     openssl \
     jq \
     mariadb-connector-c \
+    jpeg-dev \
+    zlib-dev \
   && rm -rf /var/cache/apk/*
 
 # Copy pip packages from builder
