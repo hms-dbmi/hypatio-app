@@ -15,5 +15,6 @@ urlpatterns = [
     url(r'^profile/', include('profile.urls')),
     url(r'^data-sets/$', list_data_projects),
     url(r'^data-challenges/$', list_data_challenges),
+    url(r'^healthcheck/?', include('health_check.urls')),
     url(r'^', include('projects.urls')),
 ]
