@@ -1,21 +1,71 @@
-FROM dbmi/pynxgu
+FROM python:3.6-alpine3.8 AS builder
 
-COPY app /app
-RUN pip install -r /app/requirements.txt
+# Install dependencies
+RUN apk add --update \
+    build-base \
+    g++ \
+    libffi-dev \
+    mariadb-dev \
+    jpeg-dev \
+    zlib-dev
 
-RUN pip install awscli
+# Add requirements
+ADD app/requirements.txt /requirements.txt
 
-RUN apt-get update && apt-get install -y jq
+# Install Python packages
+RUN pip install -r /requirements.txt
 
-RUN mkdir /entry_scripts/
-COPY gunicorn-nginx-entry.sh /entry_scripts/
-RUN chmod u+x /entry_scripts/gunicorn-nginx-entry.sh
+FROM hmsdbmitc/dbmisvc:3.6-alpine
 
-COPY hypatio.conf /etc/nginx/sites-available/pynxgu.conf
+RUN apk add --no-cache --update \
+    bash \
+    nginx \
+    curl \
+    openssl \
+    jq \
+    mariadb-connector-c \
+  && rm -rf /var/cache/apk/*
 
-# Link nginx logs to stdout/stderr
-RUN ln -sf /dev/stdout /var/log/nginx/access.log && ln -sf /dev/stderr /var/log/nginx/error.log
+# Copy pip packages from builder
+COPY --from=builder /root/.cache /root/.cache
 
-WORKDIR /
+# Add requirements
+ADD app/requirements.txt /requirements.txt
 
-ENTRYPOINT ["/entry_scripts/gunicorn-nginx-entry.sh"]
+# Install Python packages
+RUN pip install -r /requirements.txt
+
+# Copy app source
+COPY /app /app
+
+# Set the build env
+ENV DBMI_ENV=prod
+
+# Set app parameters
+ENV DBMI_PARAMETER_STORE_PREFIX=dbmi.hypatio.${DBMI_ENV}
+ENV DBMI_PARAMETER_STORE_PRIORITY=true
+ENV DBMI_AWS_REGION=us-east-1
+
+# App config
+ENV DBMI_APP_WSGI=hypatio
+ENV DBMI_APP_ROOT=/app
+ENV DBMI_APP_DB=true
+ENV DBMI_APP_DOMAIN=portal.dbmi.hms.harvard.edu
+
+# Load balancing
+ENV DBMI_LB=true
+
+# SSL and load balancing
+ENV DBMI_SSL=true
+ENV DBMI_CREATE_SSL=true
+ENV DBMI_SSL_PATH=/etc/nginx/ssl
+
+# Static files
+ENV DBMI_STATIC_FILES=true
+ENV DBMI_APP_STATIC_URL_PATH=/static
+ENV DBMI_APP_STATIC_ROOT=/app/assets
+
+# Healthchecks
+ENV DBMI_HEALTHCHECK=true
+ENV DBMI_HEALTHCHECK_PATH=/healthcheck
+ENV DBMI_APP_HEALTHCHECK_PATH=/healthcheck
