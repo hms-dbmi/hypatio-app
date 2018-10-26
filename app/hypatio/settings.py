@@ -242,24 +242,14 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'stream': sys.stdout,
         },
-        'file_debug': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'debug.log',
-        },
-        'file_error': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': 'error.log',
-        }
     },
     'root': {
-        'handlers': ['console', 'file_debug'],
+        'handlers': ['console', ],
         'level': 'DEBUG'
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file_error'],
+            'handlers': ['console', ],
             'level': 'ERROR',
             'propagate': True,
         },
