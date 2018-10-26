@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'profile',
     'projects',
     'pyauth0jwt',
+    'health_check',
     'raven.contrib.django.raven_compat',
 ]
 
