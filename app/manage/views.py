@@ -1,4 +1,3 @@
-import json
 import logging
 
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
@@ -7,25 +6,19 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
 from hypatio.sciauthz_services import SciAuthZ
-from hypatio.scireg_services import get_distinct_countries_participating
 from hypatio.scireg_services import get_user_profile
-from hypatio.scireg_services import get_names
 
 from projects.models import DataProject
 from projects.models import Team
 from projects.models import TeamComment
-from projects.models import AgreementForm
 from projects.models import SignedAgreementForm
 from projects.models import HostedFile
 from projects.models import HostedFileDownload
-from projects.models import Participant
-from projects.models import ChallengeTaskSubmission
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -171,79 +164,3 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
                                                    "comments": comments,
                                                    "downloads": downloads,
                                                    "uploads": uploads})
-
-@user_auth_and_jwt
-def download_email_list(request):
-    """
-    Downloads a text file containing the email addresses of participants of a given project
-    with filters accepted as GET parameters. Accepted filters include: team, team status,
-    agreement form ID, and agreement form status.
-    """
-
-    logger.debug("[views_manage][download_email_list] - Attempting file download.")
-
-    project_key = request.GET.get("project")
-    project = get_object_or_404(DataProject, project_key=project_key)
-
-    # Check Permissions in SciAuthZ
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
-    is_manager = sciauthz.user_has_manage_permission(project_key)
-
-    if not is_manager:
-        logger.debug("[views_manage][download_email_list] - No Access for user " + request.user.email)
-        return HttpResponse("You do not have access to download this file.", status=403)
-
-    # Filters used to determine the list of participants
-    filter_team = request.GET.get("team-id", None)
-    filter_team_status = request.GET.get("team-status", None)
-    filter_signed_agreement_form = request.GET.get("agreement-form-id", None)
-    filter_signed_agreement_form_status = request.GET.get("agreement-form-status", None)
-
-    # Apply filters that narrow the scope of teams
-    teams = Team.objects.filter(data_project=project)
-
-    if filter_team:
-        teams = teams.filter(id=filter_team)
-    if filter_team_status:
-        teams = teams.filter(status=filter_team_status)
-
-    # Apply filters that narrow the list of participants
-    participants = Participant.objects.filter(team__in=teams)
-
-    if filter_signed_agreement_form:
-        agreement_form = AgreementForm.objects.get(id=filter_signed_agreement_form)
-
-        # Find all signed instances of this form
-        signed_forms = SignedAgreementForm.objects.filter(agreement_form=agreement_form)
-        if filter_signed_agreement_form_status:
-            signed_forms = signed_forms.filter(status=filter_signed_agreement_form_status)
-
-        # Narrow down the participant list with just those who have these signed forms
-        signed_forms_users = signed_forms.values_list('user', flat=True)
-        participants = participants.filter(user__in=signed_forms_users)
-
-    # Query SciReg to get a dictionary of first and last names for each participant
-    names = json.loads(get_names(user_jwt, participants, project_key))
-
-    # Build a string that will be the contents of the file
-    file_contents = ""
-    for participant in participants:
-
-        first_name = ""
-        last_name = ""
-
-        # Look in our dictionary of names from SciReg for this participant
-        try:
-            name = names[participant.user.email]
-            first_name = name['first_name']
-            last_name = name['last_name']
-        except (KeyError, IndexError):
-            pass
-
-        file_contents += participant.user.email + " " + first_name + " " + last_name +  "\n"
-
-    response = HttpResponse(file_contents, content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; filename="%s"' % 'pending_participants.txt'
-
-    return response

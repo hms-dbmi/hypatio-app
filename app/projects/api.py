@@ -20,12 +20,14 @@ from hypatio.file_services import get_download_url
 from hypatio.sciauthz_services import SciAuthZ
 from projects.templatetags import projects_extras
 
+from projects.models import AgreementForm
 from projects.models import ChallengeTask
 from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import HostedFile
 from projects.models import HostedFileDownload
 from projects.models import Participant
+from projects.models import SignedAgreementForm
 from projects.models import Team
 
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
@@ -536,3 +538,77 @@ def delete_challengetasksubmission(request):
         return HttpResponse(status=200)
 
     return HttpResponse(status=500)
+
+@user_auth_and_jwt
+def save_signed_agreement_form(request):
+    """
+    An HTTP POST endpoint that takes the contents of an agreement form that a
+    user has submitted and saves it to the database.
+    """
+
+    agreement_form_id = request.POST['agreement_form_id']
+    project_key = request.POST['project_key']
+    agreement_text = request.POST['agreement_text']
+
+    agreement_form = AgreementForm.objects.get(id=agreement_form_id)
+    project = DataProject.objects.get(project_key=project_key)
+
+    signed_agreement_form = SignedAgreementForm(
+        user=request.user,
+        agreement_form=agreement_form,
+        project=project,
+        date_signed=datetime.now(),
+        agreement_text=agreement_text
+    )
+    signed_agreement_form.save()
+
+    return HttpResponse(200)
+
+@user_auth_and_jwt
+def save_signed_external_agreement_form(request):
+    """
+    An HTTP POST endpoint used to mark when someone has accessed an external agreement form.
+
+    We cannot track if someone has signed a form on an external website, but we can at least
+    track that they have clicked the link to visit that website. With this record created,
+    an administrator can then manually verify the form on that external site and track their
+    approval within Hypatio.
+    """
+
+    agreement_form_id = request.POST['agreement_form_id']
+    project_key = request.POST['project_key']
+
+    agreement_form = AgreementForm.objects.get(id=agreement_form_id)
+    project = DataProject.objects.get(project_key=project_key)
+
+    # Only create a new record if one does not already exist
+    try:
+        signed_form = SignedAgreementForm.objects.get(
+            user=request.user,
+            agreement_form=agreement_form,
+            project=project
+        )
+    except ObjectDoesNotExist:
+        agreement_text = 'The Participant accessed this form via the 3rd party website. Check there if signed appropriately.'
+        signed_agreement_form = SignedAgreementForm(
+            user=request.user,
+            agreement_form=agreement_form,
+            project=project,
+            date_signed=datetime.now(),
+            agreement_text=agreement_text
+        )
+        signed_agreement_form.save()
+
+    return HttpResponse(200)
+
+@user_auth_and_jwt
+def submit_user_permission_request(request):
+    """
+    An HTTP POST endpoint to handle a request by a user that wants to access a project.
+    """
+
+    # TODO Update this to create a new permission request record
+    # ...
+
+    # TODO Not implemented
+    return HttpResponse(500)

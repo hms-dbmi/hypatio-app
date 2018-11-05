@@ -1,11 +1,7 @@
 from django.conf.urls import url
 
 from projects.views import list_data_projects
-from projects.views import submit_user_permission_request
 from projects.views import signed_agreement_form
-from projects.views import save_signed_agreement_form
-from projects.views import save_dynamic_signed_agreement_form
-from projects.views import save_signed_external_agreement_form
 from projects.views import signout
 from projects.views import DataProjectView
 
@@ -18,12 +14,14 @@ from projects.api import finalize_team
 from projects.api import download_dataset
 from projects.api import upload_challengetasksubmission_file
 from projects.api import delete_challengetasksubmission
+from projects.api import save_signed_agreement_form
+from projects.api import save_signed_external_agreement_form
+from projects.api import submit_user_permission_request
 
 urlpatterns = (
     url(r'^$', list_data_projects),
     url(r'^submit_user_permission_request/$', submit_user_permission_request),
     url(r'^save_signed_agreement_form', save_signed_agreement_form),
-    url(r'^save_dynamic_signed_agreement_form', save_dynamic_signed_agreement_form),
     url(r'^save_signed_external_agreement_form', save_signed_external_agreement_form),
     url(r'^signout/$', signout),
     url(r'^join_team/$', join_team),
