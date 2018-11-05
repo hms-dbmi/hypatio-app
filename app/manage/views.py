@@ -1,4 +1,3 @@
-import json
 import logging
 
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
@@ -7,25 +6,19 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
 from hypatio.sciauthz_services import SciAuthZ
-from hypatio.scireg_services import get_distinct_countries_participating
 from hypatio.scireg_services import get_user_profile
-from hypatio.scireg_services import get_names
 
 from projects.models import DataProject
 from projects.models import Team
 from projects.models import TeamComment
-from projects.models import AgreementForm
 from projects.models import SignedAgreementForm
 from projects.models import HostedFile
 from projects.models import HostedFileDownload
-from projects.models import Participant
-from projects.models import ChallengeTaskSubmission
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
