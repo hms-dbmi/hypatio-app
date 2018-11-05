@@ -2,7 +2,6 @@ from django.conf.urls import url
 
 from manage.views import DataProjectManageView
 from manage.views import manage_team
-from manage.views import download_email_list
 
 from manage.api import set_dataproject_details
 from manage.api import set_dataproject_registration_status
@@ -16,6 +15,7 @@ from manage.api import save_team_comment
 from manage.api import set_team_status
 from manage.api import delete_team
 from manage.api import download_team_submissions
+from manage.api import download_email_list
 
 app_name = 'manage'
 urlpatterns = [
