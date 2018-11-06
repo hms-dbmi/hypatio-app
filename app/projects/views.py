@@ -18,27 +18,20 @@ from hypatio.scireg_services import get_current_user_profile
 from hypatio.scireg_services import get_user_email_confirmation_status
 
 from profile.forms import RegistrationForm
-from projects.steps.dynamic_form import SignAgreementFormsStepInitializer
 
 from pyauth0jwt.auth0authenticate import logout_redirect
 from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import validate_request as validate_jwt
 
-from .models import AgreementForm
-from .models import ChallengeTaskSubmission
-from .models import DataProject
-from .models import HostedFile
-from .models import Participant
-from .models import SignedAgreementForm
-from .models import AGREEMENT_FORM_TYPE_DJANGO
-from .models import PERMISSION_SCHEME_EXTERNALLY_GRANTED
+from projects.models import ChallengeTaskSubmission
+from projects.models import DataProject
+from projects.models import HostedFile
+from projects.models import Participant
+from projects.models import SignedAgreementForm
+from projects.models import PERMISSION_SCHEME_EXTERNALLY_GRANTED
 
-# TODO REMOVE?
-from .steps.dynamic_form import save_dynamic_form
-from .steps.dynamic_form import agreement_form_factory
-
-# TODO REMOVE?
+from projects.steps.agreement_forms import SignAgreementFormsStepInitializer
 from projects.steps.pending_review import PendingReviewStepInitializer
 
 # Get an instance of a logger
@@ -73,24 +66,8 @@ def signed_agreement_form(request):
         participant = None
 
     if is_manager or signed_form.user == request.user:
-
-        # TODO can this be removed?
-        if signed_form.agreement_form.type == AGREEMENT_FORM_TYPE_DJANGO:
-            raise Exception('not implemented')
-            # template_name = "projects/participate/view-signed-agreement-form.html"
-
-            # # We need to get both the type of form, and the model underlying that form, dynamically.
-            # # Get an instance of the form based on file path.
-            # form_object = agreement_form_factory(signed_form.agreement_form.form_file_path)
-
-            # # Get an instance of the model that was saved from the form.
-            # filled_out_form_instance = get_object_or_404(form_object._meta.model, signedagreementform_ptr_id=signed_agreement_form_id)
-
-            # # Populate the form with data from the model so we can render it with django bootstrap.
-            # filled_out_signed_form = form_object(instance=filled_out_form_instance)
-        else:
-            template_name = "projects/participate/view-signed-agreement-form.html"
-            filled_out_signed_form = None
+        template_name = "projects/participate/view-signed-agreement-form.html"
+        filled_out_signed_form = None
 
         return render(request, template_name, {"user": request.user,
                                                "ssl_setting": settings.SSL_SETTING,
@@ -476,9 +453,11 @@ class DataProjectView(TemplateView):
 
         agreement_form_intializer = SignAgreementFormsStepInitializer()
 
-        current_step, steps = agreement_form_intializer.update_context(project=self.project,
-                                                                       user=self.request.user,
-                                                                       current_step=context["current_step"])
+        current_step, steps = agreement_form_intializer.update_context(
+            project=self.project,
+            user=self.request.user,
+            current_step=context["current_step"]
+        )
 
         context["current_step"] = current_step
 

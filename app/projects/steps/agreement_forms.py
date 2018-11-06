@@ -2,36 +2,8 @@ from projects.models import SignedAgreementForm
 from projects.models import AGREEMENT_FORM_TYPE_STATIC
 from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK
 
-from projects.forms.payerdb import AccessRequestForm
-
-from projects.models import AgreementForm
-from projects.models import DataProject
-
-from .project_step import ProjectStep
-from .project_step import ProjectStepInitializer
-
-
-def save_dynamic_form(agreement_form_id, project_key, model_name, posted_form, user, agreement_text):
-    agreement_form = AgreementForm.objects.get(id=agreement_form_id)
-    project = DataProject.objects.get(project_key=project_key)
-
-    dynamic_form_type = agreement_form_factory(model_name)
-    dynamic_form = dynamic_form_type(posted_form)
-    dynamic_form_instance = dynamic_form.save(commit=False)
-    dynamic_form_instance.agreement_form = agreement_form
-    dynamic_form_instance.agreement_text = agreement_text
-    dynamic_form_instance.user = user
-    dynamic_form_instance.project = project
-    dynamic_form_instance.save()
-
-
-def agreement_form_factory(form_name, form_input=None):
-
-    if form_name == "payerdb":
-        return AccessRequestForm
-
-    return None
-
+from projects.steps.project_step import ProjectStep
+from projects.steps.project_step import ProjectStepInitializer
 
 class SignAgreementFormsStepInitializer(ProjectStepInitializer):
     @staticmethod
@@ -75,8 +47,10 @@ class SignAgreementFormsStepInitializer(ProjectStepInitializer):
             complete = signed_forms.count() > 0
             current_step, status = self.get_step_status(current_step, form.short_name, form.type, complete)
 
-            step = ProjectStep(title='Form: {name}'.format(name=form.name),
-                               project=project)
+            step = ProjectStep(
+                title='Form: {name}'.format(name=form.name),
+                project=project
+            )
 
             step.agreement_form = form
 
@@ -85,10 +59,8 @@ class SignAgreementFormsStepInitializer(ProjectStepInitializer):
             elif form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
                 step.template = 'projects/signup/sign-external-agreement-form.html'
             else:
-                step.template = 'projects/signup/dynamic-agreement-form.html'
-                step.form = agreement_form_factory(form.form_file_path)
-                step.return_url = "projects/%s/" % project.project_key
-                step.model_name = form.form_file_path
+                # TODO
+                raise Exception("Not implemented")
 
             step.status = status
 

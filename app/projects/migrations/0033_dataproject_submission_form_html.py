@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='dataproject',
             name='submission_form_html',
-            field=models.FileField(default=None, upload_to=projects.models.models.get_submission_form_upload_path, validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['html'])]),
+            field=models.FileField(default=None, upload_to=projects.models.get_submission_form_upload_path, validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['html'])]),
             preserve_default=False,
         ),
     ]

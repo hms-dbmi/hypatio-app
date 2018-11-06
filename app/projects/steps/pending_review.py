@@ -1,7 +1,6 @@
 from .project_step import ProjectStepInitializer
 from .project_step import ProjectStep
 
-
 class PendingReviewStepInitializer(ProjectStepInitializer):
     def update_context(self, project, context):
 
