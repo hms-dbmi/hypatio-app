@@ -22,6 +22,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='agreementform',
             name='form_html',
-            field=models.FileField(upload_to=projects.models.models.get_agreement_form_upload_path, validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['html'])]),
+            field=models.FileField(upload_to=projects.models.get_agreement_form_upload_path, validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['html'])]),
         ),
     ]
