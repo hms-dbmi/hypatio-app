@@ -204,17 +204,18 @@
 
                     <ul class="nav navbar-nav navbar-right">
 
-                        {% if user.is_authenticated %}
+                        {% if request.user.is_authenticated %}
 
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                            aria-expanded="false"><strong>{{ user.email }}</strong> <span class="caret"></span></a>
+                            aria-expanded="false"><strong>{{ request.user.email }}</strong> <span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li><a href="/profile">Profile</a></li>
                                 
-                                {% if has_manage_permissions %}
+                                {% is_project_manager request as is_manager %}
+                                {% if is_manager %}
                                     <li role="separator" class="divider"></li>
-                                    <li><a href="/projects/manage/n2c2-t2/">Manage Projects</a></li>
+                                    <li><a href="{% url 'manage:manage-projects' %}">Manage Projects</a></li>
                                 {% endif %}
                                 
                                 <li role="separator" class="divider"></li>

@@ -18,7 +18,8 @@ from projects.api import save_signed_agreement_form
 from projects.api import save_signed_external_agreement_form
 from projects.api import submit_user_permission_request
 
-urlpatterns = (
+app_name = 'projects'
+urlpatterns = [
     url(r'^$', list_data_projects),
     url(r'^submit_user_permission_request/$', submit_user_permission_request),
     url(r'^save_signed_agreement_form', save_signed_agreement_form),
@@ -34,5 +35,5 @@ urlpatterns = (
     url(r'^download_dataset/$', download_dataset),
     url(r'^upload_challengetasksubmission_file/$', upload_challengetasksubmission_file),
     url(r'^delete_challengetasksubmission/$', delete_challengetasksubmission),
-    url(r'^(?P<project_key>[^/]+)/$', DataProjectView.as_view()),
-)
+    url(r'^(?P<project_key>[^/]+)/$', DataProjectView.as_view(), name="view-project"),
+]

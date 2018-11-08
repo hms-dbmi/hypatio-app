@@ -1,13 +1,14 @@
-from django import template
-from django.conf import settings
-from django.utils.timezone import utc
-
 import os
 import datetime
 import furl
 import logging
 
+from django import template
+from django.conf import settings
 from django.utils.safestring import mark_safe
+from django.utils.timezone import utc
+
+from hypatio.sciauthz_services import SciAuthZ
 
 register = template.Library()
 
@@ -83,3 +84,15 @@ def is_challengetask_currently_enabled(challengetask):
         return datetime.datetime.utcnow().replace(tzinfo=utc) < challengetask.closed_time
 
     return True
+
+@register.simple_tag
+def is_project_manager(request):
+    """
+    Returns True if the user manages any projects.
+    """
+
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    has_manage_permissions = sciauthz.user_has_any_manage_permissions()
+
+    return has_manage_permissions
