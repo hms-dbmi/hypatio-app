@@ -55,7 +55,6 @@ def signed_agreement_form(request):
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
-    has_manage_permissions = sciauthz.user_has_any_manage_permissions()
 
     project = get_object_or_404(DataProject, project_key=project_key)
     signed_form = get_object_or_404(SignedAgreementForm, id=signed_agreement_form_id, project=project)
@@ -71,7 +70,6 @@ def signed_agreement_form(request):
 
         return render(request, template_name, {"user": request.user,
                                                "ssl_setting": settings.SSL_SETTING,
-                                               "has_manage_permissions": has_manage_permissions,
                                                "is_manager": is_manager,
                                                "signed_form": signed_form,
                                                "filled_out_signed_form": filled_out_signed_form,
@@ -82,116 +80,26 @@ def signed_agreement_form(request):
 
 @public_user_auth_and_jwt
 def list_data_projects(request, template_name='projects/list-data-projects.html'):
+    """
+    Displays all visible data projects.
+    """
 
-    all_data_projects = DataProject.objects.filter(is_challenge=False, visible=True)
+    context = {}
+    context['projects'] = DataProject.objects.filter(is_challenge=False, visible=True)
 
-    data_projects = []
-    projects_with_view_permissions = []
-    projects_with_access_requests = {}
-
-    has_manage_permissions = False
-
-    if not request.user.is_authenticated():
-        user = None
-    else:
-        user = request.user
-        user_jwt = request.COOKIES.get("DBMI_JWT", None)
-
-        # If for some reason they have a session but not JWT, force them to log in again.
-        if user_jwt is None or validate_jwt(request) is None:
-            return logout_redirect(request)
-
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-        has_manage_permissions = sciauthz.user_has_any_manage_permissions()
-        user_permissions = sciauthz.current_user_permissions()
-
-        logger.debug('[HYPATIO][DEBUG] User Permissions: ' + json.dumps(user_permissions))
-
-        if user_permissions is not None and 'results' in user_permissions:
-            user_permissions = user_permissions["results"]
-
-            for user_permission in user_permissions:
-                if user_permission['permission'] == 'VIEW':
-                    projects_with_view_permissions.append(user_permission['item'])
-
-    # Build the dictionary with all project and permission information needed
-    for project in all_data_projects:
-
-        project_data_url = None
-        user_has_view_permissions = project.project_key in projects_with_view_permissions
-
-        if project.project_key in projects_with_access_requests:
-            user_requested_access_on = projects_with_access_requests[project.project_key]['date_requested']
-            user_requested_access = True
-        else:
-            user_requested_access_on = None
-            user_requested_access = False
-
-        # Package all the necessary information into one dictionary
-        project = {"name": project.name,
-                   "short_description": project.short_description,
-                   "description": project.description,
-                   "project_key": project.project_key,
-                   "project_url": project_data_url,
-                   "permission_scheme": project.permission_scheme,
-                   "user_has_view_permissions": user_has_view_permissions,
-                   "user_requested_access": user_requested_access,
-                   "user_requested_access_on": user_requested_access_on}
-
-        data_projects.append(project)
-
-    return render(request, template_name, {"data_projects": data_projects,
-                                           "user": user,
-                                           "ssl_setting": settings.SSL_SETTING,
-                                           "has_manage_permissions": has_manage_permissions,
-                                           "account_server_url": settings.ACCOUNT_SERVER_URL,
-                                           "profile_server_url": settings.SCIREG_SERVER_URL})
+    return render(request, template_name, context=context)
 
 
 @public_user_auth_and_jwt
 def list_data_challenges(request, template_name='projects/list-data-challenges.html'):
+    """
+    Displays all visible data challenges.
+    """
 
-    all_data_contests = DataProject.objects.filter(is_challenge=True, visible=True)
-    data_contests = []
+    context = {}
+    context['projects'] = DataProject.objects.filter(is_challenge=True, visible=True)
 
-    has_manage_permissions = False
-
-    if not request.user.is_authenticated():
-        user = None
-    else:
-
-        user = request.user
-        user_jwt = request.COOKIES.get("DBMI_JWT", None)
-
-        # If for some reason they have a session but not JWT, force them to log in again.
-        if user_jwt is None or validate_jwt(request) is None:
-            return logout_redirect(request)
-
-        if request.user.is_superuser:
-            all_data_contests = DataProject.objects.filter(is_challenge=True)
-
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-        has_manage_permissions = sciauthz.user_has_any_manage_permissions()
-
-    # Build the dictionary with all project and permission information needed
-    for data_contest in all_data_contests:
-
-        # Package all the necessary information into one dictionary
-        contest = {"name": data_contest.name,
-                        "short_description": data_contest.short_description,
-                        "description": data_contest.description,
-                        "project_key": data_contest.project_key,
-                        "permission_scheme": data_contest.permission_scheme}
-
-        data_contests.append(contest)
-
-    return render(request, template_name, {"data_contests": data_contests,
-                                           "user": user,
-                                           "ssl_setting": settings.SSL_SETTING,
-                                           "has_manage_permissions": has_manage_permissions,
-                                           "account_server_url": settings.ACCOUNT_SERVER_URL,
-                                           "profile_server_url": settings.SCIREG_SERVER_URL})
-
+    return render(request, template_name, context=context)
 
 @method_decorator(public_user_auth_and_jwt, name='dispatch')
 class DataProjectView(TemplateView):

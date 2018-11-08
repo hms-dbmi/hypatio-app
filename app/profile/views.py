@@ -60,9 +60,6 @@ def profile(request, template_name='profile/profile.html'):
     user = request.user
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
-    has_manage_permissions = sciauthz.user_has_any_manage_permissions()
-
     # The JWT token that will get passed in API calls
     jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
@@ -87,7 +84,6 @@ def profile(request, template_name='profile/profile.html'):
     # Generate and render the form.
     return render(request, template_name, {'registration_form': registration_form,
                                             'user': user,
-                                            'has_manage_permissions': has_manage_permissions,
                                             'new_user': new_user})
 
 def get_client_ip(request):
