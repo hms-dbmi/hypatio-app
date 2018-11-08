@@ -1,5 +1,6 @@
 from django.conf.urls import url
 
+from manage.views import DataProjectListManageView
 from manage.views import DataProjectManageView
 from manage.views import manage_team
 
@@ -19,7 +20,7 @@ from manage.api import download_email_list
 
 app_name = 'manage'
 urlpatterns = [
-    # TODO url(r'^$', LIST_PROJECTS_YOU_MANAGE),
+    url(r'^$', DataProjectListManageView.as_view(), name='manage-projects'),
     url(r'^download-email-list/$', download_email_list),
     url(r'^set-dataproject-details', set_dataproject_details, name='set-dataproject-details'),
     url(r'^set-dataproject-registration-status', set_dataproject_registration_status, name='set-dataproject-registration-status'),
