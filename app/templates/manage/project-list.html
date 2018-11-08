@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load countries %}
+{% load projects_extras %}
+
+{% block headscripts %}
+<!-- For DataTables -->
+<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.min.css' %}">
+{% endblock %}
+
+{% block title %}
+Manage Projects
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <table id="projects-table" class="table table-bordered table-hover table-responsive">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Type</th>
+                    <th>Registration</th>
+                    <th>Visibility</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr>
+                    <td>{{ project.name }}</td>
+                    <td>{{ project.project_key }}</td>
+                    <td>
+                        {% if project.is_challenge %}
+                            Data Challenge
+                        {% else %}
+                            Data Set
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if project.registration_open %}
+                            <span class="label label-success">Open</span>
+                        {% else %}
+                            <span class="label label-danger">Closed</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if project.visible %}
+                            <span class="label label-info">Publicly listed</span>
+                        {% else %}
+                            <span class="label label-warning">Hidden</span>
+                        {% endif %}
+                    </td>
+                    <td><a href="{% url 'manage:manage-project' project.project_key %}" class="btn btn-sm btn-primary">Manage</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block footerscripts %}
+<script type="application/javascript">
+    // Initialize DataTables
+    $(document).ready(function() {
+        $('#projects-table').DataTable();
+    });
+</script>
+{% endblock %}

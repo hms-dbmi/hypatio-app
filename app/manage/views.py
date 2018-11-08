@@ -24,13 +24,47 @@ from projects.models import HostedFileDownload
 logger = logging.getLogger(__name__)
 
 @method_decorator(user_auth_and_jwt, name='dispatch')
+class DataProjectListManageView(TemplateView):
+    """
+    Builds and renders a screen for users to select which project they want to
+    enter the management screen for. Only displays the projects that they have
+    MANAGE permissions for.
+    """
+
+    template_name = 'manage/project-list.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Sets up the instance.
+        """
+
+        return super(DataProjectListManageView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        """
+        Dynamically builds the context for rendering the view based on information
+        about the user and the DataProject.
+        """
+
+        # Get super's context. This is the dictionary of variables for the base template being rendered.
+        context = super(DataProjectListManageView, self).get_context_data(**kwargs)
+
+        user_jwt = self.request.COOKIES.get("DBMI_JWT", None)
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, self.request.user.email)
+        projects_managed = sciauthz.get_projects_managed_by_user()
+
+        context['projects'] = projects_managed
+
+        return context
+
+@method_decorator(user_auth_and_jwt, name='dispatch')
 class DataProjectManageView(TemplateView):
     """
     Builds and renders the screen for special users to manage a DataProject.
     """
 
     project = None
-    template_name = 'manage/base.html'
+    template_name = 'manage/project-base.html'
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -86,7 +120,6 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
 
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
-    has_manage_permissions = sciauthz.user_has_any_manage_permissions()
 
     if not is_manager:
         logger.debug(
@@ -154,7 +187,6 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
 
     return render(request, template_name, context={"user": user,
                                                    "ssl_setting": settings.SSL_SETTING,
-                                                   "has_manage_permissions": has_manage_permissions,
                                                    "project": project,
                                                    "team": team,
                                                    "team_members": team_member_details,
