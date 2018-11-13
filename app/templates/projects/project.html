@@ -2,8 +2,6 @@
 {% load projects_extras %}
 {% load bootstrap3 %}
 
-<!-- TODO DELETE THIS -->
-
 {% block headscripts %}
 {% endblock %}
 
@@ -31,7 +29,7 @@
             </div>
         </div>
 
-        {% for panel in left_panels %}
+        {% for panel in informational_panels %}
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">{{ panel.title }}</a></h2>
@@ -44,7 +42,33 @@
     </div>
 
     <div class="col-md-7">
-        {% for panel in right_panels %}
+
+        {% for panel in setup_panels %}
+        <div class="panel panel-{{ panel.bootstrap_color }}">
+            <div class="panel-heading" role="tab">
+                <h2 class="panel-title">
+                    <div class="{% if panel.status == SIGNUP_STEP_COMPLETED_STATUS %}
+                                completed-step-header
+                                {% elif panel.status == SIGNUP_STEP_CURRENT_STATUS %}
+                                current-step-header
+                                {% elif panel.status == SIGNUP_STEP_PERMANENT_STATUS %}
+                                current-step-header
+                                {% else %}
+                                blocked-step-header
+                                {% endif %}">
+                        <span>{{ panel.title }}</span>
+                    </div>
+                </h2>
+            </div>
+            {% if panel.status == SIGNUP_STEP_CURRENT_STATUS or panel.status == SIGNUP_STEP_PERMANENT_STATUS %}
+            <div class="panel-body">
+                {% include panel.template %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        {% for panel in actionable_panels %}
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">{{ panel.title }}</a></h2>

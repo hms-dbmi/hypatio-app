@@ -36,17 +36,6 @@ AGREEMENT_FORM_TYPE = (
 )
 
 
-PERMISSION_SCHEME_PRIVATE = "PRIVATE"
-PERMISSION_SCHEME_PUBLIC = "PUBLIC"
-PERMISSION_SCHEME_EXTERNALLY_GRANTED = "EXTERNALLY_GRANTED"
-
-PERMISSION_SCHEME = (
-    (PERMISSION_SCHEME_PRIVATE, "PRIVATE"),
-    (PERMISSION_SCHEME_PUBLIC, "PUBLIC"),
-    (PERMISSION_SCHEME_EXTERNALLY_GRANTED, "EXTERNALLY_GRANTED")
-)
-
-
 def get_agreement_form_upload_path(instance, filename):
 
     form_directory = 'agreementforms/'
@@ -110,9 +99,6 @@ class AgreementForm(models.Model):
 class DataProject(models.Model):
     """
     This represents a data project that users can access, along with its permissions and requirements.
-    A DataProject can be simply a data set or it can be a data challenge as recognized by the is_challenge
-    flag. The submission form file should be an html file that lives under static/submissionforms/.
-    Project_supervisors should be a comma delimited string of email addresses.
     """
 
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name of project", unique=False)
@@ -120,17 +106,22 @@ class DataProject(models.Model):
     institution = models.ForeignKey(Institution, blank=True, null=True, on_delete=models.PROTECT)
     description = models.TextField(blank=True, null=True, verbose_name="Description")
     short_description = models.CharField(max_length=255, blank=True, null=True, verbose_name="Short Description")
+
+    # A comma delimited string of email addresses.
     project_supervisors = models.CharField(max_length=1024, blank=True, null=True, verbose_name="Project Supervisors (comma-delimited, no spaces)")
 
+    # Set how the project should be accessed.
     visible = models.BooleanField(default=False, blank=False, null=False)
-    permission_scheme = models.CharField(max_length=100, default="PRIVATE", verbose_name="Permission Scheme")
     registration_open = models.BooleanField(default=False, blank=False, null=False)
+    requires_authorization = models.BooleanField(default=True, blank=False, null=False)
 
+    # Which forms users need to sign before accessing any data.
     agreement_forms = models.ManyToManyField(AgreementForm, blank=True, related_name='data_project_agreement_forms')
 
-    # TODO Eventually this flag could be replaced as even non "challenges" will be able to accept uploads and support teams
+    # TODO Delete this?
     is_challenge = models.BooleanField(default=False, blank=False, null=False)
 
+    # Set whether users need to form teams before accessing data.
     has_teams = models.BooleanField(default=False, blank=False, null=False)
 
     show_jwt = models.BooleanField(default=False, blank=False, null=False)
