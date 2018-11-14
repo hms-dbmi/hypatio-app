@@ -184,10 +184,10 @@ class DataProjectView(TemplateView):
         # If a project does not require any authorization, display signup and participation steps all at once.
         if not self.project.requires_authorization:
             self.get_signup_context(context)
-            # self.get_participate_context(context)
+            self.get_participate_context(context)
             return context
 
-        # If a user is already granted access to a project, allow them to participate.
+        # If a user is already granted access to a project, only show them the participation panels.
         if self.is_user_granted_access(context):
             self.get_participate_context(context)
         else:
@@ -214,9 +214,6 @@ class DataProjectView(TemplateView):
         render a sub template.
         """
 
-        # Initialize the steps list.
-        context['steps'] = []
-
         # Initialize tracking of which step is the current step.
         context['current_step'] = None
 
@@ -232,6 +229,7 @@ class DataProjectView(TemplateView):
         # Show JWT step (if needed).
         self.setup_panel_show_jwt(context)
 
+        # TODO commented out until this is ready.
         # Access request step (if needed).
         # self.setup_panel_request_access(context)
 
@@ -242,23 +240,13 @@ class DataProjectView(TemplateView):
         # Static page that lets user know to wait.
         # self.step_pending_review(context)
 
-        # TODO DELETE
-        # Set the template that should be rendered.
-        # self.template_name = 'projects/signup/base.html'
-
         return context
 
     def get_participate_context(self, context):
         """
         Adds to the view's context anything needed for participating in a DataProject
-        once a user has been granted access to it. The participate screen is comprised of two
-        columns and a set of panels in each. A panel contains information needed to
-        render a sub template.
+        once a user has been granted access to it.
         """
-
-        # Initialize as a list the panels that will occupy either side of the participate screen.
-        context['left_panels'] = []
-        context['right_panels'] = []
 
         # Add a panel for displaying team members (if needed).
         self.panel_team_members(context)
@@ -271,10 +259,6 @@ class DataProjectView(TemplateView):
 
         # Add a panel for a solution submission form (if needed).
         self.panel_submit_task_solutions(context)
-
-        # TODO DELETE
-        # Set the template that should be rendered.
-        self.template_name = 'projects/participate/base.html'
 
         return context
 
@@ -493,8 +477,7 @@ class DataProjectView(TemplateView):
         team = None
         team_has_pending_members = None
 
-        # If a user has a Participant record, then they have already been associated.
-        # with a team.
+        # If a user has a Participant record, then they have already been associated with a team.
         if self.participant is not None:
             team = self.participant.team
             team_has_pending_members = Participant.objects.filter(
@@ -504,7 +487,7 @@ class DataProjectView(TemplateView):
 
         # TODO never completed?
         # This step is never completed.
-        step_status = self.get_step_status(['current_step'], 'setup_team', False)
+        step_status = self.get_step_status(context['current_step'], 'setup_team', False)
 
         panel = DataProjectSignupPanel(
             title='Join or Create a Team',
@@ -527,18 +510,20 @@ class DataProjectView(TemplateView):
         """
 
         # Do not include this panel if this project does not have teams.
-        if not self.project.has_teams or (self.participant is not None and self.participant.team is not None):
+        if not self.project.has_teams:
             return
 
-        # Describe the panel. Include here any variables that the template will need.
-        panel = {
-            'title': 'Team Members',
-            'template': 'projects/participate/team-members.html',
-            'team': self.participant.team
-        }
+        additional_context = {}
+        additional_context['team'] = self.participant.team
 
-        # Add the panel to the left column.
-        context['left_panels'].append(panel)
+        panel = DataProjectInformationalPanel(
+            title='Team Members',
+            bootstrap_color='default',
+            template='projects/participate/team-members.html',
+            additional_context=additional_context
+        )
+
+        context['informational_panels'].append(panel)
 
     def panel_signed_agreement_forms(self, context):
         """
@@ -557,15 +542,50 @@ class DataProjectView(TemplateView):
             status__in=["P", "A"]
         )
 
-        # Describe the panel. Include here any variables that the template will need.
-        panel = {
-            'title': 'Signed Agreement Forms',
-            'template': 'projects/participate/signed-agreement-forms.html',
-            'signed_forms': signed_forms
-        }
+        panel = DataProjectInformationalPanel(
+            title='Signed Agreement Forms',
+            bootstrap_color='default',
+            template='projects/participate/signed-agreement-forms.html',
+            additional_context={'signed_forms': signed_forms}
+        )
 
-        # Add the panel to the left column.
-        context['left_panels'].append(panel)
+        context['informational_panels'].append(panel)
+
+    def panel_available_downloads(self, context):
+        """
+        Builds the context needed for a user to be able to download data sets
+        belonging to this DataProject. Will a panel for every HostedFileSet and another
+        for any files not belonging to a set.
+        """
+
+        # Create a panel for each HostedFileSet
+        for file_set in self.project.hostedfileset_set.all():
+
+            panel = DataProjectActionablePanel(
+                title=file_set.title + ' Downloads',
+                bootstrap_color='default',
+                template='projects/participate/available-downloads.html',
+                additional_context={'files': file_set.hostedfile_set.all()}
+            )
+
+            context['actionable_panels'].append(panel)
+
+        # Add another panel for files that do not belong to a HostedFileSet
+        files_without_a_set = HostedFile.objects.filter(
+            project=self.project,
+            hostedfileset=None
+        )
+
+        if files_without_a_set.count() > 0:
+
+            panel = DataProjectActionablePanel(
+                title='Available Downloads',
+                bootstrap_color='default',
+                template='projects/participate/available-downloads.html',
+                additional_context={'files': files_without_a_set}
+            )
+
+            context['actionable_panels'].append(panel)
 
     def panel_submit_task_solutions(self, context):
         """
@@ -576,20 +596,37 @@ class DataProjectView(TemplateView):
 
         tasks = self.project.challengetask_set.all()
 
-        # Do not include this panel if this project does not have any tasks        
+        # Do not include this panel if this project does not have any tasks.
         if tasks.count() == 0:
             return
 
+        # If the project does not have teams and the user is not yet a participant, create one.
+        if not self.project.has_teams and self.participant is None:
+            self.participant = Participant(user=self.request.user, data_challenge=self.project)
+            self.participant.save()
+
+        additional_context = {}
         task_details = []
 
         for task in tasks:
 
-            # Get the submissions for this task already submitted by the team.
-            submissions = ChallengeTaskSubmission.objects.filter(
-                challenge_task=task,
-                participant__in=self.participant.team.participant_set.all(),
-                deleted=False
-            )
+            if self.project.has_teams:
+
+                # Get the submissions for this task already submitted by the team or individual.
+                submissions = ChallengeTaskSubmission.objects.filter(
+                    challenge_task=task,
+                    participant__in=self.participant.team.participant_set.all(),
+                    deleted=False
+                )
+
+            else:
+
+                # Get the submissions for this task already submitted by the individual.
+                submissions = ChallengeTaskSubmission.objects.filter(
+                    challenge_task=task,
+                    participant=self.participant,
+                    deleted=False
+                )
 
             total_submissions = submissions.count()
 
@@ -602,57 +639,16 @@ class DataProjectView(TemplateView):
 
             task_details.append(task_context)
 
-        # Describe the panel. Include here any variables that the template will need.
-        panel = {
-            'title': 'Tasks to Complete',
-            'template': 'projects/participate/complete-tasks.html',
-            'team': self.participant.team,
-            'project': self.project,
-            'task_details': task_details
-        }
+        additional_context['tasks'] = task_details
 
-        # Add the panel to the right column.
-        context['right_panels'].append(panel)
-
-    def panel_available_downloads(self, context):
-        """
-        Builds the context needed for a user to be able to download data sets
-        belonging to this DataProject. Will a panel for every HostedFileSet and another
-        for any files not belonging to a set.
-        """
-
-        # Create a panel for each HostedFileSet
-        for file_set in self.project.hostedfileset_set.all():
-
-            # Describe the panel. Include here any variables that the template will need.
-            panel = {
-                'title': file_set.title + ' Downloads',
-                'template': 'projects/participate/available-downloads.html',
-                'project': self.project,
-                'files': file_set.hostedfile_set.all()
-            }
-
-            # Add the panel to the right column.
-            context['right_panels'].append(panel)
-
-        # Add another panel for files that do not belong to a HostedFileSet
-        files_without_a_set = HostedFile.objects.filter(
-            project=self.project,
-            hostedfileset=None
+        panel = DataProjectActionablePanel(
+            title='Tasks to Complete',
+            bootstrap_color='default',
+            template='projects/participate/complete-tasks.html',
+            additional_context=additional_context
         )
 
-        if files_without_a_set.count() > 0:
-
-            # Describe the panel. Include here any variables that the template will need.
-            panel = {
-                'title': 'Available Downloads',
-                'template': 'projects/participate/available-downloads.html',
-                'project': self.project,
-                'files': files_without_a_set
-            }
-
-            # Add the panel to the right column.
-            context['right_panels'].append(panel)
+        context['actionable_panels'].append(panel)
 
     def is_user_granted_access(self, context):
         """
