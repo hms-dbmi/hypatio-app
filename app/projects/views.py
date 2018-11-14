@@ -19,20 +19,25 @@ from hypatio.scireg_services import get_user_email_confirmation_status
 
 from profile.forms import RegistrationForm
 
-from pyauth0jwt.auth0authenticate import logout_redirect
 from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
-from pyauth0jwt.auth0authenticate import validate_request as validate_jwt
 
+from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK
+from projects.models import AGREEMENT_FORM_TYPE_STATIC
 from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import HostedFile
 from projects.models import Participant
 from projects.models import SignedAgreementForm
-from projects.models import PERMISSION_SCHEME_EXTERNALLY_GRANTED
 
-from projects.steps.agreement_forms import SignAgreementFormsStepInitializer
-from projects.steps.pending_review import PendingReviewStepInitializer
+from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
+from projects.panels import SIGNUP_STEP_CURRENT_STATUS
+from projects.panels import SIGNUP_STEP_FUTURE_STATUS
+from projects.panels import SIGNUP_STEP_PERMANENT_STATUS
+from projects.panels import DataProjectPanel
+from projects.panels import DataProjectInformationalPanel
+from projects.panels import DataProjectSignupPanel
+from projects.panels import DataProjectActionablePanel
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -108,9 +113,9 @@ class DataProjectView(TemplateView):
     """
 
     project = None
-    template_name = None
     user_jwt = None
     participant = None
+    template_name = 'projects/project.html'
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -151,33 +156,44 @@ class DataProjectView(TemplateView):
         # Get super's context. This is the dictionary of variables for the base template being rendered.
         context = super(DataProjectView, self).get_context_data(**kwargs)
 
-        # Prepare the common context.
-        self.get_base_context_data(context)
-
-        # Determine which context is appropriate for this user.
-        if not self.request.user.is_authenticated() or self.user_jwt is None:
-            self.get_unregistered_context(context)
-        elif not self.is_user_granted_access(context):
-            self.get_signup_context(context)
-        else:
-            self.get_participate_context(context)
-
-        return context
-
-    def get_base_context_data(self, context):
-        """
-        Include all common context items here, ones that should be available for the base
-        template ultimately loaded.
-        """
-
         # Add the project to the context.
         context['project'] = self.project
+
+        # Initialize lists to store the different groupings of panels that will be displayed.
+        context['informational_panels'] = []
+        context['setup_panels'] = []
+        context['actionable_panels'] = []
+
+        # Add a few variables needed for the UI.
+        context['SIGNUP_STEP_COMPLETED_STATUS'] = SIGNUP_STEP_COMPLETED_STATUS
+        context['SIGNUP_STEP_CURRENT_STATUS'] = SIGNUP_STEP_CURRENT_STATUS
+        context['SIGNUP_STEP_FUTURE_STATUS'] = SIGNUP_STEP_FUTURE_STATUS
+        context['SIGNUP_STEP_PERMANENT_STATUS'] = SIGNUP_STEP_PERMANENT_STATUS
 
         # Check if the user is a manager of this DataProject.
         if self.request.user.is_authenticated():
             sciauthz = SciAuthZ(settings.AUTHZ_BASE, self.user_jwt, self.request.user.email)
             context['has_manage_permissions'] = sciauthz.user_has_manage_permission(self.project.project_key)
             context['has_view_permission'] = sciauthz.user_has_single_permission(self.project.project_key, "VIEW")
+
+        # Users who are not logged in should be prompted to first before proceeding further.
+        if not self.request.user.is_authenticated() or self.user_jwt is None:
+            self.get_unregistered_context(context)
+            return context
+
+        # If a project does not require any authorization, display signup and participation steps all at once.
+        if not self.project.requires_authorization:
+            self.get_signup_context(context)
+            self.get_participate_context(context)
+            return context
+
+        # If a user is already granted access to a project, only show them the participation panels.
+        if self.is_user_granted_access(context):
+            self.get_participate_context(context)
+        else:
+            self.get_signup_context(context)
+
+        return context
 
     def get_unregistered_context(self, context):
         """
@@ -192,55 +208,45 @@ class DataProjectView(TemplateView):
 
     def get_signup_context(self, context):
         """
-        Adds to the view's context anything needed for users to get access to
+        Adds to the view's context anything needed for users to do to get access to
         this DataProject. The sign up process is broken up into a set of steps
         that affect the user interface. A step contains information needed to
         render a sub template.
         """
 
-        # Initialize the steps list.
-        context['steps'] = []
-
         # Initialize tracking of which step is the current step.
         context['current_step'] = None
 
         # Verify email step.
-        self.step_verify_email(context)
+        self.setup_panel_verify_email(context)
 
         # SciReg complete profile step.
-        self.step_complete_profile(context)
+        self.setup_panel_complete_profile(context)
 
         # Agreement forms step (if needed).
-        self.step_sign_agreement_forms(context)
+        self.setup_panel_sign_agreement_forms(context)
 
         # Show JWT step (if needed).
-        self.step_show_jwt(context)
+        self.setup_panel_show_jwt(context)
 
+        # TODO commented out until this is ready.
         # Access request step (if needed).
-        self.step_request_access(context)
+        # self.setup_panel_request_access(context)
 
         # Team setup step (if needed).
-        self.step_setup_team(context)
+        self.setup_panel_team(context)
 
+        # TODO commented out until this is ready.
         # Static page that lets user know to wait.
-        self.step_pending_review(context)
-
-        # Set the template that should be rendered.
-        self.template_name = 'projects/signup/base.html'
+        # self.step_pending_review(context)
 
         return context
 
     def get_participate_context(self, context):
         """
         Adds to the view's context anything needed for participating in a DataProject
-        once a user has been granted access to it. The participate screen is comprised of two
-        columns and a set of panels in each. A panel contains information needed to
-        render a sub template.
+        once a user has been granted access to it.
         """
-
-        # Initialize as a list the panels that will occupy either side of the participate screen.
-        context['left_panels'] = []
-        context['right_panels'] = []
 
         # Add a panel for displaying team members (if needed).
         self.panel_team_members(context)
@@ -254,12 +260,10 @@ class DataProjectView(TemplateView):
         # Add a panel for a solution submission form (if needed).
         self.panel_submit_task_solutions(context)
 
-        # Set the template that should be rendered.
-        self.template_name = 'projects/participate/base.html'
-
         return context
 
-    def get_step_status(self, context, step_name, step_complete):
+    @staticmethod
+    def get_step_status(current_step, step_name, step_complete, is_permanent=False):
         """
         Returns the status this step should have. If the given step is incomplete and we do not
         already have a current_step in context, then this step is the current step and update
@@ -268,35 +272,40 @@ class DataProjectView(TemplateView):
         """
 
         if step_complete:
-            return 'completed_step'
-        elif context['current_step'] is None:
-            context['current_step'] = step_name
-            return 'current_step'
-        else:
-            return 'future_step'
 
-    def step_verify_email(self, context):
+            if is_permanent:
+                return SIGNUP_STEP_PERMANENT_STATUS
+
+            return SIGNUP_STEP_COMPLETED_STATUS
+
+        if current_step is None:
+            current_step = step_name
+            return SIGNUP_STEP_CURRENT_STATUS
+
+        return SIGNUP_STEP_FUTURE_STATUS
+
+    def setup_panel_verify_email(self, context):
         """
         Builds the context needed for users to verify their email address. This is
         a required step.
         """
 
         email_verified = get_user_email_confirmation_status(self.user_jwt)
-        step_status = self.get_step_status(context, 'verify_email', email_verified)
+        step_status = self.get_step_status(context['current_step'], 'verify_email', email_verified)
 
-        # Describe the step. Include here any variables that the template will need.
-        step = {
-            'title': 'Verify Your Email',
-            'template': 'projects/signup/verify-email.html',
-            'status': step_status
-        }
+        panel = DataProjectSignupPanel(
+            title='Verify Your Email',
+            bootstrap_color='default',
+            template='projects/signup/verify-email.html',
+            status=step_status
+        )
 
-        context['steps'].append(step)
+        context['setup_panels'].append(panel)
 
-    def step_complete_profile(self, context):
+    def setup_panel_complete_profile(self, context):
         """
-        Builds the context needed for users to complete their SciReg profile. This is
-        a required step.
+        Builds the context needed for users to complete or update their SciReg profile.
+        This is a required step.
         """
 
         scireg_profile_results = get_current_user_profile(self.user_jwt)
@@ -336,19 +345,19 @@ class DataProjectView(TemplateView):
             except KeyError:
                 pass
 
-        step_status = self.get_step_status(context, 'complete_profile', step_complete)
+        step_status = self.get_step_status(context['current_step'], 'complete_profile', step_complete)
 
-        # Describe the step. Include here any variables that the template will need.
-        step = {
-            'title': 'Complete Your Profile',
-            'template': 'projects/signup/complete-profile.html',
-            'status': step_status,
-            'registration_form': registration_form
-        }
+        panel = DataProjectSignupPanel(
+            title='Complete Your Profile',
+            bootstrap_color='default',
+            template='projects/signup/complete-profile.html',
+            status=step_status,
+            additional_context={'registration_form': registration_form}
+        )
 
-        context['steps'].append(step)
+        context['setup_panels'].append(panel)
 
-    def step_sign_agreement_forms(self, context):
+    def setup_panel_sign_agreement_forms(self, context):
         """
         Builds the context needed for users to complete any required agreement forms.
         This is an optional step depending on the DataProject. One step will be added
@@ -359,20 +368,47 @@ class DataProjectView(TemplateView):
         if self.project.agreement_forms.count() == 0:
             return
 
-        agreement_form_intializer = SignAgreementFormsStepInitializer()
+        agreement_forms = self.project.agreement_forms.order_by('-name')
 
-        current_step, steps = agreement_form_intializer.update_context(
-            project=self.project,
-            user=self.request.user,
-            current_step=context["current_step"]
-        )
+        # Each form will be a separate step.
+        for form in agreement_forms:
 
-        context["current_step"] = current_step
+            # Only include Pending or Approved forms when searching.
+            signed_forms = SignedAgreementForm.objects.filter(
+                user=self.request.user,
+                project=self.project,
+                agreement_form=form,
+                status__in=["P", "A"]
+            )
 
-        for step in steps:
-            context['steps'].append(step)
+            # If the form has already been signed, then the step should be complete.
+            step_complete = signed_forms.count() > 0
 
-    def step_show_jwt(self, context):
+            # If the form lives externally, then the step will be marked as permanent because we cannot tell if it was completed.
+            permanent_step = form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK
+
+            step_status = self.get_step_status(context['current_step'], form.short_name, step_complete, permanent_step)
+
+            title = 'Form: {name}'.format(name=form.name)
+
+            if not form.type or form.type == AGREEMENT_FORM_TYPE_STATIC:
+                template = 'projects/signup/sign-agreement-form.html'
+            elif form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
+                template = 'projects/signup/sign-external-agreement-form.html'
+            else:
+                raise Exception("Agreement form type Not implemented")
+
+            panel = DataProjectSignupPanel(
+                title=title,
+                bootstrap_color='default',
+                template=template,
+                status=step_status,
+                additional_context={'agreement_form': form}
+            )
+
+            context['setup_panels'].append(panel)
+
+    def setup_panel_show_jwt(self, context):
         """
         Builds the context needed for users to see their JWT. This is an optional
         step depending on the DataProject.
@@ -381,64 +417,54 @@ class DataProjectView(TemplateView):
         if not self.project.show_jwt:
             return
 
+        # TODO never completed?
         # This step is never completed, it is usually the last step.
-        status = self.get_step_status(context, 'show_jwt', False)
+        step_status = self.get_step_status(context['current_step'], 'show_jwt', False)
 
-        # Describe the step. Include here any variables that the template will need.
-        step = {
-            'title': 'Using Your JWT',
-            'template': 'projects/signup/show-jwt.html',
-            'status': status,
-            'user_jwt': self.user_jwt
-        }
+        panel = DataProjectSignupPanel(
+            title='Using Your JWT',
+            bootstrap_color='default',
+            template='projects/signup/show-jwt.html',
+            status=step_status,
+            additional_context={'user_jwt': self.user_jwt}
+        )
 
-        context['steps'].append(step)
+        context['setup_panels'].append(panel)
 
-    def step_request_access(self, context):
+    # TODO REFACTOR THIS
+    def setup_panel_request_access(self, context):
         """
         Builds the context needed for users to request access to a DataProject.
         This is an optional step depending on the DataProject.
         """
 
         # -----------------------------------------------------------
-        # TODO this is where the new access request logic should live
+        # TODO If RequireAuthorization is True but user does not have VIEW permissions, display this.
         # -----------------------------------------------------------
 
         # Only display this step if it is a private data set with no agreement forms
-        if not (self.project.permission_scheme == "PRIVATE" and self.project.agreement_forms.count() == 0):
+        if not (self.project.requires_authorization and self.project.agreement_forms.count() == 0):
             return
 
         # TODO Check for access 
         # access_requested = self.has_user_requested_access(user_access_requests)
         access_requested = False
-        
+
+        # TODO never completed?
         # This step is never completed, it is usually the last step.
-        status = self.get_step_status(context, 'request_access', False)
+        step_status = self.get_step_status(context['current_step'], 'request_access', False)
 
-        # Describe the step. Include here any variables that the template will need.
-        step = {
-            'title': 'Request Access',
-            'template': 'projects/signup/request-access.html',
-            'status': status,
-            'project': self.project,
-            'access_requested': access_requested
-        }
+        panel = DataProjectSignupPanel(
+            title='Request Access',
+            bootstrap_color='default',
+            template='projects/signup/request-access.html',
+            status=step_status,
+            additional_context={'access_requested': access_requested}
+        )
 
-        context['steps'].append(step)
+        context['setup_panels'].append(panel)
 
-    def step_pending_review(self, context):
-        """
-        Show a static page letting user know their request is pending.
-        """
-
-        if self.project.permission_scheme != PERMISSION_SCHEME_EXTERNALLY_GRANTED:
-            return
-
-        step = PendingReviewStepInitializer().update_context(project=self.project, context=context)
-
-        context['steps'].append(step)
-
-    def step_setup_team(self, context):
+    def setup_panel_team(self, context):
         """
         Builds the context needed for users to create or join a team. This is an
         optional step depending on the DataProject.
@@ -451,8 +477,7 @@ class DataProjectView(TemplateView):
         team = None
         team_has_pending_members = None
 
-        # If a user has a Participant record, then they have already been associated.
-        # with a team.
+        # If a user has a Participant record, then they have already been associated with a team.
         if self.participant is not None:
             team = self.participant.team
             team_has_pending_members = Participant.objects.filter(
@@ -460,21 +485,23 @@ class DataProjectView(TemplateView):
                 team_approved=False
             )
 
+        # TODO never completed?
         # This step is never completed.
-        status = self.get_step_status(context, 'setup_team', False)
+        step_status = self.get_step_status(context['current_step'], 'setup_team', False)
 
-        # Describe the step. Include here any variables that the template will need.
-        step = {
-            'title': 'Join or Create a Team',
-            'template': 'projects/signup/setup-team.html',
-            'status': status,
-            'project': self.project,
-            'participant': self.participant,
-            'team': team,
-            'team_has_pending_members': team_has_pending_members
-        }
+        panel = DataProjectSignupPanel(
+            title='Join or Create a Team',
+            bootstrap_color='default',
+            template='projects/signup/setup-team.html',
+            status=step_status,
+            additional_context={
+                'participant': self.participant,
+                'team': team,
+                'team_has_pending_members': team_has_pending_members
+            }
+        )
 
-        context['steps'].append(step)
+        context['setup_panels'].append(panel)
 
     def panel_team_members(self, context):
         """
@@ -483,18 +510,20 @@ class DataProjectView(TemplateView):
         """
 
         # Do not include this panel if this project does not have teams.
-        if not self.project.has_teams or (self.participant is not None and self.participant.team is not None):
+        if not self.project.has_teams:
             return
 
-        # Describe the panel. Include here any variables that the template will need.
-        panel = {
-            'title': 'Team Members',
-            'template': 'projects/participate/team-members.html',
-            'team': self.participant.team
-        }
+        additional_context = {}
+        additional_context['team'] = self.participant.team
 
-        # Add the panel to the left column.
-        context['left_panels'].append(panel)
+        panel = DataProjectInformationalPanel(
+            title='Team Members',
+            bootstrap_color='default',
+            template='projects/participate/team-members.html',
+            additional_context=additional_context
+        )
+
+        context['informational_panels'].append(panel)
 
     def panel_signed_agreement_forms(self, context):
         """
@@ -513,15 +542,50 @@ class DataProjectView(TemplateView):
             status__in=["P", "A"]
         )
 
-        # Describe the panel. Include here any variables that the template will need.
-        panel = {
-            'title': 'Signed Agreement Forms',
-            'template': 'projects/participate/signed-agreement-forms.html',
-            'signed_forms': signed_forms
-        }
+        panel = DataProjectInformationalPanel(
+            title='Signed Agreement Forms',
+            bootstrap_color='default',
+            template='projects/participate/signed-agreement-forms.html',
+            additional_context={'signed_forms': signed_forms}
+        )
 
-        # Add the panel to the left column.
-        context['left_panels'].append(panel)
+        context['informational_panels'].append(panel)
+
+    def panel_available_downloads(self, context):
+        """
+        Builds the context needed for a user to be able to download data sets
+        belonging to this DataProject. Will a panel for every HostedFileSet and another
+        for any files not belonging to a set.
+        """
+
+        # Create a panel for each HostedFileSet
+        for file_set in self.project.hostedfileset_set.all():
+
+            panel = DataProjectActionablePanel(
+                title=file_set.title + ' Downloads',
+                bootstrap_color='default',
+                template='projects/participate/available-downloads.html',
+                additional_context={'files': file_set.hostedfile_set.all()}
+            )
+
+            context['actionable_panels'].append(panel)
+
+        # Add another panel for files that do not belong to a HostedFileSet
+        files_without_a_set = HostedFile.objects.filter(
+            project=self.project,
+            hostedfileset=None
+        )
+
+        if files_without_a_set.count() > 0:
+
+            panel = DataProjectActionablePanel(
+                title='Available Downloads',
+                bootstrap_color='default',
+                template='projects/participate/available-downloads.html',
+                additional_context={'files': files_without_a_set}
+            )
+
+            context['actionable_panels'].append(panel)
 
     def panel_submit_task_solutions(self, context):
         """
@@ -532,20 +596,37 @@ class DataProjectView(TemplateView):
 
         tasks = self.project.challengetask_set.all()
 
-        # Do not include this panel if this project does not have any tasks        
+        # Do not include this panel if this project does not have any tasks.
         if tasks.count() == 0:
             return
 
+        # If the project does not have teams and the user is not yet a participant, create one.
+        if not self.project.has_teams and self.participant is None:
+            self.participant = Participant(user=self.request.user, data_challenge=self.project)
+            self.participant.save()
+
+        additional_context = {}
         task_details = []
 
         for task in tasks:
 
-            # Get the submissions for this task already submitted by the team.
-            submissions = ChallengeTaskSubmission.objects.filter(
-                challenge_task=task,
-                participant__in=self.participant.team.participant_set.all(),
-                deleted=False
-            )
+            if self.project.has_teams:
+
+                # Get the submissions for this task already submitted by the team or individual.
+                submissions = ChallengeTaskSubmission.objects.filter(
+                    challenge_task=task,
+                    participant__in=self.participant.team.participant_set.all(),
+                    deleted=False
+                )
+
+            else:
+
+                # Get the submissions for this task already submitted by the individual.
+                submissions = ChallengeTaskSubmission.objects.filter(
+                    challenge_task=task,
+                    participant=self.participant,
+                    deleted=False
+                )
 
             total_submissions = submissions.count()
 
@@ -558,57 +639,16 @@ class DataProjectView(TemplateView):
 
             task_details.append(task_context)
 
-        # Describe the panel. Include here any variables that the template will need.
-        panel = {
-            'title': 'Tasks to Complete',
-            'template': 'projects/participate/complete-tasks.html',
-            'team': self.participant.team,
-            'project': self.project,
-            'task_details': task_details
-        }
+        additional_context['tasks'] = task_details
 
-        # Add the panel to the right column.
-        context['right_panels'].append(panel)
-
-    def panel_available_downloads(self, context):
-        """
-        Builds the context needed for a user to be able to download data sets
-        belonging to this DataProject. Will a panel for every HostedFileSet and another
-        for any files not belonging to a set.
-        """
-
-        # Create a panel for each HostedFileSet
-        for file_set in self.project.hostedfileset_set.all():
-
-            # Describe the panel. Include here any variables that the template will need.
-            panel = {
-                'title': file_set.title + ' Downloads',
-                'template': 'projects/participate/available-downloads.html',
-                'project': self.project,
-                'files': file_set.hostedfile_set.all()
-            }
-
-            # Add the panel to the right column.
-            context['right_panels'].append(panel)
-
-        # Add another panel for files that do not belong to a HostedFileSet
-        files_without_a_set = HostedFile.objects.filter(
-            project=self.project,
-            hostedfileset=None
+        panel = DataProjectActionablePanel(
+            title='Tasks to Complete',
+            bootstrap_color='default',
+            template='projects/participate/complete-tasks.html',
+            additional_context=additional_context
         )
 
-        if files_without_a_set.count() > 0:
-
-            # Describe the panel. Include here any variables that the template will need.
-            panel = {
-                'title': 'Available Downloads',
-                'template': 'projects/participate/available-downloads.html',
-                'project': self.project,
-                'files': files_without_a_set
-            }
-
-            # Add the panel to the right column.
-            context['right_panels'].append(panel)
+        context['actionable_panels'].append(panel)
 
     def is_user_granted_access(self, context):
         """
@@ -619,10 +659,6 @@ class DataProjectView(TemplateView):
 
         # Does user have VIEW or MANAGE permissions?
         if not context['has_view_permission'] and not context['has_manage_permissions']:
-            return False
-
-        # If the permission is managed outside this project, return false.
-        if self.project.permission_scheme == PERMISSION_SCHEME_EXTERNALLY_GRANTED:
             return False
 
         # Additional requirements if a DataProject requires teams.
