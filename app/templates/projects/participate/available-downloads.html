@@ -2,7 +2,7 @@
 {% load tz %}
 
 <table class="table table-striped" style="margin-bottom: 0px;">
-{% for file in panel.files %}
+{% for file in panel.additional_context.files %}
     {# Only display files that are enabled and within the availability window #}
     {% is_hostedfile_currently_enabled file as file_enabled %}
     {% if file_enabled %}

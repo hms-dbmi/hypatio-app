@@ -331,13 +331,18 @@ def upload_challengetasksubmission_file(request):
             logger.error('No filename, project, or task!')
             return HttpResponse('Filename, project, task are required', status=400)
 
-        # Check that user has permissions to be submitting files for this project.
-        user_jwt = request.COOKIES.get("DBMI_JWT", None)
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        project = get_object_or_404(DataProject, project_key=project_key)
 
-        if not sciauthz.user_has_single_permission(project_key, "VIEW"):
-            logger.debug("[upload_challengetasksubmission_file] - No Access for user " + request.user.email)
-            return HttpResponse("You do not have access to upload this file.", status=403)
+        # If the project requires authorization to access, check for permissions before allowing submission
+        if project.requires_authorization:
+
+            # Check that user has permissions to be submitting files for this project.
+            user_jwt = request.COOKIES.get("DBMI_JWT", None)
+            sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+
+            if not sciauthz.user_has_single_permission(project_key, "VIEW"):
+                logger.debug("[upload_challengetasksubmission_file] - No Access for user " + request.user.email)
+                return HttpResponse("You do not have access to upload this file.", status=403)
 
         if filename.split(".")[-1] != "zip":
             logger.error('Not a zip file.')
@@ -395,8 +400,10 @@ def upload_challengetasksubmission_file(request):
             # Get the participant.
             project = get_object_or_404(DataProject, project_key=submission_info['project_key'])
             participant = get_object_or_404(Participant, user=request.user, data_challenge=project)
-            team = participant.team
             task = get_object_or_404(ChallengeTask, id=submission_info['task_id'])
+
+            # Get the team, although it could be None for projects with no teams.
+            team = participant.team
 
             # Remove a few unnecessary fields.
             del submission_info['csrfmiddlewaretoken']
@@ -404,7 +411,10 @@ def upload_challengetasksubmission_file(request):
 
             # Add some more fields
             submission_info['submitted_by'] = request.user.email
-            submission_info['team_leader'] = participant.team.team_leader.email
+
+            if participant.team is not None:
+                submission_info['team_leader'] = participant.team.team_leader.email
+
             submission_info['task'] = task.title
             submission_info['submitted_on'] = datetime.strftime(datetime.now(), "%Y%m%d_%H%M") + " (UTC)"
 
@@ -419,15 +429,35 @@ def upload_challengetasksubmission_file(request):
                 submission_info=submission_info_json
             )
 
-            # Get the submissions for this task already submitted by the team.
-            total_submissions = ChallengeTaskSubmission.objects.filter(
-                challenge_task=task,
-                participant__in=team.participant_set.all(),
-                deleted=False
-            ).count()
+            if project.has_teams:
 
-            # Send an email notification to team members about the submission.
-            emails = [member.user.email for member in team.participant_set.all()]
+                # Get the submissions for this task already submitted by the team.
+                total_submissions = ChallengeTaskSubmission.objects.filter(
+                    challenge_task=task,
+                    participant__in=team.participant_set.all(),
+                    deleted=False
+                ).count()
+
+                # Send an email notification to team members about the submission.
+                emails = [member.user.email for member in team.participant_set.all()]
+
+                # The email subject.
+                subject = 'DBMI Portal - {challenge} solution submitted by your team'.format(challenge=project.project_key)
+
+            else:
+
+                # Get the submissions for this task already submitted by the team.
+                total_submissions = ChallengeTaskSubmission.objects.filter(
+                    challenge_task=task,
+                    participant=participant,
+                    deleted=False
+                ).count()
+
+                # Send an email notification to team members about the submission.
+                emails = [participant.user.email]
+
+                # The email subject.
+                subject = 'DBMI Portal - {challenge} solution submitted.'.format(challenge=project.project_key)
 
             context = {
                 'submission_info': submission_info_json,
@@ -439,8 +469,6 @@ def upload_challengetasksubmission_file(request):
             }
 
             try:
-                subject = 'DBMI Portal - {challenge} solution submitted by your team'.format(challenge=project.project_key)
-
                 email_success = email_send(
                     subject=subject,
                     recipients=emails,
@@ -484,14 +512,6 @@ def delete_challengetasksubmission(request):
         submission = ChallengeTaskSubmission.objects.get(uuid=submission_uuid)
 
         project = submission.participant.data_challenge
-        team = submission.participant.team
-
-        if not sciauthz.user_has_single_permission(project.project_key, "VIEW"):
-            logger.debug(
-                "[delete_challengetasksubmission] - No Access for user %s",
-                request.user.email
-            )
-            return HttpResponse("You do not have access to delete this file.", status=403)
 
         logger.debug(
             '[delete_challengetasksubmission] - %s is trying to delete submission %s',
@@ -500,16 +520,36 @@ def delete_challengetasksubmission(request):
         )
 
         user_is_submitter = submission.participant.user == request.user
-        user_is_team_leader = team.team_leader == request.user.email
         user_is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
-        # Check that the user is either the team leader, the original submitter, or a manager
-        if not user_is_submitter and not user_is_team_leader and not user_is_manager:
-            logger.debug(
-                "[delete_challengetasksubmission] - No Access for user %s",
-                request.user.email
-            )
-            return HttpResponse("Only the original submitter, team leader, or challenge manager may delete this.", status=403)
+        if project.has_teams:
+            team = submission.participant.team
+            user_is_team_leader = team.team_leader == request.user.email
+
+            # Check that the user is either the team leader, the original submitter, or a manager.
+            if not user_is_submitter and not user_is_team_leader and not user_is_manager:
+                logger.debug(
+                    "[delete_challengetasksubmission] - No Access for user %s",
+                    request.user.email
+                )
+                return HttpResponse("Only the original submitter, team leader, or challenge manager may delete this.", status=403)
+
+            # Prepare the email notification to send.
+            emails = [member.user.email for member in team.participant_set.all()]
+            subject = 'DBMI Portal - Team Submission Deleted'
+
+        else:
+            # Check that the user is either the the original submitter or a manager.
+            if not user_is_submitter and not user_is_manager:
+                logger.debug(
+                    "[delete_challengetasksubmission] - No Access for user %s",
+                    request.user.email
+                )
+                return HttpResponse("Only the original submitter, team leader, or challenge manager may delete this.", status=403)
+
+            # Prepare the email notification to send.
+            emails = [submission.participant.user.email]
+            subject = 'DBMI Portal - Submission Deleted'
 
         submission.deleted = True
         submission.save()
@@ -527,9 +567,8 @@ def delete_challengetasksubmission(request):
             'submission_uuid': submission_uuid
         }
 
-        emails = [member.user.email for member in team.participant_set.all()]
         email_success = email_send(
-            subject='DBMI Portal - Team Submission Deleted',
+            subject=subject,
             recipients=emails,
             email_template='email_submission_deleted_notification',
             extra=context
@@ -562,7 +601,7 @@ def save_signed_agreement_form(request):
     )
     signed_agreement_form.save()
 
-    return HttpResponse(200)
+    return HttpResponse(status=200)
 
 @user_auth_and_jwt
 def save_signed_external_agreement_form(request):

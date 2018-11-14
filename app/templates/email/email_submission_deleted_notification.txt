@@ -1,3 +1,3 @@
-This is a notification that {{ deleted_by }} has just deleted one of your team's submissions for {{ project }} (submission UUID {{ submission_uuid }}).
+This is a notification that {{ deleted_by }} has just deleted one of your {% if project.has_teams %}team's{% endif %} submissions for {{ project }} (submission UUID {{ submission_uuid }}).
 
 Thank you.
