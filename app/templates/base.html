@@ -13,16 +13,12 @@
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-
           gtag('config', 'UA-70908320-25');
         </script>
     
-        <!-- Latest compiled and minified CSS -->
-
-        <script src="https://code.jquery.com/jquery-3.1.1.min.js"
-                integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <script src="{% static 'plugins/jquery/jquery.js' %}"></script>
+        <link rel="{% static 'plugins/jquery/jquery-ui.css' %}">
+        <script src="{% static 'plugins/jquery/jquery-ui.js' %}"></script>
        
         {% load bootstrap3 %}
         {% bootstrap_css %}
@@ -35,7 +31,8 @@
         <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/vnd.microsoft.icon"/>
         <title>{% block tab_name %}DBMI Portal{% endblock %}</title>
 
-        <script type='text/javascript' src="{% static 'bootstrap-notify.min.js' %}"></script>
+        <script type='text/javascript' src="{% static 'plugins/bootstrap-notify/bootstrap-notify.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'plugins/intercooler/intercooler.min.js' %}"></script>
 
         <script type="application/javascript">
             
@@ -207,17 +204,18 @@
 
                     <ul class="nav navbar-nav navbar-right">
 
-                        {% if user.is_authenticated %}
+                        {% if request.user.is_authenticated %}
 
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                            aria-expanded="false"><strong>{{ user.email }}</strong> <span class="caret"></span></a>
+                            aria-expanded="false"><strong>{{ request.user.email }}</strong> <span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li><a href="/profile">Profile</a></li>
                                 
-                                {% if has_manage_permissions %}
+                                {% is_project_manager request as is_manager %}
+                                {% if is_manager %}
                                     <li role="separator" class="divider"></li>
-                                    <li><a href="/projects/manage/n2c2-t2/">Manage Projects</a></li>
+                                    <li><a href="{% url 'manage:manage-projects' %}">Manage Projects</a></li>
                                 {% endif %}
                                 
                                 <li role="separator" class="divider"></li>

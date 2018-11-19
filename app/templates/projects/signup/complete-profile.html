@@ -1,0 +1,3 @@
+<p>There are a few required fields in your profile that need to be filled out. Please complete the profile registration form below, specifically the fields marked as required. You can go back and edit these fields any time by visiting your <a href="{% url 'profile' %}">profile</a> page.</p>
+
+{% include 'profile/registration-form.html' with registration_form=panel.additional_context.registration_form %}

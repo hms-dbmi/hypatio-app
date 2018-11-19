@@ -1,0 +1,25 @@
+<div class="panel panel-default">
+    <div class="panel-heading" role="tab" id="heading{{ project_counter }}">
+        <h4 class="panel-title">
+            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse{{ project_counter }}" aria-expanded="false"
+                aria-controls="collapse{{ project_counter }}">
+                <span style="font-size:24px; font-weight: bold; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">{{ project.name }}</span>
+                <br />
+                <br />
+                {{ project.short_description }}
+            </a>
+        </h4>
+    </div>
+    <div id="collapse{{ project_counter }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading{{ project_counter }}">
+        <div class="panel-body">
+            {% autoescape off %}
+                {{ project.description }}
+            {% endautoescape %}
+
+            <div>
+                <a class="btn btn-primary" role="button" href="{% url 'projects:view-project' project.project_key %}">Click here for more details</a>
+            </div> 
+        </div>
+    </div>
+</div>
+    

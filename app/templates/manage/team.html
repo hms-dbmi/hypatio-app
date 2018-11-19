@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load countries %}
+{% load tz %}
+
+{% block headscripts %}
+<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.min.css' %}">
+{% endblock %}
+
+{% block tab_name %}Team Management{% endblock %}
+{% block title %}{{ project.project_key }} Team Management{% endblock %}
+{% block subtitle %}Team leader: {{ team.team_leader }}{% endblock %}
+
+{% block content %}
+<div class="row form-group">
+    <div class="col-md-2">
+    </div>
+    <div class="col-md-10">
+        <div class="pull-right">
+            <div class="btn-toolbar" role="toolbar">
+                <div class="btn-group" role="group" aria-label="team-status-buttons">
+                    <button type="button" id="change-status-to-pending" class="btn team-status-buttons {% if team.status == 'Pending' %}btn-primary{% else %}btn-default{% endif %}">Open</button>
+                    <button type="button" id="change-status-to-ready" class="btn team-status-buttons {% if team.status == 'Ready' %}btn-warning{% else %}btn-default{% endif %}">Ready</button>
+                    <button type="button" id="change-status-to-active" class="btn team-status-buttons {% if team.status == 'Active' %}btn-success{% else %}btn-default{% endif %}" {% if not team_has_all_forms_complete %}disabled{% endif %}>Activated</button>
+                    <button type="button" id="change-status-to-deactivated" class="btn team-status-buttons {% if team.status == 'Deactivated' %}btn-primary{% else %}btn-default{% endif %}">Deactivated</button>
+                </div>        
+                <div class="btn-group" role="group" aria-label="team-delete-button">            
+                    <button type="button" id="delete-team" class="btn btn-danger">Delete team</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not team_has_all_forms_complete %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="pull-right">
+            <p><strong>Team cannot be activated until all participants have completed their forms and they have each been approved.</strong></p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row" id="delete-team-confirmation-form" style="display: none;">
+    <div class="col-md-12">
+        <div class="alert alert-warning" role="alert">
+            <form>
+                <div class="form-group">
+                    <strong>Are you sure you want to delete this team?</strong> This action will disband the team but it will not delete the forms that each member has individually signed.
+                </div>
+                <div class="form-group">
+                    <label for="delete-reason">Please provide a reason and then hit confirm.</label>
+                    <textarea class="form-control" rows="3" name="delete-reason" id="delete-reason"></textarea>
+                </div>
+                <button type="button" id="delete-team-confirm" class="btn btn-danger">Confirm</button>
+                <button type="button" id="delete-team-cancel" class="btn btn-default">Cancel</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Team members</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-bordered table-hover table-responsive" id="team-members-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Location</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Signed Forms</th>
+                            <!-- <th>Actions</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in team_members %}
+                        <tr>
+                            <td>{{ member.user_info.first_name }} {{ member.user_info.last_name }}</td>
+                            <td>
+                            {% get_country member.user_info.country as country %}
+                            {% if country == 'US' and member.user_info.state != "" %}
+                                {{ member.user_info.state }}, USA
+                            {% else %}
+                                {{ country.name }}
+                            {% endif %}
+                                <img src="{{ country.flag }}" class="pull-right" style="margin: 6px 4px 0">
+                            </td>
+                            <td>{{ member.email }}</td>
+                            <td>
+                            {% if member.email == team.team_leader.email %}
+                                <span class="label label-primary">Team Leader</span>
+                            {% endif %}
+                            
+                            {% if member.participant.team_pending %}
+                                <span class="label label-warning">Pending team leader approval</span>
+                            {% elif member.signed_accepted_agreement_forms != num_required_forms %}
+                                <span class="label label-warning">Pending forms</span>
+                            {% else %}
+                                <span class="label label-default">No issues</span>
+                            {% endif %}
+                            </td>
+                            <td>
+                                {% for form in member.signed_agreement_forms %}
+                                <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-success{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="/projects/signed_agreement_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
+                                    {{ form.agreement_form.short_name }}
+                                </a>
+                                {% endfor %}
+                            </td>
+                            <!-- <td>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Actions <span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#">Make team leader</a></li>
+                                        <li><a href="#">Remove from team</a></li>
+                                        <li><a href="#">Ban from challenge</a></li>
+                                    </ul>
+                                </div>
+                            </td> -->
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Challenge Submissions</h3>
+            </div>
+            <div class="panel-body table-responsive">
+                <table class="table table-bordered table-hover" id="team-uploads-table" width="100%">
+                    <thead>
+                        <tr>
+                            <th>Person</th>
+                            <th>Task</th>
+                            <th>Date</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for upload in uploads %}
+                        <tr>
+                            <td>{{ upload.participant.user.email }}</td>
+                            <td>{{ upload.challenge_task.title }}</td>
+                            <td>{{ upload.upload_date|timezone:"America/New_York" }} (EST)</td>
+                            <td>
+                                <button class="btn btn-default btn-xs submission-delete">Delete</button>
+                                <button class="btn btn-danger btn-xs submission-delete-confirm" data-submission-uuid="{{ upload.uuid }}" style="display: none;">Confirm</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 10px;">
+                    <a href="{% url 'manage:download-team-submissions' %}?team={{ team.team_leader.email }}&project_key={{ project.project_key }}" class="btn-success btn download-file" download>
+                        Download all files now
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Data downloads</h3>
+            </div>
+            <div class="panel-body table-responsive">
+                <table class="table table-bordered table-hover" id="team-downloads-table" width="100%">
+                    <thead>
+                        <tr>
+                            <th>Person</th>
+                            <th>File</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for download in downloads %}
+                        <tr>
+                            <td>{{ download.user.email }}</td>
+                            <td>{{ download.hosted_file.file_name }}</td>
+                            <td>{{ download.download_date|timezone:"America/New_York" }} (EST)</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Admin comments</h3>
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label for="team-comment">Enter a new comment regarding this team:</label>
+                    <textarea class="form-control" rows="3" name="team-comment" id="team-comment" placeholder="This comment will only be visible to challenge administrators."></textarea>
+                </div>
+                <button type="button" id="team-comment-save" class="btn btn-primary">Save comment</button>
+
+                <hr>
+                
+                <h4>Previous comments:</h4>
+
+                {% for comment in comments %}
+                <dl>
+                    <dt>{{ comment.user.email }}, {{ comment.date|timezone:"America/New_York" }} (EST)</dt>
+                    <dd>{{ comment.text }}</dd>
+                </dl>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footerscripts %}
+<!-- Initialize DataTables -->
+<script type="application/javascript">
+    $(document).ready(function() {
+        $('#team-members-table').DataTable({
+            "paging": false,
+            "info": false,
+            "searching": false,
+            "order": [[3, "desc"]] // Sort by status column (4th column)
+        });
+        
+        $('#team-uploads-table').DataTable({
+            "paging": false,
+            "info": false,
+            "searching": false,
+            "order": [[1, "desc"]] // Sort by date column (3rd column)
+        });
+
+        $('#team-downloads-table').DataTable({
+            "paging": false,
+            "info": false,
+            "searching": false,
+            "order": [[2, "desc"]] // Sort by date column (3rd column)
+        });
+    });
+</script>
+
+<!-- Handle submission delete -->
+<script type="application/javascript">
+    $('.submission-delete').on('click', function() {
+        // Swap the delete button for the confirm button
+        $(this).hide();
+        $(this).next('.submission-delete-confirm').show();
+    });
+
+    $('.submission-delete-confirm').on('click', function() {
+        var button = $(this);
+        var submission_uuid = $(this).data('submission-uuid');
+
+        $.ajax({
+            method: "POST",
+            data: {"submission_uuid": submission_uuid},
+            url: "/delete_challengetasksubmission/",
+            success: function (data, textStatus, jqXHR) {
+                button.removeClass('btn-danger');
+                button.addClass('btn-success');
+                button.text('Submission deleted. Refreshing page.');
+
+                // Refresh the page.
+                setTimeout(function(){
+                    window.location = window.location.pathname
+                }, 1500);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('#delete-submission-confirm').text('Could not delete submission. Please contact an admin for help');                
+                
+                // Refresh the page.
+                setTimeout(function(){
+                    window.location = window.location.pathname
+                }, 1500);
+            }
+        });
+    });
+</script>
+
+<!-- Handle team status change or delete -->
+<script type="application/javascript">
+    var team = "{{ team.team_leader.email }}";
+    var project = "{{ project.project_key }}";
+    var status = "";
+
+    $('.team-status-buttons').click(function(event) {
+        
+        if (event.target.id == "change-status-to-pending") {
+            status = "pending";
+        } else if (event.target.id == "change-status-to-ready") {
+            status = "ready";
+        } else if (event.target.id == "change-status-to-active") {
+            status = "active";
+        } else if (event.target.id == "change-status-to-deactivated") {
+            status = "deactivated";
+        }
+        
+        var request_data = {
+            team: team,
+            project: project,
+            status: status,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        };
+
+        $.post("{% url 'manage:set-team-status' %}", request_data)
+            .done(function() {
+                location.reload();
+            }).fail(function() {
+                alert('Failed to change team status.');
+            });
+    });
+
+    $('#delete-team').click(function() {
+        $('#delete-team-confirmation-form').show();
+    });
+
+    $('#delete-team-cancel').click(function() {
+        $('#delete-team-confirmation-form').hide();
+    });
+
+    $('#delete-team-confirm').click(function() {
+
+        var delete_reason = $("#delete-reason").val();
+
+        var request_data = {
+            team: team,
+            project: project,
+            administrator_message: delete_reason,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        };
+
+        $.post("{% url 'manage:delete-team' %}", request_data)
+            .done(function() {
+                window.close();
+            }).fail(function() {
+                alert('Failed to delete team.');
+            });
+    });
+</script>
+
+<!-- Handle team comment saving -->
+<script type="application/javascript">
+    $('#team-comment-save').click(function() {
+        
+        var project = "{{ project.project_key }}";
+        var team = "{{ team.team_leader.email }}";
+        var comment = $("#team-comment").val();
+
+        var request_data = {
+            project: project,
+            team: team,
+            comment: comment,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        };
+
+        $.post("{% url 'manage:save-team-comment' %}", request_data)
+            .done(function() {
+                location.reload();
+            }).fail(function() {
+                alert('Failed to save comment.');
+            });
+
+    });
+</script>
+{% endblock %}

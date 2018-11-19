@@ -7,6 +7,8 @@ import logging
 
 from django.conf import settings
 
+from projects.models import DataProject
+
 logger = logging.getLogger(__name__)
 
 class SciAuthZ:
@@ -143,3 +145,24 @@ class SciAuthZ:
                     return True
 
         return False
+
+    def get_projects_managed_by_user(self):
+        """
+        Returns a list of DataProject objects managed by the user.
+        """
+
+        user_permissions = self.current_user_permissions()
+        managing_items = []
+
+        if user_permissions is not None and 'results' in user_permissions:
+            for permission in user_permissions["results"]:
+
+                # Go through the list of Hypatio related items that the user managers
+                if 'Hypatio' in permission['item'] and permission['permission'] == "MANAGE":
+
+                    # Pull out the name of the item, which comes between the first and (optional) second period in the permission string
+                    item_list = permission['item'].split('.')
+                    managing_items.append(item_list[1])
+
+        projects_managed = DataProject.objects.filter(project_key__in=managing_items)
+        return projects_managed
