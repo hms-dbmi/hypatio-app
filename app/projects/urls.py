@@ -1,46 +1,28 @@
 from django.conf.urls import url
 
-from .views import list_data_projects
-from .views import submit_user_permission_request
-from .views import signed_agreement_form
-from .views import save_signed_agreement_form
-from .views import save_dynamic_signed_agreement_form
-from .views import save_signed_external_agreement_form
-from .views import signout
-from .views import DataProjectView
+from projects.views import list_data_projects
+from projects.views import signed_agreement_form
+from projects.views import signout
+from projects.views import DataProjectView
 
-from .views_manage import manage_team
-from .views_manage import manage_contest
-from .views_manage import manage_project
-from .views_manage import manage_project_team
-from .views_manage import download_email_list
+from projects.api import join_team
+from projects.api import leave_team
+from projects.api import create_team
+from projects.api import approve_team_join
+from projects.api import reject_team_join
+from projects.api import finalize_team
+from projects.api import download_dataset
+from projects.api import upload_challengetasksubmission_file
+from projects.api import delete_challengetasksubmission
+from projects.api import save_signed_agreement_form
+from projects.api import save_signed_external_agreement_form
+from projects.api import submit_user_permission_request
 
-from .views_teams import join_team
-from .views_teams import leave_team
-from .views_teams import create_team
-from .views_teams import approve_team_join
-from .views_teams import reject_team_join
-from .views_teams import finalize_team
-from .views_teams import change_team_status
-from .views_teams import delete_team
-from .views_teams import save_team_comment
-from .views_teams import change_signed_form_status
-from .views_teams import download_signed_form
-
-from .views_files import download_dataset
-from .views_files import upload_challengetasksubmission_file
-from .views_files import download_team_submissions
-from .views_files import delete_challengetasksubmission
-
-urlpatterns = (
+app_name = 'projects'
+urlpatterns = [
     url(r'^$', list_data_projects),
     url(r'^submit_user_permission_request/$', submit_user_permission_request),
-    url(r'^manage/(?P<project_key>[^/]+)/$', manage_contest, name='manage_contest'),
-    url(r'^manage/(?P<project_key>[^/]+)/(?P<team_leader>[^/]+)/$', manage_team),
-    url(r'^manage_project/(?P<project_key>[^/]+)/$', manage_project, name='manage_project'),
-    url(r'^manage_project/(?P<project_key>[^/]+)/(?P<team_leader>[^/]+)/$', manage_project_team),
     url(r'^save_signed_agreement_form', save_signed_agreement_form),
-    url(r'^save_dynamic_signed_agreement_form', save_dynamic_signed_agreement_form),
     url(r'^save_signed_external_agreement_form', save_signed_external_agreement_form),
     url(r'^signout/$', signout),
     url(r'^join_team/$', join_team),
@@ -49,16 +31,9 @@ urlpatterns = (
     url(r'^reject_team_join/$', reject_team_join),
     url(r'^create_team/$', create_team),
     url(r'^finalize_team/$', finalize_team),
-    url(r'^change_team_status/$', change_team_status),
-    url(r'^delete_team/$', delete_team),
-    url(r'^save_team_comment/$', save_team_comment),
-    url(r'^change_signed_form_status/$', change_signed_form_status),
-    url(r'^download_signed_form/$', download_signed_form),
     url(r'^signed_agreement_form/$', signed_agreement_form),
     url(r'^download_dataset/$', download_dataset),
     url(r'^upload_challengetasksubmission_file/$', upload_challengetasksubmission_file),
-    url(r'^download_team_submissions/$', download_team_submissions),
     url(r'^delete_challengetasksubmission/$', delete_challengetasksubmission),
-    url(r'^download_email_list/$', download_email_list),
-    url(r'^(?P<project_key>[^/]+)/$', DataProjectView.as_view()),
-)
+    url(r'^(?P<project_key>[^/]+)/$', DataProjectView.as_view(), name="view-project"),
+]

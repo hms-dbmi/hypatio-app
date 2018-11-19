@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='institution',
             name='logo',
-            field=models.ImageField(blank=True, null=True, upload_to=projects.models.models.get_institution_logo_upload_path),
+            field=models.ImageField(blank=True, null=True, upload_to=projects.models.get_institution_logo_upload_path),
         ),
     ]

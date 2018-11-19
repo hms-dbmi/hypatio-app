@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block headscripts %}
+{% endblock %}
+
+{% block title %}Data Sets{% endblock %}
+{% block subtitle %}Click on a data set below to learn more{% endblock %}
+
+{% block content %}
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+{% for project in projects %}
+    <div class="row">
+        <div class="col-md-12">
+            {% include "projects/project-blurb.html" with project_counter=forloop.counter0 %}
+            <br/>
+        </div>
+    </div>
+{% endfor %}
+</div>
+{% endblock %}
