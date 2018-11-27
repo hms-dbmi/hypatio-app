@@ -2,7 +2,6 @@ from datetime import datetime
 import json
 import logging
 import os
-import requests
 import shutil
 import uuid
 import zipfile
@@ -18,8 +17,8 @@ from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from contact.views import email_send
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_names
-from hypatio import file_services as fileservice
 from manage.forms import EditHostedFileForm
+from manage.utils import zip_submission_file
 from projects.templatetags import projects_extras
 
 from projects.models import AgreementForm
@@ -30,7 +29,6 @@ from projects.models import Participant
 from projects.models import SignedAgreementForm
 from projects.models import Team
 from projects.models import TeamComment
-from projects.models import TeamSubmissionsDownload
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -601,7 +599,7 @@ def delete_team(request):
     return HttpResponse(200)
 
 @user_auth_and_jwt
-def download_team_submissions(request):
+def download_team_submissions(request, project_key, team_leader_email):
     """
     An HTTP GET endpoint that handles downloads of participant submission files. Checks
     that the requesting user has proper permissions to access this file. Downloads all
@@ -612,13 +610,7 @@ def download_team_submissions(request):
 
     if request.method == "GET":
 
-        project_key = request.GET.get("project_key", "")
-        team_leader_email = request.GET.get("team", "")
-
-        if project_key == "" or team_leader_email == "":
-            return HttpResponse("Not all parameters provided.", status=404)
-
-        # Check Permissions in SciAuthZ
+        # Check permissions in SciAuthZ.
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
         is_manager = sciauthz.user_has_manage_permission(project_key)
@@ -629,128 +621,80 @@ def download_team_submissions(request):
 
         project = get_object_or_404(DataProject, project_key=project_key)
         team = get_object_or_404(Team, data_project=project, team_leader__email=team_leader_email)
-        team_participants = team.participant_set.all()
 
-        logger.debug('Building a zip file containing the submissions from team {team}.'.format(
-            team=team_leader_email
-        ))
+        # A list of file paths to each submission's zip file.
+        zipped_submissions_paths = []
 
-        # Get all of the participant submission records belonging to this team, ordered by upload date
-        team_submissions = team.get_submissions().order_by('upload_date')
-
-        # Save a record of this person downloading this team's submissions file
-        download_record = TeamSubmissionsDownload.objects.create(
-            user=request.user,
-            team=team
+        # Get all submissions made by this team for this project.
+        submissions = ChallengeTaskSubmission.objects.filter(
+            challenge_task__in=project.challengetask_set.all(),
+            participant__in=team.participant_set.all(),
+            deleted=False
         )
 
-        # Once the record is created and a pk assigned, update with the specific submissions referenced
-        download_record.participant_submissions = team_submissions
-        download_record.save()
+        # For each submission, create a zip file and add the path to the list of zip files.
+        for submission in submissions:
+            zip_file_path = zip_submission_file(submission, request)
+            zipped_submissions_paths.append(zip_file_path)
 
-        # Create a dictory to hold the zipped submissions using a guid to keep it isolated from other requests
-        zipped_submissions_directory = "/tmp/zipped_submissions-" + str(uuid.uuid4())
-        if not os.path.exists(zipped_submissions_directory):
-            os.makedirs(zipped_submissions_directory)
-
-        # A list of file paths to each task's zip file
-        zipped_tasks_filepath = []
-
-        # Create subdirectories for each challenge task
-        for task in project.challengetask_set.all():
-
-            # A list of file paths to each submission zip file for this task
-            zipped_task_submission_filepaths = []
-
-            # Get the submissions for this task submitted by the team.
-            submissions = ChallengeTaskSubmission.objects.filter(
-                challenge_task=task,
-                participant__in=team.participant_set.all(),
-                deleted=False
-            )
-
-            if submissions.count() > 0:
-
-                for i, submission in enumerate(submissions):
-                    submission_number = i + 1
-                    submission_date_string = datetime.strftime(submission.upload_date, "%Y%m%d_%H%M")
-
-                    # Create a working directory to hold the files specific to this submission that need to be zipped together
-                    working_directory = "/tmp/working_dir-" + str(uuid.uuid4())
-                    if not os.path.exists(working_directory):
-                        os.makedirs(working_directory)
-
-                    # Create a json file with the submission info string
-                    info_file_name = "submission_info.json"
-                    with open(working_directory + "/" + info_file_name, mode="w") as f:
-                        f.write(submission.submission_info)
-
-                    # Get the submission file's byte contents from S3
-                    submission_file_download_url = fileservice.get_fileservice_download_url(request, submission.uuid)
-                    submission_file_request = requests.get(submission_file_download_url)
-
-                    # Write the bytes to a zip file
-                    submission_file_name = "submission_file.zip"
-                    if submission_file_request.status_code == 200:
-                        with open(working_directory + "/" + submission_file_name, mode="wb") as f:
-                            f.write(submission_file_request.content)
-                    else:
-                        logger.error(
-                            "[download_team_submissions] - Participant submission {uuid} file could not be pulled from S3.".format(
-                                uuid=submission.uuid
-                            )
-                        )
-                        return HttpResponse("Error getting files", status=404)
-
-                    # Create the zip file and add the files to it
-                    zip_file_path = zipped_submissions_directory + "/" + submission.challenge_task.title + "_" + str(submission_number) + "_" + submission_date_string + ".zip"
-                    with zipfile.ZipFile(zip_file_path, mode="w") as zf:
-                        zf.write(working_directory + "/" + info_file_name, arcname=info_file_name)
-                        zf.write(working_directory + "/" + submission_file_name, arcname=submission_file_name)
-
-                    # Add the zipfile to the list of zip files
-                    zipped_task_submission_filepaths.append(zip_file_path)
-
-                    # Delete the working directory
-                    shutil.rmtree(working_directory)
-
-                # Create a directory to store the encompassing task's zip file using a guid to keep it isolated from other requests
-                task_zip_file_directory = "/tmp/task_zip-" + str(uuid.uuid4())
-                if not os.path.exists(task_zip_file_directory):
-                    os.makedirs(task_zip_file_directory)
-
-                # Create the encompassing task's zip file
-                task_zip_file_name = task.title + ".zip"
-                task_zip_file_path = os.path.join(task_zip_file_directory, task_zip_file_name)
-                with zipfile.ZipFile(task_zip_file_path, mode="w") as zf:
-                    for submission_zip in zipped_task_submission_filepaths:
-                        zf.write(submission_zip, arcname=os.path.basename(submission_zip))
-
-                # Add the zipfile to the list of zip files
-                zipped_tasks_filepath.append(task_zip_file_path)
-
-        # Create a directory to store the encompassing zip file using a guid to keep it isolated from other requests
-        final_zip_file_directory = "/tmp/final_zip-" + str(uuid.uuid4())
+        # Create a directory to store the final encompassing zip file.
+        final_zip_file_directory = "/tmp/" + str(uuid.uuid4())
         if not os.path.exists(final_zip_file_directory):
             os.makedirs(final_zip_file_directory)
 
-        # Combine all the zipped tasks into one file zip file
-        final_zip_file_name = project_key + "_submissions_" + team_leader_email.replace('@', '-at-') + ".zip"
+        # Combine all the zipped tasks into one file zip file.
+        final_zip_file_name = project_key + "__team-submissions__" + team_leader_email + ".zip"
         final_zip_file_path = os.path.join(final_zip_file_directory, final_zip_file_name)
         with zipfile.ZipFile(final_zip_file_path, mode="w") as zf:
-            for task_zip in zipped_tasks_filepath:
-                zf.write(task_zip, arcname=os.path.basename(task_zip))
+            for zip_file in zipped_submissions_paths:
+                zf.write(zip_file, arcname=os.path.basename(zip_file))
 
-        # Prepare the zip file to be served
+        # Prepare the zip file to be served.
         final_zip_file = open(final_zip_file_path, 'rb')
         response = HttpResponse(final_zip_file, content_type='application/force-download')
         response['Content-Disposition'] = 'attachment; filename="%s"' % final_zip_file_name
 
-        # Delete all the zip files from disk storage
+        # Delete all the directories holding the zip files.
+        for path in zipped_submissions_paths:
+            shutil.rmtree(os.path.dirname(os.path.realpath((path))))
+
+        # Delete the final zip file.
         shutil.rmtree(final_zip_file_directory)
-        shutil.rmtree(zipped_submissions_directory)
-        for path in zipped_tasks_filepath:
-            shutil.rmtree(os.path.dirname(path))
+
+        return response
+
+@user_auth_and_jwt
+def download_submission(request, fileservice_uuid):
+    """
+    An HTTP GET endpoint that allows a user to download a ChallengeTaskSubmission's
+    file from AWS/fileservice.
+    """
+
+    if request.method == "GET":
+
+        submission = get_object_or_404(ChallengeTaskSubmission, uuid=fileservice_uuid)
+        project = submission.challenge_task.data_project
+
+        # Check permissions in SciAuthZ.
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        is_manager = sciauthz.user_has_manage_permission(project.project_key)
+
+        if not is_manager:
+            logger.debug("[download_submission] - No Access for user " + request.user.email)
+            return HttpResponse("You do not have access to download this file.", status=403)
+
+        # Download the submission file from fileservice and zip it up with the info json.
+        zip_file_path = zip_submission_file(submission, request)
+        zip_file_name = os.path.basename(zip_file_path)
+
+        # Prepare the zip file to be served.
+        final_zip_file = open(zip_file_path, 'rb')
+        response = HttpResponse(final_zip_file, content_type='application/force-download')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % zip_file_name
+
+        # Delete the directory containing the zip file.
+        shutil.rmtree(os.path.dirname(os.path.realpath((zip_file_path))))
 
         return response
 

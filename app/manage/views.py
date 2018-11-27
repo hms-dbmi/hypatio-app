@@ -13,6 +13,8 @@ from django.views.generic import TemplateView
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_user_profile
 
+from projects.models import ChallengeTask
+from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import Team
 from projects.models import TeamComment
@@ -106,6 +108,12 @@ class DataProjectManageView(TemplateView):
         context = super(DataProjectManageView, self).get_context_data(**kwargs)
 
         context['project'] = self.project
+
+        # Collect all submissions made for tasks related to this project.
+        context['submissions'] = ChallengeTaskSubmission.objects.filter(
+            challenge_task__in=self.project.challengetask_set.all(),
+            deleted=False
+        )
 
         return context
 
