@@ -334,12 +334,11 @@ class ParticipantProject(models.Model):
     class Meta:
         abstract = True
 
-class TeamSubmissionsDownload(models.Model):
+class ChallengeTaskSubmissionDownload(models.Model):
     """
-    Tracks who is attempting to download a team's submissions.
+    Tracks who is attempting to download a submission file.
     """
 
     user = models.ForeignKey(User)
-    team = models.ForeignKey(Team)
-    participant_submissions = models.ManyToManyField(ChallengeTaskSubmission)
+    submission = models.ForeignKey(ChallengeTaskSubmission)
     download_date = models.DateTimeField(auto_now_add=True)
