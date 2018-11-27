@@ -15,6 +15,7 @@ from manage.api import change_signed_form_status
 from manage.api import save_team_comment
 from manage.api import set_team_status
 from manage.api import delete_team
+from manage.api import download_submission
 from manage.api import download_team_submissions
 from manage.api import download_email_list
 
@@ -33,7 +34,8 @@ urlpatterns = [
     url(r'^save-team-comment/$', save_team_comment, name='save-team-comment'),
     url(r'^set-team-status/$', set_team_status, name='set-team-status'),
     url(r'^delete-team/$', delete_team, name='delete-team'),
-    url(r'^download-team-submissions/$', download_team_submissions, name='download-team-submissions'),
+    url(r'^download-team-submissions/(?P<project_key>[^/]+)/(?P<team_leader_email>[^/]+)/$', download_team_submissions, name='download-team-submissions'),
+    url(r'^download-submission/(?P<fileservice_uuid>[^/]+)/$', download_submission, name='download-submission'),
     url(r'^(?P<project_key>[^/]+)/$', DataProjectManageView.as_view(), name='manage-project'),
     url(r'^(?P<project_key>[^/]+)/(?P<team_leader>[^/]+)/$', manage_team),
 ]
