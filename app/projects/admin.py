@@ -1,17 +1,17 @@
 from django.contrib import admin
 
-from .models import DataProject
-from .models import AgreementForm
-from .models import SignedAgreementForm
-from .models import Team
-from .models import Participant
-from .models import Institution
-from .models import HostedFile
-from .models import HostedFileSet
-from .models import HostedFileDownload
-from .models import ChallengeTask
-from .models import ChallengeTaskSubmission
-from .models import TeamSubmissionsDownload
+from projects.models import DataProject
+from projects.models import AgreementForm
+from projects.models import SignedAgreementForm
+from projects.models import Team
+from projects.models import Participant
+from projects.models import Institution
+from projects.models import HostedFile
+from projects.models import HostedFileSet
+from projects.models import HostedFileDownload
+from projects.models import ChallengeTask
+from projects.models import ChallengeTaskSubmission
+from projects.models import ChallengeTaskSubmissionDownload
 
 class DataprojectAdmin(admin.ModelAdmin):
     list_display = ('name', 'project_key', 'is_challenge')
@@ -55,8 +55,8 @@ class ChallengeTaskSubmissionAdmin(admin.ModelAdmin):
     list_filter = ('participant__data_challenge', 'challenge_task')
     search_fields = ('participant__data_challenge__project_key', 'participant__user__email', 'challenge_task__title')
 
-class TeamSubmissionsDownloadAdmin(admin.ModelAdmin):
-    list_display = ('user', 'team', 'download_date')
+class ChallengeTaskSubmissionDownloadAdmin(admin.ModelAdmin):
+    list_display = ('user', 'submission', 'download_date')
 
 admin.site.register(DataProject, DataprojectAdmin)
 admin.site.register(AgreementForm, AgreementformAdmin)
@@ -69,4 +69,4 @@ admin.site.register(HostedFileSet, HostedFileSetAdmin)
 admin.site.register(HostedFileDownload, HostedFileDownloadAdmin)
 admin.site.register(ChallengeTask, ChallengeTaskAdmin)
 admin.site.register(ChallengeTaskSubmission, ChallengeTaskSubmissionAdmin)
-admin.site.register(TeamSubmissionsDownload, TeamSubmissionsDownloadAdmin)
+admin.site.register(ChallengeTaskSubmissionDownload, ChallengeTaskSubmissionDownloadAdmin)

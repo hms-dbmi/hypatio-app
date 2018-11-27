@@ -3,6 +3,7 @@
 {% load static %}
 {% load countries %}
 {% load projects_extras %}
+{% load tz %}
 
 {% block headscripts %}
 <!-- For DataTables -->
@@ -30,10 +31,12 @@
             </div>
             <div class="panel-body">
                 <div class="form-group" id="registration-status">
+                    {# Pulled this way so intercooler can grab it again when refreshing the section #}
                     {% include 'manage/registration-status.html' with project=project %}
                 </div>
                 <hr>
                 <div class="form-group" id="visible-status">
+                    {# Pulled this way so intercooler can grab it again when refreshing the section #}
                     {% include 'manage/visible-status.html' with project=project %}
                 </div>
             </div>
@@ -46,6 +49,7 @@
                 <h2 class="panel-title">Details</h2>
             </div>
             <div class="panel-body" id="project-details">
+                {# Pulled this way so intercooler can grab it again when refreshing the section #}
                 {% include 'manage/project-details.html' with project=project %}
             </div>
         </div>
@@ -266,36 +270,108 @@
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Full Participant List</h2>
             </div>
-                <div class="panel-body">
-                    <table id="participant-table" class="table table-bordered table-hover table-responsive">
-                        <thead>
-                            <tr>
-                                <th>Person</th>
-                                {% if project.has_teams %}
-                                <th>Team</th>
-                                {% endif %}
-                                <th>Has Access to Data</th>
-                                <th>Downloaded Data</th>
-                                <th>Completed a Task</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for participant in project.participant_set.all %}
-                            <tr class="participant-row">
-                                <td>{{ participant.user.email }}</td>
-                                {% if project.has_teams %}
-                                <td>{{ participant.team.team_leader.email }}</td>
-                                {% endif %}
-                                <td>TBD</td>
-                                <td>TBD</td>
-                                <td>TBD</td>
-                                <td>TBD</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="panel-body">
+                <table id="participant-table" class="table table-bordered table-hover table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Person</th>
+                            {% if project.has_teams %}
+                            <th>Team</th>
+                            {% endif %}
+                            <th>Has Access to Data</th>
+                            <th>Downloaded Data</th>
+                            <th>Completed a Task</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for participant in project.participant_set.all %}
+                        <tr class="participant-row">
+                            <td>{{ participant.user.email }}</td>
+                            {% if project.has_teams %}
+                            <td>{{ participant.team.team_leader.email }}</td>
+                            {% endif %}
+                            <td>TBD</td>
+                            <td>TBD</td>
+                            <td>TBD</td>
+                            <td>TBD</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12" style="margin-bottom: 15px;">
+        <hr>
+        <h3>Submissions Management</h3>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Submissions</h2>
+            </div>
+            <div class="panel-body">
+                <table id="submissions-table" class="table table-bordered table-hover table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Person</th>
+                            {% if project.has_teams %}
+                            <th>Team</th>
+                            {% endif %}
+                            <th>Task</th>
+                            <th>Submitted Date</th>
+                            <th>File ID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for submission in submissions %}
+                        <tr>
+                            <td>{{ submission.participant.user.email }}</td>
+                            {% if project.has_teams %}
+                            <td>{{ submission.participant.team.team_leader.email }}</td>
+                            {% endif %}
+                            <td>{{ submission.challenge_task.title }}</td>
+                            <td>{{ submission.upload_date|timezone:"America/New_York" }} (EST)</td>
+                            <td>{{ submission.uuid }}</td>
+                            <td>
+                                <button class="btn btn-default btn-xs view-submission-info" data-toggle="modal" data-target="#modal-submission-info" data-submission-uuid="{{ submission.uuid }}" data-submission-info="{{ submission.submission_info }}">
+                                    Details
+                                </button>
+                                <a class="btn btn-default btn-xs btn-default" href="{% url 'manage:download-submission' submission.uuid %}" download>
+                                    Download
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-submission-info" class="modal fade">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="submission-info-modal">Submission Info</h4>
+            </div>
+            <div class="modal-body">
+                <pre id="submission-info-display">
+                    ...
+                </pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -338,16 +414,17 @@
 {% endblock %}
 
 {% block footerscripts %}
+<!-- Initialize DataTables -->
 <script type="application/javascript">
-    // Initialize DataTables
     $(document).ready(function() {
         $('#team-table').DataTable();
         $('#participant-table').DataTable();
+        $('#submissions-table').DataTable();
     });
 </script>
 
+<!-- When clicking a team row, open a new window for team managment -->
 <script type="application/javascript">
-    // When clicking a team row, open a new window for team managment
     $(document).ready(function() {
         $('#team-table').on("click", ".team-row", function() {
             var team = $(this).data('team');
@@ -361,8 +438,24 @@
     });
 </script>
 
+<!-- Populate the submission info modal with data about the selected submission -->
 <script type="application/javascript">
-    // Populate the edit agreement form modal with the values present in the link
+    $('.view-submission-info').on('click', function() {
+        var submission_uuid = $(this).data('submission-uuid');
+
+        // Grab the information from an adjacent div
+        var submission_info = $(this).data('submission-info');
+        
+        // Parse the string into an actual json
+        var submission_info_json_prettyprint = JSON.stringify(submission_info, null, 4);
+
+        // Paste the json into the modal and pretty print it
+        $('#submission-info-display').html(submission_info_json_prettyprint);
+    });
+</script>
+
+<!-- Populate the edit agreement form modal with the values present in the link -->
+<script type="application/javascript">
     // $('.edit-agreement-form-button').on('click', function() {
 
     //     var form_name = $(this).data('form-name');

@@ -168,7 +168,7 @@
                 </table>
                 
                 <div style="margin-top: 10px;">
-                    <a href="{% url 'manage:download-team-submissions' %}?team={{ team.team_leader.email }}&project_key={{ project.project_key }}" class="btn-success btn download-file" download>
+                    <a href="{% url 'manage:download-team-submissions' project.project_key team.team_leader.email %}" class="btn-success btn download-file" download>
                         Download all files now
                     </a>
                 </div>
