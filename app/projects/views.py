@@ -630,11 +630,16 @@ class DataProjectView(TemplateView):
 
             total_submissions = submissions.count()
 
+            if task.max_submissions is None:
+                submissions_left = None
+            else:
+                submissions_left = task.max_submissions - total_submissions
+
             task_context = {
                 'task': task,
                 'submissions': submissions,
                 'total_submissions': total_submissions,
-                'submissions_left': task.max_submissions - total_submissions
+                'submissions_left': submissions_left
             }
 
             task_details.append(task_context)
