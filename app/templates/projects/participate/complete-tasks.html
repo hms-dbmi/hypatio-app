@@ -1,21 +1,18 @@
 {% load projects_extras %}
 {% load tz %}
 
-<div class="alert alert-info" role="alert">
-{% if project.has_teams %}
-    Please use the form(s) below to submit an official solution on behalf of your team for a task. <strong>Only .zip files will be accepted.</strong> While any member of the team may submit a solution, each task has a limited number of submissions allowed. Teams may delete previous submissions and resubmit.
-{% else %}
-    Please use the form(s) below to submit an official solution for a task. <strong>Only .zip files will be accepted.</strong> Each task may have a limited number of submissions allowed. You may delete previous submissions and resubmit.
-{% endif %}
-</div>
-
 {% for task_detail in panel.additional_context.tasks %}
     {# Only display tasks that are enabled and within the availability window #}
     {% is_challengetask_currently_enabled task_detail.task as task_enabled %}
     {% if task_enabled %}
         <div class="well">
-            <h4>Task: {{ task_detail.task.title }} <span class="label label-danger pull-right">{{ task_detail.submissions_left }} submissions left</span></h4>
-
+            <h4>
+                Task: {{ task_detail.task.title }} 
+                
+                {% if task_detail.submissions_left is not None %}
+                <span class="label label-danger pull-right">{{ task_detail.submissions_left }} submissions left</span>
+                {% endif %}
+            </h4>
             {% if task_detail.task.closed_time is not None %}
             <p>
                 <strong>Submissions for this task close at {{ task_detail.task.closed_time|timezone:"America/New_York" }} (EST).</strong>
