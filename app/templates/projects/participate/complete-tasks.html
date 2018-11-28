@@ -6,8 +6,13 @@
     {% is_challengetask_currently_enabled task_detail.task as task_enabled %}
     {% if task_enabled %}
         <div class="well">
-            <h4>Task: {{ task_detail.task.title }} <span class="label label-danger pull-right">{{ task_detail.submissions_left }} submissions left</span></h4>
-
+            <h4>
+                Task: {{ task_detail.task.title }} 
+                
+                {% if task_detail.submissions_left is not None %}
+                <span class="label label-danger pull-right">{{ task_detail.submissions_left }} submissions left</span>
+                {% endif %}
+            </h4>
             {% if task_detail.task.closed_time is not None %}
             <p>
                 <strong>Submissions for this task close at {{ task_detail.task.closed_time|timezone:"America/New_York" }} (EST).</strong>
