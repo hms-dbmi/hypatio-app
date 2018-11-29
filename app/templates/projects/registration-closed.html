@@ -17,21 +17,9 @@
 
 <div class="row">
     <div class="col-md-12">
-        {% if project.registration_open %}
-            {% if project.is_challenge %}
-                <div class="alert alert-danger" role="alert">
-                    To compete in {{ project.short_description }} please first <a href="{{ request.build_absolute_uri|get_login_url }}">login or register</a>.
-                </div>
-            {% else %}
-                <div class="alert alert-danger" role="alert">
-                    To request access to this dataset please first <a href="{{ request.build_absolute_uri|get_login_url }}">login or register</a>.
-                </div>
-            {% endif %}
-        {% else %}
-            <div class="alert alert-danger" role="alert">
-                Registration is not open for {{ project.short_description }} at this time.
-            </div>
-        {% endif %}
+        <div class="alert alert-danger" role="alert">
+            Registration is not open for {{ project.short_description }} at this time.
+        </div>
 
         <div class="panel panel-primary">
             <div class="panel-heading" role="tab" id="heading-description">
