@@ -118,7 +118,7 @@ class DataProject(models.Model):
     # Which forms users need to sign before accessing any data.
     agreement_forms = models.ManyToManyField(AgreementForm, blank=True, related_name='data_project_agreement_forms')
 
-    # TODO Delete this?
+    # Simply for highlighting projects that are challenges.
     is_challenge = models.BooleanField(default=False, blank=False, null=False)
 
     # Set whether users need to form teams before accessing data.
@@ -297,6 +297,9 @@ class ChallengeTask(models.Model):
     enabled = models.BooleanField(default=False, blank=False, null=False)
     opened_time = models.DateTimeField(blank=True, null=True)
     closed_time = models.DateTimeField(blank=True, null=True)
+
+    # Should supervisors be notified of submissions of this task
+    notify_supervisors_of_submissions = models.BooleanField(default=False, blank=False, null=False, help_text="Sends a notification to any emails listed in the project's supervisors field.")
 
     def __str__(self):
         return '%s: %s' % (self.data_project.project_key, self.title)
