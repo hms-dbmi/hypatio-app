@@ -181,18 +181,24 @@ class DataProjectView(TemplateView):
             self.get_unregistered_context(context)
             return context
 
+        # If a user is already granted access to a project, only show them the participation panels.
+        if self.is_user_granted_access(context):
+            self.get_participate_context(context)
+            return context
+
+        # If registration is closed, do not allow them to go further.
+        if not self.project.registration_open:
+            self.get_project_registration_closed_context(context)
+            return context
+
         # If a project does not require any authorization, display signup and participation steps all at once.
         if not self.project.requires_authorization:
             self.get_signup_context(context)
             self.get_participate_context(context)
             return context
 
-        # If a user is already granted access to a project, only show them the participation panels.
-        if self.is_user_granted_access(context):
-            self.get_participate_context(context)
-        else:
-            self.get_signup_context(context)
-
+        # Otherwise, prompt the user to sign up.
+        self.get_signup_context(context)
         return context
 
     def get_unregistered_context(self, context):
@@ -205,6 +211,17 @@ class DataProjectView(TemplateView):
         self.template_name = 'projects/login-or-register.html'
 
         return context
+
+    def get_project_registration_closed_context(self, context):
+        """
+        Adds to the view's context anything needed to show users without access
+        that the project is closed to further registrations.
+        """
+
+        # Set the template that should be rendered.
+        self.template_name = 'projects/registration-closed.html'
+
+        return context     
 
     def get_signup_context(self, context):
         """
