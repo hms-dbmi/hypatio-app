@@ -1,0 +1,5 @@
+You are receiving this email because you are listed as a supervisor for the project {{ project.name }}.
+
+{{ submitter }} has submitted a solution to task {{ task.title }}. You may download the submission from the project's management page.
+
+Thank you.
