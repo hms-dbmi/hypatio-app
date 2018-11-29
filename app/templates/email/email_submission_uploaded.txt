@@ -1,11 +1,7 @@
-{% if challenge.has_teams %}
-Team member {{ submitter }} has submitted a solution to task {{ task }} for project {{ challenge.name }} on behalf of your team. {% if max_submissions is not None %}Out of {{ max_submissions }} max submissions for this particular task, your team has now made {{ submission_count }} submissions.{% endif %} Your team may delete this or a previous submission and resubmit if you wish to.  
+{% if project.has_teams %}
+Team member {{ submitter }} has submitted a solution to task {{ task.title }} for project {{ project.name }} on behalf of your team. {% if max_submissions is not None %}Out of {{ max_submissions }} max submissions for this particular task, your team has now made {{ submission_count }} submissions.{% endif %} Your team may delete this or a previous submission and resubmit if you wish to.  
 {% else %}
-You have have submitted a solution to task {{ task }} for project {{ challenge.name }}. {% if max_submissions is not None %}Out of {{ max_submissions }} max submissions for this particular task, you have now made {{ submission_count }} submissions.{% endif %} You may delete this or a previous submission and resubmit if you wish to.  
+You have have submitted a solution to task {{ task.title }} for project {{ project.name }}. {% if max_submissions is not None %}Out of {{ max_submissions }} max submissions for this particular task, you have now made {{ submission_count }} submissions.{% endif %} You may delete this or a previous submission and resubmit if you wish to.  
 {% endif %}
-
-Submission metadata:
-{{ submission_info }}
-
 
 Thank you.

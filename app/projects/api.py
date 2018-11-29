@@ -19,6 +19,8 @@ from hypatio import file_services as fileservice
 from hypatio.file_services import get_download_url
 from hypatio.sciauthz_services import SciAuthZ
 from projects.templatetags import projects_extras
+from projects.utils import notify_supervisors_of_task_submission
+from projects.utils import notify_task_submitters
 
 from projects.models import AgreementForm
 from projects.models import ChallengeTask
@@ -317,7 +319,6 @@ def upload_challengetasksubmission_file(request):
     On a PATCH, check to see that the file successfully was uploaded to S3 and then create a new
     ChallengeTaskSubmission record.
     """
-    logger.debug('upload_challengetasksubmission_file: {}'.format(request.method))
 
     if request.method == 'POST':
         logger.debug('post')
@@ -429,54 +430,12 @@ def upload_challengetasksubmission_file(request):
                 submission_info=submission_info_json
             )
 
-            if project.has_teams:
+            # Send an email notification to the submitters.
+            notify_task_submitters(project, participant, task, submission_info_json)
 
-                # Get the submissions for this task already submitted by the team.
-                total_submissions = ChallengeTaskSubmission.objects.filter(
-                    challenge_task=task,
-                    participant__in=team.participant_set.all(),
-                    deleted=False
-                ).count()
-
-                # Send an email notification to team members about the submission.
-                emails = [member.user.email for member in team.participant_set.all()]
-
-                # The email subject.
-                subject = 'DBMI Portal - {challenge} solution submitted by your team'.format(challenge=project.project_key)
-
-            else:
-
-                # Get the submissions for this task already submitted by the team.
-                total_submissions = ChallengeTaskSubmission.objects.filter(
-                    challenge_task=task,
-                    participant=participant,
-                    deleted=False
-                ).count()
-
-                # Send an email notification to team members about the submission.
-                emails = [participant.user.email]
-
-                # The email subject.
-                subject = 'DBMI Portal - {challenge} solution submitted.'.format(challenge=project.project_key)
-
-            context = {
-                'submission_info': submission_info_json,
-                'challenge': project,
-                'task': task.title,
-                'submitter': request.user.email,
-                'max_submissions': task.max_submissions,
-                'submission_count': total_submissions
-            }
-
-            try:
-                email_success = email_send(
-                    subject=subject,
-                    recipients=emails,
-                    email_template='email_submission_uploaded',
-                    extra=context
-                )
-            except Exception as e:
-                logger.exception(e)
+            # If the task is configured to send notifications to supervisors, do so.
+            if task.notify_supervisors_of_submissions:
+                notify_supervisors_of_task_submission(project, participant, task, submission_info_json)
 
             # Make the request to FileService.
             if not fileservice.uploaded_file(request, data['uuid'], data['location']):
