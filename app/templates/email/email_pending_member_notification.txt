@@ -1,1 +1,1 @@
-A user with the email <strong>{{ member_email }}</strong> has requested to join your team for the {{ project.name }} data challenge. Please <a href="{{ site_url }}/{{ project.project_key }}/">click here</a> to view your team and approve or reject this request.
+A user with the email <strong>{{ member_email }}</strong> has requested to join your team for the {{ project.name }} data challenge. Please <a href="{{ site_url }}{{ project.project_key }}/">click here</a> to view your team and approve or reject this request.
