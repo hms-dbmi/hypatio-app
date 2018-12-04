@@ -221,7 +221,7 @@ class DataProjectView(TemplateView):
         # Set the template that should be rendered.
         self.template_name = 'projects/registration-closed.html'
 
-        return context     
+        return context
 
     def get_signup_context(self, context):
         """
