@@ -186,6 +186,11 @@ class DataProjectView(TemplateView):
             self.get_participate_context(context)
             return context
 
+        # If a user is a manager of the project, show them only specific panels.
+        if context['has_manage_permissions']:
+            self.get_manager_context(context)
+            return context
+
         # If registration is closed, do not allow them to go further.
         if not self.project.registration_open:
             self.get_project_registration_closed_context(context)
@@ -276,6 +281,17 @@ class DataProjectView(TemplateView):
 
         # Add a panel for a solution submission form (if needed).
         self.panel_submit_task_solutions(context)
+
+        return context
+
+    def get_manager_context(self, context):
+        """
+        Adds to the view's context anything that project managers should see who are not
+        otherwise participating in the project.
+        """
+
+        # Add a panel for available downloads.
+        self.panel_available_downloads(context)
 
         return context
 
@@ -526,7 +542,7 @@ class DataProjectView(TemplateView):
         an optional step depending on the DataProject.
         """
 
-        # Do not include this panel if this project does not have teams.
+        # Do not include this panel if this project does not have teams
         if not self.project.has_teams:
             return
 
@@ -679,8 +695,8 @@ class DataProjectView(TemplateView):
         Returns a boolean.
         """
 
-        # Does user have VIEW or MANAGE permissions?
-        if not context['has_view_permission'] and not context['has_manage_permissions']:
+        # Does user not have VIEW permissions?
+        if not context['has_view_permission']:
             return False
 
         # Additional requirements if a DataProject requires teams.
