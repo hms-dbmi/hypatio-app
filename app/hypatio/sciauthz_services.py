@@ -55,10 +55,34 @@ class SciAuthZ:
         return is_manager
 
     def current_user_permissions(self):
+        """
+        Make a request to DBMI-AuthZ to pull down all the user permissions that
+        the user has attached to their email. AuthZ paginates their results, so
+        keep looping requests until there are no pages left.
+        """
+
+        next_page = True
+        authz_url = self.USER_PERMISSIONS_URL + "?email=" + self.CURRENT_USER_EMAIL
+        user_permissions = []
 
         try:
-            # TODO Do you need to specify email here?
-            user_permissions = requests.get(self.USER_PERMISSIONS_URL + "?email=" + self.CURRENT_USER_EMAIL, headers=self.JWT_HEADERS, verify=settings.VERIFY_REQUESTS).json()
+            while next_page:
+                user_permissions_request = requests.get(
+                    authz_url,
+                    headers=self.JWT_HEADERS,
+                    verify=settings.VERIFY_REQUESTS
+                ).json()
+
+                # If there are any permissions returned, add them to the list.
+                if user_permissions_request['results']:
+                    user_permissions = user_permissions + user_permissions_request['results']
+
+                # If there are more permissions to pull, update the URL to hit. Otherwise, exit the loop.
+                if user_permissions_request['next'] is not None:
+                    authz_url = user_permissions_request['next']
+                else:
+                    next_page = False
+
         except JSONDecodeError:
             user_permissions = None
 
@@ -139,10 +163,9 @@ class SciAuthZ:
 
         user_permissions = self.current_user_permissions()
 
-        if user_permissions is not None and 'results' in user_permissions:
-            for permission in user_permissions["results"]:
-                if 'Hypatio' in permission['item'] and permission['permission'] == "MANAGE":
-                    return True
+        for permission in user_permissions:
+            if 'Hypatio' in permission['item'] and permission['permission'] == "MANAGE":
+                return True
 
         return False
 
@@ -154,15 +177,14 @@ class SciAuthZ:
         user_permissions = self.current_user_permissions()
         managing_items = []
 
-        if user_permissions is not None and 'results' in user_permissions:
-            for permission in user_permissions["results"]:
+        for permission in user_permissions:
 
-                # Go through the list of Hypatio related items that the user managers
-                if 'Hypatio' in permission['item'] and permission['permission'] == "MANAGE":
+            # Go through the list of Hypatio related items that the user managers
+            if 'Hypatio' in permission['item'] and permission['permission'] == "MANAGE":
 
-                    # Pull out the name of the item, which comes between the first and (optional) second period in the permission string
-                    item_list = permission['item'].split('.')
-                    managing_items.append(item_list[1])
+                # Pull out the name of the item, which comes between the first and (optional) second period in the permission string
+                item_list = permission['item'].split('.')
+                managing_items.append(item_list[1])
 
         projects_managed = DataProject.objects.filter(project_key__in=managing_items)
         return projects_managed
