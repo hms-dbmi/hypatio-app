@@ -74,11 +74,11 @@ class SciAuthZ:
                 ).json()
 
                 # If there are any permissions returned, add them to the list.
-                if user_permissions_request['results']:
+                if 'results' in user_permissions_request:
                     user_permissions = user_permissions + user_permissions_request['results']
 
                 # If there are more permissions to pull, update the URL to hit. Otherwise, exit the loop.
-                if user_permissions_request['next'] is not None:
+                if 'next' in user_permissions_request and user_permissions_request['next'] is not None:
                     authz_url = user_permissions_request['next']
                 else:
                     next_page = False
