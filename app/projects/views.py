@@ -65,7 +65,7 @@ def signed_agreement_form(request):
     signed_form = get_object_or_404(SignedAgreementForm, id=signed_agreement_form_id, project=project)
 
     try:
-        participant = Participant.objects.get(data_challenge=project, user=signed_form.user)
+        participant = Participant.objects.get(project=project, user=signed_form.user)
     except ObjectDoesNotExist:
         participant = None
 
@@ -140,7 +140,7 @@ class DataProjectView(TemplateView):
             try:
                 self.participant = Participant.objects.get(
                     user=self.request.user,
-                    data_challenge=self.project
+                    project=self.project
                 )
             except ObjectDoesNotExist:
                 pass
@@ -628,7 +628,7 @@ class DataProjectView(TemplateView):
 
         # If the project does not have teams and the user is not yet a participant, create one.
         if not self.project.has_teams and self.participant is None:
-            self.participant = Participant(user=self.request.user, data_challenge=self.project)
+            self.participant = Participant(user=self.request.user, project=self.project)
             self.participant.save()
 
         additional_context = {}
