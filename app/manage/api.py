@@ -386,7 +386,7 @@ def change_signed_form_status(request):
 
         # If the user is a participant on a team, then the team status may need to be changed
         try:
-            participant = Participant.objects.get(user=affected_user, data_challenge=signed_form.project)
+            participant = Participant.objects.get(user=affected_user, project=signed_form.project)
             team = participant.team
         except ObjectDoesNotExist:
             participant = None
