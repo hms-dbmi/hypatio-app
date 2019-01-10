@@ -104,7 +104,7 @@ def approve_team_join(request):
         participant_user = User.objects.get(email=participant_email)
         participant = Participant.objects.get(
             user=participant_user,
-            data_challenge=project
+            project=project
         )
     except ObjectDoesNotExist:
         participant = None
@@ -129,7 +129,7 @@ def reject_team_join(request):
         participant_user = User.objects.get(email=participant_email)
         participant = Participant.objects.get(
             user=participant_user,
-            data_challenge=project
+            project=project
         )
     except ObjectDoesNotExist:
         logger.debug('Participant not found.')
@@ -171,7 +171,7 @@ def leave_team(request):
     # TODO remove team leader's scireg permissions
     # ...
 
-    participant = Participant.objects.get(user=request.user, data_challenge=project)
+    participant = Participant.objects.get(user=request.user, project=project)
     participant.team = None
     participant.pending = False
     participant.approved = False
@@ -193,9 +193,9 @@ def join_team(request):
     team_leader = request.POST.get("team_leader")
 
     try:
-        participant = Participant.objects.get(user=request.user, data_challenge=project)
+        participant = Participant.objects.get(user=request.user, project=project)
     except ObjectDoesNotExist:
-        participant = Participant(user=request.user, data_challenge=project)
+        participant = Participant(user=request.user, project=project)
         participant.save()
 
     try:
@@ -252,9 +252,9 @@ def create_team(request):
     new_team = Team.objects.create(team_leader=request.user, data_project=project)
 
     try:
-        participant = Participant.objects.get(user=request.user, data_challenge=project)
+        participant = Participant.objects.get(user=request.user, project=project)
     except ObjectDoesNotExist:
-        participant = Participant(user=request.user, data_challenge=project)
+        participant = Participant(user=request.user, project=project)
         participant.save()
 
     participant.assign_approved(new_team)
@@ -263,7 +263,7 @@ def create_team(request):
     # Find anyone whose waiting on this team leader and link them to the new team.
     waiting_participants = Participant.objects.filter(
         team_wait_on_leader_email=request.user.email,
-        data_challenge=project
+        project=project
     )
 
     for participant in waiting_participants:
@@ -400,7 +400,7 @@ def upload_challengetasksubmission_file(request):
 
             # Get the participant.
             project = get_object_or_404(DataProject, project_key=submission_info['project_key'])
-            participant = get_object_or_404(Participant, user=request.user, data_challenge=project)
+            participant = get_object_or_404(Participant, user=request.user, project=project)
             task = get_object_or_404(ChallengeTask, id=submission_info['task_id'])
 
             # Get the team, although it could be None for projects with no teams.
@@ -470,7 +470,7 @@ def delete_challengetasksubmission(request):
         submission_uuid = request.POST.get('submission_uuid')
         submission = ChallengeTaskSubmission.objects.get(uuid=submission_uuid)
 
-        project = submission.participant.data_challenge
+        project = submission.participant.project
 
         logger.debug(
             '[delete_challengetasksubmission] - %s is trying to delete submission %s',
@@ -618,7 +618,7 @@ def submit_user_permission_request(request):
     # Create a new participant record if one does not exist already.
     participant = Participant.objects.get_or_create(
         user=request.user,
-        data_challenge=project
+        project=project
     )
 
     return HttpResponse(200)
