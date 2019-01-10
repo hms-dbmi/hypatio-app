@@ -603,10 +603,22 @@ def save_signed_external_agreement_form(request):
 def submit_user_permission_request(request):
     """
     An HTTP POST endpoint to handle a request by a user that wants to access a project.
+    Should only be used for projects that do not require teams but do require authorization.
     """
 
-    # TODO Update this to create a new permission request record
-    # ...
+    try:
+        project_key = request.POST.get('project_key', None)
+        project = DataProject.objects.get(project_key=project_key)
+    except ObjectDoesNotExist:
+        return HttpResponse(404)
 
-    # TODO Not implemented
-    return HttpResponse(500)
+    if project.has_teams or not project.requires_authorization:
+        return HttpResponse(400)
+
+    # Create a new participant record if one does not exist already.
+    participant = Participant.objects.get_or_create(
+        user=request.user,
+        data_challenge=project
+    )
+
+    return HttpResponse(200)
