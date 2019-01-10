@@ -29,9 +29,9 @@ class TeamAdmin(admin.ModelAdmin):
     search_fields = ('data_project__project_key', 'team_leader__email')
 
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ('user', 'data_challenge', 'team')
-    list_filter = ('data_challenge', )
-    search_fields = ('data_challenge__project_key', 'team__team_leader__email', 'user__email')
+    list_display = ('user', 'project', 'team')
+    list_filter = ('project', )
+    search_fields = ('project__project_key', 'team__team_leader__email', 'user__email')
 
 class InstitutionAdmin(admin.ModelAdmin):
     list_display = ('name', 'logo_path')
@@ -52,8 +52,8 @@ class ChallengeTaskAdmin(admin.ModelAdmin):
 
 class ChallengeTaskSubmissionAdmin(admin.ModelAdmin):
     list_display = ('participant', 'challenge_task', 'upload_date', 'uuid')
-    list_filter = ('participant__data_challenge', 'challenge_task')
-    search_fields = ('participant__data_challenge__project_key', 'participant__user__email', 'challenge_task__title')
+    list_filter = ('participant__project', 'challenge_task')
+    search_fields = ('participant__project__project_key', 'participant__user__email', 'challenge_task__title')
 
 class ChallengeTaskSubmissionDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'submission', 'download_date')
