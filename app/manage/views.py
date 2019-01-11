@@ -5,6 +5,7 @@ from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
@@ -67,6 +68,7 @@ class DataProjectManageView(TemplateView):
 
     project = None
     template_name = 'manage/project-base.html'
+    sciauthz = None
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -84,8 +86,8 @@ class DataProjectManageView(TemplateView):
 
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
-        is_manager = sciauthz.user_has_manage_permission(project_key)
+        self.sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        is_manager = self.sciauthz.user_has_manage_permission(project_key)
 
         if not is_manager:
             logger.debug(
@@ -108,6 +110,60 @@ class DataProjectManageView(TemplateView):
         context = super(DataProjectManageView, self).get_context_data(**kwargs)
 
         context['project'] = self.project
+
+        # Collect all permissions people have for this project.
+        users_with_view_permissions = self.sciauthz.get_all_view_permissions_for_project(self.project.project_key)
+
+        # Collect all user information from SciReg.
+        # TODO ...
+
+        # Get counts of downloads by isolating which files this project has, grouping by user email, and counting on those emails.
+        user_download_counts = HostedFileDownload.objects\
+            .filter(hosted_file__project=self.project)\
+            .values('user__email')\
+            .annotate(user_downloads=Count('user__email'))
+
+        # Get how many challengetasks a user has submitted for this project.
+        user_upload_counts = ChallengeTaskSubmission.objects\
+            .filter(challenge_task__data_project=self.project)\
+            .values('participant__user__email')\
+            .annotate(user_uploads=Count('participant__user__email'))
+
+        participants = []
+        for participant in self.project.participant_set.all():
+
+            try:
+                download_count = user_download_counts.get(user__email=participant.user.email)['user_downloads']
+            except ObjectDoesNotExist:
+                download_count = 0
+
+            try:
+                upload_count = user_upload_counts.get(participant__user__email=participant.user.email)['user_uploads']
+            except ObjectDoesNotExist:
+                upload_count = 0
+
+            signed_agreement_forms = []
+
+            # For each of the available agreement forms for this project, display only latest version completed by the user
+            for agreement_form in self.project.agreement_forms.all():
+                signed_form = SignedAgreementForm.objects.filter(
+                    user__email=participant.user.email,
+                    project=self.project,
+                    agreement_form=agreement_form
+                ).last()
+
+                if signed_form is not None:
+                    signed_agreement_forms.append(signed_form)
+
+            participants.append({
+                'participant': participant,
+                'view_permissions': True if participant.user.email in users_with_view_permissions else False,
+                'download_count': download_count,
+                'upload_count': upload_count,
+                'signed_forms': signed_agreement_forms
+            })
+
+        context['participants'] = participants
 
         # Collect all submissions made for tasks related to this project.
         context['submissions'] = ChallengeTaskSubmission.objects.filter(
