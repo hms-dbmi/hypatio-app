@@ -70,7 +70,7 @@
 <div class="row">
     <div class="col-md-12" style="margin-bottom: 15px;">
         <hr>
-        <h3>Forms, Files, and Tasks</h3>
+        <h3>Agreement forms and downloadable files</h3>
     </div>
 </div>
 
@@ -107,7 +107,7 @@
         </div>
     </div>
 
-    <div class="col-lg-4">
+    <div class="col-lg-8">
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Files</h2>
@@ -149,19 +149,9 @@
             </div>
         </div>
     </div>
-
-    <div class="col-lg-4">
-        <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Tasks</h2>
-            </div>
-            <div class="panel-body">
-                Coming soon...
-            </div>
-        </div>
-    </div>
 </div>
 
+<!-- 
 <div class="row">
     <div class="col-md-12" style="margin-bottom: 15px;">
         <hr>
@@ -170,7 +160,7 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-4">
+    <div class="col-md-4">
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Reports</h2>
@@ -193,7 +183,7 @@
                 <h2 class="panel-title">Downloads</h2>
             </div>
             <div class="panel-body">
-                Visualization here...
+                Coming soon...
             </div>
         </div>
     </div>
@@ -203,16 +193,17 @@
                 <h2 class="panel-title">Uploads</h2>
             </div>
             <div class="panel-body">
-                Visualization here...
+                Coming soon...
             </div>
         </div>
     </div>
 </div>
+-->
 
 <div class="row">
     <div class="col-md-12" style="margin-bottom: 15px;">
         <hr>
-        <h3>Team and Participant Management</h3>
+        <h3>Access management</h3>
     </div>
 </div>
 
@@ -221,7 +212,7 @@
         {% if project.has_teams %}
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Team List</h2>
+                <h2 class="panel-title">Team list</h2>
             </div>
             <div class="panel-body">
                 <table id="team-table" class="table table-bordered table-hover table-responsive">
@@ -268,37 +259,63 @@
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Full Participant List</h2>
+                <h2 class="panel-title">Full participant list</h2>
             </div>
             <div class="panel-body">
-                <table id="participant-table" class="table table-bordered table-hover table-responsive">
-                    <thead>
-                        <tr>
-                            <th>Person</th>
-                            {% if project.has_teams %}
-                            <th>Team</th>
-                            {% endif %}
-                            <th>Has Access to Data</th>
-                            <th>Downloaded Data</th>
-                            <th>Completed a Task</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for participant in project.participant_set.all %}
-                        <tr class="participant-row">
-                            <td>{{ participant.user.email }}</td>
-                            {% if project.has_teams %}
-                            <td>{{ participant.team.team_leader.email }}</td>
-                            {% endif %}
-                            <td>TBD</td>
-                            <td>TBD</td>
-                            <td>TBD</td>
-                            <td>TBD</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table id="participant-table" class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                {% if project.has_teams %}
+                                    <th>Team</th>
+                                {% endif %}
+                                <th>Access</th>
+                                <th>Downloads</th>
+                                <th>Uploads</th>
+                                <th>Forms</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for participant_info in participants %}
+                            <tr class="participant-row">
+                                <td>{{ participant_info.participant.user.email }}</td>
+                                {% if project.has_teams %}
+                                    <td>{{ participant_info.participant.team.team_leader.email }}</td>
+                                {% endif %}
+                                <td>
+                                    {% if participant_info.view_permissions %}
+                                        <span class="label label-success">Granted</span>
+                                    {% else %}
+                                        <span class="label label-danger">None</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ participant_info.download_count }}</td>
+                                <td>{{ participant_info.upload_count }}</td>
+                                <td>
+                                    {% for form in participant_info.signed_forms %}
+                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-success{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="/projects/signed_agreement_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
+                                        <span class="glyphicon glyphicon-link" aria-hidden="true"></span> {{ form.agreement_form.short_name }}
+                                    </a>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% if participant_info.view_permissions %}
+                                    <a class="btn btn-default btn-xs btn-danger" href="{% url 'manage:remove-view-permission' project.project_key participant_info.participant.user.email %}" target="_blank" role="button">
+                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Revoke access
+                                    </a>
+                                    {% else %}
+                                    <a class="btn btn-default btn-xs btn-success" href="{% url 'manage:grant-view-permission' project.project_key participant_info.participant.user.email %}" target="_blank" role="button">
+                                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Grant access
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -307,7 +324,7 @@
 <div class="row">
     <div class="col-md-12" style="margin-bottom: 15px;">
         <hr>
-        <h3>Submissions Management</h3>
+        <h3>Submissions management</h3>
     </div>
 </div>
 

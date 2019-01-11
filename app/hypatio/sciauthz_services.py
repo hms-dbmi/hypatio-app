@@ -188,3 +188,37 @@ class SciAuthZ:
 
         projects_managed = DataProject.objects.filter(project_key__in=managing_items)
         return projects_managed
+
+    def get_all_view_permissions_for_project(self, project):
+        """
+        Returns a list of emails for users who have VIEW permissions for a project.
+        """
+
+        authz_url = self.USER_PERMISSIONS_URL + "?item=Hypatio." + project
+        next_page = True
+        users = []
+
+        try:
+            while next_page:
+                user_permissions_request = requests.get(
+                    authz_url,
+                    headers=self.JWT_HEADERS,
+                    verify=settings.VERIFY_REQUESTS
+                ).json()
+
+                # If there are any permissions returned, add them to the list.
+                if 'results' in user_permissions_request:
+                    for result in user_permissions_request['results']:
+                        if 'user_email' in result:
+                            users.append(result['user_email'])
+
+                # If there are more permissions to pull, update the URL to hit. Otherwise, exit the loop.
+                if 'next' in user_permissions_request and user_permissions_request['next'] is not None:
+                    authz_url = user_permissions_request['next']
+                else:
+                    next_page = False
+
+        except JSONDecodeError:
+            user_permissions = None
+
+        return users
