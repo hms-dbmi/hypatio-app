@@ -65,7 +65,7 @@ def signed_agreement_form(request):
     signed_form = get_object_or_404(SignedAgreementForm, id=signed_agreement_form_id, project=project)
 
     try:
-        participant = Participant.objects.get(data_challenge=project, user=signed_form.user)
+        participant = Participant.objects.get(project=project, user=signed_form.user)
     except ObjectDoesNotExist:
         participant = None
 
@@ -115,6 +115,7 @@ class DataProjectView(TemplateView):
     project = None
     user_jwt = None
     participant = None
+    current_step = None
     template_name = 'projects/project.html'
 
     def dispatch(self, request, *args, **kwargs):
@@ -140,7 +141,7 @@ class DataProjectView(TemplateView):
             try:
                 self.participant = Participant.objects.get(
                     user=self.request.user,
-                    data_challenge=self.project
+                    project=self.project
                 )
             except ObjectDoesNotExist:
                 pass
@@ -236,9 +237,6 @@ class DataProjectView(TemplateView):
         render a sub template.
         """
 
-        # Initialize tracking of which step is the current step.
-        context['current_step'] = None
-
         # Verify email step.
         self.setup_panel_verify_email(context)
 
@@ -251,9 +249,8 @@ class DataProjectView(TemplateView):
         # Show JWT step (if needed).
         self.setup_panel_show_jwt(context)
 
-        # TODO commented out until this is ready.
         # Access request step (if needed).
-        # self.setup_panel_request_access(context)
+        self.setup_panel_request_access(context)
 
         # Team setup step (if needed).
         self.setup_panel_team(context)
@@ -295,11 +292,10 @@ class DataProjectView(TemplateView):
 
         return context
 
-    @staticmethod
-    def get_step_status(current_step, step_name, step_complete, is_permanent=False):
+    def get_step_status(self, step_name, step_complete, is_permanent=False):
         """
         Returns the status this step should have. If the given step is incomplete and we do not
-        already have a current_step in context, then this step is the current step and update
+        already have a current_step, then this step is the current step and update
         context to note this. If this step is incomplete but another step has already been deemed
         the current step, then this is a future step.
         """
@@ -311,8 +307,8 @@ class DataProjectView(TemplateView):
 
             return SIGNUP_STEP_COMPLETED_STATUS
 
-        if current_step is None:
-            current_step = step_name
+        if self.current_step is None:
+            self.current_step = step_name
             return SIGNUP_STEP_CURRENT_STATUS
 
         return SIGNUP_STEP_FUTURE_STATUS
@@ -324,7 +320,7 @@ class DataProjectView(TemplateView):
         """
 
         email_verified = get_user_email_confirmation_status(self.user_jwt)
-        step_status = self.get_step_status(context['current_step'], 'verify_email', email_verified)
+        step_status = self.get_step_status('verify_email', email_verified)
 
         panel = DataProjectSignupPanel(
             title='Verify Your Email',
@@ -378,7 +374,7 @@ class DataProjectView(TemplateView):
             except KeyError:
                 pass
 
-        step_status = self.get_step_status(context['current_step'], 'complete_profile', step_complete)
+        step_status = self.get_step_status('complete_profile', step_complete)
 
         panel = DataProjectSignupPanel(
             title='Complete Your Profile',
@@ -420,7 +416,7 @@ class DataProjectView(TemplateView):
             # If the form lives externally, then the step will be marked as permanent because we cannot tell if it was completed.
             permanent_step = form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK
 
-            step_status = self.get_step_status(context['current_step'], form.short_name, step_complete, permanent_step)
+            step_status = self.get_step_status(form.short_name, step_complete, permanent_step)
 
             title = 'Form: {name}'.format(name=form.name)
 
@@ -452,7 +448,7 @@ class DataProjectView(TemplateView):
 
         # TODO never completed?
         # This step is never completed, it is usually the last step.
-        step_status = self.get_step_status(context['current_step'], 'show_jwt', False)
+        step_status = self.get_step_status('show_jwt', False)
 
         panel = DataProjectSignupPanel(
             title='Using Your JWT',
@@ -464,35 +460,30 @@ class DataProjectView(TemplateView):
 
         context['setup_panels'].append(panel)
 
-    # TODO REFACTOR THIS
     def setup_panel_request_access(self, context):
         """
         Builds the context needed for users to request access to a DataProject.
         This is an optional step depending on the DataProject.
         """
 
-        # -----------------------------------------------------------
-        # TODO If RequireAuthorization is True but user does not have VIEW permissions, display this.
-        # -----------------------------------------------------------
-
-        # Only display this step if it is a private data set with no agreement forms
-        if not (self.project.requires_authorization and self.project.agreement_forms.count() == 0):
+        # Only display this step if it is a private data set and the project does not use teams.
+        if not self.project.requires_authorization or self.project.has_teams:
             return
 
-        # TODO Check for access 
-        # access_requested = self.has_user_requested_access(user_access_requests)
-        access_requested = False
-
-        # TODO never completed?
         # This step is never completed, it is usually the last step.
-        step_status = self.get_step_status(context['current_step'], 'request_access', False)
+        step_status = self.get_step_status('request_access', False)
+
+        # If the user does not have a participant record, they have not yet requested access.
+        requested_access = self.participant is not None
 
         panel = DataProjectSignupPanel(
             title='Request Access',
             bootstrap_color='default',
             template='projects/signup/request-access.html',
             status=step_status,
-            additional_context={'access_requested': access_requested}
+            additional_context={
+                'requested_access': requested_access
+            }
         )
 
         context['setup_panels'].append(panel)
@@ -518,9 +509,8 @@ class DataProjectView(TemplateView):
                 team_approved=False
             )
 
-        # TODO never completed?
         # This step is never completed.
-        step_status = self.get_step_status(context['current_step'], 'setup_team', False)
+        step_status = self.get_step_status('setup_team', False)
 
         panel = DataProjectSignupPanel(
             title='Join or Create a Team',
@@ -635,7 +625,7 @@ class DataProjectView(TemplateView):
 
         # If the project does not have teams and the user is not yet a participant, create one.
         if not self.project.has_teams and self.participant is None:
-            self.participant = Participant(user=self.request.user, data_challenge=self.project)
+            self.participant = Participant(user=self.request.user, project=self.project)
             self.participant.save()
 
         additional_context = {}
