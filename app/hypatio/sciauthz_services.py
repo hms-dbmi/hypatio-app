@@ -210,7 +210,8 @@ class SciAuthZ:
                 if 'results' in user_permissions_request:
                     for result in user_permissions_request['results']:
                         if 'user_email' in result:
-                            users.append(result['user_email'])
+                            # Save string in lowercase.
+                            users.append(result['user_email'].lower())
 
                 # If there are more permissions to pull, update the URL to hit. Otherwise, exit the loop.
                 if 'next' in user_permissions_request and user_permissions_request['next'] is not None:

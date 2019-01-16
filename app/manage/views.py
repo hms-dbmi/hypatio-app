@@ -157,7 +157,7 @@ class DataProjectManageView(TemplateView):
 
             participants.append({
                 'participant': participant,
-                'view_permissions': True if participant.user.email in users_with_view_permissions else False,
+                'view_permissions': True if participant.user.email.lower() in users_with_view_permissions else False,
                 'download_count': download_count,
                 'upload_count': upload_count,
                 'signed_forms': signed_agreement_forms
