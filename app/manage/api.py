@@ -7,6 +7,7 @@ import uuid
 import zipfile
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -386,7 +387,7 @@ def change_signed_form_status(request):
 
         # If the user is a participant on a team, then the team status may need to be changed
         try:
-            participant = Participant.objects.get(user=affected_user, data_challenge=signed_form.project)
+            participant = Participant.objects.get(user=affected_user, project=signed_form.project)
             team = participant.team
         except ObjectDoesNotExist:
             participant = None
@@ -773,3 +774,45 @@ def download_email_list(request):
     response['Content-Disposition'] = 'attachment; filename="%s"' % 'pending_participants.txt'
 
     return response
+
+@user_auth_and_jwt
+def grant_view_permission(request, project_key, user_email):
+    """
+    Grants a user VIEW permissions to a project in DBMI-AuthZ.
+    """
+
+    user = get_object_or_404(User, email=user_email)
+    project = get_object_or_404(DataProject, project_key=project_key)
+
+    # Check Permissions in SciAuthZ
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    is_manager = sciauthz.user_has_manage_permission(project_key)
+
+    if not is_manager:
+        return HttpResponse("Access denied.", status=403)
+
+    sciauthz.create_view_permission(project_key, user_email)
+
+    return HttpResponse(200)
+
+@user_auth_and_jwt
+def remove_view_permission(request, project_key, user_email):
+    """
+    Removes a user's VIEW permission to a project in DBMI-AuthZ.
+    """
+
+    user = get_object_or_404(User, email=user_email)
+    project = get_object_or_404(DataProject, project_key=project_key)
+
+    # Check Permissions in SciAuthZ
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    is_manager = sciauthz.user_has_manage_permission(project_key)
+
+    if not is_manager:
+        return HttpResponse("Access denied.", status=403)
+
+    sciauthz.remove_view_permission(project_key, user_email)
+
+    return HttpResponse(200)

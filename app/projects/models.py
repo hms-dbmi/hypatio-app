@@ -170,7 +170,7 @@ class Team(models.Model):
 
 class Participant(models.Model):
     user = models.ForeignKey(User)
-    data_challenge = models.ForeignKey(DataProject)
+    project = models.ForeignKey(DataProject)
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE)
 
     # TODO remove or consolidate all these fields
@@ -211,7 +211,7 @@ class Participant(models.Model):
         )
 
     def __str__(self):
-        return '%s - %s' % (self.user, self.data_challenge)
+        return '%s - %s' % (self.user, self.project)
 
 class HostedFileSet(models.Model):
     """
