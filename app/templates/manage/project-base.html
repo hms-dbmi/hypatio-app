@@ -221,16 +221,15 @@
                             <th>Team</th>
                             <th>Members</th>
                             <th>Status</th>
-                            <th>Has Access to Data</th>
-                            <th>Downloaded Data</th>
-                            <th>Completed a Task</th>
+                            <th>Downloads</th>
+                            <th>Submissions</th>
                         </tr>
                     </thead>
                     <tbody>
-                    {% for team in project.team_set.all %}
-                        <tr class="team-row" data-team="{{ team }}">
-                            <td>{{ team }}</td>
-                            <td>{{ team.participant_set.all.count }}</td>
+                    {% for team in teams %}
+                        <tr class="team-row" data-team="{{ team.team_leader }}">
+                            <td>{{ team.team_leader }}</td>
+                            <td>{{ team.member_count }}</td>
                             <td class="team-status-column">
                             {% if team.status == "Pending" %}
                                 Pending
@@ -242,9 +241,8 @@
                                 Deactivated
                             {% endif %}
                             </td>
-                            <td>TBD</td>
-                            <td>TBD</td>
-                            <td>TBD</td>
+                            <td>{{ team.downloads }}</td>
+                            <td>{{ team.submissions }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>
