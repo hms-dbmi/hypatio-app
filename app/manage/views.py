@@ -165,6 +165,36 @@ class DataProjectManageView(TemplateView):
 
         context['participants'] = participants
 
+        # If there are teams, calculate downloads and uploads by team members.
+        if self.project.has_teams:
+
+            teams = []
+            for team in self.project.team_set.all():
+
+                team_downloads = 0
+                team_uploads = 0
+
+                for participant in team.participant_set.all():
+                    try:
+                        team_downloads += user_download_counts.get(user__email=participant.user.email)['user_downloads']
+                    except ObjectDoesNotExist:
+                        team_downloads += 0
+
+                    try:
+                        team_uploads += user_upload_counts.get(participant__user__email=participant.user.email)['user_uploads']
+                    except ObjectDoesNotExist:
+                        team_uploads += 0
+
+                teams.append({
+                    'team_leader': team.team_leader.email,
+                    'member_count': team.participant_set.all().count(),
+                    'status': team.status,
+                    'downloads': team_downloads,
+                    'submissions': team_uploads,
+                })
+
+            context['teams'] = teams
+
         # Collect all submissions made for tasks related to this project.
         context['submissions'] = ChallengeTaskSubmission.objects.filter(
             challenge_task__in=self.project.challengetask_set.all(),
