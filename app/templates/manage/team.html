@@ -129,9 +129,13 @@
                                         <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Revoke access?
                                     </button>
                                 {% else %}
-                                    <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key member.email %}" ic-replace-target="true">
-                                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Grant access?
-                                    </button>
+                                    {% if member.signed_accepted_agreement_forms == num_required_forms %}
+                                        <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key member.email %}" ic-replace-target="true">
+                                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Grant access?
+                                        </button>
+                                    {% else %}
+                                        Forms incomplete or unaccepted
+                                    {% endif %}
                                 {% endif %}
                             </td>
                         </tr>
