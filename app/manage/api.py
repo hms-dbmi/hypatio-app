@@ -794,7 +794,7 @@ def grant_view_permission(request, project_key, user_email):
 
     sciauthz.create_view_permission(project_key, user_email)
 
-    return HttpResponse(200)
+    return HttpResponse("Access granted")
 
 @user_auth_and_jwt
 def remove_view_permission(request, project_key, user_email):
@@ -815,4 +815,4 @@ def remove_view_permission(request, project_key, user_email):
 
     sciauthz.remove_view_permission(project_key, user_email)
 
-    return HttpResponse(200)
+    return HttpResponse("Access removed")
