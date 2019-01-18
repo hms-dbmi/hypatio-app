@@ -1,7 +1,7 @@
 {% if panel.additional_context.team.team_leader == user %}
     {% if panel.additional_context.team.status == "Active" %}
         <div class="alert alert-success" role="alert">
-            Your team has been activated by the challenge administrators. Please wait for the data sets to be released.
+            Your team has been approved by the challenge administrators. Please wait for access.
         </div>
     {% elif panel.additional_context.team.status == "Deactivated" %}
         <div class="alert alert-danger" role="alert">
