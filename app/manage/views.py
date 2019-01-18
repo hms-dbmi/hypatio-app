@@ -143,6 +143,7 @@ class DataProjectManageView(TemplateView):
                 upload_count = 0
 
             signed_agreement_forms = []
+            signed_accepted_agreement_forms = 0
 
             # For each of the available agreement forms for this project, display only latest version completed by the user
             for agreement_form in self.project.agreement_forms.all():
@@ -155,12 +156,16 @@ class DataProjectManageView(TemplateView):
                 if signed_form is not None:
                     signed_agreement_forms.append(signed_form)
 
+                    if signed_form.status == 'A':
+                        signed_accepted_agreement_forms += 1
+
             participants.append({
                 'participant': participant,
                 'view_permissions': True if participant.user.email.lower() in users_with_view_permissions else False,
                 'download_count': download_count,
                 'upload_count': upload_count,
-                'signed_forms': signed_agreement_forms
+                'signed_forms': signed_agreement_forms,
+                'signed_accepted_agreement_forms': signed_accepted_agreement_forms,
             })
 
         context['participants'] = participants
@@ -200,6 +205,8 @@ class DataProjectManageView(TemplateView):
             challenge_task__in=self.project.challengetask_set.all(),
             deleted=False
         )
+
+        context['num_required_forms'] = self.project.agreement_forms.count()
 
         return context
 
@@ -250,9 +257,11 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
 
         # For each of the available agreement forms for this project, display only latest version completed by the user
         for agreement_form in project.agreement_forms.all():
-            signed_form = SignedAgreementForm.objects.filter(user__email=email,
-                                                             project=project,
-                                                             agreement_form=agreement_form).last()
+            signed_form = SignedAgreementForm.objects.filter(
+                user__email=email,
+                project=project,
+                agreement_form=agreement_form
+            ).last()
 
             if signed_form is not None:
                 signed_agreement_forms.append(signed_form)
