@@ -216,15 +216,17 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
-        logger.debug(
-            '[HYPATIO][DEBUG][manage_team] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
+        logger.debug('User {email} does not have MANAGE permissions for item {project_key}.'.format(
+            email=user.email,
+            project_key=project_key
+        ))
         return HttpResponse(403)
 
     project = DataProject.objects.get(project_key=project_key)
     team = Team.objects.get(data_project=project, team_leader__email=team_leader)
     num_required_forms = project.agreement_forms.count()
 
-    # Collect all the team member information needed
+    # Collect all the team member information needed.
     team_member_details = []
     team_participants = team.participant_set.all()
     team_accepted_forms = 0
@@ -232,13 +234,16 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
     for member in team_participants:
         email = member.user.email
 
-        # Make a request to SciReg for a specific person's user information
+        # Make a request to DBMIReg to get this person's user information.
         user_info_json = get_user_profile(user_jwt, email, project_key)
 
         if user_info_json['count'] != 0:
             user_info = user_info_json["results"][0]
         else:
             user_info = None
+
+        # Make a request to DBMIAuthZ to check for this person's permissions.
+        access_granted = sciauthz.user_has_single_permission(project_key, "VIEW", email)
 
         signed_agreement_forms = []
         signed_accepted_agreement_forms = 0
@@ -261,7 +266,8 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
             'user_info': user_info,
             'signed_agreement_forms': signed_agreement_forms,
             'signed_accepted_agreement_forms': signed_accepted_agreement_forms,
-            'participant': member
+            'participant': member,
+            'access_granted': access_granted,
         })
 
     # Check whether this team has completed all the necessary forms and they have been accepted by challenge admins
@@ -279,14 +285,18 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
     downloads = HostedFileDownload.objects.filter(hosted_file__in=files, user__in=team_users)
     uploads = team.get_submissions()
 
-    return render(request, template_name, context={"user": user,
-                                                   "ssl_setting": settings.SSL_SETTING,
-                                                   "project": project,
-                                                   "team": team,
-                                                   "team_members": team_member_details,
-                                                   "num_required_forms": num_required_forms,
-                                                   "team_has_all_forms_complete": team_has_all_forms_complete,
-                                                   "institution": institution,
-                                                   "comments": comments,
-                                                   "downloads": downloads,
-                                                   "uploads": uploads})
+    context = {
+        "user": user,
+        "ssl_setting": settings.SSL_SETTING,
+        "project": project,
+        "team": team,
+        "team_members": team_member_details,
+        "num_required_forms": num_required_forms,
+        "team_has_all_forms_complete": team_has_all_forms_complete,
+        "institution": institution,
+        "comments": comments,
+        "downloads": downloads,
+        "uploads": uploads
+    }
+
+    return render(request, template_name, context=context)
