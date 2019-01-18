@@ -112,7 +112,7 @@
                             <td>
                                 {% for form in member.signed_agreement_forms %}
                                     <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-success{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="/projects/signed_agreement_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
-                                        {{ form.agreement_form.short_name }}
+                                        <span class="glyphicon glyphicon-link" aria-hidden="true"></span> {{ form.agreement_form.short_name }}
                                     </a>
                                 {% endfor %}
                             </td>
@@ -125,13 +125,13 @@
                             </td>
                             <td>
                                 {% if member.access_granted %}
-                                    <a class="btn btn-default btn-xs btn-danger" href="{% url 'manage:remove-view-permission' project.project_key member.email %}" target="_blank" role="button">
-                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Revoke access
-                                    </a>
+                                    <button type="button" class="btn btn-default btn-xs btn-danger" ic-post-to="{% url 'manage:remove-view-permission' project.project_key member.email %}" ic-replace-target="true">
+                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Revoke access?
+                                    </button>
                                 {% else %}
-                                    <a class="btn btn-default btn-xs btn-success" href="{% url 'manage:grant-view-permission' project.project_key member.email %}" target="_blank" role="button">
-                                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Grant access
-                                    </a>
+                                    <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key member.email %}" ic-replace-target="true">
+                                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Grant access?
+                                    </button>
                                 {% endif %}
                             </td>
                         </tr>
