@@ -137,10 +137,14 @@ class SciAuthZ:
         view_permission = requests.post(self.REMOVE_ITEM_PERMISSION, headers=modified_headers, data=context, verify=settings.VERIFY_REQUESTS)
         return view_permission
 
-    def user_has_single_permission(self, permission, value):
+    def user_has_single_permission(self, permission, value, email=None):
 
         f = furl.furl(self.USER_PERMISSIONS_URL)
         f.args["item"] = 'Hypatio.' + permission
+
+        # If an email was not provided, then the request will be for the user making the call.
+        if email is not None:
+            f.args["email"] = email
 
         try:
             user_permissions = requests.get(f.url, headers=self.JWT_HEADERS, verify=settings.VERIFY_REQUESTS).json()
