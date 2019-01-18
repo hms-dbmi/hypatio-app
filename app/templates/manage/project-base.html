@@ -269,10 +269,10 @@
                                     <th>Team</th>
                                 {% endif %}
                                 <th>Access</th>
-                                <th>Downloads</th>
-                                <th>Uploads</th>
                                 <th>Forms</th>
                                 <th>Actions</th>
+                                <th>Downloads</th>
+                                <th>Uploads</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -289,8 +289,6 @@
                                         <span class="label label-danger">None</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ participant_info.download_count }}</td>
-                                <td>{{ participant_info.upload_count }}</td>
                                 <td>
                                     {% for form in participant_info.signed_forms %}
                                     <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-success{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="/projects/signed_agreement_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
@@ -304,11 +302,17 @@
                                             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Revoke access?
                                         </button>
                                     {% else %}
-                                        <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
-                                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Grant access?
-                                        </button>
+                                        {% if participant_info.signed_accepted_agreement_forms == num_required_forms %}
+                                            <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
+                                                <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Grant access?
+                                            </button>
+                                        {% else %}
+                                            Forms incomplete or unaccepted
+                                        {% endif %}
                                     {% endif %}
                                 </td>
+                                <td>{{ participant_info.download_count }}</td>
+                                <td>{{ participant_info.upload_count }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
