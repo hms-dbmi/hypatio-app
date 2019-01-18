@@ -300,13 +300,13 @@
                                 </td>
                                 <td>
                                     {% if participant_info.view_permissions %}
-                                    <a class="btn btn-default btn-xs btn-danger" href="{% url 'manage:remove-view-permission' project.project_key participant_info.participant.user.email %}" target="_blank" role="button">
-                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Revoke access
-                                    </a>
+                                        <button type="button" class="btn btn-default btn-xs btn-danger" ic-post-to="{% url 'manage:remove-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
+                                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Revoke access?
+                                        </button>
                                     {% else %}
-                                    <a class="btn btn-default btn-xs btn-success" href="{% url 'manage:grant-view-permission' project.project_key participant_info.participant.user.email %}" target="_blank" role="button">
-                                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Grant access
-                                    </a>
+                                        <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
+                                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Grant access?
+                                        </button>
                                     {% endif %}
                                 </td>
                             </tr>
