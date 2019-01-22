@@ -123,6 +123,11 @@ class DataProjectManageView(TemplateView):
             .values('user__email')\
             .annotate(user_downloads=Count('user__email'))
 
+        # Convert the download count queryset into a simple dictionary for quicker access later.
+        user_download_counts_dict = {}
+        for user in user_download_counts:
+            user_download_counts_dict[user['user__email']] = user['user_downloads']
+
         # Get how many challengetasks a user has submitted for this project.
         user_upload_counts = ChallengeTaskSubmission.objects\
             .filter(challenge_task__data_project=self.project)\
@@ -133,8 +138,8 @@ class DataProjectManageView(TemplateView):
         for participant in self.project.participant_set.all():
 
             try:
-                download_count = user_download_counts.get(user__email=participant.user.email)['user_downloads']
-            except ObjectDoesNotExist:
+                download_count = user_download_counts_dict[participant.user.email]
+            except KeyError:
                 download_count = 0
 
             try:
@@ -181,8 +186,8 @@ class DataProjectManageView(TemplateView):
 
                 for participant in team.participant_set.all():
                     try:
-                        team_downloads += user_download_counts.get(user__email=participant.user.email)['user_downloads']
-                    except ObjectDoesNotExist:
+                        team_downloads += user_download_counts_dict[participant.user.email]
+                    except KeyError:
                         team_downloads += 0
 
                     try:
