@@ -6,7 +6,6 @@
 {% block headscripts %}
 <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.min.css' %}">
 {% endblock %}
 
@@ -16,20 +15,75 @@
 
 {% block content %}
 <div class="row form-group">
-    <div class="col-md-2">
-    </div>
-    <div class="col-md-10">
+    <div class="col-md-12">
         <div class="pull-right">
             <div class="btn-toolbar" role="toolbar">
                 <div class="btn-group" role="group" aria-label="team-status-buttons">
-                    <button type="button" id="change-status-to-pending" class="btn team-status-buttons {% if team.status == 'Pending' %}btn-primary{% else %}btn-default{% endif %}">Open</button>
-                    <button type="button" id="change-status-to-ready" class="btn team-status-buttons {% if team.status == 'Ready' %}btn-warning{% else %}btn-default{% endif %}">Ready</button>
-                    <button type="button" id="change-status-to-active" class="btn team-status-buttons {% if team.status == 'Active' %}btn-success{% else %}btn-default{% endif %}" {% if not team_has_all_forms_complete %}disabled{% endif %}>Activated</button>
-                    <button type="button" id="change-status-to-deactivated" class="btn team-status-buttons {% if team.status == 'Deactivated' %}btn-primary{% else %}btn-default{% endif %}">Deactivated</button>
-                </div>        
-                <div class="btn-group" role="group" aria-label="team-delete-button">            
-                    <button type="button" id="delete-team" class="btn btn-danger">Delete team</button>
+                    <button type="button" 
+                            id="change-status-to-pending" 
+                            class="btn team-status-buttons {% if team.status == 'Pending' %}btn-primary{% else %}btn-default{% endif %}"
+                            data-toggle="tooltip"
+                            data-placement="top"
+                            title="Open means this team has not finished adding members. Change this team status to Open if you want to allow new users to be able to join this team. Changing a team to this status will not affect the current access of each team member."
+                            {% if team.status == 'Pending' %}disabled{% endif %}
+                            >
+                            Open
+                    </button>
+                    <button type="button" 
+                            id="change-status-to-ready" 
+                            class="btn team-status-buttons {% if team.status == 'Ready' %}btn-warning{% else %}btn-default{% endif %}"
+                            data-toggle="tooltip"
+                            data-placement="top"
+                            title="Ready means the team leader has indicated they have added all members they expect to and they are awaiting your admin approval to participate in the challenge. Changing a team to this status will not affect the current access of each team member."
+                            {% if team.status == 'Ready' %}disabled{% endif %}
+                            >
+                            Ready
+                    </button>
+                    <button type="button" 
+                            id="change-status-to-active" 
+                            class="btn team-status-buttons {% if team.status == 'Active' %}btn-success{% else %}btn-default{% endif %}"
+                            data-toggle="tooltip"
+                            data-placement="top"
+                            title="Approve this team to compete in this challenge. Selecting this will automatically grant access to each individual on the team. If any individual on the team has unapproved or incomplete forms, this button will be disabled."
+                            {% if not team_has_all_forms_complete or team.status == 'Active' %}disabled{% endif %}
+                            >
+                            Approve
+                    </button>
+                    <button type="button" 
+                            id="change-status-to-deactivated" 
+                            class="btn team-status-buttons {% if team.status == 'Deactivated' %}btn-primary{% else %}btn-default{% endif %}"
+                            data-toggle="tooltip"
+                            data-placement="top"
+                            title="Deactivate this team to immediately revoke all access for each team member."
+                            {% if team.status == 'Deactivated' %}disabled{% endif %}
+                            >
+                        Deactivate
+                    </button>
                 </div>
+                <div class="btn-group" role="group" aria-label="team-delete-button">            
+                    <button type="button" 
+                            id="delete-team" 
+                            class="btn btn-danger"
+                            data-toggle="tooltip"
+                            data-placement="top"
+                            title="Delete this team if it was created in error or if the team leader is no longer participating. All team members will lose their access."
+                            >
+                            Delete team
+                    </button>
+                </div>
+            </div>
+            <div style="margin-top: 5px;" class="pull-right">
+                <i>
+                    {% if team.status == 'Pending' %}
+                        Team is still adding new members.
+                    {% elif team.status == 'Ready' %}
+                        <strong>Team is awaiting your admin approval.</strong>
+                    {% elif team.status == 'Active' %}
+                        Team is approved to participate.
+                    {% elif team.status == 'Deactivated' %}
+                        Team has been deactivated and cannot participate.
+                    {% endif %}
+                </i>
             </div>
         </div>
     </div>
@@ -241,6 +295,13 @@
 {% endblock %}
 
 {% block footerscripts %}
+<!-- Initialize Tooltips -->
+<script type="application/javascript">
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+
 <!-- Initialize DataTables -->
 <script type="application/javascript">
     $(document).ready(function() {
