@@ -471,8 +471,6 @@ def set_team_status(request):
     team_leader = request.POST.get("team")
     status = request.POST.get("status")
 
-    logger.debug('[HYPATIO][set_team_status] ' + request.user.email + ' changing team ' + team_leader + ' for project ' + project_key + ' to status of ' + status + '.')
-
     project = DataProject.objects.get(project_key=project_key)
 
     user = request.user
@@ -509,19 +507,16 @@ def set_team_status(request):
         logger.debug('[HYPATIO][set_team_status] Given status "' + status + '" not one of allowed statuses.')
         return HttpResponse(500)
 
-    logger.debug('[HYPATIO][set_team_status] Adjusting VIEW permissions for team members.')
-
-    # If a status is anything other than active, remove VIEW permissions
-    if status in ["active"]:
+    # If setting to Active, grant each team member access permissions.
+    if status == "active":
         for member in team.participant_set.all():
             sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
             sciauthz.create_view_permission(project_key, member.user.email)
-    else:
+    # If setting to Deactivated, revoke each team member's permissions.
+    elif status == "deactivated":
         for member in team.participant_set.all():
             sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
             sciauthz.remove_view_permission(project_key, member.user.email)
-
-    logger.debug('[HYPATIO][set_team_status] Emailing a notification to team members.')
 
     # Send an email notification to the team
     context = {'status': status,
