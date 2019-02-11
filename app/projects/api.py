@@ -59,17 +59,19 @@ def finalize_team(request):
     team.status = 'Ready'
     team.save()
 
-    # TODO Eventually this should be replaced by checking the dataproject's leader
-    contest_managers = ['ouzuner@gmu.edu', 'filannim@csail.mit.edu', 'stubbs@simmons.edu']
+    # Convert the comma separated string of emails into a list.
+    supervisor_emails = project.project_supervisors.split(",")
 
     context = {'team_leader': team,
                'project': project_key,
                'site_url': settings.SITE_URL}
 
-    email_success = email_send(subject='DBMI Portal - Finalized Team',
-                               recipients=contest_managers,
-                               email_template='email_finalized_team_notification',
-                               extra=context)
+    email_success = email_send(
+        subject='DBMI Portal - Finalized Team',
+        recipients=supervisor_emails,
+        email_template='email_finalized_team_notification',
+        extra=context
+    )
 
     return HttpResponse(200)
 
@@ -620,5 +622,28 @@ def submit_user_permission_request(request):
         user=request.user,
         project=project
     )
+
+    # Convert the comma separated string of emails into a list.
+    supervisor_emails = project.project_supervisors.split(",")
+
+    # Notify the project administrators.
+    subject = "DBMI Data Portal - Access requested to dataset"
+
+    email_context = {
+        'subject': subject,
+        'project': project,
+        'user_email': request.user.email,
+        'site_url': settings.SITE_URL
+    }
+
+    try:
+        email_success = email_send(
+            subject=subject,
+            recipients=supervisor_emails,
+            email_template='email_access_request_notification',
+            extra=email_context
+        )
+    except Exception as e:
+        logger.exception(e)
 
     return HttpResponse(200)
