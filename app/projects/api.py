@@ -622,11 +622,14 @@ def submit_user_permission_request(request):
         user=request.user,
         project=project
     )
+    
+    # Check if there are administrators to notify.
+    if project.project_supervisors is None or project.project_supervisors == "":
+        return HttpResponse(200)
 
     # Convert the comma separated string of emails into a list.
     supervisor_emails = project.project_supervisors.split(",")
 
-    # Notify the project administrators.
     subject = "DBMI Data Portal - Access requested to dataset"
 
     email_context = {
