@@ -1,0 +1,5 @@
+Hi,
+
+Your request to access the {{ project.name }} dataset has been approved! Please visit {{ site_url }}projects/{{ project.project_key }}/ to explore the dataset.
+
+Thank you.
