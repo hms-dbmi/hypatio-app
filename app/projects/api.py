@@ -59,17 +59,19 @@ def finalize_team(request):
     team.status = 'Ready'
     team.save()
 
-    # TODO Eventually this should be replaced by checking the dataproject's leader
-    contest_managers = ['ouzuner@gmu.edu', 'filannim@csail.mit.edu', 'stubbs@simmons.edu']
+    # Convert the comma separated string of emails into a list.
+    supervisor_emails = project.project_supervisors.split(",")
 
     context = {'team_leader': team,
                'project': project_key,
                'site_url': settings.SITE_URL}
 
-    email_success = email_send(subject='DBMI Portal - Finalized Team',
-                               recipients=contest_managers,
-                               email_template='email_finalized_team_notification',
-                               extra=context)
+    email_success = email_send(
+        subject='DBMI Portal - Finalized Team',
+        recipients=supervisor_emails,
+        email_template='email_finalized_team_notification',
+        extra=context
+    )
 
     return HttpResponse(200)
 
@@ -104,7 +106,7 @@ def approve_team_join(request):
         participant_user = User.objects.get(email=participant_email)
         participant = Participant.objects.get(
             user=participant_user,
-            data_challenge=project
+            project=project
         )
     except ObjectDoesNotExist:
         participant = None
@@ -129,7 +131,7 @@ def reject_team_join(request):
         participant_user = User.objects.get(email=participant_email)
         participant = Participant.objects.get(
             user=participant_user,
-            data_challenge=project
+            project=project
         )
     except ObjectDoesNotExist:
         logger.debug('Participant not found.')
@@ -171,7 +173,7 @@ def leave_team(request):
     # TODO remove team leader's scireg permissions
     # ...
 
-    participant = Participant.objects.get(user=request.user, data_challenge=project)
+    participant = Participant.objects.get(user=request.user, project=project)
     participant.team = None
     participant.pending = False
     participant.approved = False
@@ -193,9 +195,9 @@ def join_team(request):
     team_leader = request.POST.get("team_leader")
 
     try:
-        participant = Participant.objects.get(user=request.user, data_challenge=project)
+        participant = Participant.objects.get(user=request.user, project=project)
     except ObjectDoesNotExist:
-        participant = Participant(user=request.user, data_challenge=project)
+        participant = Participant(user=request.user, project=project)
         participant.save()
 
     try:
@@ -252,9 +254,9 @@ def create_team(request):
     new_team = Team.objects.create(team_leader=request.user, data_project=project)
 
     try:
-        participant = Participant.objects.get(user=request.user, data_challenge=project)
+        participant = Participant.objects.get(user=request.user, project=project)
     except ObjectDoesNotExist:
-        participant = Participant(user=request.user, data_challenge=project)
+        participant = Participant(user=request.user, project=project)
         participant.save()
 
     participant.assign_approved(new_team)
@@ -263,7 +265,7 @@ def create_team(request):
     # Find anyone whose waiting on this team leader and link them to the new team.
     waiting_participants = Participant.objects.filter(
         team_wait_on_leader_email=request.user.email,
-        data_challenge=project
+        project=project
     )
 
     for participant in waiting_participants:
@@ -400,7 +402,7 @@ def upload_challengetasksubmission_file(request):
 
             # Get the participant.
             project = get_object_or_404(DataProject, project_key=submission_info['project_key'])
-            participant = get_object_or_404(Participant, user=request.user, data_challenge=project)
+            participant = get_object_or_404(Participant, user=request.user, project=project)
             task = get_object_or_404(ChallengeTask, id=submission_info['task_id'])
 
             # Get the team, although it could be None for projects with no teams.
@@ -470,7 +472,7 @@ def delete_challengetasksubmission(request):
         submission_uuid = request.POST.get('submission_uuid')
         submission = ChallengeTaskSubmission.objects.get(uuid=submission_uuid)
 
-        project = submission.participant.data_challenge
+        project = submission.participant.project
 
         logger.debug(
             '[delete_challengetasksubmission] - %s is trying to delete submission %s',
@@ -603,10 +605,48 @@ def save_signed_external_agreement_form(request):
 def submit_user_permission_request(request):
     """
     An HTTP POST endpoint to handle a request by a user that wants to access a project.
+    Should only be used for projects that do not require teams but do require authorization.
     """
 
-    # TODO Update this to create a new permission request record
-    # ...
+    try:
+        project_key = request.POST.get('project_key', None)
+        project = DataProject.objects.get(project_key=project_key)
+    except ObjectDoesNotExist:
+        return HttpResponse(404)
 
-    # TODO Not implemented
-    return HttpResponse(500)
+    if project.has_teams or not project.requires_authorization:
+        return HttpResponse(400)
+
+    # Create a new participant record if one does not exist already.
+    participant = Participant.objects.get_or_create(
+        user=request.user,
+        project=project
+    )
+    
+    # Check if there are administrators to notify.
+    if project.project_supervisors is None or project.project_supervisors == "":
+        return HttpResponse(200)
+
+    # Convert the comma separated string of emails into a list.
+    supervisor_emails = project.project_supervisors.split(",")
+
+    subject = "DBMI Data Portal - Access requested to dataset"
+
+    email_context = {
+        'subject': subject,
+        'project': project,
+        'user_email': request.user.email,
+        'site_url': settings.SITE_URL
+    }
+
+    try:
+        email_success = email_send(
+            subject=subject,
+            recipients=supervisor_emails,
+            email_template='email_access_request_notification',
+            extra=email_context
+        )
+    except Exception as e:
+        logger.exception(e)
+
+    return HttpResponse(200)
