@@ -43,16 +43,16 @@ Manage Projects
                     </td>
                     <td>
                         {% if project.registration_open %}
-                            <span class="label label-success">Open</span>
+                            Open
                         {% else %}
-                            <span class="label label-danger">Closed</span>
+                            Closed
                         {% endif %}
                     </td>
                     <td>
                         {% if project.visible %}
-                            <span class="label label-info">Publicly listed</span>
+                            Publicly listed
                         {% else %}
-                            <span class="label label-warning">Hidden</span>
+                            Hidden
                         {% endif %}
                     </td>
                     <td><a href="{% url 'manage:manage-project' project.project_key %}" class="btn btn-sm btn-primary">Manage</a></td>
