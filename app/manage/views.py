@@ -5,6 +5,7 @@ from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
@@ -67,6 +68,7 @@ class DataProjectManageView(TemplateView):
 
     project = None
     template_name = 'manage/project-base.html'
+    sciauthz = None
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -84,8 +86,8 @@ class DataProjectManageView(TemplateView):
 
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
-        is_manager = sciauthz.user_has_manage_permission(project_key)
+        self.sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        is_manager = self.sciauthz.user_has_manage_permission(project_key)
 
         if not is_manager:
             logger.debug(
@@ -109,11 +111,107 @@ class DataProjectManageView(TemplateView):
 
         context['project'] = self.project
 
+        # Collect all permissions people have for this project.
+        users_with_view_permissions = self.sciauthz.get_all_view_permissions_for_project(self.project.project_key)
+
+        # Collect all user information from SciReg.
+        # TODO ...
+
+        # Get counts of downloads by isolating which files this project has, grouping by user email, and counting on those emails.
+        user_download_counts = HostedFileDownload.objects\
+            .filter(hosted_file__project=self.project)\
+            .values('user__email')\
+            .annotate(user_downloads=Count('user__email'))
+
+        # Convert the download count queryset into a simple dictionary for quicker access later.
+        user_download_counts_dict = {}
+        for user in user_download_counts:
+            user_download_counts_dict[user['user__email']] = user['user_downloads']
+
+        # Get how many challengetasks a user has submitted for this project.
+        user_upload_counts = ChallengeTaskSubmission.objects\
+            .filter(challenge_task__data_project=self.project)\
+            .values('participant__user__email')\
+            .annotate(user_uploads=Count('participant__user__email'))
+
+        participants = []
+        for participant in self.project.participant_set.all():
+
+            try:
+                download_count = user_download_counts_dict[participant.user.email]
+            except KeyError:
+                download_count = 0
+
+            try:
+                upload_count = user_upload_counts.get(participant__user__email=participant.user.email)['user_uploads']
+            except ObjectDoesNotExist:
+                upload_count = 0
+
+            signed_agreement_forms = []
+            signed_accepted_agreement_forms = 0
+
+            # For each of the available agreement forms for this project, display only latest version completed by the user
+            for agreement_form in self.project.agreement_forms.all():
+                signed_form = SignedAgreementForm.objects.filter(
+                    user__email=participant.user.email,
+                    project=self.project,
+                    agreement_form=agreement_form
+                ).last()
+
+                if signed_form is not None:
+                    signed_agreement_forms.append(signed_form)
+
+                    if signed_form.status == 'A':
+                        signed_accepted_agreement_forms += 1
+
+            participants.append({
+                'participant': participant,
+                'view_permissions': True if participant.user.email.lower() in users_with_view_permissions else False,
+                'download_count': download_count,
+                'upload_count': upload_count,
+                'signed_forms': signed_agreement_forms,
+                'signed_accepted_agreement_forms': signed_accepted_agreement_forms,
+            })
+
+        context['participants'] = participants
+
+        # If there are teams, calculate downloads and uploads by team members.
+        if self.project.has_teams:
+
+            teams = []
+            for team in self.project.team_set.all():
+
+                team_downloads = 0
+                team_uploads = 0
+
+                for participant in team.participant_set.all():
+                    try:
+                        team_downloads += user_download_counts_dict[participant.user.email]
+                    except KeyError:
+                        team_downloads += 0
+
+                    try:
+                        team_uploads += user_upload_counts.get(participant__user__email=participant.user.email)['user_uploads']
+                    except ObjectDoesNotExist:
+                        team_uploads += 0
+
+                teams.append({
+                    'team_leader': team.team_leader.email,
+                    'member_count': team.participant_set.all().count(),
+                    'status': team.status,
+                    'downloads': team_downloads,
+                    'submissions': team_uploads,
+                })
+
+            context['teams'] = teams
+
         # Collect all submissions made for tasks related to this project.
         context['submissions'] = ChallengeTaskSubmission.objects.filter(
             challenge_task__in=self.project.challengetask_set.all(),
             deleted=False
         )
+
+        context['num_required_forms'] = self.project.agreement_forms.count()
 
         return context
 
@@ -130,15 +228,17 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
-        logger.debug(
-            '[HYPATIO][DEBUG][manage_team] User ' + user.email + ' does not have MANAGE permissions for item ' + project_key + '.')
+        logger.debug('User {email} does not have MANAGE permissions for item {project_key}.'.format(
+            email=user.email,
+            project_key=project_key
+        ))
         return HttpResponse(403)
 
     project = DataProject.objects.get(project_key=project_key)
     team = Team.objects.get(data_project=project, team_leader__email=team_leader)
     num_required_forms = project.agreement_forms.count()
 
-    # Collect all the team member information needed
+    # Collect all the team member information needed.
     team_member_details = []
     team_participants = team.participant_set.all()
     team_accepted_forms = 0
@@ -146,7 +246,7 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
     for member in team_participants:
         email = member.user.email
 
-        # Make a request to SciReg for a specific person's user information
+        # Make a request to DBMIReg to get this person's user information.
         user_info_json = get_user_profile(user_jwt, email, project_key)
 
         if user_info_json['count'] != 0:
@@ -154,14 +254,19 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
         else:
             user_info = None
 
+        # Make a request to DBMIAuthZ to check for this person's permissions.
+        access_granted = sciauthz.user_has_single_permission(project_key, "VIEW", email)
+
         signed_agreement_forms = []
         signed_accepted_agreement_forms = 0
 
         # For each of the available agreement forms for this project, display only latest version completed by the user
         for agreement_form in project.agreement_forms.all():
-            signed_form = SignedAgreementForm.objects.filter(user__email=email,
-                                                             project=project,
-                                                             agreement_form=agreement_form).last()
+            signed_form = SignedAgreementForm.objects.filter(
+                user__email=email,
+                project=project,
+                agreement_form=agreement_form
+            ).last()
 
             if signed_form is not None:
                 signed_agreement_forms.append(signed_form)
@@ -175,7 +280,8 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
             'user_info': user_info,
             'signed_agreement_forms': signed_agreement_forms,
             'signed_accepted_agreement_forms': signed_accepted_agreement_forms,
-            'participant': member
+            'participant': member,
+            'access_granted': access_granted,
         })
 
     # Check whether this team has completed all the necessary forms and they have been accepted by challenge admins
@@ -193,14 +299,18 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
     downloads = HostedFileDownload.objects.filter(hosted_file__in=files, user__in=team_users)
     uploads = team.get_submissions()
 
-    return render(request, template_name, context={"user": user,
-                                                   "ssl_setting": settings.SSL_SETTING,
-                                                   "project": project,
-                                                   "team": team,
-                                                   "team_members": team_member_details,
-                                                   "num_required_forms": num_required_forms,
-                                                   "team_has_all_forms_complete": team_has_all_forms_complete,
-                                                   "institution": institution,
-                                                   "comments": comments,
-                                                   "downloads": downloads,
-                                                   "uploads": uploads})
+    context = {
+        "user": user,
+        "ssl_setting": settings.SSL_SETTING,
+        "project": project,
+        "team": team,
+        "team_members": team_member_details,
+        "num_required_forms": num_required_forms,
+        "team_has_all_forms_complete": team_has_all_forms_complete,
+        "institution": institution,
+        "comments": comments,
+        "downloads": downloads,
+        "uploads": uploads
+    }
+
+    return render(request, template_name, context=context)
