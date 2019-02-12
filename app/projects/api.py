@@ -622,7 +622,7 @@ def submit_user_permission_request(request):
         user=request.user,
         project=project
     )
-    
+
     # Check if there are administrators to notify.
     if project.project_supervisors is None or project.project_supervisors == "":
         return HttpResponse(200)
