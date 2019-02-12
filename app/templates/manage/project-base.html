@@ -227,14 +227,14 @@
                     </thead>
                     <tbody>
                     {% for team in teams %}
-                        <tr class="team-row" data-team="{{ team.team_leader }}">
+                        <tr class="team-row" data-team="{{ team.team_leader }}" style="cursor: pointer;">
                             <td>{{ team.team_leader }}</td>
                             <td>{{ team.member_count }}</td>
                             <td class="team-status-column">
                             {% if team.status == "Pending" %}
                                 Pending
                             {% elif team.status == "Ready" %}
-                                <span class="label label-warning">Ready to Activate</span>
+                                <span class="label label-warning">Ready to activate</span>
                             {% elif team.status == "Active" %}
                                 Active
                             {% elif team.status == "Deactivated" %}
@@ -284,30 +284,30 @@
                                 {% endif %}
                                 <td>
                                     {% if participant_info.view_permissions %}
-                                        <span class="label label-success">Granted</span>
+                                        Access granted
                                     {% else %}
-                                        <span class="label label-danger">None</span>
+                                        No access
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% for form in participant_info.signed_forms %}
-                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-success{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="/projects/signed_agreement_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
-                                        <span class="glyphicon glyphicon-link" aria-hidden="true"></span> {{ form.agreement_form.short_name }}
+                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="/projects/signed_agreement_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
+                                        {{ form.agreement_form.short_name }} <span class="glyphicon {% if form.status == 'P' %}glyphicon-alert{% elif form.status == 'A' %}glyphicon-ok{% elif form.status == 'R' %}glyphicon-ban-circle{% endif %}" aria-hidden="true"></span>
                                     </a>
                                     {% endfor %}
                                 </td>
                                 <td>
                                     {% if participant_info.view_permissions %}
-                                        <button type="button" class="btn btn-default btn-xs btn-danger" ic-post-to="{% url 'manage:remove-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
-                                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Revoke access?
+                                        <button type="button" class="btn btn-default btn-xs" ic-post-to="{% url 'manage:remove-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
+                                            Revoke access <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> 
                                         </button>
                                     {% else %}
                                         {% if participant_info.signed_accepted_agreement_forms == num_required_forms %}
                                             <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
-                                                <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Grant access?
+                                                Grant access <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
                                             </button>
                                         {% else %}
-                                            Forms incomplete or unaccepted
+                                            Forms incomplete or pending your review
                                         {% endif %}
                                     {% endif %}
                                 </td>
@@ -436,8 +436,16 @@
 <!-- Initialize DataTables -->
 <script type="application/javascript">
     $(document).ready(function() {
-        $('#team-table').DataTable();
-        $('#participant-table').DataTable();
+        $('#team-table').DataTable({
+            // Order by the Status column to prioritize pending access.
+            "order": [[2, "desc"]]
+        });
+
+        $('#participant-table').DataTable({
+            // Order by the Access column to prioritize pending access.
+            "order": [[2, "desc"]]
+        });
+        
         $('#submissions-table').DataTable();
     });
 </script>
