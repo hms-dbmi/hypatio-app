@@ -139,7 +139,13 @@
                     <tbody>
                         {% for member in team_members %}
                         <tr>
-                            <td>{{ member.user_info.first_name }} {{ member.user_info.last_name }}</td>
+                            <td>
+                                {{ member.user_info.first_name }} {{ member.user_info.last_name }}
+
+                                {% if member.email == team.team_leader.email %}
+                                    <br><span class="label label-default">Team Leader</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 {% get_country member.user_info.country as country %}
                                 {% if country == 'US' and member.user_info.state != "" %}
@@ -149,46 +155,43 @@
                                 {% endif %}
                                 <img src="{{ country.flag }}" class="pull-right" style="margin: 6px 4px 0">
                             </td>
-                            <td>{{ member.email }}</td>
+                            <td>{{ member.email }}
+                            </td>
                             <td>
-                                {% if member.email == team.team_leader.email %}
-                                    <span class="label label-primary">Team Leader</span>
-                                {% endif %}
-                                
                                 {% if member.participant.team_pending %}
-                                    <span class="label label-warning">Pending team leader approval</span>
+                                    Pending team leader approval
                                 {% elif member.signed_accepted_agreement_forms != num_required_forms %}
-                                    <span class="label label-warning">Pending forms</span>
+                                    Pending forms
                                 {% else %}
-                                    <span class="label label-default">No issues</span>
+                                    No issues
                                 {% endif %}
                             </td>
                             <td>
                                 {% for form in member.signed_agreement_forms %}
-                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-success{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="/projects/signed_agreement_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
-                                        <span class="glyphicon glyphicon-link" aria-hidden="true"></span> {{ form.agreement_form.short_name }}
+                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="/projects/signed_agreement_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
+                                        <span class="glyphicon {% if form.status == 'P' %}glyphicon-alert{% elif form.status == 'A' %}glyphicon-ok{% elif form.status == 'R' %}glyphicon-ban-circle{% endif %}" aria-hidden="true"></span> {{ form.agreement_form.short_name }}
                                     </a>
                                 {% endfor %}
                             </td>
                             <td>
                                 {% if member.access_granted %}
-                                    <span class="label label-success">Granted</span>
+                                    Access granted
                                 {% else %}
-                                    <span class="label label-danger">None</span>
+                                    No access
                                 {% endif %}
                             </td>
                             <td>
                                 {% if member.access_granted %}
-                                    <button type="button" class="btn btn-default btn-xs btn-danger" ic-post-to="{% url 'manage:remove-view-permission' project.project_key member.email %}" ic-replace-target="true">
-                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Revoke access?
+                                    <button type="button" class="btn btn-default btn-xs" ic-post-to="{% url 'manage:remove-view-permission' project.project_key member.email %}" ic-replace-target="true">
+                                        Revoke access <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
                                     </button>
                                 {% else %}
                                     {% if member.signed_accepted_agreement_forms == num_required_forms %}
                                         <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key member.email %}" ic-replace-target="true">
-                                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Grant access?
+                                            Grant access <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
                                         </button>
                                     {% else %}
-                                        Forms incomplete or unaccepted
+                                        Forms incomplete or pending your review
                                     {% endif %}
                                 {% endif %}
                             </td>
@@ -233,7 +236,7 @@
                 </table>
                 
                 <div style="margin-top: 10px;">
-                    <a href="{% url 'manage:download-team-submissions' project.project_key team.team_leader.email %}" class="btn-success btn download-file" download>
+                    <a href="{% url 'manage:download-team-submissions' project.project_key team.team_leader.email %}" class="btn-default btn download-file" download>
                         Download all files now
                     </a>
                 </div>
@@ -309,7 +312,7 @@
             "paging": false,
             "info": false,
             "searching": false,
-            "order": [[3, "desc"]] // Sort by status column (4th column)
+            "order": [[5, "desc"]] // Sort by status column (4th column)
         });
         
         $('#team-uploads-table').DataTable({
