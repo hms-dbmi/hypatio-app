@@ -183,12 +183,12 @@
                             <td>
                                 {% if member.access_granted %}
                                     <button type="button" class="btn btn-default btn-xs" ic-post-to="{% url 'manage:remove-view-permission' project.project_key member.email %}" ic-replace-target="true">
-                                        <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> Revoke access
+                                        Revoke access <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
                                     </button>
                                 {% else %}
                                     {% if member.signed_accepted_agreement_forms == num_required_forms %}
                                         <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key member.email %}" ic-replace-target="true">
-                                            <span class="glyphicon glyphicon-alert" aria-hidden="true"></span> Grant access
+                                            Grant access <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
                                         </button>
                                     {% else %}
                                         Forms incomplete or pending your review
@@ -312,7 +312,7 @@
             "paging": false,
             "info": false,
             "searching": false,
-            "order": [[3, "desc"]] // Sort by status column (4th column)
+            "order": [[5, "desc"]] // Sort by status column (4th column)
         });
         
         $('#team-uploads-table').DataTable({
