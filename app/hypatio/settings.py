@@ -227,6 +227,7 @@ FILESERVICE_GROUP = os.environ.get('FILESERVICE_GROUP')
 FILESERVICE_AWS_BUCKET = os.environ.get('FILESERVICE_AWS_BUCKET')
 FILESERVICE_SERVICE_ACCOUNT = 'hypatio'
 FILESERVICE_SERVICE_TOKEN = os.environ.get('FILESERVICE_SERVICE_TOKEN')
+FILESERVICE_AUTH_HEADER_PREFIX = 'Token'
 
 #####################################################################################
 
