@@ -29,11 +29,10 @@ def build_url(base, path):
 
 def headers(request):
 
-    # Find the JWT.
-    token = request.META.get('HTTP_AUTHORIZATION', 'SERVICE {}'.format(settings.FILESERVICE_SERVICE_TOKEN))
-
-    return {"Authorization": token,
-            'Content-Type': 'application/json'}
+    return {
+        'Authorization': '{} {}'.format(settings.FILESERVICE_AUTH_HEADER_PREFIX, settings.FILESERVICE_SERVICE_TOKEN),
+        'Content-Type': 'application/json'
+    }
 
 
 def get(request, path, params=None):
