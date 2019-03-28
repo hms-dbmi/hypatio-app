@@ -3,7 +3,6 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator
 
 TEAM_PENDING = 'Pending'
 TEAM_READY = 'Ready'
@@ -70,6 +69,7 @@ class Institution(models.Model):
     def __str__(self):
         return '%s' % (self.name)
 
+
 class AgreementForm(models.Model):
     """
     This represents the type of forms that a user might need to sign to be granted access to
@@ -95,6 +95,7 @@ class AgreementForm(models.Model):
             raise ValidationError("An external link form should not have the form file path field populated.")
         if self.type != AGREEMENT_FORM_TYPE_EXTERNAL_LINK and self.external_link is not None:
             raise ValidationError("If the form type is not an external link, the external link field should not be populated.")
+
 
 class DataProject(models.Model):
     """
@@ -129,6 +130,7 @@ class DataProject(models.Model):
     def __str__(self):
         return '%s' % (self.project_key)
 
+
 class SignedAgreementForm(models.Model):
     """
     This represents the fully signed agreement form.
@@ -136,18 +138,19 @@ class SignedAgreementForm(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     agreement_form = models.ForeignKey(AgreementForm, on_delete=models.PROTECT)
-    project = models.ForeignKey(DataProject)
+    project = models.ForeignKey(DataProject, on_delete=models.PROTECT)
     date_signed = models.DateTimeField(auto_now_add=True)
     agreement_text = models.TextField(blank=False)
     status = models.CharField(max_length=1, null=False, blank=False, default='P', choices=SIGNED_FORM_STATUSES)
+
 
 class Team(models.Model):
     """
     This model describes a team of participants that are competing in a data challenge.
     """
 
-    team_leader = models.ForeignKey(User)
-    data_project = models.ForeignKey(DataProject)
+    team_leader = models.ForeignKey(User, on_delete=models.PROTECT)
+    data_project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
     status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
 
     class Meta:
@@ -168,9 +171,10 @@ class Team(models.Model):
     def __str__(self):
         return '%s' % self.team_leader.email
 
+
 class Participant(models.Model):
-    user = models.ForeignKey(User)
-    project = models.ForeignKey(DataProject)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE)
 
     # TODO remove or consolidate all these fields
@@ -213,23 +217,25 @@ class Participant(models.Model):
     def __str__(self):
         return '%s - %s' % (self.user, self.project)
 
+
 class HostedFileSet(models.Model):
     """
     An optional grouping for hosted files within a project.
     """
 
     title = models.CharField(max_length=100, blank=False, null=False)
-    project = models.ForeignKey(DataProject)
+    project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
+
 
 class HostedFile(models.Model):
     """
     Tracks the files belonging to projects that users will be able to download.
     """
 
-    project = models.ForeignKey(DataProject)
+    project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
 
     # This UUID should be used in all templates instead of the pk id.
     uuid = models.UUIDField(null=False, unique=True, editable=False, default=uuid.uuid4)
@@ -243,7 +249,7 @@ class HostedFile(models.Model):
     file_location = models.CharField(max_length=100, blank=False, null=False)
 
     # Files can optionally be grouped under a set within a project.
-    hostedfileset = models.ForeignKey(HostedFileSet, blank=True, null=True)
+    hostedfileset = models.ForeignKey(HostedFileSet, blank=True, null=True, on_delete=models.SET_NULL)
 
     # Should the file appear on the front end (and when).
     enabled = models.BooleanField(default=False)
@@ -257,23 +263,26 @@ class HostedFile(models.Model):
         if self.opened_time is not None and self.closed_time is not None and (self.opened_time > self.closed_time or self.closed_time < self.opened_time):
             raise ValidationError("Closed time must be a datetime after opened time")
 
+
 class HostedFileDownload(models.Model):
     """
     Tracks who is attempting to download a hosted file.
     """
 
-    user = models.ForeignKey(User)
-    hosted_file = models.ForeignKey(HostedFile)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    hosted_file = models.ForeignKey(HostedFile, on_delete=models.PROTECT)
     download_date = models.DateTimeField(auto_now_add=True)
 
+
 class TeamComment(models.Model):
-    user = models.ForeignKey(User)
-    team = models.ForeignKey(Team)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     text = models.CharField(max_length=2000, blank=False, null=False)
 
     def __str__(self):
         return '%s %s %s' % (self.user, self.team, self.date)
+
 
 class ChallengeTask(models.Model):
     """
@@ -281,7 +290,7 @@ class ChallengeTask(models.Model):
     in the ChallengeTaskSubmission model.
     """
 
-    data_project = models.ForeignKey(DataProject)
+    data_project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
 
     # How should the task be displayed on the front end
     title = models.CharField(max_length=200, default=None, blank=False, null=False)
@@ -308,6 +317,7 @@ class ChallengeTask(models.Model):
         if self.opened_time is not None and self.closed_time is not None and (self.opened_time > self.closed_time or self.closed_time < self.opened_time):
             raise ValidationError("Closed time must be a datetime after opened time")
 
+
 class ChallengeTaskSubmission(models.Model):
     """
     Captures the files that participants are submitting for their challenges. Through the Participant model
@@ -316,8 +326,8 @@ class ChallengeTaskSubmission(models.Model):
     submitting their work.
     """
 
-    challenge_task = models.ForeignKey(ChallengeTask)
-    participant = models.ForeignKey(Participant)
+    challenge_task = models.ForeignKey(ChallengeTask, on_delete=models.PROTECT)
+    participant = models.ForeignKey(Participant, on_delete=models.PROTECT)
     upload_date = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(null=False, unique=True, primary_key=True, default=None)
     location = models.CharField(max_length=12, default=None, blank=True, null=True)
@@ -326,6 +336,7 @@ class ChallengeTaskSubmission(models.Model):
 
     def __str__(self):
         return '%s' % (self.uuid)
+
 
 # TODO remove
 class ParticipantProject(models.Model):
@@ -338,11 +349,12 @@ class ParticipantProject(models.Model):
     class Meta:
         abstract = True
 
+
 class ChallengeTaskSubmissionDownload(models.Model):
     """
     Tracks who is attempting to download a submission file.
     """
 
-    user = models.ForeignKey(User)
-    submission = models.ForeignKey(ChallengeTaskSubmission)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    submission = models.ForeignKey(ChallengeTaskSubmission, on_delete=models.PROTECT)
     download_date = models.DateTimeField(auto_now_add=True)
