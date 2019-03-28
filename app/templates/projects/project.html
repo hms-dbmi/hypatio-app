@@ -68,16 +68,33 @@
         </div>
         {% endfor %}
 
-        {% for panel in actionable_panels %}
-        <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">{{ panel.title }}</a></h2>
+        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+            {% for panel in actionable_panels %}
+            <div class="panel panel-default" style="margin-bottom: 15px;">
+                <div class="panel-heading heading-description" role="tab">
+                    <a class="{% if actionable_panels|length > 3 %}collapsed{% endif %}" 
+                        role="button"
+                        data-toggle="collapse"
+                        data-parent="#accordion"
+                        href="#collapse{{ forloop.counter0 }}" 
+                        aria-expanded="false"
+                        aria-controls="collapse{{ forloop.counter0 }}"
+                    >
+                        <h2 class="panel-title">
+                            <div class="accordion-step-header">
+                                <span>{{ panel.title }}</span>
+                            </div>
+                        </h2>
+                    </a>
+                </div>
+                <div id="collapse{{ forloop.counter0 }}" class="panel-collapse collapse {% if actionable_panels|length <= 3 %}in{% endif %}" role="tabpanel" aria-labelledby="heading{{ project_counter }}">
+                    <div class="panel-body">
+                        {% include panel.template %}
+                    </div>
+                </div>
             </div>
-            <div class="panel-body">
-                {% include panel.template %}
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
 
 </div>
