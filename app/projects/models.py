@@ -227,7 +227,7 @@ class HostedFileSet(models.Model):
     project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title
+        return self.project.project_key + ': ' + self.title
 
 
 class HostedFile(models.Model):
