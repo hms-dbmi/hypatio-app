@@ -17,6 +17,12 @@
     float: right;
     color: gray;
 }
+.accordion-step-header span:after {
+    font-family:'Glyphicons Halflings';
+    content:"\e234";
+    float: right;
+    color: gray;
+}
 
 /* Stylizes the HMS logo */
 .hms-logo-nav img {
