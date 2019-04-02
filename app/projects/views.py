@@ -603,11 +603,13 @@ class DataProjectView(TemplateView):
 
         if files_without_a_set.count() > 0:
 
+            files_without_a_set_sorted = files_without_a_set.order_by(F('order').asc(nulls_last=True))
+
             panel = DataProjectActionablePanel(
                 title='Available Downloads',
                 bootstrap_color='default',
                 template='projects/participate/available-downloads.html',
-                additional_context={'files': files_without_a_set}
+                additional_context={'files': files_without_a_set_sorted}
             )
 
             context['actionable_panels'].append(panel)
