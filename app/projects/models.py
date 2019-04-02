@@ -256,6 +256,8 @@ class HostedFile(models.Model):
     opened_time = models.DateTimeField(blank=True, null=True)
     closed_time = models.DateTimeField(blank=True, null=True)
 
+    order = models.IntegerField(blank=True, null=True)
+
     def __str__(self):
         return '%s - %s' % (self.project, self.long_name)
 
