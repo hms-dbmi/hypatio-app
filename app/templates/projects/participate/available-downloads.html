@@ -2,6 +2,10 @@
 {% load tz %}
 
 <table class="table table-striped" style="margin-bottom: 0px;">
+{% if not panel.additional_context.files %}
+    <p>No files available to download at this time.</p>
+{% endif %}
+
 {% for file in panel.additional_context.files %}
     {# Only display files that are enabled and within the availability window #}
     {% is_hostedfile_currently_enabled file as file_enabled %}

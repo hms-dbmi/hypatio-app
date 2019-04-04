@@ -614,6 +614,18 @@ class DataProjectView(TemplateView):
 
             context['actionable_panels'].append(panel)
 
+        # If no files at all, display an appropriate message.
+        if not self.project.hostedfile_set.all().exists():
+
+            panel = DataProjectActionablePanel(
+                title='Downloads',
+                bootstrap_color='default',
+                template='projects/participate/available-downloads.html',
+                additional_context={'files': None}
+            )
+
+            context['actionable_panels'].append(panel)
+
     def panel_submit_task_solutions(self, context):
         """
         Builds the context needed for a user to submit solutions for a data
