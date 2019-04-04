@@ -5,8 +5,8 @@ import dateutil.parser
 
 from django.conf import settings
 from django.contrib.auth import logout
-
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
@@ -584,11 +584,13 @@ class DataProjectView(TemplateView):
         # Create a panel for each HostedFileSet
         for file_set in self.project.hostedfileset_set.all():
 
+            files = file_set.hostedfile_set.all().order_by(F('order').asc(nulls_last=True))
+
             panel = DataProjectActionablePanel(
                 title=file_set.title + ' Downloads',
                 bootstrap_color='default',
                 template='projects/participate/available-downloads.html',
-                additional_context={'files': file_set.hostedfile_set.all()}
+                additional_context={'files': files}
             )
 
             context['actionable_panels'].append(panel)
@@ -601,11 +603,13 @@ class DataProjectView(TemplateView):
 
         if files_without_a_set.count() > 0:
 
+            files_without_a_set_sorted = files_without_a_set.order_by(F('order').asc(nulls_last=True))
+
             panel = DataProjectActionablePanel(
                 title='Available Downloads',
                 bootstrap_color='default',
                 template='projects/participate/available-downloads.html',
-                additional_context={'files': files_without_a_set}
+                additional_context={'files': files_without_a_set_sorted}
             )
 
             context['actionable_panels'].append(panel)
