@@ -13,8 +13,8 @@ from projects.models import ChallengeTask
 from projects.models import ChallengeTaskSubmission
 from projects.models import ChallengeTaskSubmissionDownload
 
-class DataprojectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'project_key', 'is_challenge')
+class DataProjectAdmin(admin.ModelAdmin):
+    list_display = ('name', 'project_key', 'is_challenge', 'order')
     list_filter = ('is_challenge', )
 
 class AgreementformAdmin(admin.ModelAdmin):
@@ -37,7 +37,7 @@ class InstitutionAdmin(admin.ModelAdmin):
     list_display = ('name', 'logo_path')
 
 class HostedFileAdmin(admin.ModelAdmin):
-    list_display = ('long_name', 'project', 'hostedfileset', 'file_name', 'file_location')
+    list_display = ('long_name', 'project', 'hostedfileset', 'file_name', 'file_location', 'order')
     list_filter = ('project', )
     search_fields = ('project__project_key', 'file_name', )
 
@@ -58,7 +58,7 @@ class ChallengeTaskSubmissionAdmin(admin.ModelAdmin):
 class ChallengeTaskSubmissionDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'submission', 'download_date')
 
-admin.site.register(DataProject, DataprojectAdmin)
+admin.site.register(DataProject, DataProjectAdmin)
 admin.site.register(AgreementForm, AgreementformAdmin)
 admin.site.register(SignedAgreementForm, SignedagreementformAdmin)
 admin.site.register(Team, TeamAdmin)
