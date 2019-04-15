@@ -127,6 +127,8 @@ class DataProject(models.Model):
 
     show_jwt = models.BooleanField(default=False, blank=False, null=False)
 
+    order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for how the DataProjects should be listed.")
+
     def __str__(self):
         return '%s' % (self.project_key)
 
@@ -256,7 +258,7 @@ class HostedFile(models.Model):
     opened_time = models.DateTimeField(blank=True, null=True)
     closed_time = models.DateTimeField(blank=True, null=True)
 
-    order = models.IntegerField(blank=True, null=True)
+    order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for files to appear within a DataProject.")
 
     def __str__(self):
         return '%s - %s' % (self.project, self.long_name)

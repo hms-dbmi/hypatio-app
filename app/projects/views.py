@@ -90,7 +90,7 @@ def list_data_projects(request, template_name='projects/list-data-projects.html'
     """
 
     context = {}
-    context['projects'] = DataProject.objects.filter(is_challenge=False, visible=True)
+    context['projects'] = DataProject.objects.filter(is_challenge=False, visible=True).order_by(F('order').asc(nulls_last=True))
 
     return render(request, template_name, context=context)
 
@@ -102,7 +102,7 @@ def list_data_challenges(request, template_name='projects/list-data-challenges.h
     """
 
     context = {}
-    context['projects'] = DataProject.objects.filter(is_challenge=True, visible=True)
+    context['projects'] = DataProject.objects.filter(is_challenge=True, visible=True).order_by(F('order').asc(nulls_last=True))
 
     return render(request, template_name, context=context)
 
