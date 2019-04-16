@@ -13,7 +13,9 @@
         </div>
     {% else %}
         <div class="alert alert-success" role="alert">
-            You are the leader of this team. If all members of your team have already registered and are listed below, please click the Finalize button below to lock in your team for the challenge.
+            <p>You are the leader of this team. Now that your team has been created, your desired team members each need to create an account and then enter your email address ({{ request.user.email }}) when they are asked which team they are joining. You will receive an email notification when they do this. Then you will need to return here to accept them into your team.</p>
+            
+            <p>If all members of your team have already registered and are listed below, please click the Finalize button below to lock in your team for the challenge.</p>
         </div>
     {% endif %}
 
