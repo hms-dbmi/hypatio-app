@@ -290,6 +290,9 @@ class DataProjectView(TemplateView):
         # Add a panel for available downloads.
         self.panel_available_downloads(context)
 
+        # Add a panel for a solution submission form (if needed).
+        self.panel_submit_task_solutions(context)
+
         return context
 
     def get_step_status(self, step_name, step_complete, is_permanent=False):
