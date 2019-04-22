@@ -187,9 +187,14 @@
                                     </button>
                                 {% else %}
                                     {% if member.signed_accepted_agreement_forms == num_required_forms %}
-                                        <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key member.email %}" ic-replace-target="true">
-                                            Grant access <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
-                                        </button>
+                                        {# Only allow approval of individuals if the team itself is approved #}
+                                        {% if team.status == 'Active' %}
+                                            <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key member.email %}" ic-replace-target="true">
+                                                Grant access <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
+                                            </button>
+                                        {% else %}
+                                            Grant approval by approving the team above.
+                                        {% endif %}
                                     {% else %}
                                         Forms incomplete or pending your review
                                     {% endif %}
