@@ -479,6 +479,15 @@ def set_team_status(request):
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
+    logger.debug(
+        '[HYPATIO][DEBUG][set_team_status] User {email} is attempting to set team {team} to status of {status} for project {project_key}.'.format(
+            email=request.user.email,
+            team=team_leader,
+            status=status,
+            project_key=project.project_key
+        )
+    )
+
     if not is_manager:
         logger.debug(
             '[HYPATIO][DEBUG][set_team_status] User {email} does not have MANAGE permissions for item {project_key}.'.format(
@@ -543,7 +552,13 @@ def delete_team(request):
     team_leader = request.POST.get("team")
     administrator_message = request.POST.get("administrator_message")
 
-    logger.debug('[HYPATIO][delete_team] ' + request.user.email + ' is deleting team ' + team_leader + ' for project ' + project_key + '.')
+    logger.debug(
+        '[HYPATIO][DEBUG][delete_team] User {email} is deleting team {team} for project {project_key}.'.format(
+            email=request.user.email,
+            team=team_leader,
+            project_key=project_key
+        )
+    )
 
     project = DataProject.objects.get(project_key=project_key)
 
@@ -784,7 +799,21 @@ def grant_view_permission(request, project_key, user_email):
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
+    logger.debug(
+        '[HYPATIO][DEBUG][grant_view_permission] User {user} is attempting to grant VIEW permissions to participant {participant} for project {project_key}.'.format(
+            user=request.user.email,
+            participant=user_email,
+            project_key=project_key
+        )
+    )
+
     if not is_manager:
+        logger.error(
+            '[HYPATIO][DEBUG][grant_view_permission] User {user} does not have manage permissions to project {project_key}.'.format(
+                user=request.user.email,
+                project_key=project_key
+            )
+        )
         return HttpResponse("Access denied.", status=403)
 
     sciauthz.create_view_permission(project_key, user_email)
@@ -823,7 +852,21 @@ def remove_view_permission(request, project_key, user_email):
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
+    logger.debug(
+        '[HYPATIO][DEBUG][remove_view_permission] User {user} is attempting to remove VIEW permissions from participant {participant} for project {project_key}.'.format(
+            user=request.user.email,
+            participant=user_email,
+            project_key=project_key
+        )
+    )
+
     if not is_manager:
+        logger.error(
+            '[HYPATIO][DEBUG][remove_view_permission] User {user} does not have manage permissions to project {project_key}.'.format(
+                user=request.user.email,
+                project_key=project_key
+            )
+        )
         return HttpResponse("Access denied.", status=403)
 
     sciauthz.remove_view_permission(project_key, user_email)

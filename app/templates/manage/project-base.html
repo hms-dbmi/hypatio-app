@@ -303,9 +303,13 @@
                                         </button>
                                     {% else %}
                                         {% if participant_info.signed_accepted_agreement_forms == num_required_forms %}
-                                            <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
-                                                Grant access <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
-                                            </button>
+                                            {% if not project.has_teams %}
+                                                <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
+                                                    Grant access <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
+                                                </button>
+                                            {% else %}
+                                                Grant approval via team management.
+                                            {% endif %}
                                         {% else %}
                                             Forms incomplete or pending your review
                                         {% endif %}
