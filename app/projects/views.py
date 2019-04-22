@@ -715,6 +715,10 @@ class DataProjectView(TemplateView):
             if self.participant is None:
                 return False
 
+            # Make sure the user is on a team.
+            if self.participant.team is None:
+                return False
+
             # Make sure the team leader has accepted this user onto their team.
             if not self.participant.team_approved:
                 return False
