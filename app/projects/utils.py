@@ -12,7 +12,7 @@ def notify_task_submitters(project, participant, task, submission_info_json):
     """
 
     # Send an email notification to the team or individual who submitted.
-    if project.has_teams:
+    if participant.team is not None:
 
         # Get the submissions for this task already submitted by the team.
         total_submissions = ChallengeTaskSubmission.objects.filter(
