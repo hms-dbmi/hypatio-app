@@ -642,8 +642,8 @@ class DataProjectView(TemplateView):
         if tasks.count() == 0:
             return
 
-        # If the project does not have teams and the user is not yet a participant, create one.
-        if not self.project.has_teams and self.participant is None:
+        # If the user does not yet have a participant record, create one:
+        if self.participant is None:
             self.participant = Participant(user=self.request.user, project=self.project)
             self.participant.save()
 
@@ -652,7 +652,7 @@ class DataProjectView(TemplateView):
 
         for task in tasks:
 
-            if self.project.has_teams:
+            if self.participant.team is not None:
 
                 # Get the submissions for this task already submitted by the team or individual.
                 submissions = ChallengeTaskSubmission.objects.filter(
