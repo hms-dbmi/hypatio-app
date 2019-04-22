@@ -86,6 +86,14 @@ def approve_team_join(request):
 
     project = DataProject.objects.get(project_key=project_key)
 
+    logger.debug(
+        '[HYPATIO][DEBUG][approve_team_join] User {user} is attempting to approve {participant} to join their team for project {project_key}.'.format(
+            user=request.user.email,
+            participant=participant_email,
+            project_key=project_key
+        )
+    )
+
     try:
         team = Team.objects.get(
             team_leader=request.user,
@@ -95,8 +103,8 @@ def approve_team_join(request):
         team = None
 
     if request.user.email != team.team_leader.email:
-        logger.debug(
-            "User {email} is not a team leader.".format(
+        logger.error(
+            "[HYPATIO][DEBUG][approve_team_join] User {email} is not the team leader and thus cannot add people.".format(
                 email=request.user.email
             )
         )
@@ -127,6 +135,14 @@ def reject_team_join(request):
 
     project = DataProject.objects.get(project_key=project_key)
 
+    logger.debug(
+        '[HYPATIO][DEBUG][reject_team_join] User {user} is attempting to reject {participant} from joining their team for project {project_key}.'.format(
+            user=request.user.email,
+            participant=participant_email,
+            project_key=project_key
+        )
+    )
+
     try:
         participant_user = User.objects.get(email=participant_email)
         participant = Participant.objects.get(
@@ -138,8 +154,8 @@ def reject_team_join(request):
         return HttpResponse('Error.', status=404)
 
     if request.user.email != participant.team.team_leader.email:
-        logger.debug(
-            "User {email} is not a team leader.".format(
+        logger.error(
+            "[HYPATIO][DEBUG][reject_team_join] User {email} is not the team leader and thus cannot reject people.".format(
                 email=request.user.email
             )
         )
@@ -175,8 +191,8 @@ def leave_team(request):
 
     participant = Participant.objects.get(user=request.user, project=project)
     participant.team = None
-    participant.pending = False
-    participant.approved = False
+    participant.team_pending = False
+    participant.team_approved = False
     participant.team_wait_on_leader_email = None
     participant.team_wait_on_leader = False
     participant.save()
@@ -193,6 +209,8 @@ def join_team(request):
     project = DataProject.objects.get(project_key=project_key)
 
     team_leader = request.POST.get("team_leader")
+
+    logger.debug("[HYPATIO][join_team] User " + request.user.email + " is requesting to join team " + team_leader + " for project " + project_key + ".")
 
     try:
         participant = Participant.objects.get(user=request.user, project=project)
@@ -235,8 +253,6 @@ def join_team(request):
                                    email_template='email_pending_member_notification',
                                    extra=context)
 
-    logger.debug('[HYPATIO][join_team] - Creating Profile Permissions')
-
     # Create record to allow leader access to profile.
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
     sciauthz.create_profile_permission(team_leader, project_key)
@@ -251,6 +267,9 @@ def create_team(request):
 
     project_key = request.POST.get("project_key")
     project = DataProject.objects.get(project_key=project_key)
+
+    logger.debug("[HYPATIO][create_team] User " + request.user.email + " is trying to create a team for project " + project_key + ".")
+
     new_team = Team.objects.create(team_leader=request.user, data_project=project)
 
     try:
