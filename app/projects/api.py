@@ -205,12 +205,23 @@ def join_team(request):
     An HTTP POST endpoint for a user to try to join a team by entering the team leader's email.
     """
 
-    project_key = request.POST.get("project_key")
-    project = DataProject.objects.get(project_key=project_key)
+    project_key = request.POST.get("project_key", None)
 
-    team_leader = request.POST.get("team_leader")
+    try:
+        project = DataProject.objects.get(project_key=project_key)
+    except ObjectDoesNotExist:
+        logger.error("[HYPATIO][join_team] User {email} hit the join_team api method without a project key provided.".format(
+            email=request.user.email
+        ))
+        return redirect('/')
 
-    logger.debug("[HYPATIO][join_team] User " + request.user.email + " is requesting to join team " + team_leader + " for project " + project_key + ".")
+    team_leader = request.POST.get("team_leader", None)
+
+    logger.debug("[HYPATIO][join_team] User {email} is requesting to join team {team} for project {project}.".format(
+        email=request.user.email,
+        team=team_leader,
+        project=project_key
+    ))
 
     try:
         participant = Participant.objects.get(user=request.user, project=project)
