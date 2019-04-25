@@ -1,6 +1,6 @@
 {% load projects_extras %}
 
-<form name="agreement_form_container" action="/save_signed_agreement_form/" method="post">
+<form name="agreement_form_container" action="{% url 'projects:save_signed_agreement_form' %}" method="post">
     <div class="agreement_form_contents">
         {{ panel.additional_context.agreement_form.form_file_path|get_html_form_file_contents | safe }}
     </div>

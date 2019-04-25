@@ -24,7 +24,7 @@
         }
 
         $.ajax({
-            url: "/save_signed_external_agreement_form/",
+            url: "{% url 'projects:save_signed_external_agreement_form' %}",
             type : "POST",
             data: data,
             success : function(json) {
