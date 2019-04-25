@@ -3,8 +3,7 @@
 {% if panel.additional_context.requested_access %}
     Your request is being reviewed. Please use the 'Contact Us' link for any further questions.
 {% else %}
-    <!-- TODO PUT REAL URL -->
-    <form name="access_request_form" action="/projects/submit_user_permission_request/" method="post">
+    <form name="access_request_form" action="{% url 'projects:submit_user_permission_request' %}" method="post">
         <fieldset>
             <div class="row">
                 <div class="col-md-12">

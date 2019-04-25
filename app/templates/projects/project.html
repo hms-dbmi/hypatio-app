@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'sub-base.html' %}
 {% load projects_extras %}
 {% load bootstrap3 %}
 
@@ -9,7 +9,7 @@
 {% block title %}{{ project.name }}{% endblock %}
 {% block subtitle %}{{ project.short_description }}{% endblock %}
 
-{% block content %}
+{% block subcontent %}
 
 {% if messages %}
     {% include 'messages.html' %}

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'sub-base.html' %}
 
 {% block headscripts %}
 {% endblock %}
@@ -6,7 +6,7 @@
 {% block title %}Data Challenges{% endblock %}
 {% block subtitle %}Click on a challenge below to learn more{% endblock %}
 
-{% block content %}
+{% block subcontent %}
 <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
 {% for project in projects %}
     <div class="row">
