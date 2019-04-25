@@ -158,7 +158,7 @@
             $.ajax({
                 method: "POST",
                 data: form,
-                url: "/upload_challengetasksubmission_file/",
+                url: "{% url 'projects:upload_challengetasksubmission_file' %}",
                 success: function (data, textStatus, jqXHR) {
                     console.log("submit.success: " + textStatus);
                     upload(data["post"], data["file"], file, form, $(this));
@@ -236,7 +236,7 @@
             $.ajax({
                 method: "PATCH",
                 data: fileRecord,
-                url: "/upload_challengetasksubmission_file/",
+                url: "{% url 'projects:upload_challengetasksubmission_file' %}",
                 success: function (data, textStatus, jqXHR) {
                     console.log("complete.success: " + textStatus);
 
@@ -318,7 +318,7 @@
         $.ajax({
             method: "POST",
             data: {"submission_uuid": submission_uuid},
-            url: "/delete_challengetasksubmission/",
+            url: "{% url 'projects:delete_challengetasksubmission' %}",
             success: function (data, textStatus, jqXHR) {
                 $('#delete-submission-confirm').removeClass('btn-danger');
                 $('#delete-submission-confirm').addClass('btn-success');

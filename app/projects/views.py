@@ -1,15 +1,12 @@
-import json
 import logging
 from datetime import datetime
 import dateutil.parser
 
 from django.conf import settings
-from django.contrib.auth import logout
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
@@ -34,21 +31,12 @@ from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
 from projects.panels import SIGNUP_STEP_CURRENT_STATUS
 from projects.panels import SIGNUP_STEP_FUTURE_STATUS
 from projects.panels import SIGNUP_STEP_PERMANENT_STATUS
-from projects.panels import DataProjectPanel
 from projects.panels import DataProjectInformationalPanel
 from projects.panels import DataProjectSignupPanel
 from projects.panels import DataProjectActionablePanel
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-
-@user_auth_and_jwt
-def signout(request):
-    logout(request)
-    response = redirect(settings.AUTH0_LOGOUT_URL)
-    response.delete_cookie('DBMI_JWT', domain=settings.COOKIE_DOMAIN)
-    return response
 
 
 @user_auth_and_jwt

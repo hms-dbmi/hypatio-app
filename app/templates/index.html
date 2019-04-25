@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load contact_extras %}
+{% load projects_extras %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12" id="hero">
+            <div id="hero-heading">
+                <h1>DBMI Data Portal</h1>
+                <h2>Data and computing resources from the <br />
+                    <strong style="font-weight: 800; letter-spacing: .5px;">Department of Biomedical Informatics (DBMI)</strong><br />
+                    in the Blavatnik Institute<br />
+                    at Harvard Medical School</h2>
+            </div>
+            <img src="{% static 'images/dbmi-data-portal-hero-2687x717.jpg' %}" class="img-responsive" alt="data concept image"> </div>
+    </div>
+</div>
+<div class="container"> </div>
+<div class="container">
+    <div class="row">
+        <div class="col-lg-4 col-md-4">
+            <h3>About Us</h3>
+            <p>The faculty and data scientists of <a href="https://dbmi.hms.harvard.edu"><strong>DBMI</strong></a> are working at the nexus of software engineering, biological sciences, and the clinical practice of medicine.</p>
+            <p>This Data Portal is a growing catalog of our resources, including:</p>
+            <ul>
+                <li>data sets</li>
+                <li>data challenges</li>
+                <li>code repositories</li>
+                <li>open-source software packages</li>
+                <li>data discovery and data visualization tools</li>
+            </ul>
+        </div>
+        <div class="col-lg-4 col-md-4">
+            <h3>Data Challenge</h3>
+            <p>Our <a href="https://portal.dbmi.hms.harvard.edu/data-challenges/"><strong>current data challenge</strong></a> is the multi-track 2019 n2c2/OHNLP Shared Task on Challenges in Natural Language Processing for Clinical Data, which continues the NLP work pioneered under the former i2b2 program.</p>
+            <p>The <a href="https://www.i2b2.org/NLP/DataSets/" target="_blank">i2b2 data sets <span class="fal fa-sm fa-external-link"></span></a> previously released as a result of this series of challenges dating back to 2006 will also be hosted here soon under their new moniker, n2c2.</p>
+        </div>
+        <div class="col-lg-4 col-md-4">
+            <h3>Data Sets and Tools</h3>
+            <p>Our full inventory of projects will be added over time. For now please check out the <a href="https://github.com/hms-dbmi" target="_blank">DBMI Github repository <span class="fal fa-sm fa-external-link"></span></a> and this selection of resources from our faculty labs:</p>
+            <ul>
+                <li><a href="https://avillach-lab.hms.harvard.edu/access-data" target="_blank">Avillach Lab &#8212; Access to Data <span class="fal fa-sm fa-external-link"></span></a></li>
+                <li><a href="https://github.com/farhat-lab" target="_blank">Farhat Lab &#8212; Github Repository <span class="fal fa-sm fa-external-link"></span></a></li>
+                <li><a href="http://gehlenborglab.org/research/projects/" target="_blank">Gehlenborg Lab &#8212; Projects <span class="fal fa-sm fa-external-link"></span></a></li>
+                <li><a href="http://pklab.med.harvard.edu/software.html" target="_blank">Kharchenko Lab &#8212; Software <span class="fal fa-sm fa-external-link"></span></a></li>
+                <li><a href="http://www.liheng.org/sw.shtml" target="_blank">Li Lab &#8212; Software & Database <span class="fal fa-sm fa-external-link"></span></a></li>
+                <li><a href="https://compbio.hms.harvard.edu/software-1" target="_blank">Park Lab &#8212; Software <span class="fal fa-sm fa-external-link"></span></a></li>
+                <li><a href="https://www.chiragjpgroup.org/resources.html" target="_blank">Patel Group &#8212; Resources <span class="fal fa-sm fa-external-link"></span></a></li>
+                <li><a href="http://genetics.bwh.harvard.edu/wiki/sunyaevlab/software" target="_blank">Sunyaev Lab &#8212; Software <span class="fal fa-sm fa-external-link"></span></a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<footer class="row container-fluid" style="margin-top: 3em;">
+    <div class="container">
+        <div class="col-lg-4 col-md-4 col-sm-5" style="padding-left: 0; padding-top: 1em;"> <img src="{% static 'images/Blavatnikbioinformatics-nomargin.png' %}" class="img-fluid" width="350" alt="Logo for Department of Biomedical Informatics | Blavatnik Institute | Harvard Medical School"></div>
+        <div class="col-lg-4 col-md-4 col-sm-4" style="padding-left: 6em; font-size: 1.2rem; font-weight: 300;">
+            <p><br />
+                Department of Biomedical Informatics<br />
+                Harvard Medical School<br />
+                10 Shattuck Street, Boston, MA    02115</p>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-3" style="padding-left: 2em; font-size: 1rem; font-weight: 300;">
+            <p><br />
+                &copy;2019 by the President and Fellows of Harvard College</p>
+        </div>
+    </div>
+</footer>
+    </div>
+{% endblock %}

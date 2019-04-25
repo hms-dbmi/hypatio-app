@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'sub-base.html' %}
 
 {% load static %}
 {% load countries %}
@@ -16,7 +16,7 @@
 {{ project.project_key }} Management
 {% endblock %}
 
-{% block content %}
+{% block subcontent %}
 <div class="row">
     <div class="col-md-12" style="margin-bottom: 15px;">
         <h3>Essentials</h3>
@@ -169,7 +169,7 @@
                 <p><i>Please only click once and wait for the download to complete. This may take a few moments.</i></p>
                 {% for form in project.agreement_forms.all %}
                     {% if form.type == "EXTERNAL_LINK" %}
-                        <p><a href="/manage/download-email-list/?project={{ project.project_key }}&team-status=Ready&agreement-form-id={{ form.id }}&agreement-form-status=P" class="btn btn-sm btn-primary btn-block" download>
+                        <p><a href="{% url 'manage:download-email-list' %}?project={{ project.project_key }}&team-status=Ready&agreement-form-id={{ form.id }}&agreement-form-status=P" class="btn btn-sm btn-primary btn-block" download>
                             {{ form.name }} Forms to Approve
                         </a></p>
                     {% endif %}
@@ -291,7 +291,7 @@
                                 </td>
                                 <td>
                                     {% for form in participant_info.signed_forms %}
-                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="/projects/signed_agreement_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
+                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="{% url 'projects:signed_agreement_form' %}?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
                                         {{ form.agreement_form.short_name }} <span class="glyphicon {% if form.status == 'P' %}glyphicon-alert{% elif form.status == 'A' %}glyphicon-ok{% elif form.status == 'R' %}glyphicon-ban-circle{% endif %}" aria-hidden="true"></span>
                                     </a>
                                     {% endfor %}
@@ -459,7 +459,7 @@
     $(document).ready(function() {
         $('#team-table').on("click", ".team-row", function() {
             var team = $(this).data('team');
-            window.open("./" + team);
+            window.open("./" + team + "/");
             
             // Because the user may now delete the team or change its status, mention
             // that they should refresh the page to see any changes

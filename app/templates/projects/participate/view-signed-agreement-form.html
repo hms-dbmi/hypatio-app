@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'sub-base.html' %}
 {% load tz %}
 
 {% block headscripts %}
@@ -8,7 +8,7 @@
 {% block title %}Manage Signed Agreement Form{% endblock %}
 {% block subtitle %}{{ signed_form.agreement_form.name }} -- {{ signed_form.user }}{% endblock %}
 
-{% block content %}
+{% block subcontent %}
 <div class="row">
     <div class="col-md-7">
         <div class="panel panel-default">
