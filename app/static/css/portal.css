@@ -1,0 +1,151 @@
+@charset "UTF-8";
+/* CSS Document */
+body {
+	font-family: 'Libre Franklin', sans-serif;
+	padding-top: 50px;
+}
+a {
+	color: #336da8;
+	text-decoration: none;
+	background-color: transparent;
+}
+a:hover {
+	color: #FFFFFF;
+	text-decoration: none;
+	background-color: rgba(51, 109, 168, 0.850);
+}
+/* Background color for navbar and dropdown menus */
+.navbar-custom, .navbar-custom .dropdown-menu {
+	background-color: #A51C30;
+	border-bottom-color: rgba(51, 109, 168, 0.850);
+}
+/* Text color for navbar and dropdown menus */
+.navbar-custom .navbar-brand, .navbar-custom .navbar-text, .navbar-default .navbar-nav > li > a, .navbar-custom .navbar-nav .nav-link, .navbar-custom .dropdown-item, .navbar-default .navbar-custom, li.dropdown, a.dropdown-toggle, a#download {
+	color: #fff;
+}
+/* Background and text colors for current page link and links on hover and focus */
+.navbar-custom .nav-item.active .nav-link, .navbar-custom .nav-item:hover .nav-link, .navbar-custom .nav-item:focus .nav-link, .navbar-custom .dropdown-item:hover, .navbar-custom .dropdown-item:focus, .navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:focus, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > li > a:focus, .navbar-default .navbar-nav > li > a:hover, .dropdown-menu > li > a:focus, .dropdown-menu > li > a:hover, .navbar-default .navbar-toggle:focus, .navbar-default .navbar-toggle:hover {
+	background-color: #731422;
+	color: #fff;
+}
+/*Don't use darker bg for brand or dropdown open*/
+.navbar-header a.navbar-brand:hover, li.dropdown.open a#download.dropdown-toggle {
+	color: #FFFFFF;
+	text-decoration: none;
+	background-color: #A51C30;
+}
+/* Border and text colors for menu icon on small screens */
+.custom-toggler.navbar-toggler, .navbar-default .navbar-toggle {
+	border-color: #ecf0f1;
+	color: #fff;
+}
+/* Hamburger icon - use same rgb values as previous rule for stroke */
+.custom-toggler .navbar-toggler-icon {
+	background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(236,240,241, 0.7)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+}
+.navbar-default .navbar-toggle .icon-bar {
+	background-color: #fff;
+}
+#hero {
+	padding-right: 0px;
+	padding-left: 0px;
+	position: relative;
+	margin-bottom: 2rem;
+}
+#hero-heading {
+	position: absolute;
+	left: 20%;
+	top: 15%;
+}
+#hero-heading h1 {
+	color: #fff;
+	font-size: 6rem;
+	font-weight: 700;
+}
+#hero-heading h2 {
+	color: #fff;
+	font-size: 3rem;
+	font-weight: 300;
+}
+/* hero heading responsive sizes */
+@media screen and (min-width:320px) {
+	#hero-heading {
+		position: absolute;
+		left: 8%;
+		top: 1%;
+	}
+	#hero h1 {
+		font-size: 2.25rem;
+		margin-bottom: 0;
+	}
+	#hero h2 {
+		font-size: 1.5rem;
+		margin-top: 0;
+	}
+}
+@media screen and (min-width:576px) {
+	#hero-heading {
+		position: absolute;
+		left: 20%;
+		top: 15%;
+	}
+	#hero h1 {
+		font-size: 3.5rem;
+	}
+	#hero h2 {
+		font-size: 1.75rem;
+	}
+}
+@media screen and (min-width:768px) {
+	#hero-heading {
+		position: absolute;
+		left: 15%;
+		top: 8%;
+	}
+	#hero h1 {
+		font-size: 5rem;
+	}
+	#hero h2 {
+		font-size: 2.5rem;
+	}
+}
+@media screen and (min-width:992px) {
+	#hero-heading {
+		position: absolute;
+		left: 15%;
+		top: 10%;
+	}
+	#hero h1 {
+		font-size: 6rem;
+	}
+	#hero h2 {
+		font-size: 3rem;
+	}
+}
+@media screen and (min-width:1200px) {
+	#hero-heading {
+		position: absolute;
+		left: 20%;
+		top: 12%;
+	}
+	#hero h1 {
+		font-size: 7rem;
+	}
+	#hero h2 {
+		font-size: 3.5rem;
+	}
+}
+@media (max-width: 767px) {
+	.navbar-default .navbar-nav .open .dropdown-menu > li > a {
+		color: #fff;
+	}
+	.navbar-default .navbar-nav .open .dropdown-menu > li > a:hover, .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {
+		color: #fff;
+		background-color: #731422;
+	}
+}
+footer {
+	font-size: 0.8rem;
+	background-color: rgba(51, 109, 168, 0.350);
+	line-height: 1.5rem;
+}
