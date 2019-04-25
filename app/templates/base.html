@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 
 {% load static %}
-{% load contact_extras %}
 {% load projects_extras %}
 
-<html>
+<html lang="en">
     <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <!-- Global site tag (gtag.js) - Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=UA-70908320-25"></script>
@@ -15,24 +17,35 @@
           gtag('js', new Date());
           gtag('config', 'UA-70908320-25');
         </script>
-    
-        <script src="{% static 'plugins/jquery/jquery.js' %}"></script>
-        <link rel="{% static 'plugins/jquery/jquery-ui.css' %}">
-        <script src="{% static 'plugins/jquery/jquery-ui.js' %}"></script>
-       
-        {% load bootstrap3 %}
-        {% bootstrap_css %}
-        {% bootstrap_javascript %}
+
+        <!-- Bootstrap -->
+        <link href="{% static 'css/bootstrap-3.4.1.css' %}" rel="stylesheet" type="text/css">
         
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <!-- Text Font -->
+        <link href="https://fonts.googleapis.com/css?family=Libre+Franklin:300,400,500,600,700&amp;subset=latin-ext" rel="stylesheet">
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-Bx4pytHkyTDy3aJKjGkGoHPt3tvv6zlwwjc3iqN7ktaiEMLDPqLSZYts2OjKcBx1" crossorigin="anonymous">
+
+        <!-- Custom Styles -->
+        <link rel="stylesheet" href="{% static 'css/portal.css' %}">
         <link rel="stylesheet" href="{% static 'animate.css' %}" />
         <link rel="stylesheet" href="{% static 'custom.css' %}" />
+        <link rel="stylesheet" href="{% static 'plugins/jquery/jquery-ui.css' %}">
 
         <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/vnd.microsoft.icon"/>
-        <title>{% block tab_name %}DBMI Portal{% endblock %}</title>
 
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) --> 
+        <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'plugins/jquery/jquery-ui.js' %}"></script>
+
+        <!-- Include all compiled plugins (below), or include individual files as needed -->
+        <script type='text/javascript' src="{% static 'js/popper.min.js' %}"></script> 
+        <script type='text/javascript' src="{% static 'js/bootstrap.min.js' %}"></script>
         <script type='text/javascript' src="{% static 'plugins/bootstrap-notify/bootstrap-notify.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'plugins/intercooler/intercooler.min.js' %}"></script>
+        
+        <title>{% block tab_name %}DBMI Portal{% endblock %}</title>
 
         <script type="application/javascript">
             
@@ -174,110 +187,62 @@
 
     <body>
 
-        <div class="navbar navbar-default navbar-fixed-top" role="navigation" id="topnavbar">
+        <div class="navbar navbar-default navbar-fixed-top navbar-custom" role="navigation" id="topnavbar">
             <div class="container">
-                <div class="navbar-header">
-                    <a href="/" class="navbar-brand">DBMI Portal</a>
-                    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
+                <div class="navbar-header"><a href="/" class="navbar-brand">DBMI Data Portal</a>
+                    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
                 </div>
+                
                 <div class="navbar-collapse collapse" id="navbar-main">
                     <ul class="nav navbar-nav">
-                        <li>
-                            <a href="https://dbmi.hms.harvard.edu/"><span class="glyphicon glyphicon-home"></span> DBMI Home</a>
-                        </li>
+                        
+                        {% url 'index' as index_url %}
+                        <li class="nav-item{% if request.path == index_url %} active{% endif %}"><a class="nav-link" href="{{ index_url }}">Home</a></li>
+                        
+                        {% url 'data-sets' as data_sets_url %}
+                        <li class="nav-item{% if request.path == data_sets_url %} active{% endif %}"><a class="nav-link" href="{{ data_sets_url }}">Data Sets</a></li>
+
+                        {% url 'data-challenges' as data_challenges_url %}
+                        <li class="nav-item{% if request.path == data_challenges_url %} active{% endif %}"><a class="nav-link" href="{{ data_challenges_url }}">Data Challenges</a></li>
+
                         <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="download">
-                                <span class="glyphicon glyphicon-list"></span> Project Type <span class="caret"></span></a>
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="download">Contact <span class="caret"></span></a>
                             <ul class="dropdown-menu" aria-labelledby="download">
-                                <li>
-                                    <a href="/data-sets/">Data Sets</a>
-                                    <a href="/data-challenges/">Data Challenges</a>
-                                </li>
+                                <li><a class="nav-link" href="https://dbmi.hms.harvard.edu/" target="_blank">Visit the main DBMI website <span class="fas fa-sm fa-external-link"></span></a></li>
+                                <li><a class="nav-link" href="#">Email us <span class="fas fa-sm fa-envelope"></span></a></li>
                             </ul>
                         </li>
-
                     </ul>
-
                     <ul class="nav navbar-nav navbar-right">
-
                         {% if request.user.is_authenticated %}
-
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                            aria-expanded="false"><strong>{{ request.user.email }}</strong> <span class="caret"></span></a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/profile">Profile</a></li>
-                                
-                                {% is_project_manager request as is_manager %}
-                                {% if is_manager %}
-                                    <li role="separator" class="divider"></li>
-                                    <li><a href="{% url 'manage:manage-projects' %}">Manage Projects</a></li>
-                                {% endif %}
-                                
-                                <li role="separator" class="divider"></li>
-                                <li><a href="/signout">Sign Out</a></li>
-                            </ul>
-                        </li>
-
+                            <li class="dropdown">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="download">{{ request.user.email }}<span class="caret"></span></a>
+                                <ul class="dropdown-menu" aria-labelledby="downloadn">
+                                    <li><a class="nav-link" href="{% url 'profile:profile' %}">Profile <span class="fas fa-sm fa-user"></span></a></li>
+                                    
+                                    {% is_project_manager request as is_manager %}
+                                    {% if is_manager %}
+                                        <li><a class="nav-link" href="{% url 'manage:manage-projects' %}">Manage Projects</a></li>
+                                    {% endif %}
+                                    
+                                    <li><a class="nav-link" href="{% url 'profile:signout' %}">Sign Out</a></li>
+                                </ul>
+                            </li>
                         {% else %}
-
-                        <li>
-                            <a href="{{ request.build_absolute_uri|get_login_url }}">
-                                <span class="glyphicon glyphicon-user"></span>&nbsp;
-                                <strong>Login / Register</strong>
-                            </a>
-                        </li>
+                            <li><a href="{{ request.build_absolute_uri|get_login_url }}"><span class="fal fa-sm fa-user"></span> <strong>Login / Register</strong></a></li>
                         {% endif %}
-
                     </ul>
-
                 </div>
             </div>
         </div>
     
-        <div class="container">
-            <div class="page-header" id="banner">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h2>{% block title %}{% endblock %}</h2>
-                        <p class="lead">{% block subtitle %}{% endblock %}</p>
-                    </div>
-                    <div class="col-md-6 hms-logo-nav hidden-xs hidden-sm">
-                        {% if project.institution %}
-                        <div class="col-md-6">
-                            <img src="{% static project.institution.logo_path %}">
-                        </div>
-                        {% endif %}
-                        <div class="col-md-offset-6">
-                            <img src="{% static 'hms_dbmi_logo.png' %}">                            
-                        </div>
-                    </div>
-                </div>
-                    
-                <div class="row">
-                    <div class="col-md-6">
-                        <div style="font-size: 20px;">{% modal_contact_form_link 'Need help? Contact us!' %}</div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="pull-right">{% block extrainfo %}{% endblock %}</div>
-                    </div>
-                </div>
-            </div>
-
-            {% block content %}
-            {% endblock %}
-            
-            {# Add a placeholder for the modal contact form #}
-            <div id='contact-form-modal' class='modal fade' tabindex='-1'></div>
-        </div>
+        {% block content %}
+        {% endblock %}
 
         {% block footerscripts %}
         {% endblock %}
     </body>
+
     {# Allow for some javascript to be added per page #}
     {% block javascript %}{% endblock %}
 </html>
