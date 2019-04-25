@@ -6,18 +6,28 @@ from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import validate_request as validate_jwt
 from pyauth0jwt.auth0authenticate import logout_redirect
 
-from django.contrib import messages
 from django.conf import settings
-from django.shortcuts import render
+from django.contrib import messages
+from django.contrib.auth import logout
 from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.shortcuts import render
 
-from hypatio.sciauthz_services import SciAuthZ
 from hypatio import scireg_services
 
 from .forms import RegistrationForm
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+
+@user_auth_and_jwt
+def signout(request):
+    logout(request)
+    response = redirect(settings.AUTH0_LOGOUT_URL)
+    response.delete_cookie('DBMI_JWT', domain=settings.COOKIE_DOMAIN)
+    return response
+
 
 @user_auth_and_jwt
 def update_profile(request):
@@ -81,10 +91,14 @@ def profile(request, template_name='profile/profile.html'):
     # Check for a returning task and set messages accordingly
     get_task_context_data(request)
 
+    context = {
+        'registration_form': registration_form,
+        'user': user,
+        'new_user': new_user
+    }
+
     # Generate and render the form.
-    return render(request, template_name, {'registration_form': registration_form,
-                                            'user': user,
-                                            'new_user': new_user})
+    return render(request, template_name, context=context)
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')

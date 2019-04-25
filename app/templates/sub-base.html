@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load contact_extras %}
+{% load projects_extras %}
+
+{% block content %}
+    <div class="container">
+        <div class="page-header" id="banner">
+            <div class="row">
+                <div class="col-md-6">
+                    <h2>{% block title %}{% endblock %}</h2>
+                    <p class="lead">{% block subtitle %}{% endblock %}</p>
+                </div>
+                <div class="col-md-6 hms-logo-nav hidden-xs hidden-sm">
+                    {% if project.institution %}
+                    <div class="col-md-6">
+                        <img src="{% static project.institution.logo_path %}">
+                    </div>
+                    {% endif %}
+                    <div class="col-md-offset-6">
+                        <img src="{% static 'images/Blavatnikbioinformatics-nomargin.png' %}">
+                    </div>
+                </div>
+            </div>
+                
+            <div class="row">
+                <div class="col-md-6">
+                    <div style="font-size: 20px;">{% modal_contact_form_link 'Need help? Contact us!' %}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="pull-right">{% block extrainfo %}{% endblock %}</div>
+                </div>
+            </div>
+        </div>
+
+        {% block subcontent %}
+        {% endblock %}
+
+        {# Add a placeholder for the modal contact form #}
+        <div id='contact-form-modal' class='modal fade' tabindex='-1'></div>
+    </div>
+{% endblock %}

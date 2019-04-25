@@ -67,7 +67,7 @@
         <hr>
         <p>Is your team leader using a different email address? Click the button below to return to the team join step.</p>
 
-        <form action="/projects/leave_team/" method="post">
+        <form action="{% url 'projects:leave_team' %}" method="post">
             {% csrf_token %}
             <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
             <button class="btn btn-default btn-sm" type="submit">Restart Team Setup</button>
@@ -88,7 +88,7 @@
             <div class="col-md-8">
                 <h4>Joining a team?</h4>
 
-                <form action="/projects/join_team/" method="post">
+                <form action="{% url 'projects:join_team' %}" method="post">
                     {% csrf_token %}
 
                     <input name="project_key" type="hidden" value="{{ project.project_key }}"/>
@@ -119,7 +119,7 @@
                         Are you sure you want to create a new team and become its team leader?
                     </div>
                     <div class="modal-footer">
-                        <form action="/projects/create_team/" method="post">
+                        <form action="{% url 'projects:create_team' %}" method="post">
                             {% csrf_token %}
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
 
@@ -145,7 +145,7 @@
             csrfmiddlewaretoken: '{{ csrf_token }}',
         };
 
-        $.post("/projects/finalize_team/", request_data)
+        $.post("{% url 'projects:finalize_team' %}", request_data)
             .done(function() {
                 // Refresh the page so the user does not see this button again
                 setTimeout(function(){
@@ -168,7 +168,7 @@
             csrfmiddlewaretoken: '{{ csrf_token }}',
         };
         
-        $.post("/projects/approve_team_join/", request_data)
+        $.post("{% url 'projects:approve_team_join' %}", request_data)
             .done(function() {
                 // Refresh the page so the user does not see this button again
                 setTimeout(function(){
@@ -191,7 +191,7 @@
             csrfmiddlewaretoken: '{{ csrf_token }}',
         };
         
-        $.post("/projects/reject_team_join/", request_data)
+        $.post("{% url 'projects:reject_team_join' %}", request_data)
             .done(function() {
                 // Refresh the page so the user does not see this button again
                 setTimeout(function(){

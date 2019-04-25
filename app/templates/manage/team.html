@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'sub-base.html' %}
 {% load static %}
 {% load countries %}
 {% load tz %}
@@ -13,7 +13,7 @@
 {% block title %}{{ project.project_key }} Team Management{% endblock %}
 {% block subtitle %}Team leader: {{ team.team_leader }}{% endblock %}
 
-{% block content %}
+{% block subcontent %}
 <div class="row form-group">
     <div class="col-md-12">
         <div class="pull-right">
@@ -168,7 +168,7 @@
                             </td>
                             <td>
                                 {% for form in member.signed_agreement_forms %}
-                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="/projects/signed_agreement_form/?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
+                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="{% url 'projects:signed_agreement_form' %}?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
                                         <span class="glyphicon {% if form.status == 'P' %}glyphicon-alert{% elif form.status == 'A' %}glyphicon-ok{% elif form.status == 'R' %}glyphicon-ban-circle{% endif %}" aria-hidden="true"></span> {{ form.agreement_form.short_name }}
                                     </a>
                                 {% endfor %}
@@ -351,7 +351,7 @@
         $.ajax({
             method: "POST",
             data: {"submission_uuid": submission_uuid},
-            url: "/delete_challengetasksubmission/",
+            url: "{% url 'projects:delete_challengetasksubmission' %}",
             success: function (data, textStatus, jqXHR) {
                 button.removeClass('btn-danger');
                 button.addClass('btn-success');

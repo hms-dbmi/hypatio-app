@@ -3,6 +3,8 @@ from datetime import datetime
 import json
 import logging
 
+from pyauth0jwt.auth0authenticate import user_auth_and_jwt
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -32,7 +34,6 @@ from projects.models import Participant
 from projects.models import SignedAgreementForm
 from projects.models import Team
 
-from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 
 logger = logging.getLogger(__name__)
 
