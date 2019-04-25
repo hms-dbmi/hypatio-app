@@ -14,6 +14,12 @@ a:hover {
 	text-decoration: none;
 	background-color: rgba(51, 109, 168, 0.850);
 }
+.panel-title > a:hover, .panel-title > a:focus {
+    background-color: transparent;
+    color: #A51C30;
+    text-decoration: none;
+}
+
 /* Background color for navbar and dropdown menus */
 .navbar-custom, .navbar-custom .dropdown-menu {
 	background-color: #A51C30;
