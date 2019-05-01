@@ -14,8 +14,8 @@ from projects.models import ChallengeTaskSubmission
 from projects.models import ChallengeTaskSubmissionDownload
 
 class DataProjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'project_key', 'is_challenge', 'order')
-    list_filter = ('is_challenge', )
+    list_display = ('name', 'project_key', 'informational_only', 'registration_open', 'requires_authorization', 'is_challenge', 'order')
+    list_filter = ('informational_only', 'registration_open', 'requires_authorization', 'is_challenge')
 
 class AgreementformAdmin(admin.ModelAdmin):
     list_display = ('name', 'short_name', 'type', 'form_file_path')

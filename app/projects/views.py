@@ -159,16 +159,21 @@ class DataProjectView(TemplateView):
         context['SIGNUP_STEP_FUTURE_STATUS'] = SIGNUP_STEP_FUTURE_STATUS
         context['SIGNUP_STEP_PERMANENT_STATUS'] = SIGNUP_STEP_PERMANENT_STATUS
 
-        # Check if the user is a manager of this DataProject.
+        # If this project is informational only, just show them the description without requiring an account.
+        if self.project.informational_only:
+            self.get_informational_only_context(context)
+            return context
+
+        # Otherwise, users who are not logged in should be prompted to first before proceeding further.
+        if not self.request.user.is_authenticated() or self.user_jwt is None:
+            self.get_unregistered_context(context)
+            return context
+
+        # Check the users current permissions on this project.
         if self.request.user.is_authenticated():
             sciauthz = SciAuthZ(settings.AUTHZ_BASE, self.user_jwt, self.request.user.email)
             context['has_manage_permissions'] = sciauthz.user_has_manage_permission(self.project.project_key)
             context['has_view_permission'] = sciauthz.user_has_single_permission(self.project.project_key, "VIEW")
-
-        # Users who are not logged in should be prompted to first before proceeding further.
-        if not self.request.user.is_authenticated() or self.user_jwt is None:
-            self.get_unregistered_context(context)
-            return context
 
         # If a user is already granted access to a project, only show them the participation panels.
         if self.is_user_granted_access(context):
@@ -193,6 +198,17 @@ class DataProjectView(TemplateView):
 
         # Otherwise, prompt the user to sign up.
         self.get_signup_context(context)
+        return context
+
+    def get_informational_only_context(self, context):
+        """
+        Adds to the view's context anything needed to display a project's description
+        with no further actions or features.
+        """
+
+        # Set the template that should be rendered.
+        self.template_name = 'projects/description-only.html'
+
         return context
 
     def get_unregistered_context(self, context):
