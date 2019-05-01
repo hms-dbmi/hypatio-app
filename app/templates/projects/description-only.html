@@ -1,0 +1,36 @@
+{% extends 'sub-base.html' %}
+{% load projects_extras %}
+{% load bootstrap3 %}
+
+{% block headscripts %}
+{% endblock %}
+
+{% block tab_name %}{{ project.name }}{% endblock %}
+{% block title %}{{ project.name }}{% endblock %}
+{% block subtitle %}{{ project.short_description }}{% endblock %}
+
+{% block subcontent %}
+
+{% if messages %}
+{% include 'messages.html' %}
+{% endif %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Description</a>
+                </h2>
+            </div>
+            <div class="panel-body">
+                {% autoescape off %}
+                {{ project.description }}
+                {% endautoescape %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footerscripts %}
+{% endblock %}

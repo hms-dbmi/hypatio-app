@@ -113,8 +113,9 @@ class DataProject(models.Model):
 
     # Set how the project should be accessed.
     visible = models.BooleanField(default=False, blank=False, null=False)
-    registration_open = models.BooleanField(default=False, blank=False, null=False)
-    requires_authorization = models.BooleanField(default=True, blank=False, null=False)
+    informational_only = models.BooleanField(default=False, blank=False, null=False, help_text="Set this to true if this project has no registration or participation steps and should only render the description panel. The Registration Open value will be ignored. The Requires Authorization flag should be set to false.")
+    registration_open = models.BooleanField(default=False, blank=False, null=False, help_text="Set this to true if you want to allow users without existing permissions on this item to be able to sign up for access.")
+    requires_authorization = models.BooleanField(default=True, blank=False, null=False, help_text="Set this to true if you want to explicitly require a user to have VIEW permissions on this project before they can access the project's downloads, uploads, etc.")
 
     # Which forms users need to sign before accessing any data.
     agreement_forms = models.ManyToManyField(AgreementForm, blank=True, related_name='data_project_agreement_forms')
@@ -131,6 +132,13 @@ class DataProject(models.Model):
 
     def __str__(self):
         return '%s' % (self.project_key)
+
+    def clean(self):
+        if self.informational_only and self.requires_authorization:
+            raise ValidationError('Requires Authorization should be false if Informational Only is true.')
+
+        if self.informational_only and self.is_challenge:
+            raise ValidationError('Projects marked as a challenge cannot be informational only.')
 
 
 class SignedAgreementForm(models.Model):
