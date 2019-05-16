@@ -22,6 +22,7 @@ class AgreementformAdmin(admin.ModelAdmin):
 
 class SignedagreementformAdmin(admin.ModelAdmin):
     list_display = ('user', 'agreement_form', 'date_signed', 'status')
+    search_fields = ('user__email', )
 
 class TeamAdmin(admin.ModelAdmin):
     list_display = ('team_leader', 'data_project')
@@ -46,6 +47,7 @@ class HostedFileSetAdmin(admin.ModelAdmin):
 
 class HostedFileDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'hosted_file', 'download_date')
+    search_fields = ('user__email', )
 
 class ChallengeTaskAdmin(admin.ModelAdmin):
     list_display = ('data_project', 'title', 'enabled', 'opened_time', 'closed_time')
@@ -57,6 +59,7 @@ class ChallengeTaskSubmissionAdmin(admin.ModelAdmin):
 
 class ChallengeTaskSubmissionDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'submission', 'download_date')
+    search_fields = ('user__email', )
 
 admin.site.register(DataProject, DataProjectAdmin)
 admin.site.register(AgreementForm, AgreementformAdmin)
