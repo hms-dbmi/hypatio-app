@@ -142,6 +142,7 @@
             // $("#loading").hide();
         }).done(function() {
             notify('success', "Agreement form submitted!", 'thumbs-up');
+            submit_button.replaceWith("<h3><span class='label label-success'>Form saved.</span></h3>"); 
 
             // Refresh the page so the user does not see this button again
             setTimeout(function(){
