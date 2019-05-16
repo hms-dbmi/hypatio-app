@@ -595,7 +595,7 @@ def save_signed_agreement_form(request):
     )
 
     if existing_signed_form.exists():
-        logger.debug('%s already has signed the agreement form "%s".', request.user.email, agreement_form.name)
+        logger.debug('%s already has signed the agreement form "%s" for project "%s".', request.user.email, agreement_form.name, project.project_key)
         return HttpResponse(status=400)
 
     signed_agreement_form = SignedAgreementForm(
