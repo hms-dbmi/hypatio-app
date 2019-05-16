@@ -33,6 +33,7 @@ from projects.models import HostedFileDownload
 from projects.models import Participant
 from projects.models import SignedAgreementForm
 from projects.models import Team
+from projects.models import SIGNED_FORM_REJECTED
 
 
 logger = logging.getLogger(__name__)
@@ -583,6 +584,19 @@ def save_signed_agreement_form(request):
 
     agreement_form = AgreementForm.objects.get(id=agreement_form_id)
     project = DataProject.objects.get(project_key=project_key)
+
+    # Only create a new record if one does not already exist in a state other than Rejected.
+    existing_signed_form = SignedAgreementForm.objects.filter(
+        user=request.user,
+        agreement_form=agreement_form,
+        project=project,
+    ).exclude(
+        status=SIGNED_FORM_REJECTED
+    )
+
+    if existing_signed_form.exists():
+        logger.debug('%s already has signed the agreement form "%s".', request.user.email, agreement_form.name)
+        return HttpResponse(status=400)
 
     signed_agreement_form = SignedAgreementForm(
         user=request.user,
