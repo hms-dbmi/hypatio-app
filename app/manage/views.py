@@ -234,8 +234,12 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
         ))
         return HttpResponse(403)
 
-    project = DataProject.objects.get(project_key=project_key)
-    team = Team.objects.get(data_project=project, team_leader__email=team_leader)
+    try:
+        project = DataProject.objects.get(project_key=project_key)
+        team = Team.objects.get(data_project=project, team_leader__email=team_leader)
+    except ObjectDoesNotExist:
+        return render(request, '404.html')
+
     num_required_forms = project.agreement_forms.count()
 
     # Collect all the team member information needed.
