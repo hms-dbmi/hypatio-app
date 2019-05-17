@@ -283,7 +283,7 @@ def create_team(request):
 
     logger.debug("[HYPATIO][create_team] User " + request.user.email + " is trying to create a team for project " + project_key + ".")
 
-    new_team = Team.objects.create(team_leader=request.user, data_project=project)
+    new_team, created = Team.objects.get_or_create(team_leader=request.user, data_project=project)
 
     try:
         participant = Participant.objects.get(user=request.user, project=project)
