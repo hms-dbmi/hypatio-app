@@ -1,6 +1,12 @@
 {% load projects_extras %}
 
 <form name="agreement_form_container" action="{% url 'projects:save_signed_agreement_form' %}" method="post">
+    {% if panel.additional_context.agreement_form.description is not None and panel.additional_context.agreement_form.description != "" %}
+        <div class="alert alert-warning" role="alert">
+            {{ panel.additional_context.agreement_form.description }}
+        </div>
+    {% endif %}
+
     <div class="agreement_form_contents">
         {{ panel.additional_context.agreement_form.form_file_path|get_html_form_file_contents | safe }}
     </div>
