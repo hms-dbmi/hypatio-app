@@ -102,10 +102,16 @@
     
                 // AJAX for posting
                 $(".contact-form-button").on('click', function () {
-                    console.log("Loading contact form");
+
+                    {% if project_key is not None and project_key != "" %}
+                        var url = "{% url 'contact:contact_form' project_key=project_key %}";
+                    {% else %}
+                        var url = "{% url 'contact:contact_form' %}";
+                    {% endif %}
+
                     $.ajax({
                         type: 'GET',
-                        url: '/contact/contact_form/',
+                        url: url,
                         success: function (data, textStatus, jqXHR) {
                             $('#contact-form-modal').html(data);
                             $('#contact-form-modal').modal('show');
@@ -118,7 +124,6 @@
                 });
     
                 $('#contact-form-modal').on('submit', '#contact-form', function() {
-                    console.log("Sending contact form");
                     $.ajax({
                         url : "/contact/contact_form/",
                         type : "POST",
