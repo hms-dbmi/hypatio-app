@@ -29,6 +29,7 @@ class ContactForm(forms.Form):
                 'selected': '',
             }
         ),
-        required=False)
+        required=False
+    )
 
     message = forms.CharField(label='Question or comment', required=True, widget=forms.Textarea)
