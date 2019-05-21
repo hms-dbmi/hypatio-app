@@ -19,9 +19,9 @@ from django.template.loader import render_to_string
 logger = logging.getLogger(__name__)
 
 @public_user_auth_and_jwt
-def contact_form(request):
+def contact_form(request, project_key=None):
 
-    # if this is a POST request we need to process the form data
+    # If this is a POST request we need to process the form data.
     if request.method == 'POST':
         logger.debug("[HYPATIO][DEBUG][contact_form] Processing contact form  - " + str(request.user.id))
 
@@ -76,24 +76,23 @@ def contact_form(request):
                 messages.error(request, 'An unexpected error occurred, please try again')
                 return HttpResponseRedirect(reverse('dashboard:dashboard'))
 
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        if not request.user.is_anonymous:
-            logger.debug("[HYPATIO][DEBUG][contact_form] Generating contact form  - " + str(request.user.id))
+    # If a GET (or any other method) we'll create a blank form.
+    initial = {}
 
-            # Set initial values.
-            initial = {
-                'email': request.user.email
-            }
-        else:
-            # Set initial values.
-            initial = {
-                'email': "Please enter your e-mail here."
-            }
+    if not request.user.is_anonymous:
+        initial['email'] = request.user.email
 
-        # Generate and render the form.
-        form = ContactForm(initial=initial)
-        return render(request, 'contact/contact.html', {'contact_form': form})
+    # If a project key was supplied and it matches a real project, pre-populate the form with it.
+    if project_key is not None:
+        try:
+            data_project = DataProject.objects.get(project_key=project_key)
+            initial['project'] = data_project
+        except ObjectDoesNotExist:
+            pass
+
+    # Generate and render the form.
+    form = ContactForm(initial=initial)
+    return render(request, 'contact/contact.html', {'contact_form': form})
 
 def email_send(subject=None, recipients=None, email_template=None, extra=None):
     """
