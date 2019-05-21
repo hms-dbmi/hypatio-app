@@ -41,13 +41,6 @@ def get_login_url(current_uri):
     return login_url.url
 
 @register.simple_tag
-def modal_contact_form_link(text='Contact us', classes=''):
-
-    return mark_safe("""
-        <a href=# class='contact-form-button {}'>{}</a>
-    """.format(classes, text))
-
-@register.simple_tag
 def is_hostedfile_currently_enabled(hostedfile):
 
     # If the file is not marked as enabled, it should not be displayed.

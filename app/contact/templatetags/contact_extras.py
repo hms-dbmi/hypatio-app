@@ -1,9 +1,5 @@
 from django import template
 from django.utils.safestring import mark_safe
-from django.conf import settings
-
-from os.path import normpath, join
-import os
 
 register = template.Library()
 
