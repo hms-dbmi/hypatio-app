@@ -3,7 +3,6 @@ import os
 import shutil
 import uuid
 import zipfile
-
 import requests
 
 from hypatio import file_services as fileservice
@@ -12,6 +11,7 @@ from projects.models import ChallengeTaskSubmissionDownload
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
 
 def zip_submission_file(submission, request):
     """
