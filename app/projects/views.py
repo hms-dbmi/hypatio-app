@@ -589,7 +589,7 @@ class DataProjectView(TemplateView):
         """
 
         # Create a panel for each HostedFileSet
-        for file_set in self.project.hostedfileset_set.all():
+        for file_set in self.project.hostedfileset_set.all().order_by(F('order').asc(nulls_last=True)):
 
             files = file_set.hostedfile_set.all().order_by(F('order').asc(nulls_last=True))
 
