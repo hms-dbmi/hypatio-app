@@ -605,7 +605,8 @@ class DataProjectView(TemplateView):
         # Add another panel for files that do not belong to a HostedFileSet
         files_without_a_set = HostedFile.objects.filter(
             project=self.project,
-            hostedfileset=None
+            hostedfileset=None,
+            enabled=True
         )
 
         if files_without_a_set.count() > 0:
