@@ -2,6 +2,12 @@
 The DBMI Data Portal, codenamed Hypatio, is a data sharing and data challenge platform built and maintained by the DBMI Tech Core.
 
 ## Developer documentation
+### Infrastructure
+TODO
+
+### Data hosting
+TODO
+
 ### Django apps
 - `contact` - powers the Contact Us form that appears at the top of the Hypatio UI.
 
@@ -33,12 +39,6 @@ The DBMI Data Portal, codenamed Hypatio, is a data sharing and data challenge pl
 - `views.py` - where views are defined.
 
 - `(xyz)_extras.py` - where filters for django templates are defined.
-
-### Infrastructure
-...
-
-### Data hosting
-...
 
 ## User documentation
 Please visit the following link to read and edit documentation tailored for users and administrators of Hypatio: <https://docs.google.com/document/d/17h99OVvY1VyzJb-CqWrf4uqQMYUsB-iakV0NKOZv8OQ/edit?usp=sharing>.
