@@ -235,6 +235,7 @@ class HostedFileSet(models.Model):
 
     title = models.CharField(max_length=100, blank=False, null=False)
     project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
+    order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for file sets to appear within a DataProject.")
 
     def __str__(self):
         return self.project.project_key + ': ' + self.title
