@@ -43,7 +43,8 @@ class HostedFileAdmin(admin.ModelAdmin):
     search_fields = ('project__project_key', 'file_name', )
 
 class HostedFileSetAdmin(admin.ModelAdmin):
-    list_display = ('title', 'project')
+    list_display = ('title', 'project', 'order')
+    list_filter = ('project', )
 
 class HostedFileDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'hosted_file', 'download_date')
