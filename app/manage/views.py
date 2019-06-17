@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
+from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
@@ -211,6 +212,30 @@ class DataProjectManageView(TemplateView):
         )
 
         context['num_required_forms'] = self.project.agreement_forms.count()
+
+        # Get information about what files there are for this project.
+        context['file_groups'] = []
+
+        for file_set in self.project.hostedfileset_set.all().order_by(F('order').asc(nulls_last=True)):
+            context['file_groups'].append({
+                'group_name': file_set.title,
+                'files': file_set.hostedfile_set.all().order_by(F('order').asc(nulls_last=True))
+            })
+
+        # Add another panel for files that do not belong to a HostedFileSet
+        files_without_a_set = HostedFile.objects.filter(
+            project=self.project,
+            hostedfileset=None
+        )
+
+        if files_without_a_set.count() > 0:
+            # If there are no other groups, then make the group title less confusing.
+            group_name = 'Files' if not context['file_groups'] else 'Other files'
+
+            context['file_groups'].append({
+                'group_name': group_name,
+                'files': files_without_a_set.order_by(F('order').asc(nulls_last=True))
+            })
 
         return context
 
