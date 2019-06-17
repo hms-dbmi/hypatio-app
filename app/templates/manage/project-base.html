@@ -113,38 +113,48 @@
                 <h2 class="panel-title">Files</h2>
             </div>
             <div class="panel-body">
-                {% for hosted_file in project.hostedfile_set.all %}
-                <div class="row">
-                    <div class="col-sm-8">
-                        <h5>
-                            {{ hosted_file.long_name }}
-                        </h5>
-                        {% is_hostedfile_currently_enabled hosted_file as file_enabled %}
-                        {% if file_enabled %}
-                        Downloads currently enabled
-                        {% else %}
-                        Downloads currently disabled
-                        {% endif %}
-                    </div>
-                    
-                    <div class="col-sm-4">
-                        <div class="pull-right">
-                            <a class="btn btn-default pull-right edit-agreement-form-button" 
-                                href="#" 
-                                role="button" 
-                                data-toggle="modal" 
-                                data-target="#modal-edit-hosted-file"
-                                ic-get-from="{% url 'manage:get-hosted-file-edit-form' %}"
-                                ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
-                                ic-target="#modal-edit-hosted-file-body">
-                                Edit
-                            </a>
+                {% for file_group in file_groups %}
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h4>{{ file_group.group_name }}:</h4>
+                            {% if file_group.files|length == 0 %}
+                                <p>No files in this set</p>
+                            {% endif %}
                         </div>
                     </div>
-                </div>
-                <hr>
+                    {% for hosted_file in file_group.files %}
+                        <div class="row" style="margin-bottom: 10px;">
+                            <div class="col-sm-8">
+                                <h5>
+                                    {{ hosted_file.long_name }}
+                                </h5>
+                                {% is_hostedfile_currently_enabled hosted_file as file_enabled %}
+                                {% if file_enabled %}
+                                Downloads currently enabled
+                                {% else %}
+                                <span class="text-danger"><i>Downloads currently disabled</i></span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-sm-4">
+                                <div class="pull-right">
+                                    <a class="btn btn-default pull-right edit-agreement-form-button" 
+                                        href="#" 
+                                        role="button" 
+                                        data-toggle="modal" 
+                                        data-target="#modal-edit-hosted-file"
+                                        ic-get-from="{% url 'manage:get-hosted-file-edit-form' %}"
+                                        ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
+                                        ic-target="#modal-edit-hosted-file-body">
+                                        Edit
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    <hr>
                 {% endfor %}
-                <p class="help-block">Please contact a DBMI Tech-Core developer for help with adding a new data file.</p>
+                <p class="help-block">Please contact a DBMI Tech-Core developer for help with adding a new data file or to move files to different subgroups.</p>
                 <!-- <button class="btn btn-primary pull-right">Add another</button> -->
             </div>
         </div>
