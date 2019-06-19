@@ -16,7 +16,7 @@ def create_n2c2t1_submission_type(apps, schema_editor):
             data_project=n2c2t1_project,
             title='Task',
             description='',
-            submission_form_file_path='n2c2-t1.html',
+            submission_form_file_path='n2c2-submissions.html',
             max_submissions=3,
             opened_time=None,
             closed_time=None,
