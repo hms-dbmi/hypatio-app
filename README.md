@@ -3,6 +3,12 @@ The DBMI Data Portal, codenamed Hypatio, is a data sharing and data challenge pl
 
 Throughout the documentation, any mention of the word *"project"* refers to the `DataProject` model which describes any data set, data challenge, or software tool that is listed on the DBMI Data Portal.
 
+## Table of Contents
+**[Infrastructure](#infrastructure)**<br>
+**[App overview](#app-overview)**<br>
+**[Local development](#local-development)**<br>
+**[User documentation](#user-documentation)**<br>
+
 ## Infrastructure
 ### AWS stack overview
 Hypatio is hosted on DBMI's 68 AWS account. CodePipelines exist to look for pushes to the `development` and `master` branches, build the code with CodeBuild, and deploy the Hypatio docker container to a new task in ECS using a custom Lambda function.
