@@ -120,8 +120,10 @@ class DataProject(models.Model):
     # Which forms users need to sign before accessing any data.
     agreement_forms = models.ManyToManyField(AgreementForm, blank=True, related_name='data_project_agreement_forms')
 
-    # Simply for highlighting projects that are challenges.
+    # Various tags for what a project may be, influencing where the project is listed and the functionality on its page.
+    is_dataset = models.BooleanField(default=False, blank=False, null=False)
     is_challenge = models.BooleanField(default=False, blank=False, null=False)
+    is_software = models.BooleanField(default=False, blank=False, null=False)
 
     # Set whether users need to form teams before accessing data.
     has_teams = models.BooleanField(default=False, blank=False, null=False)
@@ -139,6 +141,12 @@ class DataProject(models.Model):
 
         if self.informational_only and self.is_challenge:
             raise ValidationError('Projects marked as a challenge cannot be informational only.')
+
+        if self.is_challenge and self.is_software:
+            raise ValidationError('At this time, a challenge should not also be marked as software or dataset.')
+
+        if self.is_challenge and self.is_dataset:
+            raise ValidationError('At this time, a challenge should not also be marked as software or dataset.')
 
 
 class SignedAgreementForm(models.Model):
