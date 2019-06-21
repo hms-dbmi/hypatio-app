@@ -5,6 +5,7 @@ from django.contrib import admin
 from hypatio.views import index
 from projects.views import list_data_projects
 from projects.views import list_data_challenges
+from projects.views import list_software_projects
 
 
 urlpatterns = [
@@ -15,6 +16,7 @@ urlpatterns = [
     url(r'^profile/', include('profile.urls', namespace='profile')),
     url(r'^data-sets/$', list_data_projects, name='data-sets'),
     url(r'^data-challenges/$', list_data_challenges, name='data-challenges'),
+    url(r'^software-projects/$', list_software_projects, name='software-projects'),
     url(r'^healthcheck/?', include('health_check.urls')),
     url(r'^', index, name='index'),
 ]

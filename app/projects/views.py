@@ -78,7 +78,7 @@ def list_data_projects(request, template_name='projects/list-data-projects.html'
     """
 
     context = {}
-    context['projects'] = DataProject.objects.filter(is_challenge=False, visible=True).order_by(F('order').asc(nulls_last=True))
+    context['projects'] = DataProject.objects.filter(is_dataset=True, visible=True).order_by(F('order').asc(nulls_last=True))
 
     return render(request, template_name, context=context)
 
@@ -93,6 +93,19 @@ def list_data_challenges(request, template_name='projects/list-data-challenges.h
     context['projects'] = DataProject.objects.filter(is_challenge=True, visible=True).order_by(F('order').asc(nulls_last=True))
 
     return render(request, template_name, context=context)
+
+
+@public_user_auth_and_jwt
+def list_software_projects(request, template_name='projects/list-software-projects.html'):
+    """
+    Displays all visible software projects.
+    """
+
+    context = {}
+    context['projects'] = DataProject.objects.filter(is_software=True, visible=True).order_by(F('order').asc(nulls_last=True))
+
+    return render(request, template_name, context=context)
+
 
 @method_decorator(public_user_auth_and_jwt, name='dispatch')
 class DataProjectView(TemplateView):
