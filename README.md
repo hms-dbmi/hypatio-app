@@ -108,13 +108,14 @@ Basically, this just means that the database will persist on your laptop so you 
 ### Giving yourself admin access to each app
 Most of our micro-services look to **DBMI-AuthZ** to grant you access to their Django admins. Use a SQL client of your preference (Sequel Pro is a good free option for Mac) and go into the AuthZ database. Create an `authorization_userpermission` record with permission = `ADMIN`, item = `DBMI`, and user_email = to your HMS email. You will need this record to access the AuthZ admin.
 
-If needed, you can also create yourself as a superuser in all of the apps by bashing into each container and running the Django createsuper user command.
+If needed, you can also create yourself as a superuser in all of the apps by bashing into each container and running the Django createsuper user command. Repeat these steps for `hypatio`, `dbmi-fileservice`, `dbmi-reg`, `dbmi-authz`, `dbmi-reg` if you choose to do this:
 
-Repeat these steps for `hypatio`, `dbmi-fileservice`, `dbmi-reg`, `dbmi-authz`, `dbmi-reg`:
-
-- Bash into each container by using the `hypatio-stack` convenience method: `stack shell {CONTAINER NAME}`.
+- With your `hypatio-stack` virtualenv activated, bash into each container by using the convenience method provided by the stack: `stack shell {CONTAINER NAME}`. 
 
 - `cd app`, `python manage.py createsuperuser`, and follow the prompts. Use your HMS email as your username.
+
+### Creating migrations
+To create Django migration files and run them, bash into the Hypatio container with `stack shell hypatio`, `cd app`, `python manage.py makemigrations`, and `python manage.py migrate`. Because the stack has the source files mounted as a volume, the migrations you created within the container will appear in your local directory too and be available to commit to git.
 
 ### Where are the emails going?
 `hypatio-stack` uses a mail client to intercept emails before they get sent. You can reach it by going to `localhost:8018` (or whatever port it is configured with in the docker-compose).
