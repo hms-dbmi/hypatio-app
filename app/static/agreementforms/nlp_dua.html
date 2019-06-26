@@ -4,18 +4,18 @@
     <div id="dua-type-select">
         <div class="radio" id="form-type">
             <label>
-                <input type="radio" name="form-type" value="academic">
+                <input type="radio" name="form-type" value="academic" required>
                 Academic
             </label>
             <br>
             <label>
-                <input type="radio" name="form-type" value="commercial">
+                <input type="radio" name="form-type" value="commercial" required>
                 Commercial
             </label>
         </div>
     </div>
 
-    <div style="display: none;" id="academic-form">
+    <div id="academic-form" style="display: none;">
 
         <hr>
 
@@ -217,7 +217,7 @@
         </div>
     </div>
 
-    <div style="display: none;" id="commerical-form">
+    <div id="commerical-form" style="display: none;">
 
         <hr>
 
@@ -361,19 +361,19 @@
         
         <div class="form-group">
             <label for="partners-name">By</label>
-            <input type="text" class="form-control" id="commercial-partners-name" placeholder="Print name">
+            <input type="text" class="form-control" id="commercial-partners-name" placeholder="Print name" disabled>
         </div>
         <div class="form-group">
             <label for="partners-title">Title</label>
-            <input type="text" class="form-control" id="commercial-partners-title">
+            <input type="text" class="form-control" id="commercial-partners-title" disabled>
         </div>
         <div class="form-group">
             <label for="partners-address">Address</label>
-            <input type="text" class="form-control" id="commercial-partners-address">
+            <input type="text" class="form-control" id="commercial-partners-address" disabled>
         </div>
         <div class="form-group">
             <label for="partners-date">Date</label>
-            <input type="date" class="form-control" id="commercial-partners-date">
+            <input type="date" class="form-control" id="commercial-partners-date" disabled>
         </div>
 
         <br>
@@ -417,8 +417,8 @@
                 $('#academic-form').show();
                 $('#commerical-form').hide();
 
-                // $("#academic-form :input").prop('required',true);
-                // $("#commerical-form :input").prop('required',false);
+                $("#academic-form :input").prop('required',true);
+                $("#commerical-form :input").prop('required',false);
                 $("#commerical-form :input").val('');
             }
 
@@ -426,9 +426,9 @@
                 $('#academic-form').hide();
                 $('#commerical-form').show();
 
-                // $("#academic-form :input").prop('required',false);
+                $("#academic-form :input").prop('required',false);
                 $("#academic-form :input").val('');                
-                // $("#commerical-form :input").prop('required',true);
+                $("#commerical-form :input").prop('required',true);
             }
 
             // Display the submit button again
@@ -443,8 +443,8 @@
                 $('#individual-questions').show();
                 $('#corporation-questions').hide();
 
-                // $("#individual-questions :input").prop('required',true);
-                // $("#corporation-questions :input").prop('required',false);
+                $("#individual-questions :input").prop('required',true);
+                $("#corporation-questions :input").prop('required',false);
                 $("#corporation-questions :input").val('');
             }
 
@@ -452,10 +452,16 @@
                 $('#individual-questions').hide();
                 $('#corporation-questions').show();
 
-                // $("#individual-questions :input").prop('required',false);
+                $("#individual-questions :input").prop('required',false);
                 $("#individual-questions :input").val('');                
-                // $("#corporation-questions :input").prop('required',true);
+                $("#corporation-questions :input").prop('required',true);
             }
+
+            // These don't need to be required.
+            $('#research-team-person-2').prop('required',false);
+            $('#research-team-person-3').prop('required',false);
+            $('#research-team-person-4').prop('required',false);
+            $('#research-team-person-5').prop('required',false);
         });
         
         // Commercial form: When someone clicks what kind of registrant they are, hide the opposite form section
@@ -467,8 +473,8 @@
                 $('#commercial-individual-questions').show();
                 $('#commercial-corporation-questions').hide();
 
-                // $("#commercial-individual-questions :input").prop('required',true);
-                // $("#commercial-corporation-questions :input").prop('required',false);
+                $("#commercial-individual-questions :input").prop('required',true);
+                $("#commercial-corporation-questions :input").prop('required',false);
                 $("#commercial-corporation-questions :input").val('');
             }
 
@@ -476,9 +482,9 @@
                 $('#commercial-individual-questions').hide();
                 $('#commercial-corporation-questions').show();
 
-                // $("#commercial-individual-questions :input").prop('required',false);
+                $("#commercial-individual-questions :input").prop('required',false);
                 $("#commercial-individual-questions :input").val('');                
-                // $("#commercial-corporation-questions :input").prop('required',true);
+                $("#commercial-corporation-questions :input").prop('required',true);
             }
         });
     });
