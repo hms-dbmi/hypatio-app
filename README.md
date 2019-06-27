@@ -7,7 +7,7 @@ Throughout the documentation, any mention of the word *"project"* refers to the 
 **[Infrastructure](#infrastructure)**<br>
 **[App overview](#app-overview)**<br>
 **[Local development](#local-development)**<br>
-**[User documentation](#user-documentation)**<br>
+**[DataProject management](#dataproject-management)**<br>
 
 ## Infrastructure
 ### AWS stack overview
@@ -120,5 +120,20 @@ To create Django migration files and run them, bash into the Hypatio container w
 ### Where are the emails going?
 `hypatio-stack` uses a mail client to intercept emails before they get sent. You can reach it by going to `localhost:8018` (or whatever port it is configured with in the docker-compose).
 
-## User documentation
-Please visit the following link to read and edit documentation tailored for users and administrators of Hypatio: <https://docs.google.com/document/d/17h99OVvY1VyzJb-CqWrf4uqQMYUsB-iakV0NKOZv8OQ/edit?usp=sharing>.
+## DataProject management
+### Granting MANAGE permissions to project managers
+When you want someone to be able to access the management pages for projects, they will need to have a DBMI-AuthZ record with `Hypatio.{project_key}` and `MANAGE` for the email address they use to access Hypatio.
+
+### Adding new DataProjects
+To list a new project on Hypatio, create a new `DataProject` object in the Django admin. The `project_key` field becomes a part of the URL for that page. The `description` field allows for HTML to be entered, allowing project descriptions to be more engaging. The `project_supervisors` field holds a comma separated list (no spaces) of email addresses of people who should receive email notifications related to the project (e.g. when a user requests access or when someone submits a question via Contact Us).
+
+### Adding a new agreement form
+To allow some custom behavior for agreement forms (e.g. display extra form fields depending on prior answers), we create .html files for each agreement form and store them in the static directory. Once you have the HTML file ready, create a new `AgreementForm` object in the Django admin and use the `form_file_path` field to indicate where in the static directory the HTML file is. Go back to your `DataProject` object and select the new agreement form in the many to many field. An agreement form can be used for many data projects.
+
+The `AgreementForm.external_link` field should only be used when the agreement form lives on another website and you simply want to force users to see that link and click on it before they can access the project. 
+
+### Adding a new challenge task
+Some projects are actually data challenges (e.g. most of the N2C2). The project requires users to form teams (toggle `has_teams` in the `DataProject`) and later submit solutions via an upload form. Like with agreement forms, create an HTML file in the static directory for every new task, and create a `ChallengeTask` object that has that path. Ensure that the `enabled` flag is set to true even if you have an opened and closed time. That time window specifies when users can submit solutions. 
+
+### Documentation for project managers
+Please visit the following link to read and edit documentation tailored for project managers of Hypatio: <https://docs.google.com/document/d/17h99OVvY1VyzJb-CqWrf4uqQMYUsB-iakV0NKOZv8OQ/edit?usp=sharing>.
