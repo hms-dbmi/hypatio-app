@@ -117,6 +117,7 @@ class DataProjectView(TemplateView):
     user_jwt = None
     participant = None
     current_step = None
+    email_verified = None
     template_name = 'projects/project.html'
 
     def dispatch(self, request, *args, **kwargs):
@@ -187,6 +188,12 @@ class DataProjectView(TemplateView):
             sciauthz = SciAuthZ(settings.AUTHZ_BASE, self.user_jwt, self.request.user.email)
             context['has_manage_permissions'] = sciauthz.user_has_manage_permission(self.project.project_key)
             context['has_view_permission'] = sciauthz.user_has_single_permission(self.project.project_key, "VIEW")
+
+        # Require users to verify their email no matter what before they access a project.
+        self.email_verified = get_user_email_confirmation_status(self.user_jwt)
+        if not self.email_verified:
+            self.get_signup_context(context)
+            return context
 
         # If a user is already granted access to a project, only show them the participation panels.
         if self.is_user_granted_access(context):
@@ -339,8 +346,7 @@ class DataProjectView(TemplateView):
         a required step.
         """
 
-        email_verified = get_user_email_confirmation_status(self.user_jwt)
-        step_status = self.get_step_status('verify_email', email_verified)
+        step_status = self.get_step_status('verify_email', self.email_verified)
 
         panel = DataProjectSignupPanel(
             title='Verify Your Email',
