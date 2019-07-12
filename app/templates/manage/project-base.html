@@ -135,17 +135,27 @@
                                 <span class="text-danger"><i>Downloads currently disabled</i></span>
                                 {% endif %}
                             </div>
-                            
+
                             <div class="col-sm-4">
                                 <div class="pull-right">
-                                    <a class="btn btn-default pull-right edit-agreement-form-button" 
-                                        href="#" 
-                                        role="button" 
-                                        data-toggle="modal" 
+                                    <a class="btn btn-default pull-right edit-agreement-form-button"
+                                        href="#"
+                                        role="button"
+                                        data-toggle="modal"
                                         data-target="#modal-edit-hosted-file"
                                         ic-get-from="{% url 'manage:get-hosted-file-edit-form' %}"
                                         ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
                                         ic-target="#modal-edit-hosted-file-body">
+                                        Edit
+                                    </a>
+                                    <a class="btn btn-default pull-right"
+                                        href="#"
+                                        role="button"
+                                        data-toggle="modal"
+                                        data-target="#modal-hosted-file-logs"
+                                        ic-get-from="{% url 'manage:get-hosted-file-logs' %}"
+                                        ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
+                                        ic-target="#modal-hosted-file-logs-body">
                                         Edit
                                     </a>
                                 </div>
@@ -161,7 +171,7 @@
     </div>
 </div>
 
-<!-- 
+<!--
 <div class="row">
     <div class="col-md-12" style="margin-bottom: 15px;">
         <hr>
@@ -309,7 +319,7 @@
                                 <td>
                                     {% if participant_info.view_permissions %}
                                         <button type="button" class="btn btn-default btn-xs" ic-post-to="{% url 'manage:remove-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
-                                            Revoke access <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> 
+                                            Revoke access <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
                                         </button>
                                     {% else %}
                                         {% if participant_info.signed_accepted_agreement_forms == num_required_forms %}
@@ -444,6 +454,21 @@
         </div>
     </div>
 </div>
+
+<div id="modal-hosted-file-logs" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h5 class="modal-title">File Download Logs</h5>
+            </div>
+
+            <div class="modal-body" id="modal-hosted-file-logs-body">
+                {# Loaded via Intercooler.js #}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block footerscripts %}
@@ -459,7 +484,7 @@
             // Order by the Access column to prioritize pending access.
             "order": [[2, "desc"]]
         });
-        
+
         $('#submissions-table').DataTable();
     });
 </script>
@@ -470,7 +495,7 @@
         $('#team-table').on("click", ".team-row", function() {
             var team = $(this).data('team');
             window.open("./" + team + "/");
-            
+
             // Because the user may now delete the team or change its status, mention
             // that they should refresh the page to see any changes
             var teamStatus = $(this).find('.team-status-column');
@@ -486,7 +511,7 @@
 
         // Grab the information from an adjacent div
         var submission_info = $(this).data('submission-info');
-        
+
         // Parse the string into an actual json
         var submission_info_json_prettyprint = JSON.stringify(submission_info, null, 4);
 
@@ -515,13 +540,13 @@
     //     if (form_type == "STATIC") {
     //         $('#agreement-form-type-html').prop('checked', true);
     //         $('#agreement-form-type-external').prop('checked', false);
-            
+
     //         $('#agreement-form-html-file-block').show();
     //         $('#agreement-form-external-link-block').hide();
     //     } else if (form_type == "EXTERNAL_LINK") {
     //         $('#agreement-form-type-html').prop('checked', false);
     //         $('#agreement-form-type-external').prop('checked', true);
-            
+
     //         $('#agreement-form-html-file-block').hide();
     //         $('#agreement-form-external-link-block').show();
     //     }
