@@ -6,40 +6,40 @@ services:
       - AWS_ACCESS_KEY_ID
       - PS_PATH=secret.dbmi.hypatio.DEV
     build:
-      context: ~/src/apps/hypatio
+      context: ~/work/hypatio-app
       dockerfile: Dockerfile
     volumes:
-      - ~/src/apps/hypatio/app:/app
+      - ~/work/hypatio-app/app:/app
   scireg:
     environment:
       - AWS_SECRET_ACCESS_KEY
       - AWS_ACCESS_KEY_ID
       - PS_PATH=secret.dbmi.scireg.DEV
     build:
-      context: ~/src/apps/SciReg
+      context: ~/work/SciReg
       dockerfile: Dockerfile
     volumes:
-      - ~/src/apps/SciReg/app:/app
+      - ~/work/SciReg/app:/app
   sciauth:
     environment:
       - AWS_SECRET_ACCESS_KEY
       - AWS_ACCESS_KEY_ID
       - PS_PATH=secret.dbmi.sciauth.DEV
     build:
-      context: ~/src/apps/SciAuth
+      context: ~/work/SciAuth
       dockerfile: Dockerfile
     volumes:
-      - ~/src/apps/SciAuth/app:/app
+      - ~/work/SciAuth/app:/app
   sciauthz:
     environment:
       - AWS_SECRET_ACCESS_KEY
       - AWS_ACCESS_KEY_ID
       - PS_PATH=secret.dbmi.sciauthz.DEV
     build:
-      context: ~/src/apps/SciAuthZ
+      context: ~/work/SciAuthZ
       dockerfile: Dockerfile
     volumes:
-      - ~/src/apps/SciAuthZ/app:/app
+      - ~/work/SciAuthZ/app:/app
 networks:
   portal:
     driver: bridge
