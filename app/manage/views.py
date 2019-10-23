@@ -309,7 +309,7 @@ class ProjectParticipants(View):
 
             # If project has teams, add that
             if project.has_teams:
-                participant_row.insert(1, participant.team.team_leader.email.lower())
+                participant_row.insert(1, participant.team.team_leader.email.lower() if participant.team and participant.team.team_leader else '')
 
             participants.append(participant_row)
 
