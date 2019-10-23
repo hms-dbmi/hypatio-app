@@ -20,6 +20,7 @@ from manage.api import download_team_submissions
 from manage.api import download_email_list
 from manage.api import grant_view_permission
 from manage.api import remove_view_permission
+from manage.api import sync_view_permissions
 
 app_name = 'manage'
 urlpatterns = [
@@ -38,6 +39,7 @@ urlpatterns = [
     url(r'^delete-team/$', delete_team, name='delete-team'),
     url(r'^download-team-submissions/(?P<project_key>[^/]+)/(?P<team_leader_email>[^/]+)/$', download_team_submissions, name='download-team-submissions'),
     url(r'^download-submission/(?P<fileservice_uuid>[^/]+)/$', download_submission, name='download-submission'),
+    url(r'^sync-view-permissions/(?P<project_key>[^/]+)/$', sync_view_permissions, name='sync-view-permissions'),
     url(r'^grant-view-permission/(?P<project_key>[^/]+)/(?P<user_email>[^/]+)/$', grant_view_permission, name='grant-view-permission'),
     url(r'^remove-view-permission/(?P<project_key>[^/]+)/(?P<user_email>[^/]+)/$', remove_view_permission, name='remove-view-permission'),
     url(r'^(?P<project_key>[^/]+)/$', DataProjectManageView.as_view(), name='manage-project'),
