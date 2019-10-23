@@ -521,11 +521,20 @@ def set_team_status(request):
         for member in team.participant_set.all():
             sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
             sciauthz.create_view_permission(project_key, member.user.email)
+
+            # Add permission to Participant
+            member.permission = 'VIEW'
+            member.save()
+
     # If setting to Deactivated, revoke each team member's permissions.
     elif status == "deactivated":
         for member in team.participant_set.all():
             sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
             sciauthz.remove_view_permission(project_key, member.user.email)
+
+            # Remove permission from Participant
+            member.permission = None
+            member.save()
 
     # Send an email notification to the team
     context = {'status': status,
@@ -818,6 +827,22 @@ def grant_view_permission(request, project_key, user_email):
 
     sciauthz.create_view_permission(project_key, user_email)
 
+    # Add permission to their Participant row
+    try:
+        participant = project.participant_set.get(user__email=user_email)
+        participant.permission = 'VIEW'
+        participant.save()
+    except Exception as e:
+        logger.exception(
+            '[HYPATIO][DEBUG][grant_view_permission] User {user} could not have permission added to project {project_key}: {e}'.format(
+                user=request.user.email,
+                project_key=project_key,
+                e=e,
+            ),
+            exc_info=True,
+            extra={'manager': request.user.email, 'participant': user_email, 'project': project_key}
+        )
+
     subject = "DBMI Data Portal - Access granted to dataset"
 
     email_context = {
@@ -871,4 +896,70 @@ def remove_view_permission(request, project_key, user_email):
 
     sciauthz.remove_view_permission(project_key, user_email)
 
+    # Remove permission from their Participant
+    try:
+        participant = project.participant_set.get(user__email=user_email)
+        participant.permission = None
+        participant.save()
+    except Exception as e:
+        logger.exception(
+            '[HYPATIO][ERROR][grant_view_permission] User {user} could not have permission remove from project {project_key}: {e}'.format(
+                user=request.user.email,
+                project_key=project_key,
+                e=e,
+            ),
+            exc_info=True,
+            extra={'manager': request.user.email, 'participant': user_email, 'project': project_key}
+        )
+
     return HttpResponse("Access removed")
+
+
+@user_auth_and_jwt
+def sync_view_permissions(request, project_key):
+    """
+    Pulls all permissions from DBMI-AuthZ and syncs those with VIEW permission to the Participant model
+    """
+    project = get_object_or_404(DataProject, project_key=project_key)
+
+    # Check Permissions in SciAuthZ
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    is_manager = sciauthz.user_has_manage_permission(project_key)
+
+    logger.debug(
+        '[HYPATIO][DEBUG][grant_view_permission] User {user} is attempting to sync VIEW permissions for project {project_key}.'.format(
+            user=request.user.email,
+            project_key=project_key
+        )
+    )
+
+    if not is_manager:
+        logger.error(
+            '[HYPATIO][DEBUG][grant_view_permission] User {user} does not have manage permissions to project {project_key}.'.format(
+                user=request.user.email,
+                project_key=project_key
+            )
+        )
+        return HttpResponse("Access denied.", status=403)
+
+    # Get the emails of all those currently containing VIEW permissions in AuthZ for this project
+    permitted_emails = sciauthz.get_all_view_permissions_for_project(project=project_key)
+
+    # Iterate participants
+    for participant in project.participant_set.all():
+
+        # Check if they have permission
+        if participant.user.email.lower() in permitted_emails and participant.permission != 'VIEW':
+
+            # Set it
+            participant.permission = 'VIEW'
+            participant.save()
+
+        elif participant.user.email.lower() not in permitted_emails:
+
+            # Clear it
+            participant.permission = None
+            participant.save()
+
+    return HttpResponse(status=200)
