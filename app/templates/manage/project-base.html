@@ -267,7 +267,16 @@
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Full participant list</h2>
+                <h2 class="panel-title">
+                    Full participant list
+                    <small>
+                        <button type="button" class="btn btn-primary btn-xs pull-right"
+                                ic-post-to="{% url 'manage:sync-view-permissions' project.project_key %}"
+                                ic-on-success="$('#sync-modal').modal();">
+                            Sync VIEW permissions <i class="ic-indicator fa fa-spinner fa-spin" style="display:none"></i>
+                        </button>
+                    </small>
+                </h2>
             </div>
             <div class="panel-body">
                 <div class="table-responsive">
@@ -444,6 +453,27 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="sync-modal" tabindex="-1" role="dialog" aria-labelledby="sync-modal-title">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <h5 class="modal-title" id="sync-modal-title">Permissions Sync</h5>
+      </div>
+      <div class="modal-body">
+          <p>Permissions for the current project were successfully synced</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:window.location.reload();">Reload Page</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block footerscripts %}

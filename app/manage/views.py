@@ -111,9 +111,6 @@ class DataProjectManageView(TemplateView):
 
         context['project'] = self.project
 
-        # Collect all permissions people have for this project.
-        users_with_view_permissions = self.sciauthz.get_all_view_permissions_for_project(self.project.project_key)
-
         # Collect all user information from SciReg.
         # TODO ...
 
@@ -166,7 +163,7 @@ class DataProjectManageView(TemplateView):
 
             participants.append({
                 'participant': participant,
-                'view_permissions': True if participant.user.email.lower() in users_with_view_permissions else False,
+                'view_permissions': participant.permission == 'VIEW',
                 'download_count': download_count,
                 'upload_count': upload_count,
                 'signed_forms': signed_agreement_forms,
