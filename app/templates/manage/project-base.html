@@ -295,49 +295,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for participant_info in participants %}
-                            <tr class="participant-row">
-                                <td>{{ participant_info.participant.user.email }}</td>
-                                {% if project.has_teams %}
-                                    <td>{{ participant_info.participant.team.team_leader.email }}</td>
-                                {% endif %}
-                                <td>
-                                    {% if participant_info.view_permissions %}
-                                        Access granted
-                                    {% else %}
-                                        No access
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% for form in participant_info.signed_forms %}
-                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="{% url 'projects:signed_agreement_form' %}?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
-                                        {{ form.agreement_form.short_name }} <span class="glyphicon {% if form.status == 'P' %}glyphicon-alert{% elif form.status == 'A' %}glyphicon-ok{% elif form.status == 'R' %}glyphicon-ban-circle{% endif %}" aria-hidden="true"></span>
-                                    </a>
-                                    {% endfor %}
-                                </td>
-                                <td>
-                                    {% if participant_info.view_permissions %}
-                                        <button type="button" class="btn btn-default btn-xs" ic-post-to="{% url 'manage:remove-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
-                                            Revoke access <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> 
-                                        </button>
-                                    {% else %}
-                                        {% if participant_info.signed_accepted_agreement_forms == num_required_forms %}
-                                            {% if not project.has_teams %}
-                                                <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
-                                                    Grant access <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
-                                                </button>
-                                            {% else %}
-                                                Grant approval via team management.
-                                            {% endif %}
-                                        {% else %}
-                                            Forms incomplete or pending your review
-                                        {% endif %}
-                                    {% endif %}
-                                </td>
-                                <td>{{ participant_info.download_count }}</td>
-                                <td>{{ participant_info.upload_count }}</td>
-                            </tr>
-                            {% endfor %}
+
                         </tbody>
                     </table>
                 </div>
@@ -487,7 +445,112 @@
 
         $('#participant-table').DataTable({
             // Order by the Access column to prioritize pending access.
-            "order": [[2, "desc"]]
+            "processing": true,
+            "serverSide": true,
+            "ajax": "{% url 'manage:get-project-participants' project_key=project_key %}",
+            "columnDefs": [
+                {
+                    "targets": [{% if project.has_teams %}1, 2, 3, 5, 6{% else %}1, 2, 4, 5{% endif %}],
+                    "orderable": false
+                },
+                {
+                    "targets": {% if project.has_teams %}3{% else %}2{% endif %},
+                    "render":  function(data, type, full, meta) {
+
+                        // Build HTML render
+                        var html = '';
+
+                        // Data is an array of forms
+                        for (index = 0; index < data.length; index++) {
+
+                            // Get the form
+                            var form = data[index];
+
+                            // Set the base URL for the forms
+                            var formUrl = '{% url "projects:signed_agreement_form" %}?project_key={{ project_key }}&signed_form_id=' + form['id'];
+
+                            // Set form type and icon classes
+                            var formClasses = (function(formStatus) {
+                              switch(formStatus) {
+                                case 'P':
+                                  return ['btn-warning', 'glyphicon-alert'];
+                                case 'A':
+                                  return ['btn-default', 'glyphicon-ok'];
+                                case 'R':
+                                  return ['btn-danger', 'glyphicon-ban-circle'];
+                                default:
+                                  return ['btn-warning', 'glyphicon-alert'];
+                              }
+                            })(form['status']);
+
+                            // Set link HTML with placeholders for button classes
+                            var link = '<a style="display: block; margin: 2px;" ' +
+                                'class="btn btn-default btn-xs ' + formClasses[0] +
+                                ' download-signed-form" href="' + formUrl +
+                                '" target="_blank" role="button">' + form['name'] +
+                                '  <span class="glyphicon ' + formClasses[1] +
+                                '" aria-hidden="true"></span></a>';
+
+                            // Append it to the other elements
+                            html += link
+                        }
+
+                        return html;
+                    }
+                },
+                {
+                    "targets": {% if project.has_teams %}4{% else %}3{% endif %},
+                    "render":  function(data, type, full, meta) {
+
+                        // Determine output based on access, forms signed, etc.
+                        if(data['access']) {
+
+                            // Set the URL for revoking access
+                            var buttonUrl = '{% url "manage:remove-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
+
+                            // Return the button to revoke
+                            return '<button type="button" class="btn btn-default btn-xs" ic-post-to="' + buttonUrl +
+                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);">Revoke access  ' +
+                                '<span class="glyphicon glyphicon-ban-circle" ' +
+                                'aria-hidden="true"></span></button>';
+
+                        } else if(data['signed'] == data['required'] && !data['team']) {
+
+                            // Set the URL for approving access
+                            var buttonUrl = '{% url "manage:grant-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
+
+                            // Return button to approve user
+                            return '<button type="button" class="btn btn-default btn-xs btn-success" ' +
+                                'ic-post-to="' + buttonUrl +
+                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);">Grant access  ' +
+                                '<span class="glyphicon glyphicon-alert" aria-hidden="true"></span>' +
+                                '</button>';
+
+                        } else if(data['signed'] == data['required'] && data['team']) {
+
+                            return 'Grant approval via team management.';
+
+                        } else {
+
+                            return 'Forms incomplete or pending your review';
+                        }
+                    }
+                }
+            ],
+            "drawCallback": function( settings ) {
+
+                // Collect all Intercooler links
+                $('#participant-table [ic-get-from], #participant-table [ic-post-to], #participant-table [ic-put-to],' +
+                    '#participant-table [ic-patch-to], #participant-table [ic-delete-from]').each(function() {
+
+                    // Check attribute
+                    if( !$(this).attr('ic-id') ) {
+
+                        // Process it
+                        Intercooler.processNodes($(this));
+                    }
+                });
+            },
         });
         
         $('#submissions-table').DataTable();
