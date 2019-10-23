@@ -220,23 +220,6 @@ class ProjectParticipants(View):
         # Check for a search value
         search = request.GET['search[value]']
 
-        # Get counts of downloads by isolating which files this project has, grouping by user email, and counting on those emails.
-        user_download_counts = HostedFileDownload.objects \
-            .filter(hosted_file__project=project) \
-            .values('user__email') \
-            .annotate(user_downloads=Count('user__email'))
-
-        # Convert the download count queryset into a simple dictionary for quicker access later.
-        user_download_counts_dict = {}
-        for user in user_download_counts:
-            user_download_counts_dict[user['user__email']] = user['user_downloads']
-
-        # Get how many challengetasks a user has submitted for this project.
-        user_upload_counts = ChallengeTaskSubmission.objects \
-            .filter(challenge_task__data_project=project) \
-            .values('participant__user__email') \
-            .annotate(user_uploads=Count('participant__user__email'))
-
         # Check what we're sorting by and in what direction
         if order_column == 0:
             sort_order = ['user__email'] if order_direction == 'asc' else ['-user__email']
@@ -255,12 +238,27 @@ class ProjectParticipants(View):
         logger.debug('Participant page: {}'.format(page))
         participant_page = paginator.page(page)
 
+        # Get emails
+        participant_emails = paginator.object_list.values('user__email')
+
+        # Get counts of downloads by isolating which files this project has, grouping by user email, and counting on those emails.
+        user_download_counts = HostedFileDownload.objects \
+            .filter(hosted_file__project=project, user__email__in=participant_emails) \
+            .values('user__email') \
+            .annotate(user_downloads=Count('user__email'))
+
+        # Get how many challengetasks a user has submitted for this project.
+        user_upload_counts = ChallengeTaskSubmission.objects \
+            .filter(challenge_task__data_project=project, participant__in=paginator.object_list) \
+            .values('participant__user__email') \
+            .annotate(user_uploads=Count('participant__user__email'))
+
         participants = []
         for participant in participant_page:
 
             try:
-                download_count = user_download_counts_dict[participant.user.email]
-            except KeyError:
+                download_count = user_download_counts.get(user__email=participant.user.email)['user_downloads']
+            except ObjectDoesNotExist:
                 download_count = 0
 
             try:
