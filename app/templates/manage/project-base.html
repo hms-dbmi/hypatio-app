@@ -43,7 +43,7 @@
         </div>
     </div>
 
-    <div class="col-md-9">
+    <div class="col-md-6">
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Details</h2>
@@ -55,16 +55,47 @@
         </div>
     </div>
 
-    <!-- <div class="col-md-4">
+    <div class="col-md-3">
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Reports and Statistics</h2>
             </div>
             <div class="panel-body">
-                Coming soon...
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <span class="badge">{{ approved_teams|length }}</span>
+                        Approved Teams
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge">{{ approved_participants|length }}</span>
+                        Approved Participants
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge">{{ total_submissions|length }}</span>
+                        Total Submissions
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge">{{ teams_with_any_submission|length }}</span>
+                        Teams With Submissions
+                    </li>
+                </ul>
+
+                <hr>
+
+                <p><strong>Countries Represented</strong></p>
+
+                <ul class="list-group">
+                {% for participating_country in participating_countries %}
+                    <li class="list-group-item">
+                        <span class="badge">{{ participating_country.n }}</span>
+                        {% get_country participating_country.country as country %}
+                        {{ country.name }}
+                    </li>
+                {% endfor %}
+                </ul>
             </div>
         </div>
-    </div> -->
+    </div>
 </div>
 
 <div class="row">
@@ -277,7 +308,16 @@
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Full participant list</h2>
+                <h2 class="panel-title">
+                    Full participant list
+                    <small>
+                        <button type="button" class="btn btn-primary btn-xs pull-right"
+                                ic-post-to="{% url 'manage:sync-view-permissions' project.project_key %}"
+                                ic-on-success="$('#sync-modal').modal();">
+                            Sync VIEW permissions <i class="ic-indicator fa fa-spinner fa-spin" style="display:none"></i>
+                        </button>
+                    </small>
+                </h2>
             </div>
             <div class="panel-body">
                 <div class="table-responsive">
@@ -469,6 +509,27 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="sync-modal" tabindex="-1" role="dialog" aria-labelledby="sync-modal-title">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <h5 class="modal-title" id="sync-modal-title">Permissions Sync</h5>
+      </div>
+      <div class="modal-body">
+          <p>Permissions for the current project were successfully synced</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:window.location.reload();">Reload Page</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block footerscripts %}
@@ -482,7 +543,112 @@
 
         $('#participant-table').DataTable({
             // Order by the Access column to prioritize pending access.
-            "order": [[2, "desc"]]
+            "processing": true,
+            "serverSide": true,
+            "ajax": "{% url 'manage:get-project-participants' project_key=project_key %}",
+            "columnDefs": [
+                {
+                    "targets": [{% if project.has_teams %}1, 2, 3, 5, 6{% else %}1, 2, 4, 5{% endif %}],
+                    "orderable": false
+                },
+                {
+                    "targets": {% if project.has_teams %}3{% else %}2{% endif %},
+                    "render":  function(data, type, full, meta) {
+
+                        // Build HTML render
+                        var html = '';
+
+                        // Data is an array of forms
+                        for (index = 0; index < data.length; index++) {
+
+                            // Get the form
+                            var form = data[index];
+
+                            // Set the base URL for the forms
+                            var formUrl = '{% url "projects:signed_agreement_form" %}?project_key={{ project_key }}&signed_form_id=' + form['id'];
+
+                            // Set form type and icon classes
+                            var formClasses = (function(formStatus) {
+                              switch(formStatus) {
+                                case 'P':
+                                  return ['btn-warning', 'glyphicon-alert'];
+                                case 'A':
+                                  return ['btn-default', 'glyphicon-ok'];
+                                case 'R':
+                                  return ['btn-danger', 'glyphicon-ban-circle'];
+                                default:
+                                  return ['btn-warning', 'glyphicon-alert'];
+                              }
+                            })(form['status']);
+
+                            // Set link HTML with placeholders for button classes
+                            var link = '<a style="display: block; margin: 2px;" ' +
+                                'class="btn btn-default btn-xs ' + formClasses[0] +
+                                ' download-signed-form" href="' + formUrl +
+                                '" target="_blank" role="button">' + form['name'] +
+                                '  <span class="glyphicon ' + formClasses[1] +
+                                '" aria-hidden="true"></span></a>';
+
+                            // Append it to the other elements
+                            html += link
+                        }
+
+                        return html;
+                    }
+                },
+                {
+                    "targets": {% if project.has_teams %}4{% else %}3{% endif %},
+                    "render":  function(data, type, full, meta) {
+
+                        // Determine output based on access, forms signed, etc.
+                        if(data['access']) {
+
+                            // Set the URL for revoking access
+                            var buttonUrl = '{% url "manage:remove-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
+
+                            // Return the button to revoke
+                            return '<button type="button" class="btn btn-default btn-xs" ic-post-to="' + buttonUrl +
+                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);">Revoke access  ' +
+                                '<span class="glyphicon glyphicon-ban-circle" ' +
+                                'aria-hidden="true"></span></button>';
+
+                        } else if(data['signed'] == data['required'] && !data['team']) {
+
+                            // Set the URL for approving access
+                            var buttonUrl = '{% url "manage:grant-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
+
+                            // Return button to approve user
+                            return '<button type="button" class="btn btn-default btn-xs btn-success" ' +
+                                'ic-post-to="' + buttonUrl +
+                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);">Grant access  ' +
+                                '<span class="glyphicon glyphicon-alert" aria-hidden="true"></span>' +
+                                '</button>';
+
+                        } else if(data['signed'] == data['required'] && data['team']) {
+
+                            return 'Grant approval via team management.';
+
+                        } else {
+
+                            return 'Forms incomplete or pending your review';
+                        }
+                    }
+                }
+            ],
+            "drawCallback": function( settings ) {
+
+                // Collect all Intercooler links
+                $('#participant-table [ic-get-from], #participant-table [ic-post-to], #participant-table [ic-put-to],' +
+                    '#participant-table [ic-patch-to], #participant-table [ic-delete-from]').each(function() {
+
+                    // Check attribute
+                    if( !$(this).attr('ic-id') ) {
+
+                        // Process it
+                        Intercooler.processNodes($(this));
+                    }
+                });
+            },
         });
 
         $('#submissions-table').DataTable();
