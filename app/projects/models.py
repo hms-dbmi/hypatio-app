@@ -194,6 +194,7 @@ class Participant(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE)
+    permission = models.CharField(max_length=250, blank=True, null=True)
 
     # TODO remove or consolidate all these fields
     team_wait_on_leader_email = models.CharField(max_length=100, blank=True, null=True)

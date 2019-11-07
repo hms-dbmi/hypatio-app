@@ -3,6 +3,7 @@ from django.conf.urls import url
 from manage.views import DataProjectListManageView
 from manage.views import DataProjectManageView
 from manage.views import manage_team
+from manage.views import ProjectParticipants
 
 from manage.api import set_dataproject_details
 from manage.api import set_dataproject_registration_status
@@ -20,6 +21,7 @@ from manage.api import download_team_submissions
 from manage.api import download_email_list
 from manage.api import grant_view_permission
 from manage.api import remove_view_permission
+from manage.api import sync_view_permissions
 
 app_name = 'manage'
 urlpatterns = [
@@ -38,8 +40,10 @@ urlpatterns = [
     url(r'^delete-team/$', delete_team, name='delete-team'),
     url(r'^download-team-submissions/(?P<project_key>[^/]+)/(?P<team_leader_email>[^/]+)/$', download_team_submissions, name='download-team-submissions'),
     url(r'^download-submission/(?P<fileservice_uuid>[^/]+)/$', download_submission, name='download-submission'),
+    url(r'^sync-view-permissions/(?P<project_key>[^/]+)/$', sync_view_permissions, name='sync-view-permissions'),
     url(r'^grant-view-permission/(?P<project_key>[^/]+)/(?P<user_email>[^/]+)/$', grant_view_permission, name='grant-view-permission'),
     url(r'^remove-view-permission/(?P<project_key>[^/]+)/(?P<user_email>[^/]+)/$', remove_view_permission, name='remove-view-permission'),
+    url(r'^get-project-participants/(?P<project_key>[^/]+)/$', ProjectParticipants.as_view(), name='get-project-participants'),
     url(r'^(?P<project_key>[^/]+)/$', DataProjectManageView.as_view(), name='manage-project'),
     url(r'^(?P<project_key>[^/]+)/(?P<team_leader>[^/]+)/$', manage_team, name='manage-team'),
 ]
