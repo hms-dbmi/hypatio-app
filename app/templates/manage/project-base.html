@@ -43,7 +43,7 @@
         </div>
     </div>
 
-    <div class="col-md-9">
+    <div class="col-md-6">
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Details</h2>
@@ -55,16 +55,47 @@
         </div>
     </div>
 
-    <!-- <div class="col-md-4">
+    <div class="col-md-3">
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Reports and Statistics</h2>
             </div>
             <div class="panel-body">
-                Coming soon...
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <span class="badge">{{ approved_teams|length }}</span>
+                        Approved Teams
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge">{{ approved_participants|length }}</span>
+                        Approved Participants
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge">{{ total_submissions|length }}</span>
+                        Total Submissions
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge">{{ teams_with_any_submission|length }}</span>
+                        Teams With Submissions
+                    </li>
+                </ul>
+
+                <hr>
+
+                <p><strong>Countries Represented</strong></p>
+
+                <ul class="list-group">
+                {% for participating_country in participating_countries %}
+                    <li class="list-group-item">
+                        <span class="badge">{{ participating_country.n }}</span>
+                        {% get_country participating_country.country as country %}
+                        {{ country.name }}
+                    </li>
+                {% endfor %}
+                </ul>
             </div>
         </div>
-    </div> -->
+    </div>
 </div>
 
 <div class="row">
@@ -135,13 +166,13 @@
                                 <span class="text-danger"><i>Downloads currently disabled</i></span>
                                 {% endif %}
                             </div>
-                            
+
                             <div class="col-sm-4">
                                 <div class="pull-right">
-                                    <a class="btn btn-default pull-right edit-agreement-form-button" 
-                                        href="#" 
-                                        role="button" 
-                                        data-toggle="modal" 
+                                    <a class="btn btn-default pull-right edit-agreement-form-button"
+                                        href="#"
+                                        role="button"
+                                        data-toggle="modal"
                                         data-target="#modal-edit-hosted-file"
                                         ic-get-from="{% url 'manage:get-hosted-file-edit-form' %}"
                                         ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
@@ -161,7 +192,7 @@
     </div>
 </div>
 
-<!-- 
+<!--
 <div class="row">
     <div class="col-md-12" style="margin-bottom: 15px;">
         <hr>
@@ -295,7 +326,49 @@
                             </tr>
                         </thead>
                         <tbody>
-
+                            {% for participant_info in participants %}
+                            <tr class="participant-row">
+                                <td>{{ participant_info.participant.user.email }}</td>
+                                {% if project.has_teams %}
+                                    <td>{{ participant_info.participant.team.team_leader.email }}</td>
+                                {% endif %}
+                                <td>
+                                    {% if participant_info.view_permissions %}
+                                        Access granted
+                                    {% else %}
+                                        No access
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% for form in participant_info.signed_forms %}
+                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="{% url 'projects:signed_agreement_form' %}?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
+                                        {{ form.agreement_form.short_name }} <span class="glyphicon {% if form.status == 'P' %}glyphicon-alert{% elif form.status == 'A' %}glyphicon-ok{% elif form.status == 'R' %}glyphicon-ban-circle{% endif %}" aria-hidden="true"></span>
+                                    </a>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% if participant_info.view_permissions %}
+                                        <button type="button" class="btn btn-default btn-xs" ic-post-to="{% url 'manage:remove-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
+                                            Revoke access <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
+                                        </button>
+                                    {% else %}
+                                        {% if participant_info.signed_accepted_agreement_forms == num_required_forms %}
+                                            {% if not project.has_teams %}
+                                                <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
+                                                    Grant access <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
+                                                </button>
+                                            {% else %}
+                                                Grant approval via team management.
+                                            {% endif %}
+                                        {% else %}
+                                            Forms incomplete or pending your review
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                                <td>{{ participant_info.download_count }}</td>
+                                <td>{{ participant_info.upload_count }}</td>
+                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -552,7 +625,7 @@
                 });
             },
         });
-        
+
         $('#submissions-table').DataTable();
     });
 </script>
@@ -563,7 +636,7 @@
         $('#team-table').on("click", ".team-row", function() {
             var team = $(this).data('team');
             window.open("./" + team + "/");
-            
+
             // Because the user may now delete the team or change its status, mention
             // that they should refresh the page to see any changes
             var teamStatus = $(this).find('.team-status-column');
@@ -579,7 +652,7 @@
 
         // Grab the information from an adjacent div
         var submission_info = $(this).data('submission-info');
-        
+
         // Parse the string into an actual json
         var submission_info_json_prettyprint = JSON.stringify(submission_info, null, 4);
 
@@ -608,13 +681,13 @@
     //     if (form_type == "STATIC") {
     //         $('#agreement-form-type-html').prop('checked', true);
     //         $('#agreement-form-type-external').prop('checked', false);
-            
+
     //         $('#agreement-form-html-file-block').show();
     //         $('#agreement-form-external-link-block').hide();
     //     } else if (form_type == "EXTERNAL_LINK") {
     //         $('#agreement-form-type-html').prop('checked', false);
     //         $('#agreement-form-type-external').prop('checked', true);
-            
+
     //         $('#agreement-form-html-file-block').hide();
     //         $('#agreement-form-external-link-block').show();
     //     }

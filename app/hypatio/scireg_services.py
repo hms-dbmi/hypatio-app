@@ -85,7 +85,7 @@ def get_distinct_countries_participating(user_jwt, participants, project_key):
     url = settings.SCIREG_REGISTRATION_URL + 'get_countries/'
 
     # From a QuerySet of participants, get a list of their emails
-    emails = list(participants.values_list('user__email', flat=True))
+    emails = [participant.user.email for participant in participants]
     emails_list_string = ",".join(emails)
 
     data = {
