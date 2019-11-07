@@ -7,10 +7,12 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 from django.db.models import F
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
+from django.views.generic.base import View
+from django.core.paginator import Paginator
 
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_user_profile, get_distinct_countries_participating
@@ -111,9 +113,6 @@ class DataProjectManageView(TemplateView):
 
         context['project'] = self.project
 
-        # Collect all permissions people have for this project.
-        users_with_view_permissions = self.sciauthz.get_all_view_permissions_for_project(self.project.project_key)
-
         # Collect all user information from SciReg.
         # TODO ...
 
@@ -133,47 +132,6 @@ class DataProjectManageView(TemplateView):
             .filter(challenge_task__data_project=self.project)\
             .values('participant__user__email')\
             .annotate(user_uploads=Count('participant__user__email'))
-
-        participants = []
-        for participant in self.project.participant_set.all():
-
-            try:
-                download_count = user_download_counts_dict[participant.user.email]
-            except KeyError:
-                download_count = 0
-
-            try:
-                upload_count = user_upload_counts.get(participant__user__email=participant.user.email)['user_uploads']
-            except ObjectDoesNotExist:
-                upload_count = 0
-
-            signed_agreement_forms = []
-            signed_accepted_agreement_forms = 0
-
-            # For each of the available agreement forms for this project, display only latest version completed by the user
-            for agreement_form in self.project.agreement_forms.all():
-                signed_form = SignedAgreementForm.objects.filter(
-                    user__email=participant.user.email,
-                    project=self.project,
-                    agreement_form=agreement_form
-                ).last()
-
-                if signed_form is not None:
-                    signed_agreement_forms.append(signed_form)
-
-                    if signed_form.status == 'A':
-                        signed_accepted_agreement_forms += 1
-
-            participants.append({
-                'participant': participant,
-                'view_permissions': True if participant.user.email.lower() in users_with_view_permissions else False,
-                'download_count': download_count,
-                'upload_count': upload_count,
-                'signed_forms': signed_agreement_forms,
-                'signed_accepted_agreement_forms': signed_accepted_agreement_forms,
-            })
-
-        context['participants'] = participants
 
         # If there are teams, calculate downloads and uploads by team members.
         if self.project.has_teams:
@@ -255,6 +213,134 @@ class DataProjectManageView(TemplateView):
             })
 
         return context
+
+
+@method_decorator(user_auth_and_jwt, name='dispatch')
+class ProjectParticipants(View):
+
+    def get(self, request, project_key, *args, **kwargs):
+
+        # Pull the project
+        try:
+            project = DataProject.objects.get(project_key=project_key)
+        except DataProject.NotFound:
+            logger.exception('DataProject for key "{}" not found'.format(project_key))
+            return HttpResponse(status=404)
+
+        # Get needed params
+        draw = int(request.GET['draw'])
+        start = int(request.GET['start'])
+        length = int(request.GET['length'])
+        order_column = int(request.GET['order[0][column]'])
+        order_direction = request.GET['order[0][dir]']
+
+        # Check for a search value
+        search = request.GET['search[value]']
+
+        # Get counts of downloads by isolating which files this project has, grouping by user email, and counting on those emails.
+        user_download_counts = HostedFileDownload.objects \
+            .filter(hosted_file__project=project) \
+            .values('user__email') \
+            .annotate(user_downloads=Count('user__email'))
+
+        # Convert the download count queryset into a simple dictionary for quicker access later.
+        user_download_counts_dict = {}
+        for user in user_download_counts:
+            user_download_counts_dict[user['user__email']] = user['user_downloads']
+
+        # Get how many challengetasks a user has submitted for this project.
+        user_upload_counts = ChallengeTaskSubmission.objects \
+            .filter(challenge_task__data_project=project) \
+            .values('participant__user__email') \
+            .annotate(user_uploads=Count('participant__user__email'))
+
+        # Check what we're sorting by and in what direction
+        if order_column == 0:
+            sort_order = ['user__email'] if order_direction == 'asc' else ['-user__email']
+        elif order_column == 3 and not project.has_teams or order_column == 4 and project.has_teams:
+            sort_order = ['permission', 'user__email'] if order_direction == 'asc' else ['-permission', '-user__email']
+        else:
+            sort_order = ['user__email'] if order_direction == 'asc' else ['-user__email']
+
+        # Paginate participants
+        query_set = project.participant_set.filter(user__email__icontains=search).order_by(*sort_order).all() \
+            if search else project.participant_set.order_by(*sort_order).all()
+        paginator = Paginator(query_set, length)
+
+        # Determine page index (1-index) from DT parameters
+        page = start / length + 1
+        logger.debug('Participant page: {}'.format(page))
+        participant_page = paginator.page(page)
+
+        participants = []
+        for participant in participant_page:
+
+            try:
+                download_count = user_download_counts_dict[participant.user.email]
+            except KeyError:
+                download_count = 0
+
+            try:
+                upload_count = user_upload_counts.get(participant__user__email=participant.user.email)['user_uploads']
+            except ObjectDoesNotExist:
+                upload_count = 0
+
+            signed_agreement_forms = []
+            signed_accepted_agreement_forms = 0
+
+            # For each of the available agreement forms for this project, display only latest version completed by the user
+            for agreement_form in project.agreement_forms.all():
+                signed_form = SignedAgreementForm.objects.filter(
+                    user__email=participant.user.email,
+                    project=project,
+                    agreement_form=agreement_form
+                ).last()
+
+                if signed_form is not None:
+                    signed_agreement_forms.append(signed_form)
+
+                    if signed_form.status == 'A':
+                        signed_accepted_agreement_forms += 1
+
+            # Build the row of the table for this participant
+            participant_row = [
+                participant.user.email.lower(),
+                'Access granted' if participant.permission == 'VIEW' else 'No access',
+                [
+                    {
+                        'status': f.status,
+                        'id': f.id,
+                        'name': f.agreement_form.short_name
+                    } for f in signed_agreement_forms
+                ],
+                {
+                    'access': True if participant.permission == 'VIEW' else False,
+                    'email': participant.user.email.lower(),
+                    'signed': signed_accepted_agreement_forms,
+                    'team': True if project.has_teams else False,
+                    'required': project.agreement_forms.count()
+                },
+                download_count,
+                upload_count,
+            ]
+
+            # If project has teams, add that
+            if project.has_teams:
+                participant_row.insert(1, participant.team.team_leader.email.lower() if participant.team and participant.team.team_leader else '')
+
+            participants.append(participant_row)
+
+        # Build DataTables response data
+        data = {
+            'draw': draw,
+            'recordsTotal': project.participant_set.count(),
+            'recordsFiltered': paginator.count,
+            'data': participants,
+            'error': None,
+        }
+
+        return JsonResponse(data=data)
+
 
 @user_auth_and_jwt
 def manage_team(request, project_key, team_leader, template_name='manage/team.html'):
