@@ -19,6 +19,7 @@ from manage.api import delete_team
 from manage.api import download_submission
 from manage.api import download_team_submissions
 from manage.api import download_email_list
+from manage.api import get_hosted_file_logs
 from manage.api import grant_view_permission
 from manage.api import remove_view_permission
 from manage.api import sync_view_permissions

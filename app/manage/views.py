@@ -19,6 +19,7 @@ from hypatio.scireg_services import get_user_profile, get_distinct_countries_par
 
 from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
+from projects.models import Participant
 from projects.models import Team
 from projects.models import TeamComment
 from projects.models import SignedAgreementForm
@@ -164,6 +165,7 @@ class DataProjectManageView(TemplateView):
             context['teams'] = teams
 
             approved_teams = list(filter(lambda team: team['status'] is 'Active', teams))
+            participants = Participant.objects.filter(team__in=approved_teams)
             approved_participants = list(filter(lambda participant: participant.team in approved_teams, participants))
             all_submissions = ChallengeTaskSubmission.objects.filter(
                 participant__in=approved_participants,
