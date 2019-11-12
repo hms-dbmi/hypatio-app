@@ -164,9 +164,8 @@ class DataProjectManageView(TemplateView):
 
             context['teams'] = teams
 
-            approved_teams = list(filter(lambda team: team['status'] is 'Active', teams))
-            participants = Participant.objects.filter(team__in=approved_teams)
-            approved_participants = list(filter(lambda participant: participant.team in approved_teams, participants))
+            approved_teams = list(filter(lambda team: team['status']=='Active', teams))
+            approved_participants = Participant.objects.filter(team__in=approved_teams)
             all_submissions = ChallengeTaskSubmission.objects.filter(
                 participant__in=approved_participants,
                 deleted=False
@@ -175,11 +174,11 @@ class DataProjectManageView(TemplateView):
             user_jwt = self.request.COOKIES.get("DBMI_JWT", None)
             countries = get_distinct_countries_participating(user_jwt, approved_participants, self.project.project_key)
 
-            context["approved_teams"] = approved_teams,
-            context["approved_participants"] = approved_participants,
-            context["total_submissions"] = all_submissions,
-            context["teams_with_any_submission"] = teams_with_any_submission,
-            context["participating_countries"] = countries,
+            context["approved_teams"] = approved_teams
+            context["approved_participants"] = approved_participants
+            context["total_submissions"] = all_submissions
+            context["teams_with_any_submission"] = teams_with_any_submission
+            context["participating_countries"] = countries
 
 
         # Collect all submissions made for tasks related to this project.
