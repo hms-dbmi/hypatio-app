@@ -187,7 +187,7 @@ class DataProjectView(TemplateView):
         if self.request.user.is_authenticated():
             sciauthz = SciAuthZ(settings.AUTHZ_BASE, self.user_jwt, self.request.user.email)
             context['has_manage_permissions'] = sciauthz.user_has_manage_permission(self.project.project_key)
-            context['has_view_permission'] = sciauthz.user_has_single_permission(self.project.project_key, "VIEW")
+            context['has_view_permission'] = sciauthz.user_has_single_permission(self.project.project_key, "VIEW", self.request.user.email)
 
         # Require users to verify their email no matter what before they access a project.
         self.email_verified = get_user_email_confirmation_status(self.user_jwt)

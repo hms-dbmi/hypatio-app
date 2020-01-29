@@ -328,7 +328,7 @@ def download_dataset(request):
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
     sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
 
-    if not sciauthz.user_has_single_permission(project_key, "VIEW"):
+    if not sciauthz.user_has_single_permission(project_key, "VIEW", request.user.email):
         logger.debug("[download_dataset] - No Access for user " + request.user.email)
         return HttpResponse("You do not have access to download this file.", status=403)
 
@@ -375,7 +375,7 @@ def upload_challengetasksubmission_file(request):
             user_jwt = request.COOKIES.get("DBMI_JWT", None)
             sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
 
-            if not sciauthz.user_has_single_permission(project_key, "VIEW"):
+            if not sciauthz.user_has_single_permission(project_key, "VIEW", request.user.email):
                 logger.debug("[upload_challengetasksubmission_file] - No Access for user " + request.user.email)
                 return HttpResponse("You do not have access to upload this file.", status=403)
 
