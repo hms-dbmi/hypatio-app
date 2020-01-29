@@ -32,7 +32,7 @@
 
         <br>
 
-        <p>This Data Use and Confidentiality Agreement (the <strong>"Agreement"</strong>) is made as of the <input type="text" class="" id="day" maxlength="2" placeholder="day"> day of <input type="text" class="" id="month" maxlength="20" placeholder="month">, <input type="text" class="" id="year" maxlength="4" placeholder="year"> by and between Partners HealthCare System, Inc., through its i2b2 National Center for Biomedical Computing, and on behalf of itself and its affiliates (collectively, <strong>"Partners"</strong>) and <input type="text" class="" id="data-user" placeholder="your name"> (<strong>"Data User"</strong>).</p>
+        <p>This Data Use and Confidentiality Agreement (the <strong>"Agreement"</strong>) is made as of the <input type="text" class="" id="day" maxlength="2" placeholder="day"> day of <input type="text" class="" id="month" maxlength="20" placeholder="month">, <input type="text" class="" id="year" maxlength="4" placeholder="year"> by and between Partners HealthCare System, Inc., through its i2b2 National Center for Biomedical Computing, and on behalf of itself and its affiliates (collectively, <strong>"Partners"</strong>) and <input type="text" class="" id="data-user" placeholder="your first and last name"> (<strong>"Data User"</strong>).</p>
 
         <br>
 
@@ -67,7 +67,7 @@
             <h6>Individual</h6>
             <div class="form-group">
                 <label for="individual-name">Name</label>
-                <input type="text" class="form-control" id="individual-name">
+                <input type="text" class="form-control" id="individual-name" placeholder="First and last name">
             </div>
             <div class="form-group">
                 <label for="individual-professional-title">Professional Title</label>
@@ -176,7 +176,7 @@
         
         <div class="form-group">
             <label for="partners-name">By</label>
-            <input type="text" class="form-control" id="partners-name" placeholder="Print name" disabled>
+            <input type="text" class="form-control" id="partners-name" placeholder="Print first and last name" disabled>
         </div>
         <div class="form-group">
             <label for="partners-title">Title</label>
@@ -201,7 +201,7 @@
         </div>
         <div class="form-group">
             <label for="data-user-name">By</label>
-            <input type="text" class="form-control" id="data-user-name" placeholder="Print name">
+            <input type="text" class="form-control" id="data-user-name" placeholder="Print first and last name">
         </div>
         <div class="form-group">
             <label for="data-user-title">Title</label>
@@ -234,7 +234,7 @@
             
         <br>
 
-        <p>This Data Use and Confidentiality Agreement (the <strong>"Agreement"</strong>) is made as of the <input type="text" class="" id="commercial-day" maxlength="2" placeholder="day"> day of <input type="text" class="" id="commercial-month" maxlength="20" placeholder="month">, <input type="text" class="" id="commercial-year" maxlength="4" placeholder="year"> by and between Partners HealthCare System, Inc., through its i2b2 National Center for Biomedical Computing, and on behalf of itself and its affiliates (collectively, <strong>"Partners"</strong>) and <input type="text" class="" id="commercial-data-user" placeholder="your name"> (<strong>"Data User"</strong>).</p>
+        <p>This Data Use and Confidentiality Agreement (the <strong>"Agreement"</strong>) is made as of the <input type="text" class="" id="commercial-day" maxlength="2" placeholder="day"> day of <input type="text" class="" id="commercial-month" maxlength="20" placeholder="month">, <input type="text" class="" id="commercial-year" maxlength="4" placeholder="year"> by and between Partners HealthCare System, Inc., through its i2b2 National Center for Biomedical Computing, and on behalf of itself and its affiliates (collectively, <strong>"Partners"</strong>) and <input type="text" class="" id="commercial-data-user" placeholder="your first and last name"> (<strong>"Data User"</strong>).</p>
 
         <br>
 
@@ -256,7 +256,7 @@
 
         <div class="radio" id="commercial-registrant-is">
             <label>
-                <input type="radio" name="commercial-registrant-is" value="individual">
+                <input type="radio" name="commercial-registrant-is" value="individual" disabled>
                 an individual, requesting Data/Datasets under this Agreement on behalf of himself/herself as follows
             </label>
             <label>
@@ -386,7 +386,7 @@
         </div>
         <div class="form-group">
             <label for="data-user-name">By</label>
-            <input type="text" class="form-control" id="commercial-data-user-name" placeholder="Print name">
+            <input type="text" class="form-control" id="commercial-data-user-name" placeholder="Print first and last name">
         </div>
         <div class="form-group">
             <label for="data-user-title">Title</label>
@@ -400,7 +400,13 @@
             <label for="data-user-date">Date</label>
             <input type="date" class="form-control" id="commercial-data-user-date">
         </div>
-
+        <div class="bs-callout bs-callout-danger">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" id="commercial-data-user-acknowledge" required> I acknowledge that I am a duly authorized representative of the organization
+                </label>
+            </div>
+        </div>
     </div>
 </div>
 
