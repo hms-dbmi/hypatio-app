@@ -19,6 +19,7 @@ from manage.api import delete_team
 from manage.api import download_submission
 from manage.api import download_team_submissions
 from manage.api import download_email_list
+from manage.api import get_hosted_file_logs
 from manage.api import grant_view_permission
 from manage.api import remove_view_permission
 from manage.api import sync_view_permissions
@@ -32,6 +33,7 @@ urlpatterns = [
     url(r'^set-dataproject-visible-status/$', set_dataproject_visible_status, name='set-dataproject-visible-status'),
     url(r'^get-static-agreement-form-html/$', get_static_agreement_form_html, name='get-static-agreement-form-html'),
     url(r'^get-hosted-file-edit-form/$', get_hosted_file_edit_form, name='get-hosted-file-edit-form'),
+    url(r'^get-hosted-file-logs/$', get_hosted_file_logs, name='get-hosted-file-logs'),
     url(r'^process-hosted-file-edit-form-submission/$', process_hosted_file_edit_form_submission, name='process-hosted-file-edit-form-submission'),
     url(r'^download-signed-form/$', download_signed_form, name='download-signed-form'),
     url(r'^change-signed-form-status/$', change_signed_form_status, name='change-signed-form-status'),

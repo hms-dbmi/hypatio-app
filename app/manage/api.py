@@ -259,6 +259,47 @@ def get_hosted_file_edit_form(request):
     return HttpResponse(response_html)
 
 @user_auth_and_jwt
+def get_hosted_file_logs(request):
+    """
+    An HTTP GET endpoint for requests to get logs of an existing HostedFile.
+    """
+
+    user = request.user
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+    project_key = request.GET.get("project-key")
+    project = get_object_or_404(DataProject, project_key=project_key)
+
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    is_manager = sciauthz.user_has_manage_permission(project_key)
+
+    if not is_manager:
+        logger.debug(
+            '[HYPATIO][DEBUG][get_static_agreement_form_html] User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                email=user.email,
+                project_key=project_key
+            )
+        )
+        return HttpResponse("Error: permissions.", status=403)
+
+    hosted_file_uuid = request.GET.get("hosted-file-uuid")
+
+    try:
+        hosted_file = HostedFile.objects.get(project=project, uuid=hosted_file_uuid).select_related()
+    except ObjectDoesNotExist:
+        return HttpResponse("Error: file not found.", status=404)
+
+    response_html = render_to_string(
+        'manage/hosted-file-logs.html',
+        context={
+            'downloads': hosted_file.hostedfiledownload_set,
+            'file': hosted_file
+        },
+        request=request
+    )
+    return HttpResponse(response_html)
+
+@user_auth_and_jwt
 def process_hosted_file_edit_form_submission(request):
     """
     An HTTP POST endpoint for processing a submitted form for editing a hosted file.

@@ -15,10 +15,11 @@ from django.views.generic.base import View
 from django.core.paginator import Paginator
 
 from hypatio.sciauthz_services import SciAuthZ
-from hypatio.scireg_services import get_user_profile
+from hypatio.scireg_services import get_user_profile, get_distinct_countries_participating
 
 from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
+from projects.models import Participant
 from projects.models import Team
 from projects.models import TeamComment
 from projects.models import SignedAgreementForm
@@ -162,6 +163,23 @@ class DataProjectManageView(TemplateView):
                 })
 
             context['teams'] = teams
+
+            approved_teams = list(filter(lambda team: team['status']=='Active', teams))
+            approved_participants = Participant.objects.filter(team__in=approved_teams)
+            all_submissions = ChallengeTaskSubmission.objects.filter(
+                participant__in=approved_participants,
+                deleted=False
+            )
+            teams_with_any_submission = all_submissions.values('participant__team').distinct()
+            user_jwt = self.request.COOKIES.get("DBMI_JWT", None)
+            countries = get_distinct_countries_participating(user_jwt, approved_participants, self.project.project_key)
+
+            context["approved_teams"] = approved_teams
+            context["approved_participants"] = approved_participants
+            context["total_submissions"] = all_submissions
+            context["teams_with_any_submission"] = teams_with_any_submission
+            context["participating_countries"] = countries
+
 
         # Collect all submissions made for tasks related to this project.
         context['submissions'] = ChallengeTaskSubmission.objects.filter(

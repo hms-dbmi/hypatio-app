@@ -234,13 +234,21 @@ FILESERVICE_AUTH_HEADER_PREFIX = 'Token'
 
 LOGGING = {
     'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'console': {
+            'format': '[HYPATIO] - [%(asctime)s][%(levelname)s][%(name)s.%(funcName)s:%(lineno)d] - %(message)s',
+        },
+    },
     'handlers': {
         'sentry': {
             'level': 'ERROR',
             'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
         },
         'console': {
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+            'formatter': 'console',
             'stream': sys.stdout,
         },
     },
@@ -251,7 +259,7 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console', ],
-            'level': 'ERROR',
+            'level': 'INFO',
             'propagate': True,
         },
         'raven': {
@@ -263,6 +271,26 @@ LOGGING = {
             'level': 'WARNING',
             'handlers': ['console'],
             'propagate': False,
+        },
+        'botocore': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+            'propagate': True,
+        },
+        'boto3': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+            'propagate': True,
+        },
+        's3transfer': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+            'propagate': True,
+        },
+        'urllib3': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+            'propagate': True,
         },
     },
 }
