@@ -165,7 +165,7 @@ class DataProjectManageView(TemplateView):
             context['teams'] = teams
 
             approved_teams = list(filter(lambda team: team['status']=='Active', teams))
-            approved_participants = Participant.objects.filter(team__in=approved_teams)
+            approved_participants = Participant.objects.filter(team__in=self.project.team_set.filter(status='Active'))
             all_submissions = ChallengeTaskSubmission.objects.filter(
                 participant__in=approved_participants,
                 deleted=False
