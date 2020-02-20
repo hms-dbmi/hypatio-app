@@ -20,8 +20,8 @@ a:hover {
 
 .panel-title > a:hover,
 .panel-title > a:focus,
-#accordion > div.panel-heading.heading-description > a:hover,
-#accordion > div.panel-heading.heading-description > a:focus
+div.panel-heading.heading-description > a:hover,
+div.panel-heading.heading-description > a:focus
  {
     background-color: transparent;
     color: #A51C30;
