@@ -1,0 +1,179 @@
+{{ form.media }}            {# Adds date-picker required JS and CSS #}
+
+<style>
+    /* Forms and inputs */
+    .select2-container .selection .select2-selection {
+        height: 34px;
+        padding-top: 4px;
+    }
+
+    .select2-container .selection .select2-selection__arrow {
+        height: 34px;
+    }
+</style>
+<form id="host-submission-form" method="post" ic-on-success="window.location.reload();" ic-on-error="displayErrorMessage(xhr);" ic-post-to="{% url 'manage:host-submission' fileservice_uuid %}">
+    {% csrf_token %}
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="file_name">Project:</label>
+                {{ form.project }}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="file_name">File set:</label>
+                {{ form.hostedfileset }}
+                <p class="help-block">This is an optional file set to add this file to</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="file_name">File name:</label>
+                {{ form.file_name }}
+                <div id="file_name-errors" class="bs-callout bs-callout-danger" style="display: none;"></div>
+                <p class="help-block">This must be a unique filename among other hosted files in this location</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="file_location">File location:</label>
+                {{ form.file_location }}
+                <div id="file_location-errors" class="bs-callout bs-callout-danger" style="display: none;"></div>
+                <p class="help-block">This is the path within the S3 bucket where the file will be hosted</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="long_name">File title:</label>
+                {{ form.long_name }}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="description">File description:</label>
+                {{ form.description }}
+                <p class="help-block">Optionally provide a description for your file, such as instructions on how to use it or what to do with it.</p>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="hosted-file-allow-downloads" style="padding-right: 10px;">Allow downloads?</label>
+                {{ form.enabled }}
+            </div>
+        </div>
+    </div>
+
+    <div id="hosted-file-open-close-row" style="display: none;">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="opened_time">Allow downloads starting from:</label>
+                    {{ form.opened_time }}
+                    <div id="opened_time-errors" class="bs-callout bs-callout-danger" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="closed_time">Close downloads at:</label>
+                    {{ form.closed_time }}
+                    <div id="closed_time-errors" class="bs-callout bs-callout-danger" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+        <p class="help-block">Open and close times are optional. If not provided, the file will be available for download indefinitely as long as you have checked the Allow Downloads box. <strong>Please provide time in the 24 hour format and in UTC time.</strong> Click this <u><a href="https://www.timeanddate.com/worldclock/timezone/utc" target="_blank">link</a></u> to see the current UTC time.</p>
+    </div>
+
+    <div class="row" id="form-response-row" style="display: none; color: red;">
+        <div class="col-md-12" id="form-response-contents">
+            Response here
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="pull-right">
+                <button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script type="application/javascript">
+    // Change display of the open/close times depending on file being enabled or that status being toggled.
+    $(document).ready(function() {
+        if ($("#host-submission-form input[name=enabled]").prop('checked')) {
+            $('#hosted-file-open-close-row').show();
+        } else {
+            // Clear values, if any
+            $("#host-submission-form input[name=opened_time]").val("");
+            $("#host-submission-form input[name=closed_time]").val("");
+            $('#hosted-file-open-close-row').hide();
+        }
+    });
+    $("#host-submission-form input[name=enabled]").on('click', function() {
+        if ($("#host-submission-form input[name=enabled]").prop('checked')) {
+            $('#hosted-file-open-close-row').show();
+        } else {
+            $("#host-submission-form input[name=opened_time]").val("");
+            $("#host-submission-form input[name=closed_time]").val("");
+            $('#hosted-file-open-close-row').hide();
+        }
+    });
+</script>
+
+<script type="application/javascript">
+    // Display the upload form if a user clicks on the replace button.
+    $('#hosted-file-replace-button').on('click', function() {
+        $('#hosted-file-replace-button-row').hide();
+        $('#hosted-file-upload-row').show();
+    });
+</script>
+
+<script type="application/javascript">
+    function displayErrorMessage(xhr) {
+
+        // Reset existing error messages
+        $(".bs-callout-danger").html("");
+        $(".bs-callout-danger").hide();
+
+        // Parse errors
+        var formErrors = JSON.parse(xhr.responseText);
+        Object.keys(formErrors).forEach(field => {
+            console.log("Errors: %s", field);
+
+            // Parse errors
+            $.each(formErrors[field], function (index, fieldError) {
+                console.log("Errors[%s]: %s", field, fieldError["code"]);
+
+                // Get the field error div
+                $("#" + field + "-errors").append("<small class=\"error\">" + fieldError["message"] + "</small>");
+                $("#" + field + "-errors").show();
+            });
+        });
+    }
+</script>
