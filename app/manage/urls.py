@@ -1,5 +1,6 @@
 from django.conf.urls import url
 
+from manage.apps import ManageConfig
 from manage.views import DataProjectListManageView
 from manage.views import DataProjectManageView
 from manage.views import manage_team
@@ -17,6 +18,7 @@ from manage.api import save_team_comment
 from manage.api import set_team_status
 from manage.api import delete_team
 from manage.api import download_submission
+from manage.api import host_submission
 from manage.api import download_team_submissions
 from manage.api import download_email_list
 from manage.api import get_hosted_file_logs
@@ -24,7 +26,8 @@ from manage.api import grant_view_permission
 from manage.api import remove_view_permission
 from manage.api import sync_view_permissions
 
-app_name = 'manage'
+app_name = ManageConfig.name
+
 urlpatterns = [
     url(r'^$', DataProjectListManageView.as_view(), name='manage-projects'),
     url(r'^download-email-list/$', download_email_list, name='download-email-list'),
@@ -42,6 +45,7 @@ urlpatterns = [
     url(r'^delete-team/$', delete_team, name='delete-team'),
     url(r'^download-team-submissions/(?P<project_key>[^/]+)/(?P<team_leader_email>[^/]+)/$', download_team_submissions, name='download-team-submissions'),
     url(r'^download-submission/(?P<fileservice_uuid>[^/]+)/$', download_submission, name='download-submission'),
+    url(r'^host-submission/(?P<fileservice_uuid>[^/]+)/$', host_submission, name='host-submission'),
     url(r'^sync-view-permissions/(?P<project_key>[^/]+)/$', sync_view_permissions, name='sync-view-permissions'),
     url(r'^grant-view-permission/(?P<project_key>[^/]+)/(?P<user_email>[^/]+)/$', grant_view_permission, name='grant-view-permission'),
     url(r'^remove-view-permission/(?P<project_key>[^/]+)/(?P<user_email>[^/]+)/$', remove_view_permission, name='remove-view-permission'),

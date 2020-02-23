@@ -15,6 +15,7 @@ from django.http import HttpResponse
 from django.http import QueryDict
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
+from dal import autocomplete
 
 from contact.views import email_send
 from hypatio import file_services as fileservice
@@ -34,9 +35,36 @@ from projects.models import Participant
 from projects.models import SignedAgreementForm
 from projects.models import Team
 from projects.models import SIGNED_FORM_REJECTED
+from projects.models import HostedFileSet
 
 
 logger = logging.getLogger(__name__)
+
+
+class HostedFileSetAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        if not self.request.user.is_authenticated():
+            return HostedFileSet.objects.none()
+
+        queryset = HostedFileSet.objects.all()
+
+        project = self.forwarded.get('project', None)
+        if project:
+            logger.debug(f'HostedFileSetAutocomplete: Filtering on "{project}"')
+            queryset = queryset.filter(project=project)
+
+        if self.q:
+            logger.debug(f'HostedFileSetAutocomplete: Filtering on "{self.q}"')
+            queryset = queryset.filter(title__istartswith=self.q)
+
+        return queryset
+
+    def create_object(self, text):
+        """Create an object given a text."""
+        project = get_object_or_404(DataProject, id=self.forwarded.get('project'))
+        return self.get_queryset().get_or_create(title=text, project=project)[0]
+
 
 @user_auth_and_jwt
 def finalize_team(request):
