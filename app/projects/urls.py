@@ -1,5 +1,6 @@
 from django.conf.urls import url
 
+from projects.apps import ProjectsConfig
 from projects.views import list_data_projects
 from projects.views import signed_agreement_form
 from projects.views import DataProjectView
@@ -16,10 +17,13 @@ from projects.api import delete_challengetasksubmission
 from projects.api import save_signed_agreement_form
 from projects.api import save_signed_external_agreement_form
 from projects.api import submit_user_permission_request
+from projects.api import HostedFileSetAutocomplete
 
-app_name = 'projects'
+app_name = ProjectsConfig.name
+
 urlpatterns = [
     url(r'^$', list_data_projects, name='index'),
+    url(r'^autocomplete/hostedfileset/$', HostedFileSetAutocomplete.as_view(create_field='title'), name='hostedfileset-autocomplete'),
     url(r'^submit_user_permission_request/$', submit_user_permission_request, name='submit_user_permission_request'),
     url(r'^save_signed_agreement_form', save_signed_agreement_form, name='save_signed_agreement_form'),
     url(r'^save_signed_external_agreement_form', save_signed_external_agreement_form, name='save_signed_external_agreement_form'),

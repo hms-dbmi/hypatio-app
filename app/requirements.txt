@@ -1,6 +1,8 @@
 boto3
 Django==1.11.20
+django-autocomplete-light==3.5.1
 django-bootstrap3==9.0.0 # TODO delete after removing all template extensions
+django-bootstrap-datepicker-plus==3.0.5
 django-countries==5.1.1
 django-health-check==3.7.0
 django-jquery==3.1.0
