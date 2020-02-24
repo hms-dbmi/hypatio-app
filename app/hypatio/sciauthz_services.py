@@ -187,8 +187,14 @@ class SciAuthZ:
 
         for permission in user_permissions:
 
+            # Check for absolute permission
+            if permission['item'] == 'Hypatio' and permission['permission'] == "MANAGE":
+
+                # Return all projects
+                return DataProject.objects.all()
+
             # Go through the list of Hypatio related items that the user managers
-            if 'Hypatio' in permission['item'] and permission['permission'] == "MANAGE":
+            elif 'Hypatio.' in permission['item'] and permission['permission'] == "MANAGE":
 
                 # Pull out the name of the item, which comes between the first and (optional) second period in the permission string
                 item_list = permission['item'].split('.')
