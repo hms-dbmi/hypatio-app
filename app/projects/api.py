@@ -21,6 +21,7 @@ from contact.views import email_send
 from hypatio import file_services as fileservice
 from hypatio.file_services import get_download_url
 from hypatio.sciauthz_services import SciAuthZ
+from hypatio.dbmiauthz_services import DBMIAuthz
 from projects.templatetags import projects_extras
 from projects.utils import notify_supervisors_of_task_submission
 from projects.utils import notify_task_submitters
@@ -352,11 +353,7 @@ def download_dataset(request):
         logger.debug("[download_dataset] - File not allowed for download attempted by " + request.user.email)
         return HttpResponse("You do not have access to download this file.", status=403)
 
-    # Check for necessary permissions in SciAuthZ.
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
-
-    if not sciauthz.user_has_single_permission(project_key, "VIEW", request.user.email):
+    if not DBMIAuthz.user_has_view_permission(request=request, project_key=project_key):
         logger.debug("[download_dataset] - No Access for user " + request.user.email)
         return HttpResponse("You do not have access to download this file.", status=403)
 

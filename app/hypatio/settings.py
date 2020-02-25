@@ -290,11 +290,6 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': True,
         },
-        'urllib3': {
-            'level': 'WARNING',
-            'handlers': ['console'],
-            'propagate': True,
-        },
     },
 }
 
