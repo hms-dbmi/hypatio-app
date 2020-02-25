@@ -1,17 +1,52 @@
-<h3>Downloads of {{file}}</h3>
-<table>
-    <thead>
-        <tr>
-            <td>Name</td>
-            <td>Date</td>
-        </tr>
-    </thead>
-    <tbody>
-        {% for download in downloads %}
-        <tr>
-            <td>{{download.user}}</td>
-            <td>{{download.download_date</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<h4>{{file.long_name}}</h4>
+<h5>{{ file.file_name }}</h5>
+<div class="table-responsive">
+    <table id="download-logs-table" class="table table-bordered table-hover" style="width: 100%;">
+        <thead>
+            <tr>
+                <td>Name</td>
+                <td>Date</td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for download in downloads %}
+            <tr>
+                <td>{{download.user}}</td>
+                <td>{{download.download_date}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <!-- Initialize DataTables -->
+    <script type="application/javascript">
+        $(document).ready(function() {
+            var table = $('#download-logs-table').DataTable({
+                // Order by the Status column to prioritize pending access.
+                "order": [[1, "desc"]],
+                "columnDefs": [{
+                    "targets": [1],
+                    "render":  function(data, type, full, meta){
+
+                        // Check for a valid date timestamp
+                        var pattern = new RegExp("[0-9]+");
+                        if (!pattern.test(data)) {
+                            if (type === 'sort' || type === 'type') {
+                                return 0;
+                            } else {
+                                return data;
+                            }
+                        }
+
+                        // Return raw dates for sorting
+                        if (type === 'sort' || type === 'type')
+                            return data;
+
+                        // Parse date and get components
+                        var date = new Date(data);
+                        return date.toLocaleString();
+                    }
+                }]
+            });
+        });
+    </script>
+</div>

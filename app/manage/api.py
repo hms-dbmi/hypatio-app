@@ -32,6 +32,7 @@ from projects.models import Participant
 from projects.models import SignedAgreementForm
 from projects.models import Team
 from projects.models import TeamComment
+from projects.serializers import HostedFileSerializer, HostedFileDownloadSerializer
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -277,7 +278,7 @@ def get_hosted_file_logs(request):
 
     if not is_manager:
         logger.debug(
-            '[HYPATIO][DEBUG][get_static_agreement_form_html] User {email} does not have MANAGE permissions for item {project_key}.'.format(
+            '[HYPATIO][DEBUG][get_hosted_file_logs] User {email} does not have MANAGE permissions for item {project_key}.'.format(
                 email=user.email,
                 project_key=project_key
             )
@@ -287,15 +288,30 @@ def get_hosted_file_logs(request):
     hosted_file_uuid = request.GET.get("hosted-file-uuid")
 
     try:
-        hosted_file = HostedFile.objects.get(project=project, uuid=hosted_file_uuid).select_related()
+        hosted_file = HostedFile.objects.get(project=project, uuid=hosted_file_uuid)
     except ObjectDoesNotExist:
+        logger.debug(
+            '[HYPATIO][DEBUG][get_hosted_file_logs] User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                email=user.email,
+                project_key=project_key
+            )
+        )
         return HttpResponse("Error: file not found.", status=404)
+    except Exception as e:
+        logger.exception(
+            '[HYPATIO][EXCEPTION][get_hosted_file_logs] Could not perform fetch for '
+            'file download logs: {e}.'.format(e=e), exc_info=True, extra={
+                'user': user.email, 'project': project_key, 'hosted_file': hosted_file_uuid
+            }
+        )
+        return HttpResponse("Error: fetch failed with error", status=500)
 
     response_html = render_to_string(
         'manage/hosted-file-logs.html',
         context={
-            'downloads': hosted_file.hostedfiledownload_set,
-            'file': hosted_file
+            'downloads': [HostedFileDownloadSerializer(downloads).data for downloads in
+                          hosted_file.hostedfiledownload_set.all().order_by('download_date')],
+            'file': HostedFileSerializer(hosted_file).data,
         },
         request=request
     )
