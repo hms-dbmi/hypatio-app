@@ -183,14 +183,16 @@
                                         Edit
                                     </a>
                                     <a class="btn btn-default pull-right"
+                                       style="margin-right: 10px;"
                                         href="#"
                                         role="button"
                                         data-toggle="modal"
                                         data-target="#modal-hosted-file-logs"
                                         ic-get-from="{% url 'manage:get-hosted-file-logs' %}"
                                         ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
-                                        ic-target="#modal-hosted-file-logs-body">
-                                        Edit
+                                        ic-target="#modal-hosted-file-logs-body"
+                                        ic-beforeSend-action="initDownloadLogs">
+                                        Logs
                                     </a>
                                 </div>
                             </div>
@@ -425,7 +427,7 @@
                             <td>{{ submission.participant.team.team_leader.email }}</td>
                             {% endif %}
                             <td>{{ submission.challenge_task.title }}</td>
-                            <td>{{ submission.upload_date|timezone:"America/New_York" }} (EST)</td>
+                            <td>{{ submission.upload_date|date:"c" }}</td>
                             <td>{{ submission.uuid }}</td>
                             <td>
                                 <button class="btn btn-default btn-xs view-submission-info" data-toggle="modal" data-target="#modal-submission-info" data-submission-uuid="{{ submission.uuid }}" data-submission-info="{{ submission.submission_info }}">
@@ -523,7 +525,7 @@
 </div>
 
 <div id="modal-hosted-file-logs" class="modal fade">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -562,6 +564,16 @@
 {% block footerscripts %}
 <!-- Initialize DataTables -->
 <script type="application/javascript">
+    function initDownloadLogs() {
+
+        // Ensure content is remove and loading is hown
+        $("#modal-hosted-file-logs-body").html('<div id="modal-hosted-file-logs-loading" style="text-align: center; margin: 20px;"><i class="fas fa-circle-notch fa-spin fa-2x"></i>&nbsp;&nbsp;Loading...</div>');
+    }
+
+    $('#modal-hosted-file-logs').on('shown.bs.modal', function () {
+      $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
+    });
+
     $(document).ready(function() {
         $('#team-table').DataTable({
             // Order by the Status column to prioritize pending access.
@@ -678,7 +690,31 @@
             },
         });
 
-        $('#submissions-table').DataTable();
+        $('#submissions-table').DataTable({
+            "columnDefs": [{
+                "targets": [{% if project.has_teams %}3{% else %}2{% endif %}],
+                "render":  function(data, type, full, meta){
+
+                    // Check for a valid date timestamp
+                    var pattern = new RegExp("[0-9]+");
+                    if (!pattern.test(data)) {
+                        if (type === 'sort' || type === 'type') {
+                            return 0;
+                        } else {
+                            return data;
+                        }
+                    }
+
+                    // Return raw dates for sorting
+                    if (type === 'sort' || type === 'type')
+                        return data;
+
+                    // Parse date and get components
+                    var date = new Date(data);
+                    return date.toLocaleString();
+                }
+            }]
+        });
     });
 </script>
 
