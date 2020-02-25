@@ -418,14 +418,15 @@
         // Display either the academic or corporate form depending on the selection
         $('#form-type').change(function() {
             var selected_value = $("input[name='form-type']:checked").val();
-            
+
             if (selected_value == "academic") {
                 $('#academic-form').show();
                 $('#commerical-form').hide();
 
                 $("#academic-form :input").prop('required',true);
                 $("#commerical-form :input").prop('required',false);
-                $("#commerical-form :input").val('');
+                $("#commerical-form :input").not(':input[type=radio]').val('');
+                $("#commerical-form :input[type=radio]").prop('checked', false);
             }
 
             if (selected_value == "commercial") {
@@ -433,7 +434,8 @@
                 $('#commerical-form').show();
 
                 $("#academic-form :input").prop('required',false);
-                $("#academic-form :input").val('');                
+                $("#academic-form :input").not(':input[type=radio]').val('');
+                $("#academic-form :input[type=radio]").prop('checked', false);
                 $("#commerical-form :input").prop('required',true);
             }
 
@@ -444,14 +446,15 @@
         // Academic form: When someone clicks what kind of registrant they are, hide the opposite form section
         $('#registrant-is').change(function() {
             var selected_value = $("input[name='registrant-is']:checked").val();
-            
+
             if (selected_value == "individual") {
                 $('#individual-questions').show();
                 $('#corporation-questions').hide();
 
                 $("#individual-questions :input").prop('required',true);
                 $("#corporation-questions :input").prop('required',false);
-                $("#corporation-questions :input").val('');
+                $("#corporation-questions :input").not(':input[type=radio]').val('');
+                $("#corporation-questions :input[type=radio]").prop('checked', false);
             }
 
             if (selected_value == "corporation") {
@@ -459,7 +462,8 @@
                 $('#corporation-questions').show();
 
                 $("#individual-questions :input").prop('required',false);
-                $("#individual-questions :input").val('');                
+                $("#individual-questions :input").not(':input[type=radio]').val('');
+                $("#individual-questions :input[type=radio]").prop('checked', false);
                 $("#corporation-questions :input").prop('required',true);
             }
 
@@ -469,29 +473,20 @@
             $('#research-team-person-4').prop('required',false);
             $('#research-team-person-5').prop('required',false);
         });
-        
+
         // Commercial form: When someone clicks what kind of registrant they are, hide the opposite form section
         $('#commercial-registrant-is').change(function() {
-            
-            var selected_value = $("input[name='commercial-registrant-is']:checked").val();
-            
-            if (selected_value == "individual") {
-                $('#commercial-individual-questions').show();
-                $('#commercial-corporation-questions').hide();
 
-                $("#commercial-individual-questions :input").prop('required',true);
-                $("#commercial-corporation-questions :input").prop('required',false);
-                $("#commercial-corporation-questions :input").val('');
-            }
+            // This can never be 'individual'
+            $("input[name='commercial-registrant-is'][value='corporation']").prop("checked", true);
 
-            if (selected_value == "corporation") {
-                $('#commercial-individual-questions').hide();
-                $('#commercial-corporation-questions').show();
+            $('#commercial-individual-questions').hide();
+            $('#commercial-corporation-questions').show();
 
-                $("#commercial-individual-questions :input").prop('required',false);
-                $("#commercial-individual-questions :input").val('');                
-                $("#commercial-corporation-questions :input").prop('required',true);
-            }
+            $("#commercial-individual-questions :input").prop('required',false);
+            $("#commercial-individual-questions :input").not(':input[type=radio]').val('');
+            $("#commercial-individual-questions :input[type=radio]").prop('checked', false);
+            $("#commercial-corporation-questions :input").prop('required',true);
         });
     });
 </script>
