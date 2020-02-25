@@ -14,9 +14,9 @@ urlpatterns = [
     url(r'^manage/', include('manage.urls', namespace='manage')),
     url(r'^projects/', include('projects.urls', namespace='projects')),
     url(r'^profile/', include('profile.urls', namespace='profile')),
-    url(r'^data-sets/$', list_data_projects, name='data-sets'),
-    url(r'^data-challenges/$', list_data_challenges, name='data-challenges'),
-    url(r'^software-projects/$', list_software_projects, name='software-projects'),
+    url(r'^data-sets/?$', list_data_projects, name='data-sets'),
+    url(r'^data-challenges/?$', list_data_challenges, name='data-challenges'),
+    url(r'^software-projects/?$', list_software_projects, name='software-projects'),
     url(r'^healthcheck/?', include('health_check.urls')),
     url(r'^', index, name='index'),
 ]
