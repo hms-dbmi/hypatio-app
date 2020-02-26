@@ -36,23 +36,25 @@ class SciAuthZ:
     # Check if this user has SciAuthZ manage permissions on the given item
     def user_has_manage_permission(self, item):
 
-        is_manager = False
-        sciauthz_item = 'Hypatio.' + item
+        # Set a list of hierarchical permissions to check
+        sciauthz_items = ['Hypatio', 'Hypatio.' + item]
 
         # Confirm user is a manager of the given project
-        permissions_url = self.USER_PERMISSIONS_URL + "?item=" + sciauthz_item + "&email=" + self.CURRENT_USER_EMAIL
+        permissions_url = furl.furl(self.USER_PERMISSIONS_URL)
+        permissions_url.query.params.add('email', self.CURRENT_USER_EMAIL)
+        permissions_url.query.params.add('search', 'Hypatio,MANAGE')
 
         try:
-            user_permissions = requests.get(permissions_url, headers=self.JWT_HEADERS, verify=settings.VERIFY_REQUESTS).json()
+            user_permissions = requests.get(permissions_url.url, headers=self.JWT_HEADERS, verify=settings.VERIFY_REQUESTS).json()
         except JSONDecodeError:
             user_permissions = None
 
         if user_permissions is not None and 'results' in user_permissions:
             for perm in user_permissions['results']:
-                if perm['permission'] == "MANAGE":
-                    is_manager = True
+                if perm['item'] in sciauthz_items and perm['permission'] == "MANAGE":
+                    return True
 
-        return is_manager
+        return False
 
     def current_user_permissions(self):
         """
@@ -62,13 +64,15 @@ class SciAuthZ:
         """
 
         next_page = True
-        authz_url = self.USER_PERMISSIONS_URL + "?email=" + self.CURRENT_USER_EMAIL
+        authz_url = furl.furl(self.USER_PERMISSIONS_URL)
+        authz_url.query.params.add('email', self.CURRENT_USER_EMAIL)
+        authz_url.query.params.add('search', 'Hypatio')
         user_permissions = []
 
         try:
             while next_page:
                 user_permissions_request = requests.get(
-                    authz_url,
+                    authz_url.url,
                     headers=self.JWT_HEADERS,
                     verify=settings.VERIFY_REQUESTS
                 ).json()
@@ -79,7 +83,7 @@ class SciAuthZ:
 
                 # If there are more permissions to pull, update the URL to hit. Otherwise, exit the loop.
                 if 'next' in user_permissions_request and user_permissions_request['next'] is not None:
-                    authz_url = user_permissions_request['next']
+                    authz_url = furl.furl(user_permissions_request['next'])
                 else:
                     next_page = False
 
@@ -183,8 +187,14 @@ class SciAuthZ:
 
         for permission in user_permissions:
 
+            # Check for absolute permission
+            if permission['item'] == 'Hypatio' and permission['permission'] == "MANAGE":
+
+                # Return all projects
+                return DataProject.objects.all()
+
             # Go through the list of Hypatio related items that the user managers
-            if 'Hypatio' in permission['item'] and permission['permission'] == "MANAGE":
+            elif 'Hypatio.' in permission['item'] and permission['permission'] == "MANAGE":
 
                 # Pull out the name of the item, which comes between the first and (optional) second period in the permission string
                 item_list = permission['item'].split('.')

@@ -14,7 +14,7 @@
                     in the Blavatnik Institute<br />
                     at Harvard Medical School</h2>
             </div>
-            <img src="{% static 'images/dbmi-data-portal-hero-2687x717.jpg' %}" class="img-responsive" alt="data concept image"> </div>
+            <img src="{% static 'images/dbmi-data-portal-hero-2687x717.jpg' %}" class="img-responsive" id="hero-image" alt="data concept image"> </div>
     </div>
 </div>
 <div class="container"> </div>
@@ -33,18 +33,22 @@
             </ul>
         </div>
         <div class="col-lg-4 col-md-4">
-            <h3>Data Challenge</h3>
-            <p>Our <a href="https://portal.dbmi.hms.harvard.edu/data-challenges/"><strong>current data challenge</strong></a> is the multi-track 2019 n2c2/OHNLP Shared Task on Challenges in Natural Language Processing for Clinical Data, which continues the NLP work pioneered under the former i2b2 program.</p>
-            <p>The <strong>i2b2 NLP data sets</strong> previously released as a result of this series of challenges dating back to 2006 are also hosted here under their new moniker, <strong>n2c2</strong>:</p>
+            <h3>Data Sets</h3>
+            <p>The <strong>i2b2 NLP data sets</strong> previously released on i2b2.org  are now hosted here under their new moniker, <strong>n2c2</strong> (National NLP Clinical Challenges):</p>
             <ul>
-                <li><a href="projects/n2c2-nlp/">n2c2 NLP Research Data Sets</a></li>
+                <li><a href="{% url 'projects:view-project' 'n2c2-nlp' %}">n2c2 NLP Research Data Sets</a></li>
             </ul>
+            <p>These data sets are the result of annual NLP challenges dating back to 2006, originally organized as part of the i2b2 project (Informatics for Integrating Biology and the Bedside).</p>
+            <p>Other data sets include an integrated collection of NHANES health metrics, a drug repositioning database, and more.</p>
+            <h3>Data Challenges</h3>
+            <p>The n2c2 challenge series now continues to run annually through the DBMI Data Portal. Stay tuned for our 2020 challenge!</p>    
         </div>
         <div class="col-lg-4 col-md-4">
-            <h3>Data Sets and Tools</h3>
+            <h3>Resources and Tools</h3>
             <p>Our full inventory of projects will be added over time. For now please check out the <a href="https://github.com/hms-dbmi" target="_blank">DBMI Github repository <span class="fal fa-sm fa-external-link"></span></a> and this selection of resources from our faculty labs:</p>
             <ul>
                 <li><a href="https://avillach-lab.hms.harvard.edu/access-data" target="_blank">Avillach Lab &#8212; Access to Data <span class="fal fa-sm fa-external-link"></span></a></li>
+                <li><a href="https://celehs.hms.harvard.edu/software/" target="_blank">Cai Lab &#8212; Software & Web Apps <span class="fal fa-sm fa-external-link"></span></a></li>
                 <li><a href="https://github.com/farhat-lab" target="_blank">Farhat Lab &#8212; Github Repository <span class="fal fa-sm fa-external-link"></span></a></li>
                 <li><a href="http://gehlenborglab.org/research/projects/" target="_blank">Gehlenborg Lab &#8212; Projects <span class="fal fa-sm fa-external-link"></span></a></li>
                 <li><a href="http://pklab.med.harvard.edu/software.html" target="_blank">Kharchenko Lab &#8212; Software <span class="fal fa-sm fa-external-link"></span></a></li>
@@ -67,9 +71,8 @@
         </div>
         <div class="col-lg-4 col-md-4 col-sm-3" style="padding-left: 2em; font-size: 1rem; font-weight: 300;">
             <p><br />
-                &copy;2019 by the President and Fellows of Harvard College</p>
+                &copy;2020 by the President and Fellows of Harvard College</p>
         </div>
     </div>
 </footer>
-    </div>
 {% endblock %}

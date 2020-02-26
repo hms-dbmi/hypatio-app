@@ -11,6 +11,7 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from hypatio.sciauthz_services import SciAuthZ
+from hypatio.dbmiauthz_services import DBMIAuthz
 from hypatio.scireg_services import get_current_user_profile
 from hypatio.scireg_services import get_user_email_confirmation_status
 
@@ -185,9 +186,14 @@ class DataProjectView(TemplateView):
 
         # Check the users current permissions on this project.
         if self.request.user.is_authenticated():
-            sciauthz = SciAuthZ(settings.AUTHZ_BASE, self.user_jwt, self.request.user.email)
-            context['has_manage_permissions'] = sciauthz.user_has_manage_permission(self.project.project_key)
-            context['has_view_permission'] = sciauthz.user_has_single_permission(self.project.project_key, "VIEW", self.request.user.email)
+            context['has_manage_permissions'] = DBMIAuthz.user_has_manage_permission(
+                request=self.request, project_key=self.project.project_key
+            )
+            # If user has MANAGE, VIEW is implicit
+            context['has_view_permission'] = context['has_manage_permissions'] or \
+                                             DBMIAuthz.user_has_view_permission(
+                                                 request=self.request, project_key=self.project.project_key
+                                             )
 
         # Require users to verify their email no matter what before they access a project.
         self.email_verified = get_user_email_confirmation_status(self.user_jwt)

@@ -8,7 +8,7 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.utils.timezone import utc
 
-from hypatio.sciauthz_services import SciAuthZ
+from hypatio.dbmiauthz_services import DBMIAuthz
 
 register = template.Library()
 
@@ -78,14 +78,14 @@ def is_challengetask_currently_enabled(challengetask):
 
     return True
 
-@register.simple_tag
-def is_project_manager(request):
+
+@register.simple_tag(takes_context=True)
+def is_project_manager(context, request):
     """
     Returns True if the user manages any projects.
     """
+    # Check existing context for 'has_manage_permission'
+    if context.get('has_manage_permissions'):
+        return True
 
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
-    has_manage_permissions = sciauthz.user_has_any_manage_permissions()
-
-    return has_manage_permissions
+    return DBMIAuthz.user_has_any_manage_permissions(request=request)
