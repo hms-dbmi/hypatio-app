@@ -10,6 +10,9 @@
 <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
 <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.min.css' %}">
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript" src="/static/bootstrap_datepicker_plus/js/datepicker-widget.js"></script>
 {% endblock %}
 
 {% block title %}
@@ -180,14 +183,16 @@
                                         Edit
                                     </a>
                                     <a class="btn btn-default pull-right"
+                                       style="margin-right: 10px;"
                                         href="#"
                                         role="button"
                                         data-toggle="modal"
                                         data-target="#modal-hosted-file-logs"
                                         ic-get-from="{% url 'manage:get-hosted-file-logs' %}"
                                         ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
-                                        ic-target="#modal-hosted-file-logs-body">
-                                        Edit
+                                        ic-target="#modal-hosted-file-logs-body"
+                                        ic-beforeSend-action="initDownloadLogs">
+                                        Logs
                                     </a>
                                 </div>
                             </div>
@@ -422,7 +427,7 @@
                             <td>{{ submission.participant.team.team_leader.email }}</td>
                             {% endif %}
                             <td>{{ submission.challenge_task.title }}</td>
-                            <td>{{ submission.upload_date|timezone:"America/New_York" }} (EST)</td>
+                            <td>{{ submission.upload_date|date:"c" }}</td>
                             <td>{{ submission.uuid }}</td>
                             <td>
                                 <button class="btn btn-default btn-xs view-submission-info" data-toggle="modal" data-target="#modal-submission-info" data-submission-uuid="{{ submission.uuid }}" data-submission-info="{{ submission.submission_info }}">
@@ -430,6 +435,16 @@
                                 </button>
                                 <a class="btn btn-default btn-xs btn-default" href="{% url 'manage:download-submission' submission.uuid %}" download>
                                     Download
+                                </a>
+                                <a class="btn btn-default btn-xs btn-success"
+                                   style="margin-top: 4px;"
+                                    href="#"
+                                    role="button"
+                                    data-toggle="modal"
+                                    data-target="#modal-host-submission"
+                                    ic-get-from="{% url 'manage:host-submission' submission.uuid %}"
+                                    ic-target="#modal-host-submission-body">
+                                    Host
                                 </a>
                             </td>
                         </tr>
@@ -455,6 +470,20 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-host-submission" class="modal fade">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="submission-info-modal">Host Submission</h4>
+            </div>
+            <div class="modal-body" id="modal-host-submission-body">
+                {# Loaded via Intercooler.js #}
             </div>
         </div>
     </div>
@@ -496,7 +525,7 @@
 </div>
 
 <div id="modal-hosted-file-logs" class="modal fade">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -535,6 +564,16 @@
 {% block footerscripts %}
 <!-- Initialize DataTables -->
 <script type="application/javascript">
+    function initDownloadLogs() {
+
+        // Ensure content is remove and loading is hown
+        $("#modal-hosted-file-logs-body").html('<div id="modal-hosted-file-logs-loading" style="text-align: center; margin: 20px;"><i class="fas fa-circle-notch fa-spin fa-2x"></i>&nbsp;&nbsp;Loading...</div>');
+    }
+
+    $('#modal-hosted-file-logs').on('shown.bs.modal', function () {
+      $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
+    });
+
     $(document).ready(function() {
         $('#team-table').DataTable({
             // Order by the Status column to prioritize pending access.
@@ -651,7 +690,31 @@
             },
         });
 
-        $('#submissions-table').DataTable();
+        $('#submissions-table').DataTable({
+            "columnDefs": [{
+                "targets": [{% if project.has_teams %}3{% else %}2{% endif %}],
+                "render":  function(data, type, full, meta){
+
+                    // Check for a valid date timestamp
+                    var pattern = new RegExp("[0-9]+");
+                    if (!pattern.test(data)) {
+                        if (type === 'sort' || type === 'type') {
+                            return 0;
+                        } else {
+                            return data;
+                        }
+                    }
+
+                    // Return raw dates for sorting
+                    if (type === 'sort' || type === 'type')
+                        return data;
+
+                    // Parse date and get components
+                    var date = new Date(data);
+                    return date.toLocaleString();
+                }
+            }]
+        });
     });
 </script>
 

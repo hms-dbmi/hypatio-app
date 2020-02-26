@@ -37,6 +37,8 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(',')
 # Application definition
 
 INSTALLED_APPS = [
+    'dal',
+    'dal_select2',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -52,6 +54,7 @@ INSTALLED_APPS = [
     'pyauth0jwt',
     'health_check',
     'raven.contrib.django.raven_compat',
+    'bootstrap_datepicker_plus',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -283,11 +286,6 @@ LOGGING = {
             'propagate': True,
         },
         's3transfer': {
-            'level': 'WARNING',
-            'handlers': ['console'],
-            'propagate': True,
-        },
-        'urllib3': {
             'level': 'WARNING',
             'handlers': ['console'],
             'propagate': True,

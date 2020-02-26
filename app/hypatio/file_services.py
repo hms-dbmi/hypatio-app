@@ -1,3 +1,4 @@
+import os
 import boto3
 import requests
 import furl
@@ -161,32 +162,35 @@ def check_groups(request):
         if group_name('uploaders') == group['name']:
             return True
 
-    # Group was not found, create it.
+    # Group was not found, create it, specifying passed admins
     data = {
-        'name': settings.FILESERVICE_GROUP,
+        'name': settings.FILESERVICE_GROUP.upper(),
         'users': [{'email': settings.FILESERVICE_SERVICE_ACCOUNT}],
+        'buckets': [{'name': settings.FILESERVICE_AWS_BUCKET}],
     }
 
-    # Make the request.
-    response = post(request, 'groups', data)
-    if response is None:
-        logger.error('Failed to create groups: {}'.format(response))
+    # Make the request
+    groups = post(request, 'groups', data)
+    if not groups:
+        logger.info('Failed to create groups')
         return False
 
-    # Get the upload group ID.
-    upload_group_id = [group['id'] for group in response if group['name'] == group_name('UPLOADERS')][0]
-
-    # Create the request to add the bucket to the upload group.
-    bucket_data = {
-        'buckets': [
-            {'name': settings.FILESERVICE_AWS_BUCKET}
-        ]
-    }
-
     # Make the request.
-    response = put(request, '/groups/{}/'.format(upload_group_id), bucket_data)
+    data = {'buckets': [{'name': settings.FILESERVICE_AWS_BUCKET}]}
+    for group in groups:
 
-    return response
+        # Make the request
+        response = put(request, '/groups/{}/'.format(group['id']), data)
+        if response:
+            logger.info('Added bucket "{}" to group "{}"'.format(
+                settings.FILESERVICE_AWS_BUCKET, group['name']
+            ))
+        else:
+            logger.info('Failed to add bucket "{}" to group "{}"'.format(
+                settings.FILESERVICE_AWS_BUCKET, group['name']
+            ))
+
+    return True
 
 
 def create_file(request, filename, metadata, tags=[]):
@@ -233,7 +237,7 @@ def uploaded_file(request, uuid, location_id):
     }
 
     # Make the request.
-    response = get(request, '/api/file/{}/uploadcomplete/'.format(uuid))
+    response = get(request, '/api/file/{}/uploadcomplete/'.format(uuid), params)
 
     return response is not None
 
@@ -313,3 +317,35 @@ def upload_file(file_name, file, expires_in=3600):
         logger.error('[file_services][upload_file] Failed upload: {}'.format(post))
         logger.exception(e)
 
+
+def host_file(request, file_uuid, file_location, file_name):
+    """
+    Copies a file from the Fileservice bucket to the Hypatio hosted files bucket
+    """
+    try:
+        # Make the request.
+        file = get(request, '/api/file/{}/'.format(file_uuid))
+        logger.debug(file)
+
+        # Perform the request to copy the file
+        source = {'Bucket': settings.FILESERVICE_AWS_BUCKET, 'Key': file['locations'][0]['url'].split('/', 3)[3]}
+        key = os.path.join(file_location, file_name)
+
+        logger.debug(f'Fileservice: Copying {source["Bucket"]}/{source["Key"]}'
+                     f' to {settings.S3_BUCKET}/{key}')
+
+        # Generate the URL to get the file object
+        _s3_client().copy_object(
+            CopySource=source,
+            Bucket=settings.S3_BUCKET,
+            Key=key,
+        )
+
+        return True
+
+    except Exception as e:
+        logger.exception('[file_services][host_file] Error: {}'.format(e), exc_info=True, extra={
+            'request': request, 'file_uuid': file_uuid, 'file_location': file_location, 'file_name': file_name
+        })
+
+    return False

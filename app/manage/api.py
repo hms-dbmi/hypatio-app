@@ -18,7 +18,9 @@ from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from contact.views import email_send
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_names
+from hypatio.file_services import host_file
 from manage.forms import EditHostedFileForm
+from manage.forms import HostSubmissionForm
 from manage.utils import zip_submission_file
 from projects.templatetags import projects_extras
 
@@ -30,6 +32,7 @@ from projects.models import Participant
 from projects.models import SignedAgreementForm
 from projects.models import Team
 from projects.models import TeamComment
+from projects.serializers import HostedFileSerializer, HostedFileDownloadSerializer
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -275,7 +278,7 @@ def get_hosted_file_logs(request):
 
     if not is_manager:
         logger.debug(
-            '[HYPATIO][DEBUG][get_static_agreement_form_html] User {email} does not have MANAGE permissions for item {project_key}.'.format(
+            '[HYPATIO][DEBUG][get_hosted_file_logs] User {email} does not have MANAGE permissions for item {project_key}.'.format(
                 email=user.email,
                 project_key=project_key
             )
@@ -285,15 +288,30 @@ def get_hosted_file_logs(request):
     hosted_file_uuid = request.GET.get("hosted-file-uuid")
 
     try:
-        hosted_file = HostedFile.objects.get(project=project, uuid=hosted_file_uuid).select_related()
+        hosted_file = HostedFile.objects.get(project=project, uuid=hosted_file_uuid)
     except ObjectDoesNotExist:
+        logger.debug(
+            '[HYPATIO][DEBUG][get_hosted_file_logs] User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                email=user.email,
+                project_key=project_key
+            )
+        )
         return HttpResponse("Error: file not found.", status=404)
+    except Exception as e:
+        logger.exception(
+            '[HYPATIO][EXCEPTION][get_hosted_file_logs] Could not perform fetch for '
+            'file download logs: {e}.'.format(e=e), exc_info=True, extra={
+                'user': user.email, 'project': project_key, 'hosted_file': hosted_file_uuid
+            }
+        )
+        return HttpResponse("Error: fetch failed with error", status=500)
 
     response_html = render_to_string(
         'manage/hosted-file-logs.html',
         context={
-            'downloads': hosted_file.hostedfiledownload_set,
-            'file': hosted_file
+            'downloads': [HostedFileDownloadSerializer(downloads).data for downloads in
+                          hosted_file.hostedfiledownload_set.all().order_by('download_date')],
+            'file': HostedFileSerializer(hosted_file).data,
         },
         request=request
     )
@@ -758,6 +776,113 @@ def download_submission(request, fileservice_uuid):
         shutil.rmtree(os.path.dirname(os.path.realpath((zip_file_path))))
 
         return response
+
+@user_auth_and_jwt
+def host_submission(request, fileservice_uuid):
+    """
+    An HTTP POST endpoint that allows a user to host a ChallengeTaskSubmission's
+    file from AWS/fileservice as a HostedFile.
+    """
+    if request.method == "GET":
+        logger.debug('host-submission: GET')
+
+        user = request.user
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+        submission = get_object_or_404(ChallengeTaskSubmission, uuid=fileservice_uuid)
+        project = submission.challenge_task.data_project
+
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+        is_manager = sciauthz.user_has_manage_permission(project.project_key)
+
+        if not is_manager:
+            logger.debug(
+                '[HYPATIO][DEBUG][get_static_agreement_form_html] User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                    email=user.email,
+                    project_key=project.project_key
+                )
+            )
+            return HttpResponse("Error: permissions.", status=403)
+
+        # Parse submission info
+        try:
+            if submission.submission_info:
+                file_name = json.loads(submission.submission_info).get('filename')
+            else:
+                file_name = None
+        except Exception as e:
+            logger.exception('Submission info error: {e}', exc_info=True, extra={
+                'file_uuid': fileservice_uuid, 'submission': submission, 'submission_info': submission.submission_info
+            })
+
+        # Initialize some fields
+        initial = {
+            'project': project.id,
+            'file_name': file_name,
+            'file_location': project.project_key.replace('-', '/')
+        }
+
+        host_hosted_file_form = HostSubmissionForm(initial=initial)
+
+        response_html = render_to_string(
+            'manage/host-submission-form.html',
+            context={
+                'form': host_hosted_file_form,
+                'submission': submission,
+                'fileservice_uuid': fileservice_uuid,
+            },
+            request=request
+        )
+        return HttpResponse(response_html)
+
+    elif request.method == "POST":
+        logger.debug('host-submission: POST')
+
+        submission = get_object_or_404(ChallengeTaskSubmission, uuid=fileservice_uuid)
+        project = submission.challenge_task.data_project
+
+        user = request.user
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+        is_manager = sciauthz.user_has_manage_permission(project.project_key)
+
+        if not is_manager:
+            logger.debug(
+                '[HYPATIO][DEBUG][get_static_agreement_form_html] User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                    email=user.email,
+                    project_key=project.project_key
+                )
+            )
+            return HttpResponse("Error: permissions.", status=403)
+
+        host_submission_form = HostSubmissionForm(request.POST)
+
+        # TODO show error messages
+        if not host_submission_form.is_valid():
+            return HttpResponse(host_submission_form.errors.as_json(), status=400)
+
+        try:
+            # Do the copy
+            logger.debug(f'[HYPATIO][DEBUG][host_submission] Copying submission "{submission}" '
+                         f'to hosted location "{host_submission_form.cleaned_data["file_location"]}/'
+                         f'{host_submission_form.cleaned_data["file_name"]}"')
+
+            if host_file(request=request, file_uuid=fileservice_uuid,
+                         file_location=host_submission_form.cleaned_data['file_location'],
+                         file_name=host_submission_form.cleaned_data['file_name']):
+                logger.debug(f'[HYPATIO][DEBUG][host_submission] File was copied successfully')
+                host_submission_form.save()
+
+            else:
+                logger.debug(f'[HYPATIO][DEBUG][host_submission] File failed to copy')
+                return HttpResponse({'form': [{'message': 'File could not be copied', 'code': 'copy_error'}]}, status=500)
+
+        except Exception:
+            # TODO do something on failure
+            return HttpResponse("Error: failed to save object", status=500)
+
+        return HttpResponse("File updated.", status=200)
 
 @user_auth_and_jwt
 def download_email_list(request):
