@@ -259,10 +259,7 @@ def group_name(permission):
 
 def _s3_client():
     # Get the service client with sigv4 configured
-    return boto3.client('s3',
-                        aws_access_key_id=settings.S3_AWS_ACCESS_KEY_ID,
-                        aws_secret_access_key=settings.S3_AWS_SECRET_ACCESS_KEY,
-                        config=Config(signature_version='s3v4'))
+    return boto3.client('s3', config=Config(signature_version='s3v4'))
 
 
 def get_download_url(file_name, expires_in=3600):
