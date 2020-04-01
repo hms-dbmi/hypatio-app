@@ -14,9 +14,7 @@ import os
 import sys
 
 from os.path import normpath, join, dirname, abspath
-from django.utils.crypto import get_random_string
-
-chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+from dbmi_client import environment
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,14 +23,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", get_random_string(50, chars))
+SECRET_KEY = environment.get_str("SECRET_KEY", required=True)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DJANGO_DEBUG", False)
+DEBUG = environment.get_bool("DJANGO_DEBUG", default=False)
 
 PROJECT = 'hypatio'
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(',')
+ALLOWED_HOSTS = environment.get_list("ALLOWED_HOSTS", required=True)
 
 # Application definition
 
@@ -96,10 +94,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hypatio',
-        'USER': os.environ.get("MYSQL_USERNAME"),
-        'PASSWORD': os.environ.get("MYSQL_PASSWORD"),
-        'HOST': os.environ.get("MYSQL_HOST"),
-        'PORT': os.environ.get("MYSQL_PORT"),
+        'USER': environment.get_str("MYSQL_USERNAME", default='hypatio'),
+        'PASSWORD': environment.get_str("MYSQL_PASSWORD", required=True),
+        'HOST': environment.get_str("MYSQL_HOST", required=True),
+        'PORT': environment.get_str("MYSQL_PORT", '3306'),
     }
 }
 
@@ -121,26 +119,26 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-SITE_URL = os.environ.get("SITE_URL")
+SITE_URL = environment.get_str("SITE_URL", required=True)
 
-AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN")
-AUTH0_CLIENT_ID_LIST = os.environ.get("AUTH0_CLIENT_ID_LIST","").split(",")
-AUTH0_SECRET = os.environ.get("AUTH0_SECRET")
-AUTH0_SUCCESS_URL = os.environ.get("AUTH0_SUCCESS_URL")
-AUTH0_LOGOUT_URL = os.environ.get("AUTH0_LOGOUT_URL","")
+AUTH0_DOMAIN = environment.get_str("AUTH0_DOMAIN", required=True)
+AUTH0_CLIENT_ID_LIST = environment.get_list("AUTH0_CLIENT_ID_LIST", required=True)
+AUTH0_SECRET = environment.get_str("AUTH0_SECRET", required=True)
+AUTH0_SUCCESS_URL = environment.get_str("AUTH0_SUCCESS_URL", required=True)
+AUTH0_LOGOUT_URL = environment.get_str("AUTH0_LOGOUT_URL", required=True)
 
 AUTHENTICATION_BACKENDS = ['pyauth0jwt.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend']
 
-AUTHENTICATION_LOGIN_URL = os.environ.get("ACCOUNT_SERVER_URL")
-ACCOUNT_SERVER_URL = os.environ.get("ACCOUNT_SERVER_URL")
-SCIREG_SERVER_URL = os.environ.get("SCIREG_SERVER_URL", "")
-AUTHZ_BASE = os.environ.get("AUTHZ_BASE", "")
+AUTHENTICATION_LOGIN_URL = environment.get_str("ACCOUNT_SERVER_URL", required=True)
+ACCOUNT_SERVER_URL = environment.get_str("ACCOUNT_SERVER_URL", required=True)
+SCIREG_SERVER_URL = environment.get_str("SCIREG_SERVER_URL", required=True)
+AUTHZ_BASE = environment.get_str("AUTHZ_BASE", required=True)
 
 USER_PERMISSIONS_URL = AUTHZ_BASE + "/user_permission/"
 
 SCIREG_REGISTRATION_URL = SCIREG_SERVER_URL + "/api/register/"
 
-COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN")
+COOKIE_DOMAIN = environment.get_str("COOKIE_DOMAIN", required=True)
 
 SSL_SETTING = "https"
 VERIFY_REQUESTS = True
@@ -148,14 +146,14 @@ VERIFY_REQUESTS = True
 CONTACT_FORM_RECIPIENTS="dbmi_tech_core@hms.harvard.edu"
 DEFAULT_FROM_EMAIL="dbmi_tech_core@hms.harvard.edu"
 
-RECAPTCHA_KEY = os.environ.get('RECAPTCHA_KEY')
-RECAPTCHA_CLIENT_ID = os.environ.get('RECAPTCHA_CLIENT_ID')
+RECAPTCHA_KEY = environment.get_str('RECAPTCHA_KEY', required=True)
+RECAPTCHA_CLIENT_ID = environment.get_str('RECAPTCHA_CLIENT_ID', required=True)
 
-EMAIL_CONFIRM_SUCCESS_URL = os.environ.get('EMAIL_CONFIRM_SUCCESS_URL')
+EMAIL_CONFIRM_SUCCESS_URL = environment.get_str('EMAIL_CONFIRM_SUCCESS_URL', required=True)
 
 ##########
 # S3 Configurations
-S3_BUCKET = os.environ.get('S3_BUCKET')
+S3_BUCKET = environment.get_str('S3_BUCKET', required=True)
 
 ##########
 
@@ -211,23 +209,23 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ##########
 
-EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django_smtp_ssl.SSLEmailBackend")
+EMAIL_BACKEND = environment.get_str("EMAIL_BACKEND", "django_smtp_ssl.SSLEmailBackend")
 EMAIL_USE_SSL = EMAIL_BACKEND == 'django_smtp_ssl.SSLEmailBackend'
-EMAIL_HOST = os.environ.get("EMAIL_HOST")
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-EMAIL_PORT = os.environ.get("EMAIL_PORT")
+EMAIL_HOST = environment.get_str("EMAIL_HOST", required=True)
+EMAIL_HOST_USER = environment.get_str("EMAIL_HOST_USER", required=not DEBUG)
+EMAIL_HOST_PASSWORD = environment.get_str("EMAIL_HOST_PASSWORD", required=EMAIL_HOST_USER is not None)
+EMAIL_PORT = environment.get_str("EMAIL_PORT", required=True)
 
 
 #####################################################################################
 # FileService Configurations
 #####################################################################################
 
-FILESERVICE_API_URL = os.environ.get('FILESERVICE_API_URL')
-FILESERVICE_GROUP = os.environ.get('FILESERVICE_GROUP')
-FILESERVICE_AWS_BUCKET = os.environ.get('FILESERVICE_AWS_BUCKET')
+FILESERVICE_API_URL = environment.get_str('FILESERVICE_API_URL', required=True)
+FILESERVICE_GROUP = environment.get_str('FILESERVICE_GROUP', required=True)
+FILESERVICE_AWS_BUCKET = environment.get_str('FILESERVICE_AWS_BUCKET', required=True)
 FILESERVICE_SERVICE_ACCOUNT = 'hypatio'
-FILESERVICE_SERVICE_TOKEN = os.environ.get('FILESERVICE_SERVICE_TOKEN')
+FILESERVICE_SERVICE_TOKEN = environment.get_str('FILESERVICE_SERVICE_TOKEN', required=True)
 FILESERVICE_AUTH_HEADER_PREFIX = 'Token'
 
 #####################################################################################
@@ -292,7 +290,7 @@ LOGGING = {
 }
 
 RAVEN_CONFIG = {
-    'dsn': os.environ.get("RAVEN_URL", ""),
+    'dsn': environment.get_str("RAVEN_URL", required=True),
     # If you are using git, you can also automatically configure the
     # release based on the git info.
     'release': '1',
