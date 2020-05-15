@@ -7,13 +7,15 @@
 
 <p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">Hi,</p>
 
-<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">This is a notification that a {{ signed_form.project.name }} challenge administrator has <strong>rejected</strong> the {{ signed_form.agreement_form.name }} form that you signed on {{ signed_form.date_signed|timezone:"America/New_York" }} (EST).</p>
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">This is a notification that a {{ signed_form.project.name }} administrator has <strong>rejected</strong> the {{ signed_form.agreement_form.name }} form that you signed on {{ signed_form.date_signed|timezone:"America/New_York" }} (EST).</p>
 
-<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">A challenge administrator provided the following reason why:</p>
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">The administrator provided the following reason why:</p>
 
 <p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;"><i>{{ administrator_message|linebreaks }}</i></p>
 
-<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">If you wish to participate in the challenge, please return to the <a href="{{ site_url }}projects/{{ signed_form.project.project_key }}/">{{ signed_form.project.name }} challenge page</a> and fill out the form again.</p>
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">If you wish to
+    {% if signed_form.project.is_challenge %}participate in the challenge{% else %}obtain access to the data{% endif %},
+    please return to <a href="{{ site_url }}projects/{{ signed_form.project.project_key }}/">{{ signed_form.project.name }}</a> and fill out the form again.</p>
 
 <p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">Thank you.</p>
 
