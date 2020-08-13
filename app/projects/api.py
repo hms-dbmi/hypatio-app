@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 class HostedFileSetAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             return HostedFileSet.objects.none()
 
         queryset = HostedFileSet.objects.all()
