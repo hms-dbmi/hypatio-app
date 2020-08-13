@@ -1,0 +1,18 @@
+-c constraints.txt
+boto3
+Django
+django-autocomplete-light
+django-bootstrap3
+django-bootstrap-datepicker-plus
+django-countries
+django-dbmi-client
+django-health-check
+django-jquery
+django-stronghold
+djangorestframework
+django-smtp-ssl
+furl
+mysqlclient
+py-auth0-jwt
+raven
+requests
