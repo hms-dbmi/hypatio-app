@@ -140,7 +140,7 @@ class DataProjectView(TemplateView):
         self.user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
         # Add the participant to the class instance if available.
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             try:
                 self.participant = Participant.objects.get(
                     user=self.request.user,
@@ -180,12 +180,12 @@ class DataProjectView(TemplateView):
             return context
 
         # Otherwise, users who are not logged in should be prompted to first before proceeding further.
-        if not self.request.user.is_authenticated() or self.user_jwt is None:
+        if not self.request.user.is_authenticated or self.user_jwt is None:
             self.get_unregistered_context(context)
             return context
 
         # Check the users current permissions on this project.
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             context['has_manage_permissions'] = DBMIAuthz.user_has_manage_permission(
                 request=self.request, project_key=self.project.project_key
             )
