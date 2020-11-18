@@ -16,7 +16,7 @@
 {% endif %}
 
 <div class="row">
-    
+
     <div class="col-md-5">
         <div class="panel panel-primary">
             <div class="panel-heading" role="tab" id="heading-description">
@@ -72,11 +72,11 @@
             {% for panel in actionable_panels %}
             <div class="panel panel-default" style="margin-bottom: 15px;">
                 <div class="panel-heading heading-description" role="tab">
-                    <a class="{% if actionable_panels|length > 3 %}collapsed{% endif %}" 
+                    <a class="{% if actionable_panels|length > 3 %}collapsed{% endif %}"
                         role="button"
                         data-toggle="collapse"
                         data-parent="#accordion"
-                        href="#collapse{{ forloop.counter0 }}" 
+                        href="#collapse{{ forloop.counter0 }}"
                         aria-expanded="false"
                         aria-controls="collapse{{ forloop.counter0 }}"
                     >
@@ -103,8 +103,13 @@
 
 {% block footerscripts %}
 <script type="application/javascript">
+$( document ).ready(function() {
+
     $('form[name=agreement_form_container]').submit(function(e){
         e.preventDefault();
+
+        // Serialize form fields
+        var formFields = $(this).serialize();
 
         // Grab the div element holding the agreement form and the user's inputs. The form file should have
         // wrapped in a <div class="form-content"> all the form except for any JavaScript so that no JS gets
@@ -138,19 +143,20 @@
 
         var submit_button = $(this).find(".submit_form");
 
-        $.post($(this).attr('action'), $(this).serialize(), function(res){
+        $.post($(this).attr('action'), formFields + "&" + $('input[name=agreement_text]').serialize(), function(res){
             // $("#loading").hide();
         }).done(function() {
             notify('success', "Agreement form submitted!", 'thumbs-up');
-            submit_button.replaceWith("<h3><span class='label label-success'>Form saved.</span></h3>"); 
+            submit_button.replaceWith("<h3><span class='label label-success'>Form saved.</span></h3>");
 
             // Refresh the page so the user does not see this button again
             setTimeout(function(){
                 window.location = window.location.pathname
             },1000);
         }).fail(function() {
-            submit_button.replaceWith("<h3><span class='label label-danger'>Form save failed. Please try again in a few minutes.</span></h3>");            
+            submit_button.replaceWith("<h3><span class='label label-danger'>Form save failed. Please try again in a few minutes.</span></h3>");
         });
     });
+  });
 </script>
 {% endblock %}
