@@ -41,43 +41,43 @@
 
         <div class="form-group">
             <label for="person-name">Name</label>
-            <input type="text" class="form-control" id="person-name">
+            <input type="text" class="form-control" id="person-name" name="person-name">
         </div>
         <div class="form-group">
             <label for="professional-title">Professional Title</label>
-            <input type="text" class="form-control" id="professional-title" placeholder="Student, professor, postdoc, etc">
+            <input type="text" class="form-control" id="professional-title" name="professional-title" placeholder="Student, professor, postdoc, etc">
         </div>
         <div class="form-group">
             <label for="institution">Institution or Organization</label>
-            <input type="text" class="form-control" id="institution">
+            <input type="text" class="form-control" id="institution" name="institution">
         </div>
         <div class="form-group">
             <label for="address">Street Address</label>
-            <input type="text" class="form-control" id="address">
+            <input type="text" class="form-control" id="address" name="address">
         </div>
         <div class="form-group">
             <label for="city">City</label>
-            <input type="text" class="form-control" id="city">
+            <input type="text" class="form-control" id="city" name="city">
         </div>
         <div class="form-group">
             <label for="state">State</label>
-            <input type="text" class="form-control" id="state">
+            <input type="text" class="form-control" id="state" name="state">
         </div>
         <div class="form-group">
             <label for="zip">Zip</label>
-            <input type="text" class="form-control" id="zip">
+            <input type="text" class="form-control" id="zip" name="zip">
         </div>
         <div class="form-group">
             <label for="country">Country</label>
-            <input type="text" class="form-control" id="country">
+            <input type="text" class="form-control" id="country" name="country">
         </div>
         <div class="form-group">
             <label for="person-phone">Phone</label>
-            <input type="text" class="form-control" id="person-phone">
+            <input type="text" class="form-control" id="person-phone" name="person-phone">
         </div>
         <div class="form-group">
             <label for="person-email">E-mail</label>
-            <input type="text" class="form-control" id="person-email">
+            <input type="text" class="form-control" id="person-email" name="person-email">
         </div>
     </div>
 
@@ -86,19 +86,19 @@
 
         <div class="form-group">
             <label for="place-of-business">Principal Place of Business</label>
-            <input type="text" class="form-control" id="place-of-business">
+            <input type="text" class="form-control" id="place-of-business" name="place-of-business">
         </div>
         <div class="form-group">
             <label for="contact-name">Contact Name/Title</label>
-            <input type="text" class="form-control" id="contact-name">
+            <input type="text" class="form-control" id="contact-name" name="contact-name">
         </div>
         <div class="form-group">
             <label for="business-phone">Phone</label>
-            <input type="text" class="form-control" id="business-phone">
+            <input type="text" class="form-control" id="business-phone" name="business-phone">
         </div>
         <div class="form-group">
             <label for="business-email">E-mail</label>
-            <input type="text" class="form-control" id="business-email">
+            <input type="text" class="form-control" id="business-email" name="business-email">
         </div>
     </div>
 
@@ -108,19 +108,19 @@
 
     <div class="form-group">
         <label for="electronic-signature">Electronic Signature (Full Name)</label>
-        <input type="text" class="form-control" id="electronic-signature" required>
+        <input type="text" class="form-control" id="electronic-signature" name="electronic-signature" required>
     </div>
     <div class="form-group">
         <label for="professional-title">Professional Title</label>
-        <input type="text" class="form-control" id="professional-title" placeholder="Student, professor, postdoc, etc" required>
+        <input type="text" class="form-control" id="professional-title" name="professional-title" placeholder="Student, professor, postdoc, etc" required>
     </div>
     <div class="form-group">
         <label for="date">Date</label>
-        <input type="date" class="form-control" id="date" required>
+        <input type="date" class="form-control" id="date" name="date" required>
     </div>
 
     <label class="checkbox-inline">
-        <input type="checkbox" id="i-agree" value="Yes" required> I agree to the terms and conditions above. By clicking the "I Agree" checkbox I certify that this is my legal signature.
+        <input type="checkbox" id="i-agree" name="i-agree" value="Yes" required> I agree to the terms and conditions above. By clicking the "I Agree" checkbox I certify that this is my legal signature.
     </label>
 </div>
 
@@ -129,7 +129,7 @@
         // When someone clicks what kind of registrant they are, hide the opposite form section
         $('#registrant-is').change(function() {
             var selected_value = $("input[name='registrant-is']:checked").val();
-            
+
             if (selected_value == "individual") {
                 $('#academic-questions').show();
                 $('#corporation-questions').hide();
@@ -144,7 +144,7 @@
                 $('#corporation-questions').show();
 
                 $("#academic-questions :input").prop('required',false);
-                $("#academic-questions :input").val('');                
+                $("#academic-questions :input").val('');
                 $("#corporation-questions :input").prop('required',true);
             }
         });
