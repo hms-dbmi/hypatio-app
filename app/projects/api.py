@@ -630,6 +630,20 @@ def save_signed_agreement_form(request):
         date_signed=datetime.now(),
         agreement_text=agreement_text
     )
+
+    # Save form fields
+    for key, data in request.POST.items():
+
+        # Replace dashes with underscore
+        _field = key.replace("-", "_")
+
+        # Check if field on model
+        if hasattr(signed_agreement_form, _field):
+
+            # Set it
+            setattr(signed_agreement_form, _field, data)
+
+    # Save it
     signed_agreement_form.save()
 
     return HttpResponse(status=200)
