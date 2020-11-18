@@ -32,7 +32,7 @@
 
         <br>
 
-        <p>This Data Use and Confidentiality Agreement (the <strong>"Agreement"</strong>) is made as of the <input type="text" class="" id="day" maxlength="2" placeholder="day"> day of <input type="text" class="" id="month" maxlength="20" placeholder="month">, <input type="text" class="" id="year" maxlength="4" placeholder="year"> by and between Partners HealthCare System, Inc., through its i2b2 National Center for Biomedical Computing, and on behalf of itself and its affiliates (collectively, <strong>"Partners"</strong>) and <input type="text" class="" id="data-user" placeholder="your first and last name"> (<strong>"Data User"</strong>).</p>
+        <p>This Data Use and Confidentiality Agreement (the <strong>"Agreement"</strong>) is made as of the <input type="text" class="" id="day" name="day" maxlength="2" placeholder="day" data-required="required" /> day of <input type="text" class="" id="month" name="month" maxlength="20" placeholder="month" data-required="required" />, <input type="text" class="" id="year" name="year" maxlength="4" placeholder="year" data-required="required" /> by and between Partners HealthCare System, Inc., through its i2b2 National Center for Biomedical Computing, and on behalf of itself and its affiliates (collectively, <strong>"Partners"</strong>) and <input type="text" class="" id="data-user" name="data-user" placeholder="your first and last name" data-required="required" /> (<strong>"Data User"</strong>).</p>
 
         <br>
 
@@ -54,11 +54,11 @@
 
         <div class="radio" id="registrant-is">
             <label>
-                <input type="radio" name="registrant-is" value="individual">
+                <input type="radio" name="registrant-is" value="individual" data-required="required" />
                 an individual, requesting Data/Datasets under this Agreement on behalf of himself/herself as follows
             </label>
             <label>
-                <input type="radio" name="registrant-is" value="corporation">
+                <input type="radio" name="registrant-is" value="corporation" data-required="required" />
                 an organization/institution, requesting Data under this Agreement on behalf of itself and its employees with a principal place of business and primary business contact as follows:
             </label>
         </div>
@@ -67,27 +67,27 @@
             <h6>Individual</h6>
             <div class="form-group">
                 <label for="individual-name">Name</label>
-                <input type="text" class="form-control" id="individual-name" placeholder="First and last name">
+                <input type="text" class="form-control" id="individual-name" id="individual-name" name="individual-name" placeholder="First and last name" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="individual-professional-title">Professional Title</label>
-                <input type="text" class="form-control" id="individual-professional-title">
+                <input type="text" class="form-control" id="individual-professional-title" name="individual-professional-title" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="individual-address">Address</label>
-                <input type="text" class="form-control" id="individual-address">
+                <input type="text" class="form-control" id="individual-address" name="individual-address" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="individual-phone">Telephone</label>
-                <input type="text" class="form-control" id="individual-phone">
+                <input type="text" class="form-control" id="individual-phone" name="individual-phone" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="individual-fax">Fax</label>
-                <input type="text" class="form-control" id="individual-fax">
+                <input type="text" class="form-control" id="individual-fax" name="individual-fax" />
             </div>
             <div class="form-group">
                 <label for="individual-email">E-mail</label>
-                <input type="text" class="form-control" id="individual-email">
+                <input type="text" class="form-control" id="individual-email" name="individual-email" data-required="required" />
             </div>
         </div>
 
@@ -95,23 +95,23 @@
             <h6>Organization/Institution</h6>
             <div class="form-group">
                 <label for="corporation-place-of-business">Principal Place of Business</label>
-                <input type="text" class="form-control" id="corporation-place-of-business">
+                <input type="text" class="form-control" id="corporation-place-of-business" name="corporation-place-of-business" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="corporation-contact-name">Contact Name/Title</label>
-                <input type="text" class="form-control" id="corporation-contact-name">
+                <input type="text" class="form-control" id="corporation-contact-name" name="corporation-contact-name" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="corporation-phone">Telephone</label>
-                <input type="text" class="form-control" id="corporation-phone">
+                <input type="text" class="form-control" id="corporation-phone" name="corporation-phone" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="corporation-fax">Fax</label>
-                <input type="text" class="form-control" id="corporation-fax">
+                <input type="text" class="form-control" id="corporation-fax" name="corporation-fax" />
             </div>
             <div class="form-group">
                 <label for="corporation-email">E-mail</label>
-                <input type="text" class="form-control" id="corporation-email">
+                <input type="text" class="form-control" id="corporation-email" name="corporation-email" data-required="required" />
             </div>
         </div>
 
@@ -128,16 +128,16 @@
         <h5>Persons/Entities on Registrant's Research team</h5>
 
         <div class="form-group">
-            <input type="text" class="form-control" id="research-team-person-1" placeholder="Person 1's name and e-mail address">
+            <input type="text" class="form-control" id="research-team-person-1" name="research-team-person-1" placeholder="Person 1's name and e-mail address">
         </div>
         <div class="form-group">
-            <input type="text" class="form-control" id="research-team-person-2" placeholder="Person 2's name and e-mail address">
+            <input type="text" class="form-control" id="research-team-person-2" name="research-team-person-2" placeholder="Person 2's name and e-mail address">
         </div>
         <div class="form-group">
-            <input type="text" class="form-control" id="research-team-person-3" placeholder="Person 3's name and e-mail address">
+            <input type="text" class="form-control" id="research-team-person-3" name="research-team-person-3" placeholder="Person 3's name and e-mail address">
         </div>
         <div class="form-group">
-            <input type="text" class="form-control" id="research-team-person-4" placeholder="Person 4's name and e-mail address">
+            <input type="text" class="form-control" id="research-team-person-4" name="research-team-person-4" placeholder="Person 4's name and e-mail address">
         </div>
 
         <br>
@@ -176,19 +176,19 @@
 
         <div class="form-group">
             <label for="partners-name">By</label>
-            <input type="text" class="form-control" id="partners-name" placeholder="Print first and last name" disabled>
+            <input type="text" class="form-control" id="partners-name" name="partners-name" placeholder="Print first and last name" disabled>
         </div>
         <div class="form-group">
             <label for="partners-title">Title</label>
-            <input type="text" class="form-control" id="partners-title" disabled>
+            <input type="text" class="form-control" id="partners-title" name="partners-title" disabled>
         </div>
         <div class="form-group">
             <label for="partners-address">Address</label>
-            <input type="text" class="form-control" id="partners-address" disabled>
+            <input type="text" class="form-control" id="partners-address" name="partners-address" disabled>
         </div>
         <div class="form-group">
             <label for="partners-date">Date</label>
-            <input type="date" class="form-control" id="partners-date" disabled>
+            <input type="date" class="form-control" id="partners-date" name="partners-date" disabled>
         </div>
 
         <br>
@@ -197,23 +197,23 @@
 
         <div class="form-group">
             <label for="data-user-signature">Signature of Data User (of Data User's Duly Authorized Representative, if an organization)</label>
-            <input type="text" class="form-control" id="data-user-signature">
+            <input type="text" class="form-control" id="data-user-signature" name="data-user-signature" data-required="required" />
         </div>
         <div class="form-group">
             <label for="data-user-name">By</label>
-            <input type="text" class="form-control" id="data-user-name" placeholder="Print first and last name">
+            <input type="text" class="form-control" id="data-user-name" name="data-user-name" placeholder="Print first and last name" data-required="required" />
         </div>
         <div class="form-group">
             <label for="data-user-title">Title</label>
-            <input type="text" class="form-control" id="data-user-title">
+            <input type="text" class="form-control" id="data-user-title" name="data-user-title" data-required="required" />
         </div>
         <div class="form-group">
             <label for="data-user-address">Address</label>
-            <input type="text" class="form-control" id="data-user-address">
+            <input type="text" class="form-control" id="data-user-address" name="data-user-address" data-required="required" />
         </div>
         <div class="form-group">
             <label for="data-user-date">Date</label>
-            <input type="date" class="form-control" id="data-user-date">
+            <input type="date" class="form-control" id="data-user-date" name="data-user-date" data-required="required" />
         </div>
     </div>
 
@@ -234,7 +234,7 @@
 
         <br>
 
-        <p>This Data Use and Confidentiality Agreement (the <strong>"Agreement"</strong>) is made as of the <input type="text" class="" id="commercial-day" maxlength="2" placeholder="day"> day of <input type="text" class="" id="commercial-month" maxlength="20" placeholder="month">, <input type="text" class="" id="commercial-year" maxlength="4" placeholder="year"> by and between Partners HealthCare System, Inc., through its i2b2 National Center for Biomedical Computing, and on behalf of itself and its affiliates (collectively, <strong>"Partners"</strong>) and <input type="text" class="" id="commercial-data-user" placeholder="your first and last name"> (<strong>"Data User"</strong>).</p>
+        <p>This Data Use and Confidentiality Agreement (the <strong>"Agreement"</strong>) is made as of the <input type="text" class="" id="commercial-day" name="day" maxlength="2" placeholder="day" data-required="required" /> day of <input type="text" class="" id="commercial-month" name="month" maxlength="20" placeholder="month" data-required="required" />, <input type="text" class="" id="commercial-year" name="year" maxlength="4" placeholder="year" data-required="required" /> by and between Partners HealthCare System, Inc., through its i2b2 National Center for Biomedical Computing, and on behalf of itself and its affiliates (collectively, <strong>"Partners"</strong>) and <input type="text" class="" id="commercial-data-user" name="data-user" placeholder="your first and last name" data-required="required" /> (<strong>"Data User"</strong>).</p>
 
         <br>
 
@@ -256,11 +256,11 @@
 
         <div class="radio" id="commercial-registrant-is">
             <label>
-                <input type="radio" name="commercial-registrant-is" value="individual">
+                <input id="commercial-registrant-is-individual" type="radio" name="commercial-registrant-is" value="individual" disabled />
                 an individual, requesting Data/Datasets under this Agreement on behalf of himself/herself as follows
             </label>
             <label>
-                <input type="radio" name="commercial-registrant-is" value="corporation">
+                <input id="commercial-registrant-is-corporation" type="radio" name="commercial-registrant-is" value="corporation" data-required="required" />
                 an organization/corporation, requesting Data under this Agreement on behalf of itself and its employees with a principal place of business and primary business contact as follows:
             </label>
         </div>
@@ -269,27 +269,27 @@
             <h6>Individual</h6>
             <div class="form-group">
                 <label for="individual-name">Name</label>
-                <input type="text" class="form-control" id="commercial-individual-name">
+                <input type="text" class="form-control" id="commercial-individual-name" name="individual-name" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="individual-professional-title">Professional Title</label>
-                <input type="text" class="form-control" id="commercial-individual-professional-title">
+                <input type="text" class="form-control" id="commercial-individual-professional-title" name="individual-professional-title" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="individual-address">Address</label>
-                <input type="text" class="form-control" id="commercial-individual-address">
+                <input type="text" class="form-control" id="commercial-individual-address" name="individual-address" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="individual-phone">Telephone</label>
-                <input type="text" class="form-control" id="commercial-individual-phone">
+                <input type="text" class="form-control" id="commercial-individual-phone" name="individual-phone" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="individual-fax">Fax</label>
-                <input type="text" class="form-control" id="commercial-individual-fax">
+                <input type="text" class="form-control" id="commercial-individual-fax" name="individual-fax" />
             </div>
             <div class="form-group">
                 <label for="individual-email">E-mail</label>
-                <input type="text" class="form-control" id="commercial-individual-email">
+                <input type="text" class="form-control" id="commercial-individual-email" name="individual-email" data-required="required" />
             </div>
         </div>
 
@@ -297,23 +297,23 @@
             <h6>Organization/Corporation</h6>
             <div class="form-group">
                 <label for="corporation-place-of-business">Principal Place of Business</label>
-                <input type="text" class="form-control" id="commercial-corporation-place-of-business">
+                <input type="text" class="form-control" id="commercial-corporation-place-of-business" name="corporation-place-of-business" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="corporation-contact-name">Contact Name/Title</label>
-                <input type="text" class="form-control" id="commercial-corporation-contact-name">
+                <input type="text" class="form-control" id="commercial-corporation-contact-name" name="corporation-contact-name" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="corporation-phone">Telephone</label>
-                <input type="text" class="form-control" id="commercial-corporation-phone">
+                <input type="text" class="form-control" id="commercial-corporation-phone" name="corporation-phone" data-required="required" />
             </div>
             <div class="form-group">
                 <label for="corporation-fax">Fax</label>
-                <input type="text" class="form-control" id="commercial-corporation-fax">
+                <input type="text" class="form-control" id="commercial-corporation-fax" name="corporation-fax">
             </div>
             <div class="form-group">
                 <label for="corporation-email">E-mail</label>
-                <input type="text" class="form-control" id="commercial-corporation-email">
+                <input type="text" class="form-control" id="commercial-corporation-email" name="corporation-email" data-required="required" />
             </div>
         </div>
 
@@ -361,19 +361,19 @@
 
         <div class="form-group">
             <label for="partners-name">By</label>
-            <input type="text" class="form-control" id="commercial-partners-name" placeholder="Print name" disabled>
+            <input type="text" class="form-control" id="commercial-partners-name" name="partners-name" placeholder="Print name" disabled>
         </div>
         <div class="form-group">
             <label for="partners-title">Title</label>
-            <input type="text" class="form-control" id="commercial-partners-title" disabled>
+            <input type="text" class="form-control" id="commercial-partners-title" name="partners-title" disabled>
         </div>
         <div class="form-group">
             <label for="partners-address">Address</label>
-            <input type="text" class="form-control" id="commercial-partners-address" disabled>
+            <input type="text" class="form-control" id="commercial-partners-address" name="partners-address" disabled>
         </div>
         <div class="form-group">
             <label for="partners-date">Date</label>
-            <input type="date" class="form-control" id="commercial-partners-date" disabled>
+            <input type="date" class="form-control" id="commercial-partners-date" name="partners-date" disabled>
         </div>
 
         <br>
@@ -382,28 +382,28 @@
 
         <div class="form-group">
             <label for="data-user-signature">Signature of Data User (of Data User's Duly Authorized Representative, if an organization)</label>
-            <input type="text" class="form-control" id="commercial-data-user-signature">
+            <input type="text" class="form-control" id="commercial-data-user-signature" name="data-user-signature" data-required="required" />
         </div>
         <div class="form-group">
             <label for="data-user-name">By</label>
-            <input type="text" class="form-control" id="commercial-data-user-name" placeholder="Print first and last name">
+            <input type="text" class="form-control" id="commercial-data-user-name" name="data-user-name" placeholder="Print first and last name" data-required="required" />
         </div>
         <div class="form-group">
             <label for="data-user-title">Title</label>
-            <input type="text" class="form-control" id="commercial-data-user-title">
+            <input type="text" class="form-control" id="commercial-data-user-title" name="data-user-title" data-required="required" />
         </div>
         <div class="form-group">
             <label for="data-user-address">Address</label>
-            <input type="text" class="form-control" id="commercial-data-user-address">
+            <input type="text" class="form-control" id="commercial-data-user-address" name="data-user-address" data-required="required" />
         </div>
         <div class="form-group">
             <label for="data-user-date">Date</label>
-            <input type="date" class="form-control" id="commercial-data-user-date">
+            <input type="date" class="form-control" id="commercial-data-user-date" name="data-user-date" data-required="required" />
         </div>
         <div class="bs-callout bs-callout-danger">
             <div class="checkbox">
                 <label>
-                    <input type="checkbox" id="commercial-data-user-acknowledge" required> I acknowledge that I am a duly authorized representative of the organization
+                    <input type="checkbox" id="commercial-data-user-acknowledge" name="data-user-acknowledge" data-required="required" /> I acknowledge that I am a duly authorized representative of the organization
                 </label>
             </div>
         </div>
@@ -423,20 +423,39 @@
                 $('#academic-form').show();
                 $('#commerical-form').hide();
 
-                $("#academic-form :input").prop('required',true);
+                // Show and enable and make required academic inputs
+                $("#academic-form :input[data-required='required']").prop('required',true);
+                $("#academic-form :input").prop('disabled',false);
+
+                // Hide and disable and make not-required commerical inputs
                 $("#commerical-form :input").prop('required',false);
+                $("#commerical-form :input").prop('disabled',true);
                 $("#commerical-form :input").not(':input[type=radio]').val('');
                 $("#commerical-form :input[type=radio]").prop('checked', false);
+
+                // This can be 'individual' or 'corporation'
+                $("input[name='commercial-registrant-is']").prop("checked", false);
             }
 
             if (selected_value == "commercial") {
                 $('#academic-form').hide();
                 $('#commerical-form').show();
 
+                // Show and enable and make required commerical inputs
+                $("#commerical-form :input[data-required='required']").prop('required',true);
+                $("#commerical-form :input").prop('disabled',false);
+
+                // Hide and disable and make not-required academic inputs
                 $("#academic-form :input").prop('required',false);
+                $("#academic-form :input").prop('disabled',true);
                 $("#academic-form :input").not(':input[type=radio]').val('');
                 $("#academic-form :input[type=radio]").prop('checked', false);
-                $("#commerical-form :input").prop('required',true);
+
+                // This can never be 'individual'
+                $("input[name='registrant-is']").prop("checked", false);
+                $("#commercial-registrant-is-individual").prop("checked", false);
+                $("#commercial-registrant-is-corporation").prop("checked", true);
+                $("#commercial-registrant-is-individual").prop("disabled", true);
             }
 
             // Display the submit button again
@@ -451,8 +470,13 @@
                 $('#individual-questions').show();
                 $('#corporation-questions').hide();
 
-                $("#individual-questions :input").prop('required',true);
+                // Show and enable and make required individual inputs
+                $("#individual-questions :input[data-required='required']").prop('required',true);
+                $("#individual-questions :input").prop('disabled',false);
+
+                // Hide and disable and make not-required corporation inputs
                 $("#corporation-questions :input").prop('required',false);
+                $("#corporation-questions :input").prop('disabled',true);
                 $("#corporation-questions :input").not(':input[type=radio]').val('');
                 $("#corporation-questions :input[type=radio]").prop('checked', false);
             }
@@ -461,10 +485,15 @@
                 $('#individual-questions').hide();
                 $('#corporation-questions').show();
 
+                // Show and enable and make required corporation inputs
+                $("#corporation-questions :input[data-required='required']").prop('required',true);
+                $("#corporation-questions :input").prop('disabled',false);
+
+                // Hide and disable and make not-required individual inputs
                 $("#individual-questions :input").prop('required',false);
+                $("#individual-questions :input").prop('disabled',true);
                 $("#individual-questions :input").not(':input[type=radio]').val('');
                 $("#individual-questions :input[type=radio]").prop('checked', false);
-                $("#corporation-questions :input").prop('required',true);
             }
 
             // These don't need to be required.
@@ -485,22 +514,31 @@
               $('#commercial-individual-questions').hide();
               $('#commercial-corporation-questions').show();
 
+              // Make commercial inputs required
+              $("#commercial-corporation-questions :input[data-required='required']").prop('required',true);
+              $("#commercial-corporation-questions :input").prop('disabled',false);
+
+              // Hide and disable and make not-required individual inputs
               $("#commercial-individual-questions :input").prop('required',false);
+              $("#commercial-individual-questions :input").prop('disabled',true);
               $("#commercial-individual-questions :input").not(':input[type=radio]').val('');
               $("#commercial-individual-questions :input[type=radio]").prop('checked', false);
-              $("#commercial-corporation-questions :input").prop('required',true);
-
             }
 
             if (selected_value == "individual") {
 
-              $('#commercial-individual-questions').show();
-              $('#commercial-corporation-questions').hide();
+              $('#commercial-individual-questions').hide();
+              $('#commercial-corporation-questions').show();
 
+              // Make individual inputs required
+              $("#commercial-individual-questions :input[data-required='required']").prop('required',true);
+              $("#commercial-individual-questions :input").prop('disabled',false);
+
+              // Hide and disable and make not-required corporation inputs
               $("#commercial-corporation-questions :input").prop('required',false);
+              $("#commercial-corporation-questions :input").prop('disabled',true);
               $("#commercial-corporation-questions :input").not(':input[type=radio]').val('');
               $("#commercial-corporation-questions :input[type=radio]").prop('checked', false);
-              $("#commercial-individual-questions :input").prop('required',true);
             }
         });
     });
