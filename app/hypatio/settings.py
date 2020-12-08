@@ -145,6 +145,7 @@ VERIFY_REQUESTS = True
 CONTACT_FORM_RECIPIENTS="dbmi_tech_core@hms.harvard.edu"
 DEFAULT_FROM_EMAIL="dbmi_tech_core@hms.harvard.edu"
 
+RECAPTCHA_DISABLED = environment.get_str('RECAPTCHA_DISABLED', default=False)
 RECAPTCHA_KEY = environment.get_str('RECAPTCHA_KEY', required=True)
 RECAPTCHA_CLIENT_ID = environment.get_str('RECAPTCHA_CLIENT_ID', required=True)
 

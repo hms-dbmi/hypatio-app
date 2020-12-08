@@ -8,15 +8,34 @@
                 <h3 class="modal-title">Contact Us</h3>
             </div>
             <div class="modal-body">
-                {% csrf_token %}
-                {% bootstrap_form contact_form %}
+              {% csrf_token %}
+              {% bootstrap_form contact_form %}
+
+              {# Check if reCAPTCHA is enabled #}
+              {% if not recaptcha_disabled %}
+                <div id="contact-form-recaptcha" class="g-recaptcha" data-sitekey="{{ recaptcha_client_id }}" data-callback="recaptchaCallback"></div>
+              {% else %}
+                <div class="alert alert-danger">
+                  <strong>Danger!</strong> RECAPTCHA is currently disabled for testing. This should NOT be production.
+                </div>
+              {% endif %}
             </div>
             <div class="modal-footer">
                 {% buttons %}
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Submit {% bootstrap_icon "send" %} </button>
+                    <button id="contact-form-submit" type="submit" class="btn btn-primary">Submit {% bootstrap_icon "send" %} </button>
                 {% endbuttons %}
             </div>
         </form>
     </div>
 </div>
+{% if not recaptcha_disabled %}
+<script src='https://www.google.com/recaptcha/api.js'></script>
+<script type="text/javascript">
+$(function() {
+
+    // Disable the submit button if recaptcha is enabled
+    $('#contact-form-submit').prop("disabled", true);
+});
+</script>
+{% endif %}
