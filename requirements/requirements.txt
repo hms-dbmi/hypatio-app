@@ -7,6 +7,7 @@ django-bootstrap-datepicker-plus
 django-countries
 django-dbmi-client
 django-health-check
+django-ipware
 django-jquery
 django-stronghold
 djangorestframework

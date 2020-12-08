@@ -11,6 +11,7 @@ django-bootstrap3==14.1.0
 django-countries==6.1.2
 django-dbmi-client==0.3.14
 django-health-check==3.12.1
+django-ipware==3.0.2
 django-jquery==3.1.0
 django-smtp-ssl==1.0
 django-stronghold==0.4.0

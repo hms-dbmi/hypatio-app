@@ -1,11 +1,5 @@
 import logging
 
-from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
-
-from contact.forms import ContactForm
-
-from projects.models import DataProject
-
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.conf import settings
@@ -14,15 +8,51 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import render
 from django.template.loader import render_to_string
+from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
+from django.utils.decorators import method_decorator
+from django.views.generic import View
+import requests
+from ipware import get_client_ip
+
+from contact.forms import ContactForm
+from projects.models import DataProject
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
-@public_user_auth_and_jwt
-def contact_form(request, project_key=None):
+class ContactView(View):
 
-    # If this is a POST request we need to process the form data.
-    if request.method == 'POST':
+    @method_decorator(public_user_auth_and_jwt)
+    def get(self, request, project_key=None, *args, **kwargs):
+
+        # If a GET (or any other method) we'll create a blank form.
+        initial = {}
+
+        if not request.user.is_anonymous:
+            initial['email'] = request.user.email
+
+        # If a project key was supplied and it matches a real project, pre-populate the form with it.
+        if project_key is not None:
+            try:
+                data_project = DataProject.objects.get(project_key=project_key)
+                initial['project'] = data_project
+            except ObjectDoesNotExist:
+                pass
+
+        # Generate and render the form.
+        form = ContactForm(initial=initial)
+
+        # Set context
+        context = {
+            'recaptcha_disabled': hasattr(settings, 'RECAPTCHA_DISABLED') and settings.RECAPTCHA_DISABLED,
+            'recaptcha_client_id': settings.RECAPTCHA_CLIENT_ID,
+            'contact_form': form,
+        }
+
+        return render(request, 'contact/contact.html', context)
+
+    @method_decorator(public_user_auth_and_jwt)
+    def post(self, request, project_key=None, *args, **kwargs):
         logger.debug("[HYPATIO][DEBUG][contact_form] Processing contact form  - " + str(request.user.id))
 
         # Process the form.
@@ -76,24 +106,6 @@ def contact_form(request, project_key=None):
                 messages.error(request, 'An unexpected error occurred, please try again')
                 return HttpResponseRedirect(reverse('dashboard:dashboard'))
 
-    # If a GET (or any other method) we'll create a blank form.
-    initial = {}
-
-    if not request.user.is_anonymous:
-        initial['email'] = request.user.email
-
-    # If a project key was supplied and it matches a real project, pre-populate the form with it.
-    if project_key is not None:
-        try:
-            data_project = DataProject.objects.get(project_key=project_key)
-            initial['project'] = data_project
-        except ObjectDoesNotExist:
-            pass
-
-    # Generate and render the form.
-    form = ContactForm(initial=initial)
-    return render(request, 'contact/contact.html', {'contact_form': form})
-
 def email_send(subject=None, recipients=None, email_template=None, extra=None):
     """
     Send an e-mail to a list of recipients with the given subject and email_template.
@@ -120,3 +132,49 @@ def email_send(subject=None, recipients=None, email_template=None, extra=None):
     logger.debug("[HYPATIO][DEBUG][email_send] E-Mail Status - " + str(sent_without_error))
 
     return sent_without_error
+
+def recaptcha_check(request):
+    """
+    Send a query over to google's servers with the result of the Captcha to see whether it's valid.
+    :param request:
+    :return:
+    """
+
+    # Check if Recaptcha is disabled for testing/debug
+    if settings.RECAPTCHA_DISABLED:
+        logger.debug('Recaptcha is disabled, skipping confirmation')
+        return True
+    else:
+        logger.debug('Recaptcha is enabled, proceeding with confirmation')
+
+    # Build the request
+    captcha_rs = request.POST.get('g-recaptcha-response')
+    url = "https://www.google.com/recaptcha/api/siteverify"
+    params = {
+        'secret': settings.RECAPTCHA_KEY,
+        'response': captcha_rs,
+        'remoteip': get_client_ip(request)
+    }
+
+    logger.debug("Sending Captcha results to google")
+
+    try:
+        verify_rs = requests.get(url, params=params, verify=True)
+        verify_rs = verify_rs.json()
+
+        logger.debug('Recaptcha response: {}'.format(verify_rs))
+
+        # Check for the state of the check
+        success = verify_rs.get("success", False)
+
+        # Check for a message
+        if verify_rs.get('error-codes', None):
+            logger.error('Recaptcha error', extra={'recaptcha_error': verify_rs.get('error-codes', '---')})
+
+        return success
+
+    except requests.HTTPError as e:
+        logger.error('Recaptcha check error: {}'.format(e), exc_info=True,
+                    extra={'params': params})
+
+        return False
