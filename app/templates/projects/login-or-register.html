@@ -28,7 +28,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-6">
         {% if project.registration_open %}
             {% if project.is_challenge %}
@@ -49,7 +49,12 @@
             {% endif %}
         {% else %}
             <div class="alert alert-danger" role="alert">
+              {# Temporary message for n2c2-nlp over 2020 winter recess #}
+              {% if project.project_key == 'n2c2-nlp' %}
+                The n2c2 NLP Research Data Sets are closed to new registrations during Harvard's winter break, 12/19–1/3. Please come back after January 4, 2021. If you are an existing user, you may log in using the Login link in the menu bar above.
+              {% else %}
                 Registration is not open for {{ project.short_description }} at this time.
+              {% endif %}
             </div>
         {% endif %}
     </div>

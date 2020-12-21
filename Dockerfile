@@ -1,4 +1,4 @@
-FROM python:3.6-alpine3.8 AS builder
+FROM python:3.6-alpine3.11 AS builder
 
 # Install dependencies
 RUN apk add --update \
@@ -15,7 +15,7 @@ ADD app/requirements.txt /requirements.txt
 # Install Python packages
 RUN pip install -r /requirements.txt
 
-FROM hmsdbmitc/dbmisvc:3.6-alpine
+FROM hmsdbmitc/dbmisvc:alpine-python3.6-0.1.0
 
 RUN apk add --no-cache --update \
     bash \
