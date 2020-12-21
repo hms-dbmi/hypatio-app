@@ -107,6 +107,7 @@ class DataProject(models.Model):
     institution = models.ForeignKey(Institution, blank=True, null=True, on_delete=models.PROTECT)
     description = models.TextField(blank=True, null=True, verbose_name="Description")
     short_description = models.CharField(max_length=255, blank=True, null=True, verbose_name="Short Description")
+    closed_description = models.TextField(blank=True, null=True, verbose_name="Closed Description")
 
     # A comma delimited string of email addresses.
     project_supervisors = models.CharField(max_length=1024, blank=True, null=True, verbose_name="Project Supervisors (comma-delimited, no spaces)")

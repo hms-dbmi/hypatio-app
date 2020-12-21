@@ -18,7 +18,13 @@
 <div class="row">
     <div class="col-md-12">
         <div class="alert alert-danger" role="alert">
+        {% if project.closed_description %}
+            {% autoescape off %}
+                {{ project.closed_description }}
+            {% endautoescape %}
+        {% else %}
             Registration is not open for {{ project.short_description }} at this time.
+        {% endif %}
         </div>
 
         <div class="panel panel-primary">
