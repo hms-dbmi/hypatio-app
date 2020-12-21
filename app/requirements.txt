@@ -1,5 +1,5 @@
 boto3
-cryptography==3.0
+cryptography==3.2
 Django==1.11.29
 django-autocomplete-light==3.5.1
 django-bootstrap3==9.0.0 # TODO delete after removing all template extensions
