@@ -420,23 +420,41 @@
             var selected_value = $("input[name='form-type']:checked").val();
 
             if (selected_value == "academic") {
+
+                // Hide subforms
+                $('#commercial-individual-questions').hide();
+                $('#commercial-corporation-questions').hide();
+
+                // Hide the other section of the DUA and enable this one
                 $('#academic-form').show();
                 $('#commerical-form').hide();
 
+                // Ensure inputs for this form are required
                 $("#academic-form :input").prop('required',true);
+
+                // Ensure inputs for the other form are cleared and not required
                 $("#commerical-form :input").prop('required',false);
                 $("#commerical-form :input").not(':input[type=radio]').val('');
                 $("#commerical-form :input[type=radio]").prop('checked', false);
             }
 
             if (selected_value == "commercial") {
+
+                // Hide subforms
+                $('#individual-questions').hide();
+                $('#corporation-questions').hide();
+
+                // Hide the other section of the DUA and enable this one
                 $('#academic-form').hide();
                 $('#commerical-form').show();
 
-                $("#academic-form :input").prop('required',false);
+                // Ensure inputs for this form are required
+                $("#commerical-form :input").prop('required',true);
+
+                // Ensure inputs for the other form are cleared and not required
                 $("#academic-form :input").not(':input[type=radio]').val('');
                 $("#academic-form :input[type=radio]").prop('checked', false);
-                $("#commerical-form :input").prop('required',true);
+                $("#academic-form :input").prop('required',false);
             }
 
             // Display the submit button again
