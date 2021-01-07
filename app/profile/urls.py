@@ -5,7 +5,7 @@ from profile.views import send_confirmation_email_view
 from profile.views import signout
 from profile.views import update_profile
 
-
+app_name = 'profile'
 urlpatterns = [
     url(r'^$', profile, name='profile'),
     url(r'^send_confirmation_email/$', send_confirmation_email_view, name='send_confirmation_email'),
