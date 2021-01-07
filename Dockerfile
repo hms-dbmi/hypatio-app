@@ -1,21 +1,19 @@
-FROM python:3.6-alpine3.8 AS builder
+FROM python:3.6-alpine3.11 AS builder
 
 # Install dependencies
 RUN apk add --update \
     build-base \
     g++ \
     libffi-dev \
-    mariadb-dev \
-    jpeg-dev \
-    zlib-dev
+    mariadb-dev
 
 # Add requirements
-ADD app/requirements.txt /requirements.txt
+ADD requirements /requirements
 
 # Install Python packages
-RUN pip install -r /requirements.txt
+RUN pip install -r /requirements/requirements.txt
 
-FROM hmsdbmitc/dbmisvc:3.6-alpine
+FROM hmsdbmitc/dbmisvc:alpine-python3.6-0.1.0
 
 RUN apk add --no-cache --update \
     bash \
@@ -24,18 +22,16 @@ RUN apk add --no-cache --update \
     openssl \
     jq \
     mariadb-connector-c \
-    jpeg-dev \
-    zlib-dev \
   && rm -rf /var/cache/apk/*
 
 # Copy pip packages from builder
 COPY --from=builder /root/.cache /root/.cache
 
 # Add requirements
-ADD app/requirements.txt /requirements.txt
+ADD requirements /requirements
 
 # Install Python packages
-RUN pip install -r /requirements.txt
+RUN pip install -r /requirements/requirements.txt
 
 # Copy app source
 COPY /app /app
