@@ -1,11 +1,16 @@
-
 version: 0.2
 
+env:
+  parameter-store:
+    DOCKER_HUB_USERNAME: "/dbmi/codebuild/docker/username"
+    DOCKER_HUB_PASSWORD: "/dbmi/codebuild/docker/password"
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - echo Logging in to Docker Hub...
+      - docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}
   build:
     commands:
       - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
