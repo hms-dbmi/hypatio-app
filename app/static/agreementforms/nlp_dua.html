@@ -420,6 +420,12 @@
             var selected_value = $("input[name='form-type']:checked").val();
 
             if (selected_value == "academic") {
+
+                // Hide subforms
+                $('#commercial-individual-questions').hide();
+                $('#commercial-corporation-questions').hide();
+
+                // Hide the other section of the DUA and enable this one
                 $('#academic-form').show();
                 $('#commerical-form').hide();
 
@@ -438,6 +444,12 @@
             }
 
             if (selected_value == "commercial") {
+
+                // Hide subforms
+                $('#individual-questions').hide();
+                $('#corporation-questions').hide();
+
+                // Hide the other section of the DUA and enable this one
                 $('#academic-form').hide();
                 $('#commerical-form').show();
 
