@@ -161,59 +161,34 @@ class SignedAgreementForm(models.Model):
     agreement_text = models.TextField(blank=False)
     status = models.CharField(max_length=1, null=False, blank=False, default='P', choices=SIGNED_FORM_STATUSES)
 
+class ROCSignedAgreementFormFields(models.Model):
+
+    signed_agreement_form = models.ForeignKey(SignedAgreementForm, on_delete=models.CASCADE)
+
     # All DUAs
     day = models.CharField(max_length=2, null=True, blank=True)
     month = models.CharField(max_length=20, null=True, blank=True)
     year = models.CharField(max_length=4, null=True, blank=True)
 
-    # NLP Research Purpose
-    research_use = models.TextField(null=True, blank=True)
-
-    # NLP DUA
-    form_type = models.CharField(max_length=255, null=True, blank=True)
-    data_user = models.CharField(max_length=255, null=True, blank=True)
-    individual_name = models.CharField(max_length=255, null=True, blank=True)
-    individual_professional_title = models.CharField(max_length=255, null=True, blank=True)
-    individual_address = models.TextField(null=True, blank=True)
-    individual_phone = models.CharField(max_length=255, null=True, blank=True)
-    individual_fax = models.CharField(max_length=255, null=True, blank=True)
-    individual_email = models.CharField(max_length=255, null=True, blank=True)
-    corporation_place_of_business = models.CharField(max_length=255, null=True, blank=True)
-    corporation_contact_name = models.CharField(max_length=255, null=True, blank=True)
-    corporation_phone = models.CharField(max_length=255, null=True, blank=True)
-    corporation_fax = models.CharField(max_length=255, null=True, blank=True)
-    corporation_email = models.CharField(max_length=255, null=True, blank=True)
-    research_team_person_1 = models.CharField(max_length=1024, null=True, blank=True)
-    research_team_person_2 = models.CharField(max_length=1024, null=True, blank=True)
-    research_team_person_3 = models.CharField(max_length=1024, null=True, blank=True)
-    research_team_person_4 = models.CharField(max_length=1024, null=True, blank=True)
-    data_user_signature = models.CharField(max_length=255, null=True, blank=True)
-    data_user_name = models.CharField(max_length=255, null=True, blank=True)
-    data_user_title = models.CharField(max_length=255, null=True, blank=True)
-    data_user_address = models.TextField(null=True, blank=True)
-    data_user_date = models.CharField(max_length=255, null=True, blank=True)
-    registrant_is = models.CharField(max_length=255, null=True, blank=True)
-    commercial_registrant_is = models.CharField(max_length=255, null=True, blank=True)
-    data_user_acknowledge = models.CharField(max_length=3, null=True, blank=True)
-    partners_name = models.CharField(max_length=255, null=True, blank=True)
-    partners_title = models.CharField(max_length=255, null=True, blank=True)
-    partners_address = models.TextField(null=True, blank=True)
-    partners_date = models.CharField(max_length=255, null=True, blank=True)
-
-    # Mayo DUA
-    institution = models.CharField(max_length=255, null=True, blank=True)
-    pi_name = models.CharField(max_length=1024, null=True, blank=True)
-    i_agree = models.CharField(max_length=3, null=True, blank=True)
-    recipient_institution = models.CharField(max_length=1024, null=True, blank=True)
-    recipient_by = models.CharField(max_length=255, null=True, blank=True)
-    recipient_its = models.CharField(max_length=255, null=True, blank=True)
-    recipient_attn = models.CharField(max_length=255, null=True, blank=True)
-    recipient_phone = models.CharField(max_length=255, null=True, blank=True)
-    recipient_fax = models.CharField(max_length=1024, null=True, blank=True)
-
     # N2C2-t1 ROC
     e_signature = models.CharField(max_length=255, null=True, blank=True)
     organization = models.CharField(max_length=255, null=True, blank=True)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    class Meta:
+        verbose_name = 'ROC signed agreement form fields'
+        verbose_name_plural = 'ROC signed agreement form fields'
+
+class DUASignedAgreementFormFields(models.Model):
+
+    signed_agreement_form = models.ForeignKey(SignedAgreementForm, on_delete=models.CASCADE)
+
+    # All DUAs
+    day = models.CharField(max_length=2, null=True, blank=True)
+    month = models.CharField(max_length=20, null=True, blank=True)
+    year = models.CharField(max_length=4, null=True, blank=True)
 
     # N2C2-T1 DUA
     person_name = models.CharField(max_length=1024, null=True, blank=True)
@@ -234,6 +209,115 @@ class SignedAgreementForm(models.Model):
     date = models.CharField(max_length=255, null=True, blank=True)
     i_agree = models.CharField(max_length=10, null=True, blank=True)
 
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    class Meta:
+        verbose_name = 'DUA signed agreement form fields'
+        verbose_name_plural = 'DUA signed agreement form fields'
+
+class MAYOSignedAgreementFormFields(models.Model):
+
+    signed_agreement_form = models.ForeignKey(SignedAgreementForm, on_delete=models.CASCADE)
+
+    # All DUAs
+    day = models.CharField(max_length=2, null=True, blank=True)
+    month = models.CharField(max_length=20, null=True, blank=True)
+    year = models.CharField(max_length=4, null=True, blank=True)
+
+    # Mayo DUA
+    institution = models.CharField(max_length=255, null=True, blank=True)
+    pi_name = models.CharField(max_length=1024, null=True, blank=True)
+    i_agree = models.CharField(max_length=3, null=True, blank=True)
+    recipient_institution = models.CharField(max_length=1024, null=True, blank=True)
+    recipient_by = models.CharField(max_length=255, null=True, blank=True)
+    recipient_its = models.CharField(max_length=255, null=True, blank=True)
+    recipient_attn = models.CharField(max_length=255, null=True, blank=True)
+    recipient_phone = models.CharField(max_length=255, null=True, blank=True)
+    recipient_fax = models.CharField(max_length=1024, null=True, blank=True)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    class Meta:
+        verbose_name = 'Mayo DUA signed agreement form fields'
+        verbose_name_plural = 'Mayo DUA signed agreement form fields'
+
+class NLPWHYSignedAgreementFormFields(models.Model):
+
+    signed_agreement_form = models.ForeignKey(SignedAgreementForm, on_delete=models.CASCADE)
+
+    # All DUAs
+    day = models.CharField(max_length=2, null=True, blank=True)
+    month = models.CharField(max_length=20, null=True, blank=True)
+    year = models.CharField(max_length=4, null=True, blank=True)
+
+    # NLP Research Purpose
+    research_use = models.TextField(null=True, blank=True)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    class Meta:
+        verbose_name = 'NLP Research Purpose signed agreement form fields'
+        verbose_name_plural = 'NLP Research Purpose signed agreement form fields'
+
+class NLPDUASignedAgreementFormFields(models.Model):
+
+    signed_agreement_form = models.ForeignKey(SignedAgreementForm, on_delete=models.CASCADE)
+
+    # All DUAs
+    day = models.CharField(max_length=2, null=True, blank=True)
+    month = models.CharField(max_length=20, null=True, blank=True)
+    year = models.CharField(max_length=4, null=True, blank=True)
+
+    # NLP DUA
+    form_type = models.CharField(max_length=255, null=True, blank=True)
+    data_user = models.CharField(max_length=255, null=True, blank=True)
+    individual_name = models.CharField(max_length=255, null=True, blank=True)
+    individual_professional_title = models.CharField(max_length=255, null=True, blank=True)
+    individual_address_1 = models.TextField(null=True, blank=True)
+    individual_address_2 = models.TextField(null=True, blank=True)
+    individual_address_city = models.CharField(max_length=255, null=True, blank=True)
+    individual_address_state = models.CharField(max_length=255, null=True, blank=True)
+    individual_address_zip = models.CharField(max_length=255, null=True, blank=True)
+    individual_address_country = models.CharField(max_length=255, null=True, blank=True)
+    individual_phone = models.CharField(max_length=255, null=True, blank=True)
+    individual_fax = models.CharField(max_length=255, null=True, blank=True)
+    individual_email = models.CharField(max_length=255, null=True, blank=True)
+    corporation_place_of_business = models.CharField(max_length=255, null=True, blank=True)
+    corporation_contact_name = models.CharField(max_length=255, null=True, blank=True)
+    corporation_phone = models.CharField(max_length=255, null=True, blank=True)
+    corporation_fax = models.CharField(max_length=255, null=True, blank=True)
+    corporation_email = models.CharField(max_length=255, null=True, blank=True)
+    research_team_person_1 = models.CharField(max_length=1024, null=True, blank=True)
+    research_team_person_2 = models.CharField(max_length=1024, null=True, blank=True)
+    research_team_person_3 = models.CharField(max_length=1024, null=True, blank=True)
+    research_team_person_4 = models.CharField(max_length=1024, null=True, blank=True)
+    data_user_signature = models.CharField(max_length=255, null=True, blank=True)
+    data_user_name = models.CharField(max_length=255, null=True, blank=True)
+    data_user_title = models.CharField(max_length=255, null=True, blank=True)
+    data_user_address_1 = models.TextField(null=True, blank=True)
+    data_user_address_2 = models.TextField(null=True, blank=True)
+    data_user_address_city = models.CharField(max_length=255, null=True, blank=True)
+    data_user_address_state = models.CharField(max_length=255, null=True, blank=True)
+    data_user_address_zip = models.CharField(max_length=255, null=True, blank=True)
+    data_user_address_country = models.CharField(max_length=255, null=True, blank=True)
+    data_user_date = models.CharField(max_length=255, null=True, blank=True)
+    registrant_is = models.CharField(max_length=255, null=True, blank=True)
+    commercial_registrant_is = models.CharField(max_length=255, null=True, blank=True)
+    data_user_acknowledge = models.CharField(max_length=3, null=True, blank=True)
+    partners_name = models.CharField(max_length=255, null=True, blank=True)
+    partners_title = models.CharField(max_length=255, null=True, blank=True)
+    partners_address = models.TextField(null=True, blank=True)
+    partners_date = models.CharField(max_length=255, null=True, blank=True)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    class Meta:
+        verbose_name = 'NLP DUA signed agreement form fields'
+        verbose_name_plural = 'NLP DUA signed agreement form fields'
 
 class Team(models.Model):
     """
