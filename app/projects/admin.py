@@ -12,6 +12,12 @@ from projects.models import HostedFileDownload
 from projects.models import ChallengeTask
 from projects.models import ChallengeTaskSubmission
 from projects.models import ChallengeTaskSubmissionDownload
+from projects.models import NLPDUASignedAgreementFormFields
+from projects.models import NLPWHYSignedAgreementFormFields
+from projects.models import DUASignedAgreementFormFields
+from projects.models import ROCSignedAgreementFormFields
+from projects.models import MAYOSignedAgreementFormFields
+
 
 class DataProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'project_key', 'informational_only', 'registration_open', 'requires_authorization', 'is_challenge', 'order')
@@ -62,6 +68,37 @@ class ChallengeTaskSubmissionDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'submission', 'download_date')
     search_fields = ('user__email', )
 
+
+class SignedAgreementFormFieldsAdmin(admin.ModelAdmin):
+    def get_user(self, obj):
+        return obj.signed_agreement_form.user.email
+    get_user.short_description = 'User'
+    get_user.admin_order_field = 'signed_agreement_form__user__email'
+
+    list_display = (
+        'get_user',
+        )
+    search_fields = (
+        'signed_agreement_form__user__email',
+        'signed_agreement_form__agreement_form__project',
+        'signed_agreement_form__agreement_form__short_name',
+        'signed_agreement_form',
+        )
+
+class NLPDUASignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
+    SignedAgreementFormFieldsAdmin.list_display + (
+        'form_type',
+    )
+
+class NLPWHYSignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
+    pass
+class DUASignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
+    pass
+class ROCSignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
+    pass
+class MAYOSignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
+    pass
+
 admin.site.register(DataProject, DataProjectAdmin)
 admin.site.register(AgreementForm, AgreementformAdmin)
 admin.site.register(SignedAgreementForm, SignedagreementformAdmin)
@@ -74,3 +111,10 @@ admin.site.register(HostedFileDownload, HostedFileDownloadAdmin)
 admin.site.register(ChallengeTask, ChallengeTaskAdmin)
 admin.site.register(ChallengeTaskSubmission, ChallengeTaskSubmissionAdmin)
 admin.site.register(ChallengeTaskSubmissionDownload, ChallengeTaskSubmissionDownloadAdmin)
+
+
+admin.site.register(NLPDUASignedAgreementFormFields, NLPDUASignedAgreementFormFieldsAdmin)
+admin.site.register(NLPWHYSignedAgreementFormFields, NLPWHYSignedAgreementFormFieldsAdmin)
+admin.site.register(DUASignedAgreementFormFields, DUASignedAgreementFormFieldsAdmin)
+admin.site.register(ROCSignedAgreementFormFields, ROCSignedAgreementFormFieldsAdmin)
+admin.site.register(MAYOSignedAgreementFormFields, MAYOSignedAgreementFormFieldsAdmin)

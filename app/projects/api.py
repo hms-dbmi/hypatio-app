@@ -37,7 +37,7 @@ from projects.models import SignedAgreementForm
 from projects.models import Team
 from projects.models import SIGNED_FORM_REJECTED
 from projects.models import HostedFileSet
-
+from projects import models
 
 logger = logging.getLogger(__name__)
 
@@ -630,21 +630,46 @@ def save_signed_agreement_form(request):
         date_signed=datetime.now(),
         agreement_text=agreement_text
     )
-
-    # Save form fields
-    for key, data in request.POST.items():
-
-        # Replace dashes with underscore
-        _field = key.replace("-", "_")
-
-        # Check if field on model
-        if hasattr(signed_agreement_form, _field):
-
-            # Set it
-            setattr(signed_agreement_form, _field, data)
-
-    # Save it
     signed_agreement_form.save()
+
+    # Create a row for storing fields
+    model_name = f"{agreement_form.short_name.upper()}SignedAgreementFormFields"
+    if not hasattr(models, model_name):
+        logger.error(
+            f"HYP/Projects/API: Cannot persist fields for signed agreement "
+            f"form: {agreement_form.short_name.upper()}"
+            )
+
+    else:
+        try:
+            # Create the object
+            model_class = getattr(models, model_name)
+            signed_agreement_form_fields = model_class(
+                signed_agreement_form=signed_agreement_form
+            )
+
+            # Save form fields
+            for key, data in request.POST.items():
+
+                # Replace dashes with underscore
+                _field = key.replace("-", "_")
+
+                # Check if field on model
+                if hasattr(signed_agreement_form_fields, _field):
+
+                    # Set it
+                    setattr(signed_agreement_form_fields, _field, data)
+
+                else:
+                    logger.error(f"HYP/Projects/API: {model_name} unhandled field: {_field}")
+
+            # Save
+            signed_agreement_form_fields.save()
+        except Exception as e:
+            logger.exception(
+                f"HYP/Projects/API: Fields error: {e}",
+                exc_info=True,
+                extra={"form": agreement_form.short_name, "model": model_name})
 
     return HttpResponse(status=200)
 
