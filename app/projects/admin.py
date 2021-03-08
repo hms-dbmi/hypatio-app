@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import escape, mark_safe
 
 from projects.models import DataProject
 from projects.models import AgreementForm
@@ -75,8 +77,22 @@ class SignedAgreementFormFieldsAdmin(admin.ModelAdmin):
     get_user.short_description = 'User'
     get_user.admin_order_field = 'signed_agreement_form__user__email'
 
+    def get_status(self, obj):
+        return obj.signed_agreement_form.status
+    get_status.short_description = 'Status'
+    get_status.admin_order_field = 'signed_agreement_form__status'
+
+    def signed_agreement_form_link(self, obj):
+        link = reverse("admin:projects_signedagreementform_change", args=[obj.signed_agreement_form.id])
+        return mark_safe(f'<a href="{link}">{escape(obj.signed_agreement_form.__str__())}</a>')
+
+    signed_agreement_form_link.short_description = 'Signed Agreement Form'
+    signed_agreement_form_link.admin_order_field = 'signed agreement form'
+
     list_display = (
         'get_user',
+        'get_status',
+        'signed_agreement_form_link'
         )
     search_fields = (
         'signed_agreement_form__user__email',
@@ -84,18 +100,29 @@ class SignedAgreementFormFieldsAdmin(admin.ModelAdmin):
         'signed_agreement_form__agreement_form__short_name',
         'signed_agreement_form',
         )
+    readonly_fields = (
+        'signed_agreement_form',
+        'created',
+        'modified'
+        )
+
 
 class NLPDUASignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
-    SignedAgreementFormFieldsAdmin.list_display + (
-        'form_type',
-    )
+    pass
+
 
 class NLPWHYSignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
     pass
+
+
 class DUASignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
     pass
+
+
 class ROCSignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
     pass
+
+
 class MAYOSignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
     pass
 

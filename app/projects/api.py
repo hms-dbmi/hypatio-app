@@ -661,7 +661,7 @@ def save_signed_agreement_form(request):
                     setattr(signed_agreement_form_fields, _field, data)
 
                 else:
-                    logger.error(f"HYP/Projects/API: {model_name} unhandled field: {_field}")
+                    logger.warning(f"HYP/Projects/API: '{model_name}' unhandled field: '{_field}'")
 
             # Save
             signed_agreement_form_fields.save()
