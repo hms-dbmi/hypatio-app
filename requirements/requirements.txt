@@ -1,4 +1,5 @@
 -c constraints.txt
+awscli
 boto3
 Django
 django-autocomplete-light

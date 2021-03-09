@@ -10,6 +10,9 @@ RUN apk add --update \
 # Add requirements
 ADD requirements /requirements
 
+# Use this until we can safely update to Alpine 3.13 or above
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
+
 # Install Python packages
 RUN pip install -r /requirements/requirements.txt
 
