@@ -14,11 +14,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import render
 from django.template.loader import render_to_string
+from hypatio.dbmiauthn_services import DBMIAuthn
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
-@public_user_auth_and_jwt
+@DBMIAuthn.public_user_auth_and_jwt
 def contact_form(request, project_key=None):
 
     # If this is a POST request we need to process the form data.

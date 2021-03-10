@@ -17,7 +17,7 @@ from hypatio.scireg_services import get_user_email_confirmation_status
 
 from profile.forms import RegistrationForm
 
-from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
+from hypatio.dbmiauthn_services import DBMIAuthn
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 
 from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK
@@ -72,7 +72,7 @@ def signed_agreement_form(request):
         return HttpResponse(403)
 
 
-@public_user_auth_and_jwt
+@DBMIAuthn.public_user_auth_and_jwt
 def list_data_projects(request, template_name='projects/list-data-projects.html'):
     """
     Displays all visible data projects.
@@ -84,7 +84,7 @@ def list_data_projects(request, template_name='projects/list-data-projects.html'
     return render(request, template_name, context=context)
 
 
-@public_user_auth_and_jwt
+@DBMIAuthn.public_user_auth_and_jwt
 def list_data_challenges(request, template_name='projects/list-data-challenges.html'):
     """
     Displays all visible data challenges.
@@ -96,7 +96,7 @@ def list_data_challenges(request, template_name='projects/list-data-challenges.h
     return render(request, template_name, context=context)
 
 
-@public_user_auth_and_jwt
+@DBMIAuthn.public_user_auth_and_jwt
 def list_software_projects(request, template_name='projects/list-software-projects.html'):
     """
     Displays all visible software projects.
@@ -108,7 +108,7 @@ def list_software_projects(request, template_name='projects/list-software-projec
     return render(request, template_name, context=context)
 
 
-@method_decorator(public_user_auth_and_jwt, name='dispatch')
+@method_decorator(DBMIAuthn.public_user_auth_and_jwt, name='dispatch')
 class DataProjectView(TemplateView):
     """
     Builds and renders screens related to DataProject signup and participation.
