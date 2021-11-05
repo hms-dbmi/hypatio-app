@@ -205,7 +205,7 @@
                         {% url 'index' as index_url %}
                         <li class="nav-item{% if request.path == index_url %} active{% endif %}"><a class="nav-link" href="{{ index_url }}">Home</a></li>
                         
-                        {% url 'data-sets' as data_sets_url %}
+                        {% url 'projects/n2c2-nlp' as data_sets_url %}
                         <li class="nav-item{% if request.path == data_sets_url %} active{% endif %}"><a class="nav-link" href="{{ data_sets_url }}">n2c2 Data Sets</a></li>
 
                         {% url 'data-challenges' as data_challenges_url %}
