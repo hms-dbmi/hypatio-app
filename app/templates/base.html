@@ -205,19 +205,17 @@
                         {% url 'index' as index_url %}
                         <li class="nav-item{% if request.path == index_url %} active{% endif %}"><a class="nav-link" href="{{ index_url }}">Home</a></li>
                         
-                        {% url 'data-sets' as data_sets_url %}
-                        <li class="nav-item{% if request.path == data_sets_url %} active{% endif %}"><a class="nav-link" href="{{ data_sets_url }}">Data Sets</a></li>
+                        {% url 'projects:view-project' 'n2c2-nlp' as data_sets_url %}
+                        <li class="nav-item{% if request.path == data_sets_url %} active{% endif %}"><a class="nav-link" href="{{ data_sets_url }}">n2c2 Data Sets</a></li>
 
                         {% url 'data-challenges' as data_challenges_url %}
-                        <li class="nav-item{% if request.path == data_challenges_url %} active{% endif %}"><a class="nav-link" href="{{ data_challenges_url }}">Data Challenges</a></li>
-
-                        {% url 'software-projects' as software_projects_url %}
-                        <li class="nav-item{% if request.path == software_projects_url %} active{% endif %}"><a class="nav-link" href="{{ software_projects_url }}">Software</a></li>
+                        <li class="nav-item{% if request.path == data_challenges_url %} active{% endif %}"><a class="nav-link" href="{{ data_challenges_url }}">n2c2 Challenges</a></li>
 
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="download">Contact <span class="caret"></span></a>
                             <ul class="dropdown-menu" aria-labelledby="download">
-                                <li><a class="nav-link" href="https://dbmi.hms.harvard.edu/" target="_blank">Visit the main DBMI website <span class="fas fa-sm fa-external-link"></span></a></li>
+                                <li><a class="nav-link" href="https://n2c2.dbmi.hms.harvard.edu/" target="_blank">n2c2 website <span class="fas fa-sm fa-external-link"></span></a></li>
+                                <li><a class="nav-link" href="https://dbmi.hms.harvard.edu/" target="_blank">DBMI website <span class="fas fa-sm fa-external-link"></span></a></li>
                                 <li><a class="nav-link contact-form-button" href="#">Email us <span class="fas fa-sm fa-envelope"></span></a></li>
                             </ul>
                         </li>

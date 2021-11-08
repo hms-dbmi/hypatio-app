@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import escape, mark_safe
 
 from projects.models import DataProject
 from projects.models import AgreementForm
@@ -12,6 +14,12 @@ from projects.models import HostedFileDownload
 from projects.models import ChallengeTask
 from projects.models import ChallengeTaskSubmission
 from projects.models import ChallengeTaskSubmissionDownload
+from projects.models import NLPDUASignedAgreementFormFields
+from projects.models import NLPWHYSignedAgreementFormFields
+from projects.models import DUASignedAgreementFormFields
+from projects.models import ROCSignedAgreementFormFields
+from projects.models import MAYOSignedAgreementFormFields
+
 
 class DataProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'project_key', 'informational_only', 'registration_open', 'requires_authorization', 'is_challenge', 'order')
@@ -62,6 +70,62 @@ class ChallengeTaskSubmissionDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'submission', 'download_date')
     search_fields = ('user__email', )
 
+
+class SignedAgreementFormFieldsAdmin(admin.ModelAdmin):
+    def get_user(self, obj):
+        return obj.signed_agreement_form.user.email
+    get_user.short_description = 'User'
+    get_user.admin_order_field = 'signed_agreement_form__user__email'
+
+    def get_status(self, obj):
+        return obj.signed_agreement_form.status
+    get_status.short_description = 'Status'
+    get_status.admin_order_field = 'signed_agreement_form__status'
+
+    def signed_agreement_form_link(self, obj):
+        link = reverse("admin:projects_signedagreementform_change", args=[obj.signed_agreement_form.id])
+        return mark_safe(f'<a href="{link}">{escape(obj.signed_agreement_form.__str__())}</a>')
+
+    signed_agreement_form_link.short_description = 'Signed Agreement Form'
+    signed_agreement_form_link.admin_order_field = 'signed agreement form'
+
+    list_display = (
+        'get_user',
+        'get_status',
+        'signed_agreement_form_link'
+        )
+    search_fields = (
+        'signed_agreement_form__user__email',
+        'signed_agreement_form__agreement_form__project',
+        'signed_agreement_form__agreement_form__short_name',
+        'signed_agreement_form',
+        )
+    readonly_fields = (
+        'signed_agreement_form',
+        'created',
+        'modified'
+        )
+
+
+class NLPDUASignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
+    pass
+
+
+class NLPWHYSignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
+    pass
+
+
+class DUASignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
+    pass
+
+
+class ROCSignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
+    pass
+
+
+class MAYOSignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
+    pass
+
 admin.site.register(DataProject, DataProjectAdmin)
 admin.site.register(AgreementForm, AgreementformAdmin)
 admin.site.register(SignedAgreementForm, SignedagreementformAdmin)
@@ -74,3 +138,10 @@ admin.site.register(HostedFileDownload, HostedFileDownloadAdmin)
 admin.site.register(ChallengeTask, ChallengeTaskAdmin)
 admin.site.register(ChallengeTaskSubmission, ChallengeTaskSubmissionAdmin)
 admin.site.register(ChallengeTaskSubmissionDownload, ChallengeTaskSubmissionDownloadAdmin)
+
+
+admin.site.register(NLPDUASignedAgreementFormFields, NLPDUASignedAgreementFormFieldsAdmin)
+admin.site.register(NLPWHYSignedAgreementFormFields, NLPWHYSignedAgreementFormFieldsAdmin)
+admin.site.register(DUASignedAgreementFormFields, DUASignedAgreementFormFieldsAdmin)
+admin.site.register(ROCSignedAgreementFormFields, ROCSignedAgreementFormFieldsAdmin)
+admin.site.register(MAYOSignedAgreementFormFields, MAYOSignedAgreementFormFieldsAdmin)
