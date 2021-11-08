@@ -5,8 +5,7 @@ certifi==2020.12.5
 cffi==1.14.5
 chardet==4.0.0
 cryptography==3.4.6
-Django==2.2.19
-django-autocomplete-light==3.8.2
+Django==2.2.24
 django-bootstrap-datepicker-plus==3.0.5
 django-bootstrap3==14.2.0
 django-countries==6.1.3
