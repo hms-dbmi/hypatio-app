@@ -71,7 +71,10 @@ ROOT_URLCONF = 'hypatio.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [normpath(join(BASE_DIR, 'templates'))],
+        'DIRS': [
+            normpath(join(BASE_DIR, 'templates')),
+            normpath(join(dirname(dirname(abspath(__file__))), 'assets')),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
