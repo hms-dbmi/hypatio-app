@@ -1,40 +1,49 @@
-FROM python:3.6-alpine3.11 AS builder
+FROM hmsdbmitc/dbmisvc:debian11-slim-python3.6-0.2.0 AS builder
 
-# Install dependencies
-RUN apk add --update \
-    build-base \
-    g++ \
-    libffi-dev \
-    mariadb-dev
-
-# Add requirements
-ADD requirements /requirements
-
-# Use this until we can safely update to Alpine 3.13 or above
-ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
-
-# Install Python packages
-RUN pip install -r /requirements/requirements.txt
-
-FROM hmsdbmitc/dbmisvc:alpine-python3.6-0.1.0
-
-RUN apk add --no-cache --update \
-    bash \
-    nginx \
-    curl \
-    openssl \
-    jq \
-    mariadb-connector-c \
-  && rm -rf /var/cache/apk/*
-
-# Copy pip packages from builder
-COPY --from=builder /root/.cache /root/.cache
+# Install requirements
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        bzip2 \
+        gcc \
+        default-libmysqlclient-dev \
+        libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Add requirements
-ADD requirements /requirements
+ADD requirements.* /
 
-# Install Python packages
-RUN pip install -r /requirements/requirements.txt
+# Build Python wheels with hash checking
+RUN pip install -U wheel \
+    && pip wheel -r /requirements.txt \
+        --wheel-dir=/root/wheels
+
+FROM hmsdbmitc/dbmisvc:debian11-slim-python3.6-0.2.0
+
+# Copy Python wheels from builder
+COPY --from=builder /root/wheels /root/wheels
+
+# Install requirements
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        default-libmysqlclient-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add requirements files
+ADD requirements.* /
+
+# Install Python packages from wheels
+RUN pip install --no-index \
+        --find-links=/root/wheels \
+        --force-reinstall \
+        # Use requirements without hashes to allow using wheels.
+        # For some reason the hashes of the wheels change between stages
+        # and Pip errors out on the mismatches.
+        -r /requirements.in
+
+# Copy app source
+COPY /app /app
 
 # Copy app source
 COPY /app /app
