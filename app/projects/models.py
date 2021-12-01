@@ -80,12 +80,13 @@ class AgreementForm(models.Model):
     """
 
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
-    short_name = models.CharField(max_length=6, blank=False, null=False)
+    short_name = models.CharField(max_length=16, blank=False, null=False)
     description = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
     form_file_path = models.CharField(max_length=300, blank=True, null=True)
     external_link = models.CharField(max_length=300, blank=True, null=True)
     type = models.CharField(max_length=50, choices=AGREEMENT_FORM_TYPE, blank=True, null=True)
+    order = models.IntegerField(default=50, help_text="Indicate an order (lowest number = first listing) for how the Agreement Forms should be listed during registration workflows.")
 
     def __str__(self):
         return '%s' % (self.name)
@@ -95,7 +96,6 @@ class AgreementForm(models.Model):
             raise ValidationError("An external link form should not have the form file path field populated.")
         if self.type != AGREEMENT_FORM_TYPE_EXTERNAL_LINK and self.external_link is not None:
             raise ValidationError("If the form type is not an external link, the external link field should not be populated.")
-
 
 class DataProject(models.Model):
     """
