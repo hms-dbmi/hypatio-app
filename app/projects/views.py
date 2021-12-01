@@ -429,7 +429,7 @@ class DataProjectView(TemplateView):
         if self.project.agreement_forms.count() == 0:
             return
 
-        agreement_forms = self.project.agreement_forms.order_by('-name')
+        agreement_forms = self.project.agreement_forms.order_by('order', '-name')
 
         # Each form will be a separate step.
         for form in agreement_forms:
