@@ -7,6 +7,7 @@ from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.utils.timezone import utc
+from django.template.loader import render_to_string
 
 from hypatio.dbmiauthz_services import DBMIAuthz
 
@@ -17,9 +18,7 @@ logger = logging.getLogger(__name__)
 
 @register.filter
 def get_html_form_file_contents(form_file_path):
-
-    form_path = os.path.join(settings.STATIC_ROOT, form_file_path)
-    return open(form_path, 'r').read()
+    return render_to_string(form_file_path)
 
 @register.filter
 def get_login_url(current_uri):
