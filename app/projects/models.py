@@ -28,10 +28,12 @@ SIGNED_FORM_STATUSES = (
 
 AGREEMENT_FORM_TYPE_STATIC = 'STATIC'
 AGREEMENT_FORM_TYPE_EXTERNAL_LINK = 'EXTERNAL_LINK'
+AGREEMENT_FORM_TYPE_MODEL = 'MODEL'
 
 AGREEMENT_FORM_TYPE = (
     (AGREEMENT_FORM_TYPE_STATIC, 'STATIC'),
-    (AGREEMENT_FORM_TYPE_EXTERNAL_LINK, 'EXTERNAL LINK')
+    (AGREEMENT_FORM_TYPE_EXTERNAL_LINK, 'EXTERNAL LINK'),
+    (AGREEMENT_FORM_TYPE_MODEL, 'MODEL')
 )
 
 
@@ -87,15 +89,19 @@ class AgreementForm(models.Model):
     external_link = models.CharField(max_length=300, blank=True, null=True)
     type = models.CharField(max_length=50, choices=AGREEMENT_FORM_TYPE, blank=True, null=True)
     order = models.IntegerField(default=50, help_text="Indicate an order (lowest number = first listing) for how the Agreement Forms should be listed during registration workflows.")
+    content = models.TextField(blank=True, null=True, help_text="If Agreement Form type is set to 'MODEL', the HTML set here will be rendered for the user")
 
     def __str__(self):
         return '%s' % (self.name)
 
     def clean(self):
-        if self.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK and self.form_file_path is not None:
-            raise ValidationError("An external link form should not have the form file path field populated.")
-        if self.type != AGREEMENT_FORM_TYPE_EXTERNAL_LINK and self.external_link is not None:
-            raise ValidationError("If the form type is not an external link, the external link field should not be populated.")
+        if (self.type == AGREEMENT_FORM_TYPE_STATIC or not self.type) and not self.form_file_path:
+            raise ValidationError("If the form type is static, the file path field should be populated.")
+        if self.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK and not self.external_link:
+            raise ValidationError("If the form type is external link, the external link field should be populated.")
+        if self.type == AGREEMENT_FORM_TYPE_MODEL and not self.content:
+            raise ValidationError("If the form type is model, the content field should be populated with the agreement form's HTML.")
+
 
 class DataProject(models.Model):
     """

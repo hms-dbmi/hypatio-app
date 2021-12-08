@@ -33,6 +33,7 @@ from projects.models import SignedAgreementForm
 from projects.models import Team
 from projects.models import TeamComment
 from projects.serializers import HostedFileSerializer, HostedFileDownloadSerializer
+from projects.models import AGREEMENT_FORM_TYPE_MODEL
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -211,10 +212,17 @@ def get_static_agreement_form_html(request):
     except ObjectDoesNotExist:
         return HttpResponse("Error: form not found.", status=404)
 
-    if agreement_form.form_file_path is None or agreement_form.form_file_path == "":
-        return HttpResponse("Error: form file path is missing.", status=400)
+    if agreement_form.type == AGREEMENT_FORM_TYPE_MODEL:
+        if agreement_form.content is None or agreement_form.content == "":
+            return HttpResponse("Error: form content is missing.", status=400)
 
-    form_contents = projects_extras.get_html_form_file_contents(agreement_form.form_file_path)
+        form_contents = agreement_form.content
+    else:
+        if agreement_form.form_file_path is None or agreement_form.form_file_path == "":
+            return HttpResponse("Error: form file path is missing.", status=400)
+
+        form_contents = projects_extras.get_html_form_file_contents(agreement_form.form_file_path)
+
     return HttpResponse(form_contents)
 
 @user_auth_and_jwt
