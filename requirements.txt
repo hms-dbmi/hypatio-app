@@ -4,17 +4,17 @@
 #
 #    pip-compile --allow-unsafe --generate-hashes --output-file=requirements.txt requirements.in
 #
-awscli==1.22.16 \
-    --hash=sha256:61db1c2a17effd6269b996bd1746d8225a4311e00b3ef7ce597972adc85fb152 \
-    --hash=sha256:ef425a73dfbfd06f7bb2d631f6fbd0d0723263a742b8f7ba32f203ca7407bb1b
+awscli==1.22.20 \
+    --hash=sha256:a48b00f59fdb10a58fe214438b92927d1bc4d0d75311e7ec409c8580c80004fb \
+    --hash=sha256:b66817881daf980be1822726dd7c3c5d06fe9b35e9396f78a86f6bd2e85c23ab
     # via -r requirements.in
-boto3==1.20.16 \
-    --hash=sha256:22808328fc81937244a971f739e5f8d95acd36c8e5638787e562d504b33727be \
-    --hash=sha256:ef44676226c21215268be5c348c50fd9a2aed876de5c19962c79d9321f10f051
+boto3==1.20.20 \
+    --hash=sha256:2c5377b6ab74eeccccd16f0f21537ede87b05c8322b0ccc852a68f36ea6c16c9 \
+    --hash=sha256:6c173ffaf0604e34d6865edf7a9a71e1b3e79bd441b8b465ca4b2d44f840806d
     # via -r requirements.in
-botocore==1.23.16 \
-    --hash=sha256:5656fd2b6aea9477d514d5ccf128d664e6ae4536ffca45a753844881dc65e0f8 \
-    --hash=sha256:c813e67c0f7d45cbff97a1047d8241f334eb386b3f81825e9e87e29d3a0c2ddf
+botocore==1.23.20 \
+    --hash=sha256:22e1c7b4b2b8b11d7001ca5ef2b41bda9a8be46fb3cb994a2948462666ac5ef1 \
+    --hash=sha256:98275e47c941cada6507089ecfe91e420972209b1deeceaf55a89ea50d046347
     # via
     #   awscli
     #   boto3
@@ -75,9 +75,9 @@ cffi==1.15.0 \
     --hash=sha256:fd8a250edc26254fe5b33be00402e6d287f562b6a5b2152dec302fa15bb3e997 \
     --hash=sha256:ffaa5c925128e29efbde7301d8ecaf35c8c60ffbcd6a1ffd3a552177c8e5e796
     # via cryptography
-charset-normalizer==2.0.8 \
-    --hash=sha256:735e240d9a8506778cd7a453d97e817e536bb1fc29f4f6961ce297b9c7a917b0 \
-    --hash=sha256:83fcdeb225499d6344c8f7f34684c2981270beacc32ede2e669e94f7fa544405
+charset-normalizer==2.0.9 \
+    --hash=sha256:1eecaa09422db5be9e29d7fc65664e6c33bd06f9ced7838578ba40d58bdf3721 \
+    --hash=sha256:b0b883e8e874edfdece9c28f314e3dd5badf067342e42fb162203335ae61aa2c
     # via requests
 colorama==0.4.3 \
     --hash=sha256:7d73d2a99753107a36ac6b455ee49046802e59d9d076ef8e47b61499fa29afff \
