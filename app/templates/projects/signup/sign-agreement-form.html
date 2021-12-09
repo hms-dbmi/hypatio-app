@@ -8,7 +8,12 @@
     {% endif %}
 
     <div class="agreement_form_contents">
+        {# Check source of agreement form content #}
+        {% if panel.additional_context.agreement_form.type == 'MODEL' %}
+        {{ panel.additional_context.agreement_form.content | safe }}
+        {% else %}
         {{ panel.additional_context.agreement_form.form_file_path|get_html_form_file_contents | safe }}
+        {% endif %}
     </div>
 
     <input type="hidden" class="project_key" name="project_key" value="{{ project.project_key }}" />
