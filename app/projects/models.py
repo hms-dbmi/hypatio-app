@@ -386,21 +386,6 @@ class Team(models.Model):
         return '%s' % self.team_leader.email
 
 
-class DataProjectTeam(models.Model):
-
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
-    status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
-
-    # Meta
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = 'Data Project Team'
-        verbose_name_plural = 'Data Project Teams'
-
-
 class Participant(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
