@@ -29,11 +29,13 @@ SIGNED_FORM_STATUSES = (
 AGREEMENT_FORM_TYPE_STATIC = 'STATIC'
 AGREEMENT_FORM_TYPE_EXTERNAL_LINK = 'EXTERNAL_LINK'
 AGREEMENT_FORM_TYPE_MODEL = 'MODEL'
+AGREEMENT_FORM_TYPE_FILE = 'FILE'
 
 AGREEMENT_FORM_TYPE = (
     (AGREEMENT_FORM_TYPE_STATIC, 'STATIC'),
     (AGREEMENT_FORM_TYPE_EXTERNAL_LINK, 'EXTERNAL LINK'),
-    (AGREEMENT_FORM_TYPE_MODEL, 'MODEL')
+    (AGREEMENT_FORM_TYPE_MODEL, 'MODEL'),
+    (AGREEMENT_FORM_TYPE_FILE, 'FILE'),
 )
 
 
@@ -155,6 +157,14 @@ class DataProject(models.Model):
             raise ValidationError('At this time, a challenge should not also be marked as software or dataset.')
 
 
+def validate_pdf_file(value):
+    """
+    Ensures only a file with a content type of PDF can be persisted
+    """
+    if value.file.content_type != 'application/pdf':
+        raise ValidationError('Only PDF files can be uploaded')
+
+
 class SignedAgreementForm(models.Model):
     """
     This represents the fully signed agreement form.
@@ -166,6 +176,28 @@ class SignedAgreementForm(models.Model):
     date_signed = models.DateTimeField(auto_now_add=True)
     agreement_text = models.TextField(blank=False)
     status = models.CharField(max_length=1, null=False, blank=False, default='P', choices=SIGNED_FORM_STATUSES)
+    upload = models.FileField(null=True, blank=True, validators=[validate_pdf_file])
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    class Meta:
+        verbose_name = 'Signed Agreement Form'
+        verbose_name_plural = 'Signed Agreement Forms'
+
+
+class MIMIC3SignedAgreementFormFields(models.Model):
+
+    signed_agreement_form = models.ForeignKey(SignedAgreementForm, on_delete=models.CASCADE)
+    email = models.CharField(max_length=255)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    class Meta:
+        verbose_name = 'MIMIC3 Signed Agreement Form Fields'
+        verbose_name_plural = 'MIMIC3 Signed Agreement Forms Fields'
+
 
 class ROCSignedAgreementFormFields(models.Model):
 
@@ -351,6 +383,21 @@ class Team(models.Model):
 
     def __str__(self):
         return '%s' % self.team_leader.email
+
+
+class DataProjectTeam(models.Model):
+
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
+    status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Data Project Team'
+        verbose_name_plural = 'Data Project Teams'
 
 
 class Participant(models.Model):

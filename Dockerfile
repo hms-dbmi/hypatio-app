@@ -28,6 +28,7 @@ COPY --from=builder /root/wheels /root/wheels
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         default-libmysqlclient-dev \
+        libmagic1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Add requirements files
@@ -41,9 +42,6 @@ RUN pip install --no-index \
         # For some reason the hashes of the wheels change between stages
         # and Pip errors out on the mismatches.
         -r /requirements.in
-
-# Copy app source
-COPY /app /app
 
 # Copy app source
 COPY /app /app
