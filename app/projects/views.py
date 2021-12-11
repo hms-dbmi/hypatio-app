@@ -23,6 +23,7 @@ from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK
 from projects.models import AGREEMENT_FORM_TYPE_STATIC
 from projects.models import AGREEMENT_FORM_TYPE_MODEL
+from projects.models import AGREEMENT_FORM_TYPE_FILE
 from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import HostedFile
@@ -455,6 +456,8 @@ class DataProjectView(TemplateView):
 
             if not form.type or form.type == AGREEMENT_FORM_TYPE_STATIC or form.type == AGREEMENT_FORM_TYPE_MODEL:
                 template = 'projects/signup/sign-agreement-form.html'
+            elif form.type == AGREEMENT_FORM_TYPE_FILE:
+                template = 'projects/signup/upload-agreement-form.html'
             elif form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
                 template = 'projects/signup/sign-external-agreement-form.html'
             else:
