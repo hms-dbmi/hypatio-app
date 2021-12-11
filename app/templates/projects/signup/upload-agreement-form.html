@@ -1,3 +1,4 @@
+{% load static %}
 {% load projects_extras %}
 
 <form name="upload_agreement_form_container" action="{% url 'projects:upload_signed_agreement_form' %}" method="post" enctype="multipart/form-data">
@@ -13,9 +14,9 @@
         </div>
         <div class="row" style="margin-bottom: 15px;">
           <div class="col-xs-12">
-            <a id="view-sample-link" href="#">View sample</a>
+            <a id="view-sample-link" href="{% static "agreementforms/MIMIC DUA Sample.pdf" %}" target="_blank">View sample</a>
             &nbsp;&nbsp;|&nbsp;&nbsp;
-            <a id="view-instructions-link" href="#">View complete instructions</a></div>
+            <a id="view-instructions-link" href="https://n2c2.dbmi.hms.harvard.edu/2022-participate" target="_blank">View complete instructions</a></div>
         </div>
       </div>
       <div class="col-xs-12" style="margin-bottom: 15px;">
