@@ -194,6 +194,7 @@ class MIMIC3SignedAgreementFormFields(models.Model):
     # Meta
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+
     class Meta:
         verbose_name = 'MIMIC3 Signed Agreement Form Fields'
         verbose_name_plural = 'MIMIC3 Signed Agreement Forms Fields'

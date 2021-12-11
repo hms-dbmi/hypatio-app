@@ -41,6 +41,21 @@
                 <p><strong>For Project:</strong> {{ signed_form.project.name }}</p>
                 <p><strong>Form Name:</strong> {{ signed_form.agreement_form.name }}</p>
                 <p><strong>Signed on:</strong> {{ signed_form.date_signed|timezone:"America/New_York" }} (EST)</p>
+                {% if signed_agreement_form_fields %}
+                <p><strong>Fields:</strong></p>
+                <table class="table-bordered">
+                  <tr>
+                    <th style="padding: 10px;">Field</th>
+                    <th style="padding: 10px;">Value</th>
+                  </tr>
+                  {% for field, value in signed_agreement_form_fields.items %}
+                  <tr>
+                    <td style="padding: 10px;">{{ field }}</td>
+                    <td style="padding: 10px;">{{ value }}</td>
+                  </tr>
+                  {% endfor %}
+                </table>
+                {% endif %}
             </div>
         </div>
 
