@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'health_check',
     'raven.contrib.django.raven_compat',
     'bootstrap_datepicker_plus',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -157,6 +158,10 @@ EMAIL_CONFIRM_SUCCESS_URL = environment.get_str('EMAIL_CONFIRM_SUCCESS_URL', req
 ##########
 # S3 Configurations
 S3_BUCKET = environment.get_str('S3_BUCKET', required=True)
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_STORAGE_BUCKET_NAME = environment.get_str('S3_BUCKET', required=True)
+AWS_LOCATION = 'upload'
 
 ##########
 
