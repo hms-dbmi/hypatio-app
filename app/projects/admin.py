@@ -19,7 +19,7 @@ from projects.models import NLPWHYSignedAgreementFormFields
 from projects.models import DUASignedAgreementFormFields
 from projects.models import ROCSignedAgreementFormFields
 from projects.models import MAYOSignedAgreementFormFields
-
+from projects.models import MIMIC3SignedAgreementFormFields
 
 class DataProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'project_key', 'informational_only', 'registration_open', 'requires_authorization', 'is_challenge', 'order')
@@ -126,6 +126,11 @@ class ROCSignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
 class MAYOSignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
     pass
 
+
+class MIMIC3SignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
+    pass
+
+
 admin.site.register(DataProject, DataProjectAdmin)
 admin.site.register(AgreementForm, AgreementformAdmin)
 admin.site.register(SignedAgreementForm, SignedagreementformAdmin)
@@ -145,3 +150,4 @@ admin.site.register(NLPWHYSignedAgreementFormFields, NLPWHYSignedAgreementFormFi
 admin.site.register(DUASignedAgreementFormFields, DUASignedAgreementFormFieldsAdmin)
 admin.site.register(ROCSignedAgreementFormFields, ROCSignedAgreementFormFieldsAdmin)
 admin.site.register(MAYOSignedAgreementFormFields, MAYOSignedAgreementFormFieldsAdmin)
+admin.site.register(MIMIC3SignedAgreementFormFields, MIMIC3SignedAgreementFormFieldsAdmin)

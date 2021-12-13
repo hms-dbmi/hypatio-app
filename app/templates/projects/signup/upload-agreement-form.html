@@ -1,0 +1,43 @@
+{% load static %}
+{% load projects_extras %}
+
+<form name="upload_agreement_form_container" action="{% url 'projects:upload_signed_agreement_form' %}" method="post" enctype="multipart/form-data">
+
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="agreement_form_contents">
+          <p>Upload a 2-page PDF of the following:</p>
+          <ul>
+            <li><p>Page 1 — PhysioNet "My Credentialing Applications"</p></li>
+            <li><p>Page 2 — Data Use Agreement for the MIMIC-III Clinical Database (v1.4)</p></li>
+          </ul>
+        </div>
+        <div class="row" style="margin-bottom: 15px;">
+          <div class="col-xs-12">
+            <a id="view-sample-link" href="{% static "agreementforms/MIMIC DUA Sample.pdf" %}" target="_blank">View sample</a>
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            <a id="view-instructions-link" href="https://n2c2.dbmi.hms.harvard.edu/2022-participate" target="_blank">View complete instructions</a></div>
+        </div>
+      </div>
+      <div class="col-xs-12" style="margin-bottom: 15px;">
+        <label for="email">Email address:</label>
+        <input type="text" name="email" required />
+      </div>
+      <div class="col-xs-12">
+        <input type="file" name="upload" accept="application/pdf" required />
+      </div>
+
+    <div class="col-xs-12">
+      <input type="hidden" class="project_key" name="project_key" value="{{ project.project_key }}" />
+      <input type="hidden" class="agreement_form_id" name="agreement_form_id" value="{{ panel.additional_context.agreement_form.id }}" />
+      <input type="hidden" class="agreement_text" name="agreement_text" value="" />
+
+      <hr>
+
+      <div class="submit_form">
+          <input name="submit_form" type="submit" class="btn btn-primary" value="Submit" />
+      </div>
+    </div>
+  </div>
+    {% csrf_token %}
+</form>

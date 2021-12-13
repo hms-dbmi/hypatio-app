@@ -23,11 +23,13 @@ from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK
 from projects.models import AGREEMENT_FORM_TYPE_STATIC
 from projects.models import AGREEMENT_FORM_TYPE_MODEL
+from projects.models import AGREEMENT_FORM_TYPE_FILE
 from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import HostedFile
 from projects.models import Participant
 from projects.models import SignedAgreementForm
+from projects.models import MIMIC3SignedAgreementFormFields
 
 from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
 from projects.panels import SIGNUP_STEP_CURRENT_STATUS
@@ -59,6 +61,19 @@ def signed_agreement_form(request):
     except ObjectDoesNotExist:
         participant = None
 
+    # Get fields, if applicable. It sucks that these are hard-coded but until we
+    # find a better solution and have more time, this is it.
+    signed_agreement_form_fields = {}
+
+    # Check MIMIC3 first.
+    fields = MIMIC3SignedAgreementFormFields.objects.filter(signed_agreement_form=signed_form).first()
+    if fields:
+
+        # Create a dictionary of the values
+        signed_agreement_form_fields = {
+            "Email Address": fields.email,
+        }
+
     if is_manager or signed_form.user == request.user:
         template_name = "projects/participate/view-signed-agreement-form.html"
         filled_out_signed_form = None
@@ -68,6 +83,7 @@ def signed_agreement_form(request):
                                                "is_manager": is_manager,
                                                "signed_form": signed_form,
                                                "filled_out_signed_form": filled_out_signed_form,
+                                               "signed_agreement_form_fields": signed_agreement_form_fields,
                                                "participant": participant})
     else:
         return HttpResponse(403)
@@ -455,6 +471,8 @@ class DataProjectView(TemplateView):
 
             if not form.type or form.type == AGREEMENT_FORM_TYPE_STATIC or form.type == AGREEMENT_FORM_TYPE_MODEL:
                 template = 'projects/signup/sign-agreement-form.html'
+            elif form.type == AGREEMENT_FORM_TYPE_FILE:
+                template = 'projects/signup/upload-agreement-form.html'
             elif form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
                 template = 'projects/signup/sign-external-agreement-form.html'
             else:
