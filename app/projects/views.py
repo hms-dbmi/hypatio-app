@@ -450,12 +450,13 @@ class DataProjectView(TemplateView):
         Builds the context needed for users to be informed of a team sharing setup. This requires
         users to register with another project before requesting access to this one.
         """
+        step_status = self.get_step_status('setup_shared_team', False)
 
         panel = DataProjectSharedTeamsPanel(
             title='Data Project Teams',
             bootstrap_color='default',
             template='projects/signup/shared-teams.html',
-            status=SIGNUP_STEP_CURRENT_STATUS,
+            status=step_status,
             additional_context={'project': self.project}
         )
 
