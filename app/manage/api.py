@@ -427,6 +427,38 @@ def download_signed_form(request):
     return response
 
 @user_auth_and_jwt
+def get_signed_form_status(request):
+    """
+    An HTTP POST endpoint for fetching a signed form's status.
+    """
+    form_id = request.POST.get("form_id")
+
+    logger.debug(f'[get_signed_form_status] {request.user.email} -> {form_id}')
+
+    # Get the form
+    signed_form = get_object_or_404(SignedAgreementForm, id=form_id)
+
+    # Confirm permissions on project form was signed for
+    user = request.user
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    project = signed_form.project
+
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    is_manager = sciauthz.user_has_manage_permission(project.project_key)
+
+    if not is_manager:
+        logger.debug(
+            '[HYPATIO][DEBUG][change_signed_form_status] User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                email=user.email,
+                project_key=project.project_key
+            )
+        )
+        return HttpResponse("Error: permissions.", status=403)
+
+    return HttpResponse(signed_form.status, status=200)
+
+
+@user_auth_and_jwt
 def change_signed_form_status(request):
     """
     An HTTP POST endpoint for changing a signed form's status and notifying the user.

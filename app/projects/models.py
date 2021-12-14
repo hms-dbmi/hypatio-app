@@ -136,6 +136,17 @@ class DataProject(models.Model):
     # Set whether users need to form teams before accessing data.
     has_teams = models.BooleanField(default=False, blank=False, null=False)
 
+    # Set whether the teams created for this project can be used by other challenges
+    shares_teams = models.BooleanField(default=False, blank=False, null=False)
+    teams_source = models.ForeignKey(
+        to="DataProject",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        limit_choices_to={"shares_teams": True, "has_teams": True},
+        help_text="Set this to a Data Project from which teams should be imported for use in this Data Project. Only Data Projects that are configured to share will be available."
+    )
+
     show_jwt = models.BooleanField(default=False, blank=False, null=False)
 
     order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for how the DataProjects should be listed.")
@@ -155,6 +166,12 @@ class DataProject(models.Model):
 
         if self.is_challenge and self.is_dataset:
             raise ValidationError('At this time, a challenge should not also be marked as software or dataset.')
+
+        if not self.has_teams and self.shares_teams:
+            raise ValidationError('A Project cannot share teams if it does not itself use teams')
+
+        if self.teams_source and self.shares_teams:
+            raise ValidationError('A Project cannot share teams if it is using shared teams from another project')
 
 
 def validate_pdf_file(value):
@@ -366,6 +383,7 @@ class Team(models.Model):
     team_leader = models.ForeignKey(User, on_delete=models.PROTECT)
     data_project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
     status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
+    source = models.ForeignKey("Team", null=True, blank=True, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('team_leader', 'data_project',)
@@ -384,6 +402,21 @@ class Team(models.Model):
 
     def __str__(self):
         return '%s' % self.team_leader.email
+
+
+# class DataProjectTeam(models.Model):
+
+#     team = models.ForeignKey(Team, on_delete=models.CASCADE)
+#     project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
+#     status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
+
+#     # Meta
+#     created = models.DateTimeField(auto_now_add=True)
+#     modified = models.DateTimeField(auto_now=True)
+
+#     class Meta:
+#         verbose_name = 'Data Project Team'
+#         verbose_name_plural = 'Data Project Teams'
 
 
 class Participant(models.Model):
