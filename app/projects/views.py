@@ -20,7 +20,7 @@ from profile.forms import RegistrationForm
 from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 
-from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK
+from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK, TEAM_ACTIVE, TEAM_READY
 from projects.models import AGREEMENT_FORM_TYPE_STATIC
 from projects.models import AGREEMENT_FORM_TYPE_MODEL
 from projects.models import AGREEMENT_FORM_TYPE_FILE
@@ -30,6 +30,7 @@ from projects.models import HostedFile
 from projects.models import Participant
 from projects.models import SignedAgreementForm
 from projects.models import MIMIC3SignedAgreementFormFields
+from projects.models import Team
 
 from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
 from projects.panels import SIGNUP_STEP_CURRENT_STATUS
@@ -38,6 +39,7 @@ from projects.panels import SIGNUP_STEP_PERMANENT_STATUS
 from projects.panels import DataProjectInformationalPanel
 from projects.panels import DataProjectSignupPanel
 from projects.panels import DataProjectActionablePanel
+from projects.panels import DataProjectSharedTeamsPanel
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -290,21 +292,29 @@ class DataProjectView(TemplateView):
         # SciReg complete profile step.
         self.setup_panel_complete_profile(context)
 
-        # Agreement forms step (if needed).
-        self.setup_panel_sign_agreement_forms(context)
+        # Check if this project uses shared teams
+        if self.project.teams_source and not Participant.objects.filter(user=self.request.user, team__data_project=self.project, team__status=TEAM_READY).exists():
 
-        # Show JWT step (if needed).
-        self.setup_panel_show_jwt(context)
+            # Show panel
+            self.setup_panel_shared_teams(context)
 
-        # Access request step (if needed).
-        self.setup_panel_request_access(context)
+        else:
 
-        # Team setup step (if needed).
-        self.setup_panel_team(context)
+            # Agreement forms step (if needed).
+            self.setup_panel_sign_agreement_forms(context)
 
-        # TODO commented out until this is ready.
-        # Static page that lets user know to wait.
-        # self.step_pending_review(context)
+            # Show JWT step (if needed).
+            self.setup_panel_show_jwt(context)
+
+            # Access request step (if needed).
+            self.setup_panel_request_access(context)
+
+            # Team setup step (if needed).
+            self.setup_panel_team(context)
+
+            # TODO commented out until this is ready.
+            # Static page that lets user know to wait.
+            # self.step_pending_review(context)
 
         return context
 
@@ -431,6 +441,23 @@ class DataProjectView(TemplateView):
             template='projects/signup/complete-profile.html',
             status=step_status,
             additional_context={'registration_form': registration_form}
+        )
+
+        context['setup_panels'].append(panel)
+
+    def setup_panel_shared_teams(self, context):
+        """
+        Builds the context needed for users to be informed of a team sharing setup. This requires
+        users to register with another project before requesting access to this one.
+        """
+        step_status = self.get_step_status('setup_shared_team', False)
+
+        panel = DataProjectSharedTeamsPanel(
+            title='Data Project Teams',
+            bootstrap_color='default',
+            template='projects/signup/shared-teams.html',
+            status=step_status,
+            additional_context={'project': self.project}
         )
 
         context['setup_panels'].append(panel)

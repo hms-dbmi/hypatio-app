@@ -99,6 +99,8 @@
 {% block footerscripts %}
 <script type="application/javascript">
 
+$(document).ready(function() {
+
     $('#reject-form').click(function() {
         $('#reject-form-confirmation').show();
     });
@@ -141,5 +143,6 @@
                 alert('Failed to approve signed form.');
             });
     });
+});
 </script>
 {% endblock %}
