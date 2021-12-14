@@ -14,6 +14,15 @@
 {% block subtitle %}Team leader: {{ team.team_leader }}{% endblock %}
 
 {% block subcontent %}
+
+{% if project.teams_source %}
+<div class="row">
+    <div class="col-md-12">
+      <p><span class="label label-info">Info</span>&nbsp;&nbsp;<strong>This team is approved for and imported from <a href="{% url 'manage:manage-project' project_key=project.teams_source.project_key %}" target="_blank">{{ project.teams_source.name }}</a>.</strong></p>
+    </div>
+</div>
+{% endif %}
+
 <div class="row form-group">
     <div class="col-md-12">
         <div class="pull-right">
