@@ -330,6 +330,9 @@ class DataProjectView(TemplateView):
         # Add a panel for displaying your signed agreement forms (if needed).
         self.panel_signed_agreement_forms(context)
 
+        # Add a panel for projects
+        self.panel_available_projects(context)
+
         # Add a panel for available downloads.
         self.panel_available_downloads(context)
 
@@ -343,6 +346,9 @@ class DataProjectView(TemplateView):
         Adds to the view's context anything that project managers should see who are not
         otherwise participating in the project.
         """
+
+        # Add a panel for projects
+        self.panel_available_projects(context)
 
         # Add a panel for available downloads.
         self.panel_available_downloads(context)
@@ -651,6 +657,26 @@ class DataProjectView(TemplateView):
         )
 
         context['informational_panels'].append(panel)
+
+    def panel_available_projects(self, context):
+        """
+        Builds the context needed for a user to be able to view any
+        related DataProjects to this one via team sharing.
+        """
+        # Check if we should list sub-projects
+        sub_projects = DataProject.objects.filter(teams_source=self.project)
+        if not sub_projects:
+            return
+
+        # List them
+        panel = DataProjectActionablePanel(
+            title='Tasks',
+            bootstrap_color='default',
+            template='projects/participate/sub-project-listing.html',
+            additional_context={'sub_projects': sub_projects,}
+        )
+
+        context['actionable_panels'].append(panel)
 
     def panel_available_downloads(self, context):
         """
