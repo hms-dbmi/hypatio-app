@@ -5,13 +5,15 @@ import os
 import shutil
 import uuid
 import zipfile
+import magic
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.template.loader import render_to_string
+from django.core.files.storage import default_storage
 
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 
@@ -33,7 +35,7 @@ from projects.models import SignedAgreementForm
 from projects.models import Team
 from projects.models import TeamComment
 from projects.serializers import HostedFileSerializer, HostedFileDownloadSerializer
-from projects.models import AGREEMENT_FORM_TYPE_MODEL
+from projects.models import AGREEMENT_FORM_TYPE_MODEL, AGREEMENT_FORM_TYPE_FILE
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -217,6 +219,11 @@ def get_static_agreement_form_html(request):
             return HttpResponse("Error: form content is missing.", status=400)
 
         form_contents = agreement_form.content
+    elif agreement_form.type == AGREEMENT_FORM_TYPE_FILE:
+        if agreement_form.content is None or agreement_form.content == "":
+            return HttpResponse("Error: form content is missing.", status=400)
+
+        form_contents = agreement_form.upload
     else:
         if agreement_form.form_file_path is None or agreement_form.form_file_path == "":
             return HttpResponse("Error: form file path is missing.", status=400)
@@ -393,13 +400,63 @@ def download_signed_form(request):
         )
         return HttpResponse("Error: permissions.", status=403)
 
+    # Set details of the file download
     affected_user = signed_form.user
     date_as_string = datetime.strftime(signed_form.date_signed, "%Y%m%d-%H%M")
 
-    filename = affected_user.email + '-' + signed_form.agreement_form.short_name + '-' + date_as_string + '.txt'
-    response = HttpResponse(signed_form.agreement_text, content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; filename={0}'.format(filename)
+    # Check type
+    if signed_form.agreement_form.type == AGREEMENT_FORM_TYPE_FILE:
+
+        # Download the file
+        file = signed_form.upload.open(mode="rb").read()
+
+        # Determine MIME
+        mime = magic.from_buffer(file, mime=True)
+
+        # Get the signed URL for the file in S3
+        filename = signed_form.upload.name
+        response = HttpResponse(file, content_type=mime)
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+
+    else:
+
+        filename = affected_user.email + '-' + signed_form.agreement_form.short_name + '-' + date_as_string + '.txt'
+        response = HttpResponse(signed_form.agreement_text, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+
     return response
+
+@user_auth_and_jwt
+def get_signed_form_status(request):
+    """
+    An HTTP POST endpoint for fetching a signed form's status.
+    """
+    form_id = request.POST.get("form_id")
+
+    logger.debug(f'[get_signed_form_status] {request.user.email} -> {form_id}')
+
+    # Get the form
+    signed_form = get_object_or_404(SignedAgreementForm, id=form_id)
+
+    # Confirm permissions on project form was signed for
+    user = request.user
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    project = signed_form.project
+
+    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    is_manager = sciauthz.user_has_manage_permission(project.project_key)
+
+    if not is_manager:
+        logger.debug(
+            '[HYPATIO][DEBUG][change_signed_form_status] User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                email=user.email,
+                project_key=project.project_key
+            )
+        )
+        return HttpResponse("Error: permissions.", status=403)
+
+    return HttpResponse(signed_form.status, status=200)
+
 
 @user_auth_and_jwt
 def change_signed_form_status(request):
