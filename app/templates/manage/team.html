@@ -177,7 +177,7 @@
                             </td>
                             <td>
                                 {% for form in member.signed_agreement_forms %}
-                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="{% url 'projects:signed_agreement_form' %}?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
+                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="{% url 'projects:signed_agreement_form' signed_form_id=form.id project_key=form.project.project_key %}" target="_blank" role="button">
                                         <span class="glyphicon {% if form.status == 'P' %}glyphicon-alert{% elif form.status == 'A' %}glyphicon-ok{% elif form.status == 'R' %}glyphicon-ban-circle{% endif %}" aria-hidden="true"></span> {{ form.agreement_form.short_name }}
                                     </a>
                                 {% endfor %}
