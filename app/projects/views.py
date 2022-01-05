@@ -492,6 +492,16 @@ class DataProjectView(TemplateView):
                 status__in=["P", "A"]
             )
 
+            # If this project accepts agreement forms from other projects, check those too
+            if not signed_forms and self.project.shares_agreement_forms:
+
+                # Fetch without a specific project
+                signed_forms = SignedAgreementForm.objects.filter(
+                    user=self.request.user,
+                    agreement_form=form,
+                    status__in=["P", "A"]
+                )
+
             # If the form has already been signed, then the step should be complete.
             step_complete = signed_forms.count() > 0
 
