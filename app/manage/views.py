@@ -297,6 +297,15 @@ class ProjectParticipants(View):
                     agreement_form=agreement_form
                 ).last()
 
+                # If this project accepts agreement forms from other projects, check those too
+                if not signed_form and project.shares_agreement_forms:
+
+                    # Fetch without a specific project
+                    signed_form = SignedAgreementForm.objects.filter(
+                    user__email=participant.user.email,
+                        agreement_form=agreement_form,
+                    ).last()
+
                 if signed_form is not None:
                     signed_agreement_forms.append(signed_form)
 
@@ -311,7 +320,8 @@ class ProjectParticipants(View):
                     {
                         'status': f.status,
                         'id': f.id,
-                        'name': f.agreement_form.short_name
+                        'name': f.agreement_form.short_name,
+                        'project': f.project.project_key,
                     } for f in signed_agreement_forms
                 ],
                 {
@@ -399,6 +409,15 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
                 project=project,
                 agreement_form=agreement_form
             ).last()
+
+            # If this project accepts agreement forms from other projects, check those too
+            if not signed_form and project.shares_agreement_forms:
+
+                # Fetch without a specific project
+                signed_form = SignedAgreementForm.objects.filter(
+                user__email=email,
+                    agreement_form=agreement_form,
+                ).last()
 
             if signed_form is not None:
                 signed_agreement_forms.append(signed_form)
