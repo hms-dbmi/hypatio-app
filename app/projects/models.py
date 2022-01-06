@@ -127,6 +127,7 @@ class DataProject(models.Model):
 
     # Which forms users need to sign before accessing any data.
     agreement_forms = models.ManyToManyField(AgreementForm, blank=True, related_name='data_project_agreement_forms')
+    shares_agreement_forms = models.BooleanField(default=False, blank=False, null=False)
 
     # Various tags for what a project may be, influencing where the project is listed and the functionality on its page.
     is_dataset = models.BooleanField(default=False, blank=False, null=False)
