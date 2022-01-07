@@ -5,6 +5,7 @@ from dal import autocomplete
 
 from projects.models import DataProject
 from projects.models import HostedFile
+from projects.models import Team
 
 # TODO Convert all other manual forms into Django forms
 # ...
@@ -55,3 +56,10 @@ class HostSubmissionForm(forms.ModelForm):
             'hostedfileset': autocomplete.ModelSelect2(url='projects:hostedfileset-autocomplete', forward=['project'], attrs={'class': 'form-control form-control-select2'})
         }
 
+class NotificationForm(forms.Form):
+    """
+    Determines the fields that will appear.
+    """
+    project = forms.ModelChoiceField(queryset=DataProject.objects.all(), widget=forms.HiddenInput)
+    message = forms.CharField(label='Message', required=True, widget=forms.Textarea)
+    team = forms.ModelChoiceField(queryset=Team.objects.all(), widget=forms.HiddenInput)
