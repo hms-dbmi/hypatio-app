@@ -27,7 +27,7 @@
     <div class="col-md-12">
         <div class="pull-right">
             <div class="btn-toolbar" role="toolbar">
-                <div class="btn-group" role="group" aria-label="team-status-buttons">
+                <div id="team-status-buttons" class="btn-group" role="group" aria-label="team-status-buttons">
                     <button type="button"
                             id="change-status-to-pending"
                             class="btn team-status-buttons {% if team.status == 'Pending' %}btn-primary{% else %}btn-default{% endif %}"
@@ -67,6 +67,17 @@
                             {% if team.status == 'Deactivated' %}disabled{% endif %}
                             >
                         Deactivate
+                    </button>
+                </div>
+                <div class="btn-group" role="group" aria-label="team-notify-button">
+                    <button type="button"
+                            id="notification-form-button"
+                            class="btn btn-primary"
+                            data-toggle="tooltip"
+                            data-placement="top"
+                            title="Send a message to the team leader."
+                            >
+                            Message team
                     </button>
                 </div>
                 <div class="btn-group" role="group" aria-label="team-delete-button">
@@ -309,6 +320,10 @@
         </div>
     </div>
 </div>
+
+
+{# Add a placeholder for the modal contact form #}
+<div id='notification-form-modal' class='modal fade' tabindex='-1'></div>
 {% endblock %}
 
 {% block footerscripts %}
@@ -442,6 +457,45 @@
                 alert('Failed to delete team.');
             });
     });
+
+  // AJAX for posting
+  $("#notification-form-button").on('click', function () {
+
+    var url = "{% url 'manage:team-notification' %}?project={{ project.id }}&team={{ team.id }}";
+
+    $.ajax({
+        type: 'GET',
+        url: url,
+        success: function (data, textStatus, jqXHR) {
+            $('#notification-form-modal').html(data);
+            $('#notification-form-modal').modal('show');
+        },
+        error : function(xhr,errmsg,err) {
+            console.log(xhr.status + ": " + xhr.responseText);
+        }
+    });
+    return false;
+});
+
+$('#notification-form-modal').on('submit', '#notification-form', function() {
+    $.ajax({
+        url : "{% url 'manage:team-notification' %}",
+        type : "POST",
+        data: $(this).serialize(),
+        context: this,
+        success : function(json) {
+            $('#notification-form-modal').modal('hide');
+            notify('success', 'Thanks, your message has been submitted!', 'thumbs-up');
+        },
+        error : function(xhr,errmsg,err) {
+            $('#notification-form-modal').modal('hide');
+            notify('danger', 'Something happened, please try again', 'exclamation-sign');
+            console.log(xhr.status + ": " + xhr.responseText);
+        }
+    });
+    return false;
+});
+
 </script>
 
 <!-- Handle team comment saving -->
