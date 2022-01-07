@@ -7,16 +7,21 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 from django.db.models import F
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.contrib import messages
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.views.generic.base import View
 from django.core.paginator import Paginator
+from django.urls import reverse
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_user_profile, get_distinct_countries_participating
 
+from manage.forms import NotificationForm
 from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import Participant
@@ -351,6 +356,128 @@ class ProjectParticipants(View):
         }
 
         return JsonResponse(data=data)
+
+
+@user_auth_and_jwt
+def team_notification(request, project_key=None):
+    """
+    Manages sending notifications to team leaders
+
+    :param request: The current HTTP request
+    :type request: HttpRequest
+    """
+    # If this is a POST request we need to process the form data.
+    if request.method == 'POST':
+        logger.debug(f"Team notification: POST")
+
+        # Process the form.
+        form = NotificationForm(request.POST)
+        if form.is_valid():
+
+            # Get the project
+            project = form.cleaned_data['project']
+            team = form.cleaned_data['team']
+
+            # Form the context.
+            context = {
+                'administrator_message': form.cleaned_data['message'],
+                'project': project,
+                'team': team,
+                'site_url': settings.SITE_URL
+            }
+
+            # Send it out.
+            email_template='team_notification'
+            subject='DBMI Portal - Team Notification'
+
+            # Render templates
+            msg_html = render_to_string('email/email_team_notification.html', context)
+            msg_plain = render_to_string('email/email_team_notification.txt', context)
+
+            try:
+                msg = EmailMultiAlternatives(subject=subject,
+                                            body=msg_plain,
+                                            from_email=settings.DEFAULT_FROM_EMAIL,
+                                            to=[team.team_leader.email])
+                msg.attach_alternative(msg_html, "text/html")
+                msg.send()
+
+                # Handle outcome
+                if request.is_ajax():
+                    return HttpResponse('SUCCESS', status=200)
+                else:
+                    # Set a message.
+                    messages.success(request, 'Thanks, your notification has been sent!')
+
+            except Exception as ex:
+                logger.exception(ex, exc_info=True, extra={
+                    'email': email_template, 'extra': context
+                })
+
+                # Check how the request was made.
+                if request.is_ajax():
+                    return HttpResponse('ERROR', status=500)
+                else:
+                    messages.error(request, 'An unexpected error occurred, please try again')
+
+                    # Send them back
+                    return HttpResponseRedirect(reverse(
+                        'projects:view-project',
+                        kwargs={'project_key': form.cleaned_data['project']}
+                    ))
+        else:
+            logger.error(f"Invalid team notification form", extra={
+                'request': request, 'errors': form.errors.as_json(),
+            })
+
+            # Check how the request was made.
+            if request.is_ajax():
+                return HttpResponse(form.errors.as_json(), status=500)
+            else:
+                messages.error(request, 'The form was invalid, please try again')
+                return HttpResponseRedirect(reverse(
+                    'projects:view-project',
+                    kwargs={'project_key': form.cleaned_data['project']}
+                ))
+
+    logger.debug(f"Team notification: GET")
+
+    # If a GET (or any other method) we'll create a blank form.
+    initial = {}
+
+    # If a project key was supplied and it matches a real project, pre-populate the form with it.
+    try:
+        if project_key:
+            data_project = DataProject.objects.get(project_key=project_key)
+        else:
+            data_project = DataProject.objects.get(id=request.GET["project"])
+
+        initial['project'] = data_project
+    except ObjectDoesNotExist:
+        logger.exception(f"Could not determine project", exc_info=True, extra={
+            'request': request,
+        })
+        if request.is_ajax():
+            return HttpResponse('The project could not be determined, cannot send message.', status=500)
+        else:
+            messages.error(request, 'The project could not be determined, cannot send message.')
+
+    # Get the team
+    try:
+        team = Team.objects.get(id=request.GET["team"])
+        initial['team'] = team
+    except ObjectDoesNotExist:
+        logger.exception(f"Could not determine team leader", exc_info=True, extra={
+            'request': request,
+        })
+        if request.is_ajax():
+            return HttpResponse('The team leader could not be determined, cannot send message.', status=500)
+        else:
+            messages.error(request, 'The team leader could not be determined, cannot send message.')
+
+    # Generate and render the form.
+    form = NotificationForm(initial=initial)
+    return render(request, 'manage/notification.html', {'notification_form': form})
 
 
 @user_auth_and_jwt
