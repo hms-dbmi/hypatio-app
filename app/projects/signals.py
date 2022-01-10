@@ -62,33 +62,49 @@ def sync_teams(project):
         for sharing_project in DataProject.objects.filter(teams_source=project):
 
             # Check if already created
-            if Team.objects.filter(data_project=sharing_project, source=team).exists():
-                logger.debug(f"Team Sync: Team/{team} already shared with DataProject/{sharing_project}")
-                continue
+            shared_team = Team.objects.filter(data_project=sharing_project, source=team).first()
+            if not shared_team:
+                logger.debug(f"Team Sync: Team/{team} not shared with DataProject/{sharing_project}, creating")
 
-            # Create the team
-            shared_team = Team(
-                source=team,
-                data_project=sharing_project,
-                team_leader=team.team_leader,
-                status=TEAM_READY,
-            )
-            shared_team.save()
+                # Create the team
+                shared_team = Team(
+                    source=team,
+                    data_project=sharing_project,
+                    team_leader=team.team_leader,
+                    status=TEAM_READY,
+                )
+                shared_team.save()
+
+            else:
+                logger.debug(f"Team Sync: Team/{team} already shared with DataProject/{sharing_project}")
 
             # Iterate participants in the source team
             for participant in team.participant_set.all():
 
-                # Create a new one
-                shared_participant = Participant(
+                # See if they already exist
+                shared_participant = Participant.objects.filter(
                     user=participant.user,
                     project=sharing_project,
                     team=shared_team,
-                    team_wait_on_leader_email=participant.team_wait_on_leader_email,
-                    team_wait_on_leader=participant.team_wait_on_leader,
-                    team_pending=participant.team_pending,
-                    team_approved=participant.team_approved,
                 )
-                shared_participant.save()
+
+                if not shared_participant:
+                    logger.debug(f"Team Sync: Participant/{participant} not shared with DataProject/{sharing_project}, creating")
+
+                    # Create a new one
+                    shared_participant = Participant(
+                        user=participant.user,
+                        project=sharing_project,
+                        team=shared_team,
+                        team_wait_on_leader_email=participant.team_wait_on_leader_email,
+                        team_wait_on_leader=participant.team_wait_on_leader,
+                        team_pending=participant.team_pending,
+                        team_approved=participant.team_approved,
+                    )
+                    shared_participant.save()
+
+                else:
+                    logger.debug(f"Team Sync: Participant/{participant} already shared with DataProject/{sharing_project}")
 
     # Load deactivated teams for the source project that have been copied
     logger.debug("Team Sync: Processing deactivated teams")
