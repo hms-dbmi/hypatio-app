@@ -67,15 +67,6 @@ def signed_agreement_form(request):
     # find a better solution and have more time, this is it.
     signed_agreement_form_fields = {}
 
-    # Check MIMIC3 first.
-    fields = MIMIC3SignedAgreementFormFields.objects.filter(signed_agreement_form=signed_form).first()
-    if fields:
-
-        # Create a dictionary of the values
-        signed_agreement_form_fields = {
-            "Email Address": fields.email,
-        }
-
     if is_manager or signed_form.user == request.user:
         template_name = "projects/participate/view-signed-agreement-form.html"
         filled_out_signed_form = None

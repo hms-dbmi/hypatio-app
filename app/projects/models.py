@@ -103,6 +103,8 @@ class AgreementForm(models.Model):
             raise ValidationError("If the form type is external link, the external link field should be populated.")
         if self.type == AGREEMENT_FORM_TYPE_MODEL and not self.content:
             raise ValidationError("If the form type is model, the content field should be populated with the agreement form's HTML.")
+        if self.type == AGREEMENT_FORM_TYPE_FILE and not self.content and not self.form_file_path:
+            raise ValidationError("If the form type is file, the content field should be populated with the agreement form's HTML.")
 
 
 class DataProject(models.Model):

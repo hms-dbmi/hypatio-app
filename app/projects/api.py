@@ -775,7 +775,6 @@ def upload_signed_agreement_form(request):
     agreement_form_id = request.POST['agreement_form_id']
     project_key = request.POST['project_key']
     agreement_text = request.POST['agreement_text']
-    email = request.POST['email']
 
     agreement_form = AgreementForm.objects.get(id=agreement_form_id)
     project = DataProject.objects.get(project_key=project_key)
@@ -801,12 +800,5 @@ def upload_signed_agreement_form(request):
         upload=upload
     )
     signed_agreement_form.save()
-
-    # Save fields
-    signed_agreement_form_fields = models.MIMIC3SignedAgreementFormFields(
-        signed_agreement_form=signed_agreement_form,
-        email=email,
-    )
-    signed_agreement_form_fields.save()
 
     return HttpResponse(status=200)
