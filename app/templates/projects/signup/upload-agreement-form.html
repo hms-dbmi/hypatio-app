@@ -1,0 +1,37 @@
+{% load static %}
+{% load projects_extras %}
+
+<form name="upload_agreement_form_container" action="{% url 'projects:upload_signed_agreement_form' %}" method="post" enctype="multipart/form-data">
+
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="agreement_form_contents">
+
+        {# Check source of agreement form content #}
+        {% if panel.additional_context.agreement_form.content %}
+        {{ panel.additional_context.agreement_form.content | safe }}
+        {% elif panel.additional_context.agreement_form.form_file_path %}
+        {{ panel.additional_context.agreement_form.form_file_path|get_html_form_file_contents | safe }}
+        {% else %}
+        This agreement form is missing content
+        {% endif %}
+        </div>
+      </div>
+      <div class="col-xs-12">
+        <input type="file" name="upload" accept="application/pdf" required />
+      </div>
+
+    <div class="col-xs-12">
+      <input type="hidden" class="project_key" name="project_key" value="{{ project.project_key }}" />
+      <input type="hidden" class="agreement_form_id" name="agreement_form_id" value="{{ panel.additional_context.agreement_form.id }}" />
+      <input type="hidden" class="agreement_text" name="agreement_text" value="" />
+
+      <hr>
+
+      <div class="submit_form">
+          <input name="submit_form" type="submit" class="btn btn-primary" value="Submit" />
+      </div>
+    </div>
+  </div>
+    {% csrf_token %}
+</form>

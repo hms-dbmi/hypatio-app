@@ -17,6 +17,7 @@ from projects.api import delete_challengetasksubmission
 from projects.api import save_signed_agreement_form
 from projects.api import save_signed_external_agreement_form
 from projects.api import submit_user_permission_request
+from projects.api import upload_signed_agreement_form
 from projects.api import HostedFileSetAutocomplete
 
 app_name = ProjectsConfig.name
@@ -27,6 +28,7 @@ urlpatterns = [
     url(r'^submit_user_permission_request/$', submit_user_permission_request, name='submit_user_permission_request'),
     url(r'^save_signed_agreement_form', save_signed_agreement_form, name='save_signed_agreement_form'),
     url(r'^save_signed_external_agreement_form', save_signed_external_agreement_form, name='save_signed_external_agreement_form'),
+    url(r'^upload_signed_agreement_form', upload_signed_agreement_form, name='upload_signed_agreement_form'),
     url(r'^join_team/$', join_team, name='join_team'),
     url(r'^leave_team/$', leave_team, name='leave_team'),
     url(r'^approve_team_join/$', approve_team_join, name='approve_team_join'),

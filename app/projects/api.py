@@ -759,3 +759,46 @@ def submit_user_permission_request(request):
         logger.exception(e)
 
     return HttpResponse(200)
+
+
+
+@user_auth_and_jwt
+def upload_signed_agreement_form(request):
+    """
+    An HTTP POST endpoint that takes the contents of an agreement form that a
+    user has submitted and saves it to the database.
+    """
+    logger.debug(f"[upload_signed_agreement_form]: POST -> {request.POST}")
+    logger.debug(f"[upload_signed_agreement_form]: FILES -> {request.FILES}")
+
+    upload = request.FILES['upload']
+    agreement_form_id = request.POST['agreement_form_id']
+    project_key = request.POST['project_key']
+    agreement_text = request.POST['agreement_text']
+
+    agreement_form = AgreementForm.objects.get(id=agreement_form_id)
+    project = DataProject.objects.get(project_key=project_key)
+
+    # Only create a new record if one does not already exist in a state other than Rejected.
+    existing_signed_form = SignedAgreementForm.objects.filter(
+        user=request.user,
+        agreement_form=agreement_form,
+        project=project,
+    ).exclude(
+        status=SIGNED_FORM_REJECTED
+    )
+
+    if existing_signed_form.exists():
+        logger.debug('%s already has signed the agreement form "%s" for project "%s".', request.user.email, agreement_form.name, project.project_key)
+        return HttpResponse(status=400)
+
+    signed_agreement_form = SignedAgreementForm(
+        user=request.user,
+        agreement_form=agreement_form,
+        project=project,
+        date_signed=datetime.now(),
+        upload=upload
+    )
+    signed_agreement_form.save()
+
+    return HttpResponse(status=200)

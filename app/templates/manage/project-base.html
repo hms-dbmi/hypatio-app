@@ -263,6 +263,14 @@
     </div>
 </div>
 
+{% if project.teams_source %}
+<div class="row">
+    <div class="col-md-12">
+      <p><span class="label label-info">Info</span>&nbsp;&nbsp;<strong>This project is configured to import teams from <a href="{% url 'manage:manage-project' project_key=project.teams_source.project_key %}" target="_blank">{{ project.teams_source.name }}</a>. Teams approved there will be automatically added to this project but will need still need approval for this project.</strong></p>
+    </div>
+</div>
+{% endif %}
+
 <div class="row">
     <div class="col-lg-12">
         {% if project.has_teams %}
@@ -356,7 +364,7 @@
                                 </td>
                                 <td>
                                     {% for form in participant_info.signed_forms %}
-                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="{% url 'projects:signed_agreement_form' %}?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
+                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="{% url 'projects:signed_agreement_form' %}?signed_form_id={{ form.id }}&project_key={{ form.project.project_key }}" target="_blank" role="button">
                                         {{ form.agreement_form.short_name }} <span class="glyphicon {% if form.status == 'P' %}glyphicon-alert{% elif form.status == 'A' %}glyphicon-ok{% elif form.status == 'R' %}glyphicon-ban-circle{% endif %}" aria-hidden="true"></span>
                                     </a>
                                     {% endfor %}
@@ -604,7 +612,7 @@
                             var form = data[index];
 
                             // Set the base URL for the forms
-                            var formUrl = '{% url "projects:signed_agreement_form" %}?project_key={{ project_key }}&signed_form_id=' + form['id'];
+                            var formUrl = '{% url "projects:signed_agreement_form" %}?project_key=' + form['project'] + '&signed_form_id=' + form['id'];
 
                             // Set form type and icon classes
                             var formClasses = (function(formStatus) {
