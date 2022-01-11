@@ -26,5 +26,8 @@ class ProjectsConfig(AppConfig):
         """
         Run any one-time only startup routines here
         """
+        # Import signals
+        import projects.signals
+
         # Check Fileservice groups once
         post_migrate.connect(check_fileservice, sender=self)

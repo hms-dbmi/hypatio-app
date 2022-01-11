@@ -20,14 +20,17 @@ from profile.forms import RegistrationForm
 from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
 from pyauth0jwt.auth0authenticate import user_auth_and_jwt
 
-from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK
+from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK, TEAM_ACTIVE, TEAM_READY
 from projects.models import AGREEMENT_FORM_TYPE_STATIC
 from projects.models import AGREEMENT_FORM_TYPE_MODEL
+from projects.models import AGREEMENT_FORM_TYPE_FILE
 from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import HostedFile
 from projects.models import Participant
 from projects.models import SignedAgreementForm
+from projects.models import MIMIC3SignedAgreementFormFields
+from projects.models import Team
 
 from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
 from projects.panels import SIGNUP_STEP_CURRENT_STATUS
@@ -36,6 +39,7 @@ from projects.panels import SIGNUP_STEP_PERMANENT_STATUS
 from projects.panels import DataProjectInformationalPanel
 from projects.panels import DataProjectSignupPanel
 from projects.panels import DataProjectActionablePanel
+from projects.panels import DataProjectSharedTeamsPanel
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -59,6 +63,10 @@ def signed_agreement_form(request):
     except ObjectDoesNotExist:
         participant = None
 
+    # Get fields, if applicable. It sucks that these are hard-coded but until we
+    # find a better solution and have more time, this is it.
+    signed_agreement_form_fields = {}
+
     if is_manager or signed_form.user == request.user:
         template_name = "projects/participate/view-signed-agreement-form.html"
         filled_out_signed_form = None
@@ -68,6 +76,7 @@ def signed_agreement_form(request):
                                                "is_manager": is_manager,
                                                "signed_form": signed_form,
                                                "filled_out_signed_form": filled_out_signed_form,
+                                               "signed_agreement_form_fields": signed_agreement_form_fields,
                                                "participant": participant})
     else:
         return HttpResponse(403)
@@ -274,21 +283,29 @@ class DataProjectView(TemplateView):
         # SciReg complete profile step.
         self.setup_panel_complete_profile(context)
 
-        # Agreement forms step (if needed).
-        self.setup_panel_sign_agreement_forms(context)
+        # Check if this project uses shared teams
+        if self.project.teams_source and not Participant.objects.filter(user=self.request.user, team__data_project=self.project, team__status=TEAM_READY).exists():
 
-        # Show JWT step (if needed).
-        self.setup_panel_show_jwt(context)
+            # Show panel
+            self.setup_panel_shared_teams(context)
 
-        # Access request step (if needed).
-        self.setup_panel_request_access(context)
+        else:
 
-        # Team setup step (if needed).
-        self.setup_panel_team(context)
+            # Agreement forms step (if needed).
+            self.setup_panel_sign_agreement_forms(context)
 
-        # TODO commented out until this is ready.
-        # Static page that lets user know to wait.
-        # self.step_pending_review(context)
+            # Show JWT step (if needed).
+            self.setup_panel_show_jwt(context)
+
+            # Access request step (if needed).
+            self.setup_panel_request_access(context)
+
+            # Team setup step (if needed).
+            self.setup_panel_team(context)
+
+            # TODO commented out until this is ready.
+            # Static page that lets user know to wait.
+            # self.step_pending_review(context)
 
         return context
 
@@ -304,6 +321,9 @@ class DataProjectView(TemplateView):
         # Add a panel for displaying your signed agreement forms (if needed).
         self.panel_signed_agreement_forms(context)
 
+        # Add a panel for projects
+        self.panel_available_projects(context)
+
         # Add a panel for available downloads.
         self.panel_available_downloads(context)
 
@@ -317,6 +337,9 @@ class DataProjectView(TemplateView):
         Adds to the view's context anything that project managers should see who are not
         otherwise participating in the project.
         """
+
+        # Add a panel for projects
+        self.panel_available_projects(context)
 
         # Add a panel for available downloads.
         self.panel_available_downloads(context)
@@ -419,6 +442,23 @@ class DataProjectView(TemplateView):
 
         context['setup_panels'].append(panel)
 
+    def setup_panel_shared_teams(self, context):
+        """
+        Builds the context needed for users to be informed of a team sharing setup. This requires
+        users to register with another project before requesting access to this one.
+        """
+        step_status = self.get_step_status('setup_shared_team', False)
+
+        panel = DataProjectSharedTeamsPanel(
+            title='Data Project Teams',
+            bootstrap_color='default',
+            template='projects/signup/shared-teams.html',
+            status=step_status,
+            additional_context={'project': self.project}
+        )
+
+        context['setup_panels'].append(panel)
+
     def setup_panel_sign_agreement_forms(self, context):
         """
         Builds the context needed for users to complete any required agreement forms.
@@ -443,6 +483,16 @@ class DataProjectView(TemplateView):
                 status__in=["P", "A"]
             )
 
+            # If this project accepts agreement forms from other projects, check those too
+            if not signed_forms and self.project.shares_agreement_forms:
+
+                # Fetch without a specific project
+                signed_forms = SignedAgreementForm.objects.filter(
+                    user=self.request.user,
+                    agreement_form=form,
+                    status__in=["P", "A"]
+                )
+
             # If the form has already been signed, then the step should be complete.
             step_complete = signed_forms.count() > 0
 
@@ -455,6 +505,8 @@ class DataProjectView(TemplateView):
 
             if not form.type or form.type == AGREEMENT_FORM_TYPE_STATIC or form.type == AGREEMENT_FORM_TYPE_MODEL:
                 template = 'projects/signup/sign-agreement-form.html'
+            elif form.type == AGREEMENT_FORM_TYPE_FILE:
+                template = 'projects/signup/upload-agreement-form.html'
             elif form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
                 template = 'projects/signup/sign-external-agreement-form.html'
             else:
@@ -606,6 +658,26 @@ class DataProjectView(TemplateView):
         )
 
         context['informational_panels'].append(panel)
+
+    def panel_available_projects(self, context):
+        """
+        Builds the context needed for a user to be able to view any
+        related DataProjects to this one via team sharing.
+        """
+        # Check if we should list sub-projects
+        sub_projects = DataProject.objects.filter(teams_source=self.project)
+        if not sub_projects:
+            return
+
+        # List them
+        panel = DataProjectActionablePanel(
+            title='Tasks',
+            bootstrap_color='default',
+            template='projects/participate/sub-project-listing.html',
+            additional_context={'sub_projects': sub_projects,}
+        )
+
+        context['actionable_panels'].append(panel)
 
     def panel_available_downloads(self, context):
         """

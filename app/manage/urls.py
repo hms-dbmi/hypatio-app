@@ -5,6 +5,7 @@ from manage.views import DataProjectListManageView
 from manage.views import DataProjectManageView
 from manage.views import manage_team
 from manage.views import ProjectParticipants
+from manage.views import team_notification
 
 from manage.api import set_dataproject_details
 from manage.api import set_dataproject_registration_status
@@ -14,6 +15,7 @@ from manage.api import get_hosted_file_edit_form
 from manage.api import process_hosted_file_edit_form_submission
 from manage.api import download_signed_form
 from manage.api import change_signed_form_status
+from manage.api import get_signed_form_status
 from manage.api import save_team_comment
 from manage.api import set_team_status
 from manage.api import delete_team
@@ -39,10 +41,12 @@ urlpatterns = [
     url(r'^get-hosted-file-logs/$', get_hosted_file_logs, name='get-hosted-file-logs'),
     url(r'^process-hosted-file-edit-form-submission/$', process_hosted_file_edit_form_submission, name='process-hosted-file-edit-form-submission'),
     url(r'^download-signed-form/$', download_signed_form, name='download-signed-form'),
+    url(r'^get-signed-form-status/$', get_signed_form_status, name='get-signed-form-status'),
     url(r'^change-signed-form-status/$', change_signed_form_status, name='change-signed-form-status'),
     url(r'^save-team-comment/$', save_team_comment, name='save-team-comment'),
     url(r'^set-team-status/$', set_team_status, name='set-team-status'),
     url(r'^delete-team/$', delete_team, name='delete-team'),
+    url(r'^team-notification/$', team_notification, name='team-notification'),
     url(r'^download-team-submissions/(?P<project_key>[^/]+)/(?P<team_leader_email>[^/]+)/$', download_team_submissions, name='download-team-submissions'),
     url(r'^download-submission/(?P<fileservice_uuid>[^/]+)/$', download_submission, name='download-submission'),
     url(r'^host-submission/(?P<fileservice_uuid>[^/]+)/$', host_submission, name='host-submission'),

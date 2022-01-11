@@ -1,0 +1,7 @@
+{% load profile_extras %}
+
+<p>This project requires users to first register with <a href="{% url 'projects:view-project' project_key=project.teams_source.project_key %}" target="_blank">{{ project.teams_source.name }}</a>. Once approved by a project administrator, you can return here to complete steps required for access.</p>
+
+{% block javascript %}
+
+{% endblock %}

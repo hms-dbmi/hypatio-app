@@ -14,13 +14,22 @@
 {% block subtitle %}Team leader: {{ team.team_leader }}{% endblock %}
 
 {% block subcontent %}
+
+{% if project.teams_source %}
+<div class="row">
+    <div class="col-md-12">
+      <p><span class="label label-info">Info</span>&nbsp;&nbsp;<strong>This team is approved for and imported from <a href="{% url 'manage:manage-project' project_key=project.teams_source.project_key %}" target="_blank">{{ project.teams_source.name }}</a>.</strong></p>
+    </div>
+</div>
+{% endif %}
+
 <div class="row form-group">
     <div class="col-md-12">
         <div class="pull-right">
             <div class="btn-toolbar" role="toolbar">
-                <div class="btn-group" role="group" aria-label="team-status-buttons">
-                    <button type="button" 
-                            id="change-status-to-pending" 
+                <div id="team-status-buttons" class="btn-group" role="group" aria-label="team-status-buttons">
+                    <button type="button"
+                            id="change-status-to-pending"
                             class="btn team-status-buttons {% if team.status == 'Pending' %}btn-primary{% else %}btn-default{% endif %}"
                             data-toggle="tooltip"
                             data-placement="top"
@@ -29,8 +38,8 @@
                             >
                             Open
                     </button>
-                    <button type="button" 
-                            id="change-status-to-ready" 
+                    <button type="button"
+                            id="change-status-to-ready"
                             class="btn team-status-buttons {% if team.status == 'Ready' %}btn-warning{% else %}btn-default{% endif %}"
                             data-toggle="tooltip"
                             data-placement="top"
@@ -39,8 +48,8 @@
                             >
                             Ready
                     </button>
-                    <button type="button" 
-                            id="change-status-to-active" 
+                    <button type="button"
+                            id="change-status-to-active"
                             class="btn team-status-buttons {% if team.status == 'Active' %}btn-success{% else %}btn-default{% endif %}"
                             data-toggle="tooltip"
                             data-placement="top"
@@ -49,8 +58,8 @@
                             >
                             Approve
                     </button>
-                    <button type="button" 
-                            id="change-status-to-deactivated" 
+                    <button type="button"
+                            id="change-status-to-deactivated"
                             class="btn team-status-buttons {% if team.status == 'Deactivated' %}btn-primary{% else %}btn-default{% endif %}"
                             data-toggle="tooltip"
                             data-placement="top"
@@ -60,9 +69,20 @@
                         Deactivate
                     </button>
                 </div>
-                <div class="btn-group" role="group" aria-label="team-delete-button">            
-                    <button type="button" 
-                            id="delete-team" 
+                <div class="btn-group" role="group" aria-label="team-notify-button">
+                    <button type="button"
+                            id="notification-form-button"
+                            class="btn btn-primary"
+                            data-toggle="tooltip"
+                            data-placement="top"
+                            title="Send a message to the team leader."
+                            >
+                            Message team
+                    </button>
+                </div>
+                <div class="btn-group" role="group" aria-label="team-delete-button">
+                    <button type="button"
+                            id="delete-team"
                             class="btn btn-danger"
                             data-toggle="tooltip"
                             data-placement="top"
@@ -168,7 +188,7 @@
                             </td>
                             <td>
                                 {% for form in member.signed_agreement_forms %}
-                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="{% url 'projects:signed_agreement_form' %}?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
+                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="{% url 'projects:signed_agreement_form' %}?signed_form_id={{ form.id }}&project_key={{ form.project.project_key }}" target="_blank" role="button">
                                         <span class="glyphicon {% if form.status == 'P' %}glyphicon-alert{% elif form.status == 'A' %}glyphicon-ok{% elif form.status == 'R' %}glyphicon-ban-circle{% endif %}" aria-hidden="true"></span> {{ form.agreement_form.short_name }}
                                     </a>
                                 {% endfor %}
@@ -239,7 +259,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
-                
+
                 <div style="margin-top: 10px;">
                     <a href="{% url 'manage:download-team-submissions' project.project_key team.team_leader.email %}" class="btn-default btn download-file" download>
                         Download all files now
@@ -287,7 +307,7 @@
                 <button type="button" id="team-comment-save" class="btn btn-primary">Save comment</button>
 
                 <hr>
-                
+
                 <h4>Previous comments:</h4>
 
                 {% for comment in comments %}
@@ -300,6 +320,10 @@
         </div>
     </div>
 </div>
+
+
+{# Add a placeholder for the modal contact form #}
+<div id='notification-form-modal' class='modal fade' tabindex='-1'></div>
 {% endblock %}
 
 {% block footerscripts %}
@@ -319,7 +343,7 @@
             "searching": false,
             "order": [[5, "desc"]] // Sort by status column (4th column)
         });
-        
+
         $('#team-uploads-table').DataTable({
             "paging": false,
             "info": false,
@@ -363,8 +387,8 @@
                 }, 1500);
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                $('#delete-submission-confirm').text('Could not delete submission. Please contact an admin for help');                
-                
+                $('#delete-submission-confirm').text('Could not delete submission. Please contact an admin for help');
+
                 // Refresh the page.
                 setTimeout(function(){
                     window.location = window.location.pathname
@@ -381,7 +405,7 @@
     var status = "";
 
     $('.team-status-buttons').click(function(event) {
-        
+
         if (event.target.id == "change-status-to-pending") {
             status = "pending";
         } else if (event.target.id == "change-status-to-ready") {
@@ -391,7 +415,7 @@
         } else if (event.target.id == "change-status-to-deactivated") {
             status = "deactivated";
         }
-        
+
         var request_data = {
             team: team,
             project: project,
@@ -433,12 +457,51 @@
                 alert('Failed to delete team.');
             });
     });
+
+  // AJAX for posting
+  $("#notification-form-button").on('click', function () {
+
+    var url = "{% url 'manage:team-notification' %}?project={{ project.id }}&team={{ team.id }}";
+
+    $.ajax({
+        type: 'GET',
+        url: url,
+        success: function (data, textStatus, jqXHR) {
+            $('#notification-form-modal').html(data);
+            $('#notification-form-modal').modal('show');
+        },
+        error : function(xhr,errmsg,err) {
+            console.log(xhr.status + ": " + xhr.responseText);
+        }
+    });
+    return false;
+});
+
+$('#notification-form-modal').on('submit', '#notification-form', function() {
+    $.ajax({
+        url : "{% url 'manage:team-notification' %}",
+        type : "POST",
+        data: $(this).serialize(),
+        context: this,
+        success : function(json) {
+            $('#notification-form-modal').modal('hide');
+            notify('success', 'Thanks, your message has been submitted!', 'thumbs-up');
+        },
+        error : function(xhr,errmsg,err) {
+            $('#notification-form-modal').modal('hide');
+            notify('danger', 'Something happened, please try again', 'exclamation-sign');
+            console.log(xhr.status + ": " + xhr.responseText);
+        }
+    });
+    return false;
+});
+
 </script>
 
 <!-- Handle team comment saving -->
 <script type="application/javascript">
     $('#team-comment-save').click(function() {
-        
+
         var project = "{{ project.project_key }}";
         var team = "{{ team.team_leader.email }}";
         var comment = $("#team-comment").val();
