@@ -396,13 +396,32 @@ def upload_challengetasksubmission_file(request):
         # If the project requires authorization to access, check for permissions before allowing submission
         if project.requires_authorization:
 
-            # Check that user has permissions to be submitting files for this project.
-            user_jwt = request.COOKIES.get("DBMI_JWT", None)
-            sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+            # Get their permission for this project
+            has_permission = False
+            try:
+                participant = Participant.objects.get(user=request.user, project=project)
+                has_permission = participant.permission == "VIEW"
+                if not has_permission:
+                    logger.debug(f"[{project_key}][{request.user.email}] No  VIEW access for user")
+            except ObjectDoesNotExist as e:
+                logger.exception(f"Participant does not exist", exc_info=False, extra={
+                    "request": request, "project": project_key, "user": request.user,
+                })
 
-            if not sciauthz.user_has_single_permission(project_key, "VIEW", request.user.email):
-                logger.debug("[upload_challengetasksubmission_file] - No Access for user " + request.user.email)
-                return HttpResponse("You do not have access to upload this file.", status=403)
+            # Check AuthZ
+            if not has_permission:
+                logger.warning(
+                    f"[{project_key}][{request.user.email}] Local permission "
+                    f"does not exist, checking DBMI AuthZ for "
+                )
+
+                # Check that user has permissions to be submitting files for this project.
+                user_jwt = request.COOKIES.get("DBMI_JWT", None)
+                sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+
+                if not sciauthz.user_has_single_permission(project_key, "VIEW", request.user.email):
+                    logger.warning(f"[{project_key}][{request.user.email}] No Access")
+                    return HttpResponse("You do not have access to upload this file.", status=403)
 
         if filename.split(".")[-1] != "zip":
             logger.error('Not a zip file.')
