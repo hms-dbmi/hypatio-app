@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 import logging
 
-from pyauth0jwt.auth0authenticate import user_auth_and_jwt
+from hypatio.auth import user_auth_and_jwt
 
 from django.conf import settings
 from django.contrib import messages
