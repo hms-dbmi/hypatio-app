@@ -1,3 +1,5 @@
+{% load bootstrap3 %}
+
 {% if panel.additional_context.team.team_leader == user %}
     {% if panel.additional_context.team.status == "Active" %}
         <div class="alert alert-success" role="alert">
@@ -30,6 +32,7 @@
             <tr>
                 <th>Email</th>
                 <th>Membership</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -50,6 +53,25 @@
                 {% else %}
                     Error
                 {% endif %}
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Action <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" placeholder="No actions">
+                      {% if panel.additional_context.team.team_leader.email != participant.user.email && participant.team_approved %}
+                      <li class="menu-link-success">
+                        <a href="#/" class="menu-link-success" ic-patch-to="{% url 'projects:change_team_leader' project.project_key panel.additional_context.team.id %}" ic-include='{"participant":"{{ participant.id }}"}'>Make Team Leader</a>
+                      </li>
+                      <li class="menu-link-danger">
+                        <a href="#/" class="menu-link-danger" ic-delete-from="{% url 'projects:delete_team_member' project.project_key panel.additional_context.team.id %}" ic-include='{"participant":"{{ participant.id }}"}'>Remove Team Member</a>
+                      </li>
+                      {% else %}
+                      <li class="menu-link">N/A</li>
+                      {% endif %}
+                    </ul>
+                </div>
                 </td>
             </tr>
             {% endfor %}

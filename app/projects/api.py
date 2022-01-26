@@ -336,6 +336,133 @@ def create_team(request):
     return redirect('/projects/' + project_key + '/')
 
 @user_auth_and_jwt
+def change_team_leader(request, project_key, team_id, *args, **kwargs):
+    """
+    An HTTP POST endpoint for team leaders to assign the team leader role to another team member
+    """
+    try:
+        # Get the relevant objects
+        project = DataProject.objects.get(project_key=project_key)
+        team = Team.objects.get(id=team_id)
+        participant = Participant.objects.get(id=request.POST.get("participant"))
+
+        if request.user.email != team.team_leader.email:
+            logger.debug(
+                "User {email} is not a team leader.".format(
+                    email=request.user.email
+                )
+            )
+            return HttpResponse("Error: permissions.", status=403)
+
+        # Change the team leader
+        team.team_leader = participant.user
+        team.save()
+
+        # Notify relevant parties of change
+        recipients = [
+            request.user.email,
+            participant.user.email,
+        ]
+
+        context = {
+            "team_leader": request.user.email,
+            "new_team_leader": participant.user.email,
+            "project": project_key,
+            "site_url": settings.SITE_URL
+        }
+
+        email_success = email_send(
+            subject='DBMI Portal - Team Leader Change',
+            recipients=recipients,
+            email_template='email_team_leader_change_notification',
+            extra=context
+        )
+
+        # Prep the response
+        response = HttpResponse(200)
+
+        # Set the message
+        message = f"Team member {participant.user.email} has been successfully elevated to team leader"
+        icon = "thumbs-up"
+
+        # Notify them and then reload the page
+        response['X-IC-Script'] = f"notify('success', '{message}', 'glyphicon glyphicon-{icon}'); setTimeout(location.reload.bind(location), 3000);"
+
+        return response
+
+    except Exception as e:
+        logger.exception(f"Could not retrieve next team leader participant", exc_info=False, extra={
+            "request": request, "project_key": project_key, "team_id": team_id, "participant": participant,
+        })
+
+    return HttpResponse(500)
+
+
+@user_auth_and_jwt
+def delete_team_member(request, project_key, team_id, *args, **kwargs):
+    """
+    An HTTP POST endpoint for team leaders to remove members of the team.
+    """
+    logger.debug(f"{project_key}/{team_id}: delete_team_member - {request.POST}")
+    try:
+        # Get the relevant objects
+        project = DataProject.objects.get(project_key=project_key)
+        team = Team.objects.get(id=team_id)
+        participant = Participant.objects.get(id=request.POST.get("participant"))
+
+        if request.user.email != team.team_leader.email:
+            logger.debug(
+                "User {email} is not a team leader.".format(
+                    email=request.user.email
+                )
+            )
+            return HttpResponse("Error: permissions.", status=403)
+
+        # Delete the participant
+        logger.debug(f"Deleting {participant.user.email} from team {team_id}")
+        participant.delete()
+
+        # Notify relevant parties of change
+        recipients = [
+            request.user.email,
+            participant.user.email,
+        ]
+
+        context = {
+            "team_leader": request.user.email,
+            "removed_member": participant.user.email,
+            "project": project_key,
+            "site_url": settings.SITE_URL
+        }
+
+        email_success = email_send(
+            subject='DBMI Portal - Team Member Removal',
+            recipients=recipients,
+            email_template='email_team_member_removal_notification',
+            extra=context
+        )
+
+        # Prep the response
+        response = HttpResponse(200)
+
+        # Set the message
+        message = f"Team member {participant.user.email} has been successfully removed from the team"
+        icon = "thumbs-up"
+
+        # Notify them and then reload the page
+        response['X-IC-Script'] = f"notify('success', '{message}', 'glyphicon glyphicon-{icon}'); setTimeout(location.reload.bind(location), 3000);"
+
+        return response
+
+    except Exception as e:
+        logger.exception(f"Could not retrieve next team leader participant", exc_info=False, extra={
+            "request": request, "project_key": project_key, "team_id": team_id, "participant": participant,
+        })
+
+    return HttpResponse(500)
+
+
+@user_auth_and_jwt
 def download_dataset(request):
     """
     An HTTP GET endpoint that handles downloads for project level files. Checks that the requesting user

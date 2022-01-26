@@ -1,4 +1,5 @@
 from django.conf.urls import url
+from hypatio.file_services import delete
 
 from projects.apps import ProjectsConfig
 from projects.views import list_data_projects
@@ -11,6 +12,8 @@ from projects.api import create_team
 from projects.api import approve_team_join
 from projects.api import reject_team_join
 from projects.api import finalize_team
+from projects.api import change_team_leader
+from projects.api import delete_team_member
 from projects.api import download_dataset
 from projects.api import upload_challengetasksubmission_file
 from projects.api import delete_challengetasksubmission
@@ -35,6 +38,8 @@ urlpatterns = [
     url(r'^reject_team_join/$', reject_team_join, name='reject_team_join'),
     url(r'^create_team/$', create_team, name='create_team'),
     url(r'^finalize_team/$', finalize_team, name='finalize_team'),
+    url(r'^(?P<project_key>[^/]+)/(?P<team_id>[^/]+)/change_team_leader/$', change_team_leader, name='change_team_leader'),
+    url(r'^(?P<project_key>[^/]+)/(?P<team_id>[^/]+)/delete_team_member/$', delete_team_member, name='delete_team_member'),
     url(r'^signed_agreement_form/$', signed_agreement_form, name='signed_agreement_form'),
     url(r'^download_dataset/$', download_dataset, name='download_dataset'),
     url(r'^upload_challengetasksubmission_file/$', upload_challengetasksubmission_file, name="upload_challengetasksubmission_file"),
