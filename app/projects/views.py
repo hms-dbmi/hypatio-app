@@ -17,8 +17,8 @@ from hypatio.scireg_services import get_user_email_confirmation_status
 
 from profile.forms import RegistrationForm
 
-from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
-from pyauth0jwt.auth0authenticate import user_auth_and_jwt
+from hypatio.auth import public_user_auth_and_jwt
+from hypatio.auth import user_auth_and_jwt
 
 from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK, TEAM_ACTIVE, TEAM_READY
 from projects.models import AGREEMENT_FORM_TYPE_STATIC

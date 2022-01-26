@@ -131,7 +131,7 @@ AUTH0_SECRET = environment.get_str("AUTH0_SECRET", required=True)
 AUTH0_SUCCESS_URL = environment.get_str("AUTH0_SUCCESS_URL", required=True)
 AUTH0_LOGOUT_URL = environment.get_str("AUTH0_LOGOUT_URL", required=True)
 
-AUTHENTICATION_BACKENDS = ['pyauth0jwt.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend']
+AUTHENTICATION_BACKENDS = ['hypatio.auth.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend']
 
 AUTHENTICATION_LOGIN_URL = environment.get_str("ACCOUNT_SERVER_URL", required=True)
 ACCOUNT_SERVER_URL = environment.get_str("ACCOUNT_SERVER_URL", required=True)

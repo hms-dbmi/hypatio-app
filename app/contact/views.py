@@ -1,6 +1,6 @@
 import logging
 
-from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
+from hypatio.auth import public_user_auth_and_jwt
 
 from contact.forms import ContactForm
 
