@@ -1,0 +1,1 @@
+Team leader {{ team_leader }} has transferred the team leader role to {{ new_team_leader }}.

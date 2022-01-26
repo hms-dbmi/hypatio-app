@@ -1,0 +1,15 @@
+{% extends "email/email_base.html" %}
+
+{% block title %}DBMI Data Portal - Team Leader Change{% endblock %}
+
+{% block content %}
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">Hi,</p>
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">Team leader <strong>{{ team_leader }}</strong> has transferred the team leader role to <strong>{{ new_team_leader }}</strong> .</p>
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">Please <a href="{{ site_url }}projects/{{ project }}">click here</a> to manage this team.</p>
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">Thank you.</p>
+
+{% endblock %}
