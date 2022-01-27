@@ -4,17 +4,17 @@
 #
 #    pip-compile --allow-unsafe --generate-hashes --output-file=requirements.txt requirements.in
 #
-awscli==1.22.41 \
-    --hash=sha256:4d83baf99e592c5c86584881b88e9919ad829035cf86daa903489c01043b5a3a \
-    --hash=sha256:a3a5a2ea83d3cacfdaca488cab0176e641cb9e2aa64fdc5cea7a8178de79fdca
+awscli==1.22.44 \
+    --hash=sha256:aa9ed181c91a93083ff9e35810b69c79d93033dd3510d1f90158971f24f89107 \
+    --hash=sha256:c5f6acf83132d864238830c7b3831a9e14729918d9b3ab831d1c6c36dcc2c55c
     # via -r requirements.in
-boto3==1.20.41 \
-    --hash=sha256:aaddf6cf93568b734ad62fd96991775bccc7f016e93ff4e98dc1aa4f7586440c \
-    --hash=sha256:fb02467a6e8109c7db994ba77fa2e8381ed129ce312988d8ef23edf6e3a3c7f1
+boto3==1.20.44 \
+    --hash=sha256:26f18ca7411615f33d8d1bf60cc8efe5b331a57b3013d5f8f3587cd5350c27cb \
+    --hash=sha256:4470f64e4af609ff678055338c96a6f7cbe601d1fb06a4ea7dc8d9223c2e527a
     # via -r requirements.in
-botocore==1.23.41 \
-    --hash=sha256:41104e1c976c9c410387b3c7d265466b314f287a1c13fd4b543768135301058a \
-    --hash=sha256:9137c59c4eb1dee60ae3c710e94f56119a1b33b0b17ff3ad878fc2f4ce77843a
+botocore==1.23.44 \
+    --hash=sha256:11483a493de4a76ef218d8cd3980c63550d006a0d082c10d53c0954184ca542a \
+    --hash=sha256:8e5317f84fc1118bff58fa6fa79a9b62083e75a2a9c62feb3ea73694c550b99d
     # via
     #   awscli
     #   boto3
@@ -125,8 +125,8 @@ django==2.2.26 \
     #   django-storages
     #   djangorestframework
     #   py-auth0-jwt
-django-autocomplete-light==3.8.2 \
-    --hash=sha256:25f0ea71b59a8f1f97a8a564e33e429570b0ea77c5eac81f7beb283073b4ba90
+django-autocomplete-light==3.9.0 \
+    --hash=sha256:34e8af34a83622461d38f3a3824b622168ebe243b9889c982a7c7514b4110882
     # via -r requirements.in
 django-bootstrap-datepicker-plus==3.0.5 \
     --hash=sha256:490058eba99d47f48a7d24fa78581c0e36375bdc7aa9605783eeb170d51fd0df \
