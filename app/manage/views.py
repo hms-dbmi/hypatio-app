@@ -523,8 +523,8 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
         else:
             user_info = None
 
-        # Make a request to DBMIAuthZ to check for this person's permissions.
-        access_granted = sciauthz.user_has_single_permission(project_key, "VIEW", email)
+        # Check if this participant has access
+        access_granted = member.permission == "VIEW"
 
         signed_agreement_forms = []
         signed_accepted_agreement_forms = 0
