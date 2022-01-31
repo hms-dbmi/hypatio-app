@@ -8,6 +8,7 @@ django-countries<7.0
 django-dbmi-client==0.4.6
 django-health-check<4.0
 django-jquery<4.0
+django-jsonfield-backport<2.0
 django-storages<2.0
 django-stronghold<=1.0
 djangorestframework<4.0
