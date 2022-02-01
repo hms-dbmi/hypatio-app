@@ -651,6 +651,30 @@ def save_signed_agreement_form(request):
     )
     signed_agreement_form.save()
 
+    # Persist fields to JSON field on object
+    try:
+        # Set fields that we do not need to persist here
+        exclusions = [
+            "csrfmiddlewaretoken", "project_key", "agreement_form_id",
+            "agreement_text"
+        ]
+
+        # Save form fields
+        fields = {k:v for k, v in request.POST.items() if k.lower() not in exclusions}
+        signed_agreement_form.fields = fields
+
+        # Save
+        signed_agreement_form.save()
+
+    except Exception as e:
+        logger.exception(
+            f"HYP/Projects/API: Fields error: {e}",
+            exc_info=True,
+            extra={"form": agreement_form.short_name, "fields": request.POST,}
+        )
+
+    # TODO: The following behavior should be removed as soon as it is possible
+
     # Create a row for storing fields
     model_name = f"{agreement_form.short_name.upper()}SignedAgreementFormFields"
     if not hasattr(models, model_name):
