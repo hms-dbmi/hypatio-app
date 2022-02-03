@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 from django.db.models import F
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.contrib import messages
 from django.shortcuts import render
@@ -22,7 +23,7 @@ from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_user_profile, get_distinct_countries_participating
 
 from manage.forms import NotificationForm
-from projects.models import ChallengeTaskSubmission
+from projects.models import AgreementForm, ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import Participant
 from projects.models import Team
@@ -145,6 +146,9 @@ class DataProjectManageView(TemplateView):
             teams = []
             for team in self.project.team_set.all():
 
+                # Allow hiding of teams
+                team_hidden = False
+
                 team_downloads = 0
                 team_uploads = 0
 
@@ -159,13 +163,29 @@ class DataProjectManageView(TemplateView):
                     except ObjectDoesNotExist:
                         team_uploads += 0
 
-                teams.append({
-                    'team_leader': team.team_leader.email,
-                    'member_count': team.participant_set.all().count(),
-                    'status': team.status,
-                    'downloads': team_downloads,
-                    'submissions': team_uploads,
-                })
+                    # If this is a project that is using shared teams, determine if this team should be hidden or not
+                    # This is required since shared teams don't implicitly have all forms completed.
+                    if self.project.teams_source and not team_hidden:
+
+                        # Get all related signed agreement forms
+                        signed_agreement_forms = SignedAgreementForm.objects.filter(
+                            Q(user=participant.user, agreement_form__in=self.project.agreement_forms.all()) &
+                            (Q(project=self.project) | Q(project__shares_agreement_forms=True))
+                        )
+
+                        # Compare number of agreement forms
+                        if len(signed_agreement_forms) < len(self.project.agreement_forms.all()):
+                            logger.debug(f"{self.project.project_key}/{team.id}/{participant.user.email}: {len(signed_agreement_forms)} SignedAgreementForms: HIDDEN")
+                            team_hidden = True
+
+                if not team_hidden:
+                    teams.append({
+                        'team_leader': team.team_leader.email,
+                        'member_count': team.participant_set.all().count(),
+                        'status': team.status,
+                        'downloads': team_downloads,
+                        'submissions': team_uploads,
+                    })
 
             context['teams'] = teams
 
@@ -268,14 +288,27 @@ class ProjectParticipants(View):
         else:
             sort_order = ['user__email'] if order_direction == 'asc' else ['-user__email']
 
-        # Paginate participants
-        query_set = project.participant_set.filter(user__email__icontains=search).order_by(*sort_order).all() \
-            if search else project.participant_set.order_by(*sort_order).all()
-        paginator = Paginator(query_set, length)
+        # Get list of SignedAgreementForms for this project so we can hide Participants that have yet to complete at
+        # least one of the required forms
+        ready_users = [
+            s.user for s in SignedAgreementForm.objects.filter(
+                Q(agreement_form__in=project.agreement_forms.all()) &
+                (Q(project=project) | Q(project__shares_agreement_forms=True))
+            ).select_related("user")
+        ]
+        logger.debug(f"{project.project_key}: {len(ready_users)} Ready Participants")
+
+        # Set queryset
+        query_set = project.participant_set.filter(user__in=ready_users).order_by(*sort_order)
+
+        # Setup paginator
+        paginator = Paginator(
+            query_set.filter(user__email__icontains=search) if search else query_set,
+            length
+        )
 
         # Determine page index (1-index) from DT parameters
         page = start / length + 1
-        logger.debug('Participant page: {}'.format(page))
         participant_page = paginator.page(page)
 
         participants = []
@@ -349,7 +382,7 @@ class ProjectParticipants(View):
         # Build DataTables response data
         data = {
             'draw': draw,
-            'recordsTotal': project.participant_set.count(),
+            'recordsTotal': query_set.count(),
             'recordsFiltered': paginator.count,
             'data': participants,
             'error': None,
