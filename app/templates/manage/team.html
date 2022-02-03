@@ -86,7 +86,12 @@
                             class="btn btn-danger"
                             data-toggle="tooltip"
                             data-placement="top"
+                            {% if project.teams_source %}
+                            disabled="disabled"
+                            title="This team was created in {{ project.teams_source.name }} and shared with this project. This team cannot be deleted here."
+                            {% else %}
                             title="Delete this team if it was created in error or if the team leader is no longer participating. All team members will lose their access."
+                            {% endif %}
                             >
                             Delete team
                     </button>
