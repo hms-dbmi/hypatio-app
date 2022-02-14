@@ -4,17 +4,17 @@
 #
 #    pip-compile --allow-unsafe --generate-hashes --output-file=requirements.txt requirements.in
 #
-awscli==1.22.46 \
-    --hash=sha256:05cfa29a9aa8ae3b005b8ed1bce54d10399f06e37f7775f78d86374d6ff8736b \
-    --hash=sha256:17e6af079f6c8abe29086e3380ad23b0bdae4cdf4773d0f91ef7430a9e7d7ef1
+awscli==1.22.54 \
+    --hash=sha256:3f6413e168fca67859222af8ed0760a3be1493c332a642c0b53088804269074b \
+    --hash=sha256:634989d74cd205d8a5b511950b803cda939919a7bc30b58d94be1fbe8ee97ba6
     # via -r requirements.in
-boto3==1.20.46 \
-    --hash=sha256:a2ffce001160d7e7c72a90c3084700d50eb64ea4a3aae8afe21566971d1fd611 \
-    --hash=sha256:d7effba509d7298ef49316ba2da7a2ea115f2a7ff691f875f6354666663cf386
+boto3==1.20.54 \
+    --hash=sha256:1a272a1dd36414b1626a47bb580425203be0b5a34caa117f38a5e18adf21f918 \
+    --hash=sha256:8129ad42cc0120d1c63daa18512d6f0b1439e385b2b6e0fe987f116bdf795546
     # via -r requirements.in
-botocore==1.23.46 \
-    --hash=sha256:354bce55e5adc8e2fe106acfd455ce448f9b920d7b697d06faa8cf200fd6566b \
-    --hash=sha256:38dd4564839f531725b667db360ba7df2125ceb3752b0ba12759c3e918015b95
+botocore==1.23.54 \
+    --hash=sha256:06ae8076c4dcf3d72bec4d37e5f2dce4a92a18a8cdaa3bfaa6e3b7b5e30a8d7e \
+    --hash=sha256:4bb9ba16cccee5f5a2602049bc3e2db6865346b2550667f3013bdf33b0a01ceb
     # via
     #   awscli
     #   boto3
@@ -75,9 +75,9 @@ cffi==1.15.0 \
     --hash=sha256:fd8a250edc26254fe5b33be00402e6d287f562b6a5b2152dec302fa15bb3e997 \
     --hash=sha256:ffaa5c925128e29efbde7301d8ecaf35c8c60ffbcd6a1ffd3a552177c8e5e796
     # via cryptography
-charset-normalizer==2.0.11 \
-    --hash=sha256:2842d8f5e82a1f6aa437380934d5e1cd4fcf2003b06fed6940769c164a480a45 \
-    --hash=sha256:98398a9d69ee80548c762ba991a4728bfc3836768ed226b3945908d1a688371c
+charset-normalizer==2.0.12 \
+    --hash=sha256:2857e29ff0d34db842cd7ca3230549d1a697f96ee6d3fb071cfa6c7393832597 \
+    --hash=sha256:6881edbebdb17b39b4eaaa821b438bf6eddffb4468cf344f09f89def34a8b1df
     # via requests
 colorama==0.4.3 \
     --hash=sha256:7d73d2a99753107a36ac6b455ee49046802e59d9d076ef8e47b61499fa29afff \
@@ -112,9 +112,9 @@ deprecated==1.2.13 \
     --hash=sha256:43ac5335da90c31c24ba028af536a91d41d53f9e6901ddb021bcc572ce44e38d \
     --hash=sha256:64756e3e14c8c5eea9795d93c524551432a0be75629f8f29e67ab8caf076c76d
     # via jwcrypto
-django==2.2.26 \
-    --hash=sha256:85e62019366692f1d5afed946ca32fef34c8693edf342ac9d067d75d64faf0ac \
-    --hash=sha256:dfa537267d52c6243a62b32855a744ca83c37c70600aacffbfd98bc5d6d8518f
+django==2.2.27 \
+    --hash=sha256:1ee37046b0bf2b61e83b3a01d067323516ec3b6f2b17cd49b1326dd4ba9dc913 \
+    --hash=sha256:90763c764738586b11d7e1f44828032c153366e43ad7f782908193a1bb2d6d92
     # via
     #   -r requirements.in
     #   django-bootstrap-datepicker-plus
@@ -126,8 +126,8 @@ django==2.2.26 \
     #   django-storages
     #   djangorestframework
     #   py-auth0-jwt
-django-autocomplete-light==3.8.2 \
-    --hash=sha256:25f0ea71b59a8f1f97a8a564e33e429570b0ea77c5eac81f7beb283073b4ba90
+django-autocomplete-light==3.9.1 \
+    --hash=sha256:50bc562fe13c206cf53304d7f6a8b929729016ab1dae64d6176d4ccd6caff6ab
     # via -r requirements.in
 django-bootstrap-datepicker-plus==3.0.5 \
     --hash=sha256:490058eba99d47f48a7d24fa78581c0e36375bdc7aa9605783eeb170d51fd0df \
@@ -241,9 +241,9 @@ python-dateutil==2.8.2 \
     # via
     #   -r requirements.in
     #   botocore
-python-magic==0.4.24 \
-    --hash=sha256:4fec8ee805fea30c07afccd1592c0f17977089895bdfaae5fec870a84e997626 \
-    --hash=sha256:de800df9fb50f8ec5974761054a708af6e4246b03b4bdaee993f948947b0ebcf
+python-magic==0.4.25 \
+    --hash=sha256:1a2c81e8f395c744536369790bd75094665e9644110a6623bcc3bbea30f03973 \
+    --hash=sha256:21f5f542aa0330f5c8a64442528542f6215c8e18d2466b399b0d9d39356d83fc
     # via -r requirements.in
 pytz==2021.3 \
     --hash=sha256:3672058bc3453457b622aab7a1c3bfd5ab0bdae451512f6cf25f64ed37f5b87c \
@@ -299,9 +299,9 @@ rsa==4.7.2 \
     --hash=sha256:78f9a9bf4e7be0c5ded4583326e7461e3a3c5aae24073648b4bdfa797d78c9d2 \
     --hash=sha256:9d689e6ca1b3038bc82bf8d23e944b6b6037bc02301a574935b2dd946e0353b9
     # via awscli
-s3transfer==0.5.0 \
-    --hash=sha256:50ed823e1dc5868ad40c8dc92072f757aa0e653a192845c94a3b676f4a62da4c \
-    --hash=sha256:9c1dc369814391a6bda20ebbf4b70a0f34630592c9aa520856bf384916af2803
+s3transfer==0.5.1 \
+    --hash=sha256:25c140f5c66aa79e1ac60be50dcd45ddc59e83895f062a3aab263b870102911f \
+    --hash=sha256:69d264d3e760e569b78aaa0f22c97e955891cd22e32b10c51f784eeda4d9d10a
     # via
     #   awscli
     #   boto3
