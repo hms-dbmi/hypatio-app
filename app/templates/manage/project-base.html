@@ -266,7 +266,7 @@
 {% if project.teams_source %}
 <div class="row">
     <div class="col-md-12">
-      <p><span class="label label-info">Info</span>&nbsp;&nbsp;<strong>This project is configured to import teams from <a href="{% url 'manage:manage-project' project_key=project.teams_source.project_key %}" target="_blank">{{ project.teams_source.name }}</a>. Teams approved there will be automatically added to this project but will need still need approval for this project.</strong></p>
+      <p><span class="label label-info">Info</span>&nbsp;&nbsp;<strong>This project is configured to import teams from <a href="{% url 'manage:manage-project' project_key=project.teams_source.project_key %}" target="_blank">{{ project.teams_source.name }}</a>. Teams approved there will be added to this project upon completion of the UW DUA and will need separate approval for this project.</strong></p>
     </div>
 </div>
 {% endif %}
