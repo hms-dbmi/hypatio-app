@@ -4,17 +4,17 @@
 #
 #    pip-compile --allow-unsafe --generate-hashes --output-file=requirements.txt requirements.in
 #
-awscli==1.22.54 \
-    --hash=sha256:3f6413e168fca67859222af8ed0760a3be1493c332a642c0b53088804269074b \
-    --hash=sha256:634989d74cd205d8a5b511950b803cda939919a7bc30b58d94be1fbe8ee97ba6
+awscli==1.22.58 \
+    --hash=sha256:18b5927b7339931741429bf670fb169fa45f8ab607595521e0ba137899788a40 \
+    --hash=sha256:567a5861f0101dabb05a5658e7aa1abb6c66e8a5a1a22360b8a7e17d2282cf4c
     # via -r requirements.in
-boto3==1.20.54 \
-    --hash=sha256:1a272a1dd36414b1626a47bb580425203be0b5a34caa117f38a5e18adf21f918 \
-    --hash=sha256:8129ad42cc0120d1c63daa18512d6f0b1439e385b2b6e0fe987f116bdf795546
+boto3==1.21.3 \
+    --hash=sha256:aa00024cc1f3d24b2318dae4d5dbaa173c8da8bc6f9d12f0b2e67467ec460989 \
+    --hash=sha256:ab4ab2392f7520c01ce6e40e6df4b5b65a575ee6bd9fb78db0239cb2a06de557
     # via -r requirements.in
-botocore==1.23.54 \
-    --hash=sha256:06ae8076c4dcf3d72bec4d37e5f2dce4a92a18a8cdaa3bfaa6e3b7b5e30a8d7e \
-    --hash=sha256:4bb9ba16cccee5f5a2602049bc3e2db6865346b2550667f3013bdf33b0a01ceb
+botocore==1.24.3 \
+    --hash=sha256:979e5c5e826ff115f4903fe9887b191f3809229f694a747f910e1221fe63efc7 \
+    --hash=sha256:ca33f747c67cd0e109fab9398d39c38c1a2df352c1e1f9823839df8f1db58046
     # via
     #   awscli
     #   boto3
