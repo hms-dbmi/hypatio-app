@@ -4,17 +4,17 @@
 #
 #    pip-compile --allow-unsafe --generate-hashes --output-file=requirements.txt requirements.in
 #
-awscli==1.22.54 \
-    --hash=sha256:3f6413e168fca67859222af8ed0760a3be1493c332a642c0b53088804269074b \
-    --hash=sha256:634989d74cd205d8a5b511950b803cda939919a7bc30b58d94be1fbe8ee97ba6
+awscli==1.22.63 \
+    --hash=sha256:6c470cc9278a099013b8072ac53fa21c193f453db56a9f0fe3d108fc8830ecbf \
+    --hash=sha256:d46558fa111de8528322fc4dfe832afac108f6b60da4f400b873e82286f2949f
     # via -r requirements.in
-boto3==1.20.54 \
-    --hash=sha256:1a272a1dd36414b1626a47bb580425203be0b5a34caa117f38a5e18adf21f918 \
-    --hash=sha256:8129ad42cc0120d1c63daa18512d6f0b1439e385b2b6e0fe987f116bdf795546
+boto3==1.21.8 \
+    --hash=sha256:9b6903fe9cc92d2f6111db28675263f1ab45adbcf1483025c82a304ce7790b71 \
+    --hash=sha256:f2ce641957c1782e382548ced4a447189e45851bbe58c1f6752ff2b661527de7
     # via -r requirements.in
-botocore==1.23.54 \
-    --hash=sha256:06ae8076c4dcf3d72bec4d37e5f2dce4a92a18a8cdaa3bfaa6e3b7b5e30a8d7e \
-    --hash=sha256:4bb9ba16cccee5f5a2602049bc3e2db6865346b2550667f3013bdf33b0a01ceb
+botocore==1.24.8 \
+    --hash=sha256:9fbc5c57b31850c51c87abc3e166ed4e0f343665bec4e1a0ff814fbc9704642c \
+    --hash=sha256:a5431d806dc75fb1844463d921759fcd8d387674443af8d7fd0867f296b02759
     # via
     #   awscli
     #   boto3
@@ -155,9 +155,9 @@ django-jquery==3.1.0 \
     --hash=sha256:414ac1083708ac71cc771612e7287702c939d06cd357fd53bb1271a4f6255115 \
     --hash=sha256:e7e2ac14234bac26be937e448d94efd6d37ee2f3cdbaa2def3c8e74c2afb2b9a
     # via -r requirements.in
-django-jsonfield-backport==1.0.4 \
-    --hash=sha256:73998c6aa2e0ab1a4f9da4ce62f01576e019147678c881401b02846712069786 \
-    --hash=sha256:ccb0c47bad0dad400940c9897baa6de956b487299e351821a7a59cc18e7b0f69
+django-jsonfield-backport==1.0.5 \
+    --hash=sha256:40c39b1f1bade47bd2715664de14983f2e0a96175f65abbad2688029c255c685 \
+    --hash=sha256:727b402bad632e38539b489e48aefa6ffe03cedba76ac1f11b455423b3225a2d
     # via -r requirements.in
 django-smtp-ssl==1.0 \
     --hash=sha256:282863d5905e03686b6555ac788aa732842695d6f9cf1dcfa66d898abb7565d0
@@ -299,9 +299,9 @@ rsa==4.7.2 \
     --hash=sha256:78f9a9bf4e7be0c5ded4583326e7461e3a3c5aae24073648b4bdfa797d78c9d2 \
     --hash=sha256:9d689e6ca1b3038bc82bf8d23e944b6b6037bc02301a574935b2dd946e0353b9
     # via awscli
-s3transfer==0.5.1 \
-    --hash=sha256:25c140f5c66aa79e1ac60be50dcd45ddc59e83895f062a3aab263b870102911f \
-    --hash=sha256:69d264d3e760e569b78aaa0f22c97e955891cd22e32b10c51f784eeda4d9d10a
+s3transfer==0.5.2 \
+    --hash=sha256:7a6f4c4d1fdb9a2b640244008e142cbc2cd3ae34b386584ef044dd0f27101971 \
+    --hash=sha256:95c58c194ce657a5f4fb0b9e60a84968c808888aed628cd98ab8771fe1db98ed
     # via
     #   awscli
     #   boto3
