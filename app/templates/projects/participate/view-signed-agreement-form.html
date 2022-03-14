@@ -19,9 +19,20 @@
             <div class="panel-body" style="height: 850px;">
                 {# Check type #}
                 {% if signed_form.agreement_form.type == "FILE" %}
-                <div style="display: flex; width: 100%; height: 100%; flex-direction: column; overflow: hidden;">
-                  <iframe src="{{ signed_form.upload.url }}" style="flex-grow: 1; border: none; margin: 0; padding: 0;"></iframe>
-                </div>
+
+                    {# Handle instances where a DUA was submitted when it was not required to upload a file #}
+                    {% if not signed_form.upload %}
+                    <div style="display: flex; width: 100%; height: 100%; flex-direction: column; overflow: hidden;">
+                        <div class="alert alert-danger" role="alert">
+                            This agreement form was completed prior to file uploads being required. This agreement form must be rejected to ensure the user fulfills the updated agreement form requirements.
+                        </div>
+                    </div>
+                    {% else %}
+                    <div style="display: flex; width: 100%; height: 100%; flex-direction: column; overflow: hidden;">
+                    <iframe src="{{ signed_form.upload.url }}" style="flex-grow: 1; border: none; margin: 0; padding: 0;"></iframe>
+                    </div>
+                    {% endif %}
+
                 {% else %}
                 {{ signed_form.agreement_text|linebreaks }}
                 {% endif %}
