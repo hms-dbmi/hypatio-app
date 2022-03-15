@@ -151,6 +151,7 @@ class DataProject(models.Model):
         limit_choices_to={"shares_teams": True, "has_teams": True},
         help_text="Set this to a Data Project from which teams should be imported for use in this Data Project. Only Data Projects that are configured to share will be available."
     )
+    teams_source_message = models.TextField(default="Teams approved there will be automatically added to this project but will need still need approval for this project.", blank=True, null=True, verbose_name="Teams Source Message")
 
     show_jwt = models.BooleanField(default=False, blank=False, null=False)
 
