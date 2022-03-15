@@ -266,7 +266,11 @@
 {% if project.teams_source %}
 <div class="row">
     <div class="col-md-12">
-      <p><span class="label label-info">Info</span>&nbsp;&nbsp;<strong>This project is configured to import teams from <a href="{% url 'manage:manage-project' project_key=project.teams_source.project_key %}" target="_blank">{{ project.teams_source.name }}</a>. Teams approved there will be added to this project upon completion of the UW DUA and will need separate approval for this project.</strong></p>
+        <p><span class="label label-info">Info</span>&nbsp;&nbsp;<strong>This project is configured to import teams from <a href="{% url 'manage:manage-project' project_key=project.teams_source.project_key %}" target="_blank">{{ project.teams_source.name }}</a>. 
+        {% if project.teams_source_message %}
+            {{ project.teams_source_message | safe }}
+        {% endif %}
+        </strong></p>
     </div>
 </div>
 {% endif %}
@@ -349,49 +353,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for participant_info in participants %}
-                            <tr class="participant-row">
-                                <td>{{ participant_info.participant.user.email }}</td>
-                                {% if project.has_teams %}
-                                    <td>{{ participant_info.participant.team.team_leader.email }}</td>
-                                {% endif %}
-                                <td>
-                                    {% if participant_info.view_permissions %}
-                                        Access granted
-                                    {% else %}
-                                        No access
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% for form in participant_info.signed_forms %}
-                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="{% url 'projects:signed_agreement_form' %}?signed_form_id={{ form.id }}&project_key={{ form.project.project_key }}" target="_blank" role="button">
-                                        {{ form.agreement_form.short_name }} <span class="glyphicon {% if form.status == 'P' %}glyphicon-alert{% elif form.status == 'A' %}glyphicon-ok{% elif form.status == 'R' %}glyphicon-ban-circle{% endif %}" aria-hidden="true"></span>
-                                    </a>
-                                    {% endfor %}
-                                </td>
-                                <td>
-                                    {% if participant_info.view_permissions %}
-                                        <button type="button" class="btn btn-default btn-xs" ic-post-to="{% url 'manage:remove-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
-                                            Revoke access <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
-                                        </button>
-                                    {% else %}
-                                        {% if participant_info.signed_accepted_agreement_forms == num_required_forms %}
-                                            {% if not project.has_teams %}
-                                                <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
-                                                    Grant access <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
-                                                </button>
-                                            {% else %}
-                                                Grant approval via team management.
-                                            {% endif %}
-                                        {% else %}
-                                            Forms incomplete or pending your review
-                                        {% endif %}
-                                    {% endif %}
-                                </td>
-                                <td>{{ participant_info.download_count }}</td>
-                                <td>{{ participant_info.upload_count }}</td>
-                            </tr>
-                            {% endfor %}
+                          {# Loaded via DataTables.js #}
                         </tbody>
                     </table>
                 </div>
@@ -571,6 +533,8 @@
 
 {% block footerscripts %}
 <!-- Initialize DataTables -->
+<script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
 <script type="application/javascript">
     function initDownloadLogs() {
 
@@ -590,9 +554,27 @@
 
         $('#participant-table').DataTable({
             // Order by the Access column to prioritize pending access.
+            "dom": 'Blfrtip',
             "processing": true,
             "serverSide": true,
             "ajax": "{% url 'manage:get-project-participants' project_key=project_key %}",
+            "buttons": {
+              "dom": {
+                "button": {
+                  "tag": "button",
+                  "className": ""
+                }
+              },
+              "buttons": [
+                {
+                  text: 'Awaiting Review',
+                  className: 'btn btn-default',
+                  action: function ( e, dt, node, config ) {
+                    dt.search('Pending', false);
+                  }
+                }
+              ]
+            },
             "columnDefs": [
                 {
                     "targets": [{% if project.has_teams %}1, 2, 3, 5, 6{% else %}1, 2, 4, 5{% endif %}],
