@@ -526,6 +526,10 @@ def change_signed_form_status(request):
                 sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
                 sciauthz.remove_view_permission(signed_form.project.project_key, member.user.email)
 
+                # Remove their VIEW permission
+                member.permission = None
+                member.save()
+
             logger.debug('[HYPATIO][change_signed_form_status] Emailing the whole team that their status has been moved to Ready because someone has a pending form')
 
             # Send an email notification to the team
@@ -718,6 +722,10 @@ def delete_team(request):
     for member in team.participant_set.all():
         sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
         sciauthz.remove_view_permission(project_key, member.user.email)
+
+        # Remove permission from Participant
+        member.permission = None
+        member.save()
 
     logger.debug('[HYPATIO][delete_team] Sending a notification to team members.')
 
