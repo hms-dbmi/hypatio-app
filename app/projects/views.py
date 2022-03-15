@@ -29,8 +29,6 @@ from projects.models import DataProject
 from projects.models import HostedFile
 from projects.models import Participant
 from projects.models import SignedAgreementForm
-from projects.models import MIMIC3SignedAgreementFormFields
-from projects.models import Team
 
 from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
 from projects.panels import SIGNUP_STEP_CURRENT_STATUS
@@ -362,12 +360,15 @@ class DataProjectView(TemplateView):
             if is_permanent:
                 return SIGNUP_STEP_PERMANENT_STATUS
 
+            logger.debug(f"{self.project.project_key}/{step_name}: Completed step")
             return SIGNUP_STEP_COMPLETED_STATUS
 
         if self.current_step is None:
             self.current_step = step_name
+            logger.debug(f"{self.project.project_key}/{step_name}: Current step")
             return SIGNUP_STEP_CURRENT_STATUS
-
+        
+        logger.debug(f"{self.project.project_key}/{step_name}: Future step, {self.current_step}: Current step")
         return SIGNUP_STEP_FUTURE_STATUS
 
     def setup_panel_verify_email(self, context):
@@ -474,6 +475,7 @@ class DataProjectView(TemplateView):
 
         # Each form will be a separate step.
         for form in agreement_forms:
+            logger.debug(f"{self.project.project_key}/{form.short_name}: Checking panel signed agreement form")
 
             # Only include Pending or Approved forms when searching.
             signed_forms = SignedAgreementForm.objects.filter(
@@ -482,6 +484,7 @@ class DataProjectView(TemplateView):
                 agreement_form=form,
                 status__in=["P", "A"]
             )
+            logger.debug(f"{self.project.project_key}/{form.short_name}: Found {len(signed_forms)} signed P/A forms")
 
             # If this project accepts agreement forms from other projects, check those too
             if not signed_forms and self.project.shares_agreement_forms:
@@ -492,14 +495,17 @@ class DataProjectView(TemplateView):
                     agreement_form=form,
                     status__in=["P", "A"]
                 )
+                logger.debug(f"{self.project.project_key}/{form.short_name}: Found {len(signed_forms)} shared signed P/A forms")
 
             # If the form has already been signed, then the step should be complete.
             step_complete = signed_forms.count() > 0
+            logger.debug(f"{self.project.project_key}/{form.short_name}: Step is completed: {step_complete}")
 
             # If the form lives externally, then the step will be marked as permanent because we cannot tell if it was completed.
             permanent_step = form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK
 
             step_status = self.get_step_status(form.short_name, step_complete, permanent_step)
+            logger.debug(f"{self.project.project_key}/{form.short_name}: Step status: {step_status}")
 
             title = 'Form: {name}'.format(name=form.name)
 
