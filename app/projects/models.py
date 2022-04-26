@@ -1,5 +1,7 @@
 import uuid
+from datetime import datetime
 
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -188,6 +190,11 @@ def validate_pdf_file(value):
         raise ValidationError('Only PDF files can be uploaded')
 
 
+def signed_agreement_form_path(instance, filename):
+    # file will be uploaded to AWS_LOCATION/<user email>_<timestamp>_<filename>
+    return f'{instance.user.email}_{datetime.now().isoformat()}_{filename}'
+
+
 class SignedAgreementForm(models.Model):
     """
     This represents the fully signed agreement form.
@@ -199,7 +206,7 @@ class SignedAgreementForm(models.Model):
     date_signed = models.DateTimeField(auto_now_add=True)
     agreement_text = models.TextField(blank=False)
     status = models.CharField(max_length=1, null=False, blank=False, default='P', choices=SIGNED_FORM_STATUSES)
-    upload = models.FileField(null=True, blank=True, validators=[validate_pdf_file])
+    upload = models.FileField(null=True, blank=True, validators=[validate_pdf_file], upload_to=signed_agreement_form_path)
     fields = JSONField(null=True, blank=True)
 
     # Meta
