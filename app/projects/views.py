@@ -367,7 +367,7 @@ class DataProjectView(TemplateView):
             self.current_step = step_name
             logger.debug(f"{self.project.project_key}/{step_name}: Current step")
             return SIGNUP_STEP_CURRENT_STATUS
-        
+
         logger.debug(f"{self.project.project_key}/{step_name}: Future step, {self.current_step}: Current step")
         return SIGNUP_STEP_FUTURE_STATUS
 
@@ -407,6 +407,9 @@ class DataProjectView(TemplateView):
             # which causes form errors not needed at this time.
             if not profile_complete:
                 registration_form = RegistrationForm(initial=profile_data)
+
+                # Log errors
+                logger.debug(f"{self.project.project_key}/{self.request.user.email}: Registration form errors: {registration_form.errors.as_json()}")
 
         except (KeyError, IndexError):
             profile_data = None
