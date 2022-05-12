@@ -6,7 +6,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django_jsonfield_backport.models import JSONField
-
+from django.core.files.uploadedfile import UploadedFile
 
 TEAM_PENDING = 'Pending'
 TEAM_READY = 'Ready'
@@ -186,7 +186,7 @@ def validate_pdf_file(value):
     """
     Ensures only a file with a content type of PDF can be persisted
     """
-    if value.file.content_type != 'application/pdf':
+    if type(value.file) is UploadedFile and value.file.content_type != 'application/pdf':
         raise ValidationError('Only PDF files can be uploaded')
 
 
