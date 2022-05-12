@@ -204,7 +204,7 @@ class SignedAgreementForm(models.Model):
     agreement_form = models.ForeignKey(AgreementForm, on_delete=models.PROTECT)
     project = models.ForeignKey(DataProject, on_delete=models.PROTECT)
     date_signed = models.DateTimeField(auto_now_add=True)
-    agreement_text = models.TextField(blank=False)
+    agreement_text = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=1, null=False, blank=False, default='P', choices=SIGNED_FORM_STATUSES)
     upload = models.FileField(null=True, blank=True, validators=[validate_pdf_file], upload_to=signed_agreement_form_path)
     fields = JSONField(null=True, blank=True)
