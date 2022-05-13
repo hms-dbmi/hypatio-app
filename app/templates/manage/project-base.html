@@ -406,16 +406,6 @@
                                 <a class="btn btn-default btn-xs btn-default" href="{% url 'manage:download-submission' submission.uuid %}" download>
                                     Download
                                 </a>
-                                <a class="btn btn-default btn-xs btn-success"
-                                   style="margin-top: 4px;"
-                                    href="#"
-                                    role="button"
-                                    data-toggle="modal"
-                                    data-target="#modal-host-submission"
-                                    ic-get-from="{% url 'manage:host-submission' submission.uuid %}"
-                                    ic-target="#modal-host-submission-body">
-                                    Host
-                                </a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -440,20 +430,6 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="modal-host-submission" class="modal fade">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="submission-info-modal">Host Submission</h4>
-            </div>
-            <div class="modal-body" id="modal-host-submission-body">
-                {# Loaded via Intercooler.js #}
             </div>
         </div>
     </div>
