@@ -39,6 +39,15 @@
             </div>
         </div>
         {% endfor %}
+
+        <div class="panel panel-primary">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title"><span class="glyphicon glyphicon-info-sign"></span>&nbsp;&nbsp;Info</a></h2>
+            </div>
+            <div class="panel-body pre-scrollable">
+              All registrations/DUAs must be completed in English for requests to be processed
+            </div>
+        </div>
     </div>
 
     <div class="col-md-7">
@@ -109,7 +118,10 @@ $( document ).ready(function() {
       e.preventDefault();
 
       // Get the submit button
-      var submit_button = $(this).find(".submit_form");
+      var submit_button = $("#upload-agreement-form-submit");
+
+      // Set button to loading
+      submit_button.button("loading");
 
       // Fetch form data
       var formData = new FormData($(this)[0]);
@@ -137,13 +149,24 @@ $( document ).ready(function() {
         },1000);
         console.log("Success: Files sent!");
       }).fail(function(){
-        submit_button.replaceWith("<h3><span class='label label-danger'>Form save failed. Please try again in a few minutes.</span></h3>");
+
+        // Add error message
+        notify('danger', "Agreement form failed to submit. Please try again or contact support.", 'exclamation-sign');
         console.log("An error occurred, the files couldn't be sent!");
+
+        // Set button to loading
+        submit_button.button("reset");
       });
     });
 
     $('form[name=agreement_form_container]').submit(function(e){
         e.preventDefault();
+
+        // Get the submit button
+        var submit_button = $("#agreement-form-submit");
+
+        // Set button to loading
+        submit_button.button("loading");
 
         // Serialize form fields
         var formFields = $(this).serialize();
@@ -178,8 +201,6 @@ $( document ).ready(function() {
         // Move the content of the agreement_form block into an input in order to be captured by jQuery serialize
         agreement_text_container.val(agreement_form_contents.text());
 
-        var submit_button = $(this).find(".submit_form");
-
         $.post($(this).attr('action'), formFields + "&" + $('input[name=agreement_text]').serialize(), function(res){
             // $("#loading").hide();
         }).done(function() {
@@ -191,7 +212,12 @@ $( document ).ready(function() {
                 window.location = window.location.pathname
             },1000);
         }).fail(function() {
-            submit_button.replaceWith("<h3><span class='label label-danger'>Form save failed. Please try again in a few minutes.</span></h3>");
+          // Add error message
+          notify('danger', "Agreement form failed to submit. Please try again or contact support.", 'exclamation-sign');
+          console.log("An error occurred, the form couldn't be sent!");
+
+          // Set button to loading
+          submit_button.button("reset");
         });
     });
   });
