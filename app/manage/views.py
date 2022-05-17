@@ -146,9 +146,6 @@ class DataProjectManageView(TemplateView):
             teams = []
             for team in self.project.team_set.all():
 
-                # Toggle hiding of teams with incomplete requirements on or off
-                hide_teams = getattr(settings, "HIDE_INCOMPLETE_TEAMS", False)
-
                 # Allow hiding of teams
                 team_hidden = False
 
@@ -168,7 +165,7 @@ class DataProjectManageView(TemplateView):
 
                     # If this is a project that is using shared teams, determine if this team should be hidden or not
                     # This is required since shared teams don't implicitly have all forms completed.
-                    if hide_teams and self.project.teams_source and not team_hidden:
+                    if self.project.hide_incomplete_teams and self.project.teams_source and not team_hidden:
 
                         # Get all related signed agreement forms
                         signed_agreement_forms = SignedAgreementForm.objects.filter(

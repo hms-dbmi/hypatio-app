@@ -266,7 +266,7 @@
 {% if project.teams_source %}
 <div class="row">
     <div class="col-md-12">
-        <p><span class="label label-info">Info</span>&nbsp;&nbsp;<strong>This project is configured to import teams from <a href="{% url 'manage:manage-project' project_key=project.teams_source.project_key %}" target="_blank">{{ project.teams_source.name }}</a>. 
+        <p><span class="label label-info">Info</span>&nbsp;&nbsp;<strong>This project is configured to import teams from <a href="{% url 'manage:manage-project' project_key=project.teams_source.project_key %}" target="_blank">{{ project.teams_source.name }}</a>.
         {% if project.teams_source_message %}
             {{ project.teams_source_message | safe }}
         {% endif %}
@@ -406,6 +406,7 @@
                                 <a class="btn btn-default btn-xs btn-default" href="{% url 'manage:download-submission' submission.uuid %}" download>
                                     Download
                                 </a>
+                                {% if project.hosted_submissions %}
                                 <a class="btn btn-default btn-xs btn-success"
                                    style="margin-top: 4px;"
                                     href="#"
@@ -416,6 +417,7 @@
                                     ic-target="#modal-host-submission-body">
                                     Host
                                 </a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
