@@ -143,15 +143,22 @@ class DataProject(models.Model):
     # Set whether users need to form teams before accessing data.
     has_teams = models.BooleanField(default=False, blank=False, null=False)
 
+    # Set whether submissions can be hosted for download or not.
+    hosted_submissions = models.BooleanField(default=False, blank=False, null=False, help_text="Project administrators will be able to host user submissions for download by other users")
+
+    # Set whether to hide incomplete shared teams or not. Incomplete means one or more participants on a shared team
+    # have incomplete and/or denied DUAs or required steps.
+    hide_incomplete_teams = models.BooleanField(default=False, blank=False, null=False, help_text="Shared teams that have one or more participants with incomplete project requirements will be hidden from the teams list")
+
     # Set whether the teams created for this project can be used by other challenges
-    shares_teams = models.BooleanField(default=False, blank=False, null=False)
+    shares_teams = models.BooleanField(default=False, blank=False, null=False, help_text="Teams formed for this project will be automatically added to projects which use this as a team source. Teams must be approved and activated before they will be added to other projects.")
     teams_source = models.ForeignKey(
         to="DataProject",
         on_delete=models.PROTECT,
         blank=True,
         null=True,
         limit_choices_to={"shares_teams": True, "has_teams": True},
-        help_text="Set this to a Data Project from which teams should be imported for use in this Data Project. Only Data Projects that are configured to share will be available."
+        help_text="Set this to a Data Project from which approved and activated teams should be imported for use in this Data Project. Only Data Projects that are configured to share will be available."
     )
     teams_source_message = models.TextField(default="Teams approved there will be automatically added to this project but will need still need approval for this project.", blank=True, null=True, verbose_name="Teams Source Message")
 
