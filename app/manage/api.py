@@ -850,6 +850,71 @@ def download_submission(request, fileservice_uuid):
 
         return response
 
+
+@user_auth_and_jwt
+def export_submissions(request, project_key):
+    """
+    An HTTP GET endpoint that allows a user to download a ChallengeTaskSubmission's
+    file from AWS/fileservice.
+    """
+
+    if request.method == "GET":
+
+        # Check permissions in SciAuthZ.
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        is_manager = sciauthz.user_has_manage_permission(project_key)
+
+        if not is_manager:
+            logger.debug("[download_team_submissions] - No Access for user " + request.user.email)
+            return HttpResponse("You do not have access to download this file.", status=403)
+
+        project = get_object_or_404(DataProject, project_key=project_key)
+
+        # A list of file paths to each submission's zip file.
+        zipped_submissions_paths = []
+
+        # Get all submissions made by this team for this project.
+        submissions = ChallengeTaskSubmission.objects.filter(
+            challenge_task__in=project.challengetask_set.all(),
+            deleted=False
+        )
+
+        # For each submission, create a zip file and add the path to the list of zip files.
+        for submission in submissions:
+            try:
+                zip_file_path = zip_submission_file(submission, request)
+                zipped_submissions_paths.append(zip_file_path)
+            except Exception as e:
+                logger.exception(f"{project_key}: Could not export submission '{submission.uuid}': {e}", exc_info=True)
+
+        # Create a directory to store the final encompassing zip file.
+        final_zip_file_directory = "/tmp/" + str(uuid.uuid4())
+        if not os.path.exists(final_zip_file_directory):
+            os.makedirs(final_zip_file_directory)
+
+        # Combine all the zipped tasks into one file zip file.
+        final_zip_file_name = project_key + "__submissions.zip"
+        final_zip_file_path = os.path.join(final_zip_file_directory, final_zip_file_name)
+        with zipfile.ZipFile(final_zip_file_path, mode="w") as zf:
+            for zip_file in zipped_submissions_paths:
+                zf.write(zip_file, arcname=os.path.basename(zip_file))
+
+        # Prepare the zip file to be served.
+        final_zip_file = open(final_zip_file_path, 'rb')
+        response = HttpResponse(final_zip_file, content_type='application/force-download')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % final_zip_file_name
+
+        # Delete all the directories holding the zip files.
+        for path in zipped_submissions_paths:
+            shutil.rmtree(os.path.dirname(os.path.realpath((path))))
+
+        # Delete the final zip file.
+        shutil.rmtree(final_zip_file_directory)
+
+        return response
+
+
 @user_auth_and_jwt
 def host_submission(request, fileservice_uuid):
     """

@@ -373,7 +373,14 @@
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Submissions</h2>
+                <h2 class="panel-title">Submissions
+                  <small>
+                      <button type="button" class="btn btn-primary btn-xs pull-right"
+                        onclick="window.open('{% url 'manage:export-submissions' project.project_key %}');">
+                          Export Submissions <i class="ic-indicator fa fa-spinner fa-spin" style="display:none"></i>
+                      </button>
+                  </small>
+                </h2>
             </div>
             <div class="panel-body">
                 <table id="submissions-table" class="table table-bordered table-hover table-responsive">
