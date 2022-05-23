@@ -568,19 +568,22 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
 
         # For each of the available agreement forms for this project, display only latest version completed by the user
         for agreement_form in project.agreement_forms.all():
-            signed_form = SignedAgreementForm.objects.filter(
-                user__email=email,
-                project=project,
-                agreement_form=agreement_form
-            ).last()
 
-            # If this project accepts agreement forms from other projects, check those too
-            if not signed_form and project.shares_agreement_forms:
+            # If this project accepts agreement forms from other projects, check those
+            if project.shares_agreement_forms:
 
                 # Fetch without a specific project
                 signed_form = SignedAgreementForm.objects.filter(
-                user__email=email,
+                    user__email=email,
                     agreement_form=agreement_form,
+                ).last()
+
+            else:
+                # Fetch only for the current project
+                signed_form = SignedAgreementForm.objects.filter(
+                    user__email=email,
+                    project=project,
+                    agreement_form=agreement_form
                 ).last()
 
             if signed_form is not None:
