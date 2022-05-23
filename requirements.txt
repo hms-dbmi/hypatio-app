@@ -4,24 +4,24 @@
 #
 #    pip-compile --allow-unsafe --generate-hashes --output-file=requirements.txt requirements.in
 #
-awscli==1.24.1 \
-    --hash=sha256:6828a5f3dd57a5dba73e988eb4e725eb77b90e1ebd17e40973197d07c05cb5c0 \
-    --hash=sha256:9a8cdba225275e0f4a4bff1f4aa9945e3af9796b63dd4b89e13763e02bd21e6a
+awscli==1.24.5 \
+    --hash=sha256:57c68b490b3ff8e9b8e8d37ce4b39e3b9671679c9a9a75acf5f89f5c2366401f \
+    --hash=sha256:600f98675e4a9809dd03f5e62c86fb9ed200a6ac1e9124096eceb33087d27469
     # via -r requirements.in
-boto3==1.23.1 \
-    --hash=sha256:3b50b49c5c0d3f19406cfbcefa32467c199cd6537d80f6fd04f18588670bdeeb \
-    --hash=sha256:4e3ef99d211266175a97b35d78103c31e3d01af31fd02bf599185421e5873fc0
+boto3==1.23.5 \
+    --hash=sha256:5cbbd985171b1e278b722dca48f71455b4938378962734828daeb76f73be6fba \
+    --hash=sha256:73a0d092aaea1649150f43fb3f41451d5a0883940549a64d72781a23ce6b2d44
     # via -r requirements.in
-botocore==1.26.1 \
-    --hash=sha256:598304f20df607944c6db3870e005f2775230ec4558c8280d870f861a8003632 \
-    --hash=sha256:a805cbd8e79b64da0f719869b6b4c698cf5db7991b1aa412b086b25fb2892795
+botocore==1.26.5 \
+    --hash=sha256:32541873924e3ff0ad95f02dc331e9f278721a3b864a4e2a8d514346b2598ce5 \
+    --hash=sha256:805db3ecf85ff89edfb6788f862b87426f990e3e6383ef3fca3076f7659a5454
     # via
     #   awscli
     #   boto3
     #   s3transfer
-certifi==2021.10.8 \
-    --hash=sha256:78884e7c1d4b00ce3cea67b44566851c4343c120abd683433ce934a68ea58872 \
-    --hash=sha256:d62a0163eb4c2344ac042ab2bdf75399a71a2d8c7d47eac2e2ee91b9d6339569
+certifi==2022.5.18.1 \
+    --hash=sha256:9c5705e395cd70084351dd8ad5c41e65655e08ce46f2ec9cf6c2c08390f71eb7 \
+    --hash=sha256:f1d53542ee8cbedbe2118b5686372fb33c297fcd6379b050cca0ef13a597382a
     # via requests
 cffi==1.15.0 \
     --hash=sha256:00c878c90cb53ccfaae6b8bc18ad05d2036553e6d9d1d9dbcf323bbe83854ca3 \
@@ -177,10 +177,9 @@ djangorestframework==3.13.1 \
     # via
     #   -r requirements.in
     #   django-dbmi-client
-docutils==0.15.2 \
-    --hash=sha256:6c4f696463b79f1fb8ba0c594b63840ebd41f059e92b31957c46b74a4599b6d0 \
-    --hash=sha256:9e4d7ecfc600058e07ba661411a2b7de2fd0fafa17d1a7f7361cd47b1175c827 \
-    --hash=sha256:a2aeea129088da402665e92e0b25b04b073c04b2dce4ab65caaa38b7ce2e1a99
+docutils==0.16 \
+    --hash=sha256:0c5b78adfbf7762415433f5515cd5c9e762339e23369dbe8000d84a4bf4ab3af \
+    --hash=sha256:c2de3a60e9e7d07be26b7f2b00ca0309c207e06c100f9cc2a94931fc75a478fc
     # via awscli
 furl==2.1.3 \
     --hash=sha256:5a6188fe2666c484a12159c18be97a1977a71d632ef5bb867ef15f54af39cc4e \
@@ -199,8 +198,8 @@ jmespath==1.0.0 \
     # via
     #   boto3
     #   botocore
-jwcrypto==1.3 \
-    --hash=sha256:0d6461ba13f7c271d8bac5018ee60ddbcae5ff39403fafa42375f57d08e398bb
+jwcrypto==1.3.1 \
+    --hash=sha256:54b551b115ffb4d12b1f1ee93b8ba2a71bb8556ba3d85d62f707549613da877c
     # via
     #   django-dbmi-client
     #   py-auth0-jwt
@@ -238,9 +237,9 @@ python-dateutil==2.8.2 \
     # via
     #   -r requirements.in
     #   botocore
-python-magic==0.4.25 \
-    --hash=sha256:1a2c81e8f395c744536369790bd75094665e9644110a6623bcc3bbea30f03973 \
-    --hash=sha256:21f5f542aa0330f5c8a64442528542f6215c8e18d2466b399b0d9d39356d83fc
+python-magic==0.4.26 \
+    --hash=sha256:8262c13001f904ad5b724d38b5e5b5f17ec0450ae249def398a62e4e33108a50 \
+    --hash=sha256:b978c4b69a20510d133a7f488910c2f07e7796f1f31703e61c241973f2bbf5fb
     # via -r requirements.in
 pytz==2022.1 \
     --hash=sha256:1e760e2fe6a8163bc0b3d9a19c4f84342afa0a2affebfaa84b01b978a02ecaa7 \
