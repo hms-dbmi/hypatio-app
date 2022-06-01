@@ -2,9 +2,9 @@ import json
 import logging
 import requests
 
-from pyauth0jwt.auth0authenticate import user_auth_and_jwt
-from pyauth0jwt.auth0authenticate import validate_request as validate_jwt
-from pyauth0jwt.auth0authenticate import logout_redirect
+from hypatio.auth0authenticate import user_auth_and_jwt
+from hypatio.auth0authenticate import validate_request as validate_jwt
+from hypatio.auth0authenticate import logout_redirect
 
 from django.conf import settings
 from django.contrib import messages

@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.core.files.storage import default_storage
 
-from pyauth0jwt.auth0authenticate import user_auth_and_jwt
+from hypatio.auth0authenticate import user_auth_and_jwt
 
 from contact.views import email_send
 from hypatio.sciauthz_services import SciAuthZ
