@@ -4,6 +4,7 @@ import shutil
 import uuid
 import zipfile
 import requests
+from django.conf import settings
 from django.contrib.auth.models import User
 from dbmi_client import fileservice
 
@@ -47,7 +48,10 @@ def zip_submission_file(submission, requester, request=None):
 
     # Get the submission file's byte contents from S3.
     submission_file_download_url = fileservice.get_archivefile_proxy_url(uuid=submission.uuid)
-    submission_file_request = requests.get(submission_file_download_url)
+
+    # Use token in headers
+    headers = {"Authorization": f"{settings.FILESERVICE_AUTH_HEADER_PREFIX} {settings.FILESERVICE_SERVICE_TOKEN}"}
+    submission_file_request = requests.get(submission_file_download_url, headers=headers)
 
     # Write the submission file's bytes to a zip file.
     submission_file_name = "submission_file.zip"
