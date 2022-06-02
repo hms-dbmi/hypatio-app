@@ -46,7 +46,7 @@ def zip_submission_file(submission, requester, request=None):
         f.write(submission.submission_info)
 
     # Get the submission file's byte contents from S3.
-    submission_file_download_url = fileservice.get_archivefile_download_url(uuid=submission.uuid)
+    submission_file_download_url = fileservice.get_archivefile_proxy_url(uuid=submission.uuid)
     submission_file_request = requests.get(submission_file_download_url)
 
     # Write the submission file's bytes to a zip file.
