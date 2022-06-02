@@ -1,0 +1,5 @@
+A challange task submissions export for {{ project.name }} has been created and is ready for download.
+
+{{ site_url }}manage/{{ project.project_key }}/#submissions-exports-table
+
+Thank you.

@@ -18,11 +18,13 @@ from django.core.paginator import Paginator
 from django.urls import reverse
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from dbmi_client import fileservice
 
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_user_profile, get_distinct_countries_participating
 
 from manage.forms import NotificationForm
+from manage.models import ChallengeTaskSubmissionExport
 from projects.models import AgreementForm, ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import Participant
@@ -211,6 +213,15 @@ class DataProjectManageView(TemplateView):
             challenge_task__in=self.project.challengetask_set.all(),
             deleted=False
         )
+
+        # Collect all submissions made for tasks related to this project.
+        for export in ChallengeTaskSubmissionExport.objects.filter(
+            data_project=self.project,
+        ).order_by("-request_date"):
+            export.download_url = fileservice.get_archivefile_proxy_url(uuid=export.uuid)
+
+            # Add it to context
+            context.setdefault('submissions_exports', []).append(export)
 
         context['num_required_forms'] = self.project.agreement_forms.count()
 
