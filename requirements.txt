@@ -4,17 +4,25 @@
 #
 #    pip-compile --allow-unsafe --generate-hashes --output-file=requirements.txt requirements.in
 #
-awscli==1.25.0 \
-    --hash=sha256:60cb3233ec036712295206025032ffa1abb630f5a46d9d3dfdc6360e22cd6627 \
-    --hash=sha256:e0e6fd339544bbb700c36de6e6938013382c816af4d07b3270d4aeb25b76608b
+arrow==1.2.2 \
+    --hash=sha256:05caf1fd3d9a11a1135b2b6f09887421153b94558e5ef4d090b567b47173ac2b \
+    --hash=sha256:d622c46ca681b5b3e3574fcb60a04e5cc81b9625112d5fb2b44220c36c892177
+    # via django-q
+awscli==1.25.1 \
+    --hash=sha256:728df4bd7bf9b2ce2e818c2bbfe2d2a84e5c379cfbb9c14db0771841722837ee \
+    --hash=sha256:a582a1a7501fffa16cb89c44dc393f9010118c9a74f7bcec0f2d788e6b92b8fa
     # via -r requirements.in
-boto3==1.24.0 \
-    --hash=sha256:8df0215521969e229a6a004eedc6a484a3656611ddee698419d3658ae9c53c50 \
-    --hash=sha256:a42900a0ea75600a76b371b03ac645461e4f3c97bb13ae5136bb4d3c87c6c110
+blessed==1.19.1 \
+    --hash=sha256:63b8554ae2e0e7f43749b6715c734cc8f3883010a809bf16790102563e6cf25b \
+    --hash=sha256:9a0d099695bf621d4680dd6c73f6ad547f6a3442fbdbe80c4b1daa1edbc492fc
+    # via django-q
+boto3==1.24.1 \
+    --hash=sha256:ce924b71306a98ff9fb49645f98ddafe50f297d7aecbf7d4d9b08f4d79c3f855 \
+    --hash=sha256:cf705c0c2d049b0adb564b2cd60b9ac0d4405653b29c33e2a1f1fdde37f476c0
     # via -r requirements.in
-botocore==1.27.0 \
-    --hash=sha256:40823d9c3e2e707e74112aa0b1073e9eeb6c7f6a7d123518b5f768fc11b250f7 \
-    --hash=sha256:505ba80201dd577cb4c704fea5b16142c85473e4e2ef3eb55ebd991037b70142
+botocore==1.27.1 \
+    --hash=sha256:2702181c3b7cad75b64b4a758f862d46da50ed8dd5329870d69c8c187b877b94 \
+    --hash=sha256:628a3176103b7b233bb456bed4d495c445e7eaa801faecf63989698ecc2e8bae
     # via
     #   awscli
     #   boto3
@@ -124,6 +132,8 @@ django==2.2.28 \
     #   django-health-check
     #   django-jquery
     #   django-jsonfield-backport
+    #   django-picklefield
+    #   django-q
     #   django-storages
     #   djangorestframework
 django-autocomplete-light==3.9.4 \
@@ -157,6 +167,14 @@ django-jquery==3.1.0 \
 django-jsonfield-backport==1.0.5 \
     --hash=sha256:40c39b1f1bade47bd2715664de14983f2e0a96175f65abbad2688029c255c685 \
     --hash=sha256:727b402bad632e38539b489e48aefa6ffe03cedba76ac1f11b455423b3225a2d
+    # via -r requirements.in
+django-picklefield==3.0.1 \
+    --hash=sha256:15ccba592ca953b9edf9532e64640329cd47b136b7f8f10f2939caa5f9ce4287 \
+    --hash=sha256:3c702a54fde2d322fe5b2f39b8f78d9f655b8f77944ab26f703be6c0ed335a35
+    # via django-q
+django-q==1.3.9 \
+    --hash=sha256:1b74ce3a8931990b136903e3a7bc9b07243282a2b5355117246f05ed5d076e68 \
+    --hash=sha256:5c6b4d530aa3aabf9c6aa57376da1ca2abf89a1562b77038b7a04e52a4a0a91b
     # via -r requirements.in
 django-smtp-ssl==1.0 \
     --hash=sha256:282863d5905e03686b6555ac788aa732842695d6f9cf1dcfa66d898abb7565d0
@@ -229,6 +247,7 @@ python-dateutil==2.8.2 \
     --hash=sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9
     # via
     #   -r requirements.in
+    #   arrow
     #   botocore
 python-magic==0.4.26 \
     --hash=sha256:8262c13001f904ad5b724d38b5e5b5f17ec0450ae249def398a62e4e33108a50 \
@@ -277,6 +296,10 @@ raven==6.10.0 \
     # via
     #   -r requirements.in
     #   django-dbmi-client
+redis==3.5.3 \
+    --hash=sha256:0e7e0cfca8660dea8b7d5cd8c4f6c5e29e11f31158c0b0ae91a397f00e5a05a2 \
+    --hash=sha256:432b788c4530cfe16d8d943a09d40ca6c16149727e4afe8c2c9d5580c59d9f24
+    # via django-q
 requests==2.27.1 \
     --hash=sha256:68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61 \
     --hash=sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d
@@ -297,6 +320,7 @@ six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
     # via
+    #   blessed
     #   django-autocomplete-light
     #   furl
     #   orderedmultidict
@@ -311,6 +335,10 @@ urllib3==1.26.9 \
     # via
     #   botocore
     #   requests
+wcwidth==0.2.5 \
+    --hash=sha256:beb4802a9cebb9144e99086eff703a642a13d6a0052920003a230f3294bbe784 \
+    --hash=sha256:c4d647b99872929fdb7bdcaa4fbe7f01413ed3d98077df798530e5b04f116c83
+    # via blessed
 wrapt==1.14.1 \
     --hash=sha256:00b6d4ea20a906c0ca56d84f93065b398ab74b927a7a3dbd470f6fc503f95dc3 \
     --hash=sha256:01c205616a89d09827986bc4e859bcabd64f5a0662a7fe95e0d359424e0e071b \

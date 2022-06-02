@@ -373,14 +373,7 @@
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Submissions
-                  <small>
-                      <button type="button" class="btn btn-primary btn-xs pull-right"
-                        onclick="window.open('{% url 'manage:export-submissions' project.project_key %}');">
-                          Export Submissions <i class="ic-indicator fa fa-spinner fa-spin" style="display:none"></i>
-                      </button>
-                  </small>
-                </h2>
+                <h2 class="panel-title">Submissions</h2>
             </div>
             <div class="panel-body">
                 <table id="submissions-table" class="table table-bordered table-hover table-responsive">
@@ -425,6 +418,50 @@
                                     Host
                                 </a>
                                 {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Submissions Exports
+                  <small>
+                      <button type="button" class="btn btn-primary btn-xs pull-right"
+                        ic-get-from="{% url 'manage:export-submissions' project.project_key %}"
+                        ic-on-success="$('#export-modal').modal();">
+                          Export Submissions <i class="ic-indicator fa fa-spinner fa-spin" style="display:none"></i>
+                      </button>
+                  </small>
+                </h2>
+            </div>
+            <div class="panel-body">
+                <table id="submissions-exports-table" class="table table-bordered table-hover table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Requester</th>
+                            <th>Requested Date</th>
+                            <th>File ID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for export in submissions_exports %}
+                        <tr>
+                            <td>{{ export.requester.email }}</td>
+                            <td>{{ export.request_date|date:"c" }}</td>
+                            <td>{{ export.uuid }}</td>
+                            <td>
+                                <a class="btn btn-default btn-xs btn-default" href="{{ export.download_url }}" download>
+                                    Download
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -537,6 +574,26 @@
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="export-modal" tabindex="-1" role="dialog" aria-labelledby="export-modal-title">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+          </button>
+          <h5 class="modal-title" id="export-modal-title">Permissions Sync</h5>
+        </div>
+        <div class="modal-body">
+            <p>The submissions export task has been started. You will receive an email when it is ready for download. You can also try refreshing the page in a few minutes to see it in the table when competed.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:window.location.reload();">Reload Page</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 {% endblock %}
 
@@ -692,6 +749,32 @@
         $('#submissions-table').DataTable({
             "columnDefs": [{
                 "targets": [{% if project.has_teams %}3{% else %}2{% endif %}],
+                "render":  function(data, type, full, meta){
+
+                    // Check for a valid date timestamp
+                    var pattern = new RegExp("[0-9]+");
+                    if (!pattern.test(data)) {
+                        if (type === 'sort' || type === 'type') {
+                            return 0;
+                        } else {
+                            return data;
+                        }
+                    }
+
+                    // Return raw dates for sorting
+                    if (type === 'sort' || type === 'type')
+                        return data;
+
+                    // Parse date and get components
+                    var date = new Date(data);
+                    return date.toLocaleString();
+                }
+            }]
+        });
+
+        $('#submissions-exports-table').DataTable({
+            "columnDefs": [{
+                "targets": [1],
                 "render":  function(data, type, full, meta){
 
                     // Check for a valid date timestamp
