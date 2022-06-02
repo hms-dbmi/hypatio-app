@@ -4,7 +4,9 @@ import shutil
 import uuid
 import zipfile
 import requests
+from django.contrib.auth.models import User
 from dbmi_client import fileservice
+
 from hypatio import file_services
 from projects.models import ChallengeTaskSubmissionDownload
 
@@ -28,8 +30,8 @@ def zip_submission_file(submission, requester, request=None):
     """
 
     # Create a record of the user downloading the file.
-    download_record = ChallengeTaskSubmissionDownload.objects.create(
-        user__email=requester,
+    ChallengeTaskSubmissionDownload.objects.create(
+        user=User.objects.get(email=requester),
         submission=submission
     )
 
