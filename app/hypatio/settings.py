@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 import sys
+import logging
 
 from os.path import normpath, join, dirname, abspath
 from dbmi_client import environment
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     'jquery',
     'bootstrap3',
     'contact',
+    'manage',
     'django_countries',
     'profile',
     'projects',
@@ -54,6 +56,7 @@ INSTALLED_APPS = [
     'bootstrap_datepicker_plus',
     'storages',
     'django_jsonfield_backport',
+    'django_q',
 ]
 
 MIDDLEWARE = [
@@ -217,6 +220,42 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ##########
 
+#####################################################################################
+# DBMI Client Configurations
+#####################################################################################
+
+DBMI_CLIENT_CONFIG = {
+    'CLIENT': 'hypatio',
+    'ENVIRONMENT': environment.get_str('DBMI_ENV', required=True),
+    'ENABLE_LOGGING': True,
+    'LOG_LEVEL': environment.get_int('DBMI_LOG_LEVEL', default=logging.WARNING),
+
+    # AuthZ
+    'AUTHZ_ADMIN_GROUP': 'hypatio-admins',
+    'AUTHZ_ADMIN_PERMISSION': 'ADMIN',
+    'JWT_COOKIE_DOMAIN': environment.get_str('COOKIE_DOMAIN', required=True),
+
+    # Auth0
+    'AUTH0_TENANT': AUTH0_DOMAIN.lower().replace(".auth0.com", ""),
+    'AUTH0_CLIENT_ID': next(iter(AUTH0_CLIENT_ID_LIST)),
+    'AUTHN_TITLE': 'DBMI Portal',
+
+    # Fileservice
+    'FILESERVICE_URL': environment.get_str('FILESERVICE_API_URL', required=True),
+    'FILESERVICE_GROUP': environment.get_str('FILESERVICE_GROUP', required=True),
+    'FILESERVICE_BUCKETS': [environment.get_str('FILESERVICE_AWS_BUCKET', required=True)],
+    'FILESERVICE_TOKEN': environment.get_str('FILESERVICE_SERVICE_TOKEN', required=True),
+
+    # Misc
+    'DRF_OBJECT_OWNER_KEY': 'email',
+}
+
+#####################################################################################
+
+#####################################################################################
+# Email Configurations
+#####################################################################################
+
 EMAIL_BACKEND = environment.get_str("EMAIL_BACKEND", "django_smtp_ssl.SSLEmailBackend")
 EMAIL_USE_SSL = EMAIL_BACKEND == 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = environment.get_str("EMAIL_HOST", required=True)
@@ -224,6 +263,7 @@ EMAIL_HOST_USER = environment.get_str("EMAIL_HOST_USER", required=not DEBUG)
 EMAIL_HOST_PASSWORD = environment.get_str("EMAIL_HOST_PASSWORD", required=EMAIL_HOST_USER is not None)
 EMAIL_PORT = environment.get_str("EMAIL_PORT", required=True)
 
+#####################################################################################
 
 #####################################################################################
 # FileService Configurations
@@ -238,6 +278,26 @@ FILESERVICE_AUTH_HEADER_PREFIX = 'Token'
 
 #####################################################################################
 
+#####################################################################################
+# Django-Q settings
+#####################################################################################
+
+Q_CLUSTER = {
+    'name': 'hypatio',
+    'workers': 8,
+    'recycle': 500,
+    'timeout': 18000,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'retry': 20000,
+    'label': 'Hypatio Tasks',
+    'orm': 'default',
+    'guard_cycle': 60,
+}
+
+#####################################################################################
 
 LOGGING = {
     'version': 1,
