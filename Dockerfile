@@ -43,6 +43,9 @@ RUN pip install --no-index \
         # and Pip errors out on the mismatches.
         -r /requirements.in
 
+# Setup entry scripts
+ADD docker-entrypoint-init.d/* /docker-entrypoint-init.d/
+
 # Copy app source
 COPY /app /app
 
