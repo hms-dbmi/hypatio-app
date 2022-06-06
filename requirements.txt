@@ -8,21 +8,21 @@ arrow==1.2.2 \
     --hash=sha256:05caf1fd3d9a11a1135b2b6f09887421153b94558e5ef4d090b567b47173ac2b \
     --hash=sha256:d622c46ca681b5b3e3574fcb60a04e5cc81b9625112d5fb2b44220c36c892177
     # via django-q
-awscli==1.25.1 \
-    --hash=sha256:728df4bd7bf9b2ce2e818c2bbfe2d2a84e5c379cfbb9c14db0771841722837ee \
-    --hash=sha256:a582a1a7501fffa16cb89c44dc393f9010118c9a74f7bcec0f2d788e6b92b8fa
+awscli==1.25.2 \
+    --hash=sha256:8433696101572b2d7dff9c8b60f3d6355308d9b758fe4765747a4cff12eeef88 \
+    --hash=sha256:b3309b5e76f8c95904a071088ef6e8a3dee3f03ddd941807176f1cdf044b7496
     # via -r requirements.in
 blessed==1.19.1 \
     --hash=sha256:63b8554ae2e0e7f43749b6715c734cc8f3883010a809bf16790102563e6cf25b \
     --hash=sha256:9a0d099695bf621d4680dd6c73f6ad547f6a3442fbdbe80c4b1daa1edbc492fc
     # via django-q
-boto3==1.24.1 \
-    --hash=sha256:ce924b71306a98ff9fb49645f98ddafe50f297d7aecbf7d4d9b08f4d79c3f855 \
-    --hash=sha256:cf705c0c2d049b0adb564b2cd60b9ac0d4405653b29c33e2a1f1fdde37f476c0
+boto3==1.24.2 \
+    --hash=sha256:927b5e8e2decad746e6c32bb81f15c2ea9ab4398286134d21f6742493eb893f6 \
+    --hash=sha256:e3c10adc7be890b147568a4162d9cafb876f11f87460c4a0dc90742d6d4ebe7c
     # via -r requirements.in
-botocore==1.27.1 \
-    --hash=sha256:2702181c3b7cad75b64b4a758f862d46da50ed8dd5329870d69c8c187b877b94 \
-    --hash=sha256:628a3176103b7b233bb456bed4d495c445e7eaa801faecf63989698ecc2e8bae
+botocore==1.27.2 \
+    --hash=sha256:131f71fe16ef84f9e0e72c54d2e230a6d8e79dd3947f507259a129649649a35d \
+    --hash=sha256:b7cdd4f4a6395a084a381a7d2a25b177e6de5f8a4dfa3c645ec957ba3c83e200
     # via
     #   awscli
     #   boto3
