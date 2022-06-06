@@ -891,6 +891,15 @@ def download_submissions_export(request, project_key, fileservice_uuid):
     """
     if request.method == "GET":
 
+        # Check permissions in SciAuthZ.
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        is_manager = sciauthz.user_has_manage_permission(project_key)
+
+        if not is_manager:
+            logger.debug("[download_submissions_export] - No Access for user " + request.user.email)
+            return HttpResponse("You do not have access to download this file.", status=403)
+
         # Get filename
         filename = f"{project_key}_export_{fileservice_uuid}.zip"
 
