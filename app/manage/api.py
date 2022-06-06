@@ -1226,10 +1226,4 @@ def sync_view_permissions(request, project_key):
             participant.permission = 'VIEW'
             participant.save()
 
-        elif participant.user.email.lower() not in permitted_emails:
-
-            # Clear it
-            participant.permission = None
-            participant.save()
-
     return HttpResponse(status=200)
