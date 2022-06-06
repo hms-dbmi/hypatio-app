@@ -125,7 +125,7 @@ def export_task_submissions(project_id, requester):
 
     except Exception as e:
         logger.exception(
-            f"Export challange task submissions error: {e}",
+            f"Export challenge task submissions error: {e}",
             exc_info=True,
             extra={
                 "project_id": project_id,
