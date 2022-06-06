@@ -6,6 +6,8 @@ import shutil
 import uuid
 import zipfile
 import magic
+from urllib.parse import urlparse
+import urllib
 from django_q.tasks import async_task
 from dbmi_client import fileservice
 
@@ -880,6 +882,42 @@ def export_submissions(request, project_key):
         # Prepare the zip file to be served.
         return HttpResponse(status=201)
 
+
+@user_auth_and_jwt
+def download_submissions_export(request, project_key, fileservice_uuid):
+    """
+    An HTTP GET endpoint that allows a user to download a ChallengeTask's
+    submissions export file from AWS/fileservice.
+    """
+    if request.method == "GET":
+
+        # Check permissions in SciAuthZ.
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        is_manager = sciauthz.user_has_manage_permission(project_key)
+
+        if not is_manager:
+            logger.debug("[download_submissions_export] - No Access for user " + request.user.email)
+            return HttpResponse("You do not have access to download this file.", status=403)
+
+        # Get filename
+        filename = f"{project_key}_export_{fileservice_uuid}.zip"
+
+        # Get the url
+        url = fileservice.get_archivefile_download_url(fileservice_uuid)
+
+        # Prepare the parts
+        protocol = urlparse(url).scheme
+        path = urllib.parse.quote_plus(url.replace(protocol + '://', ''))
+
+        # Let NGINX handle it
+        response = HttpResponse()
+        response['X-Accel-Redirect'] = '/proxy/' + protocol + '/' + path
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+
+        logger.debug(f'Sending user to S3 proxy: {response["X-Accel-Redirect"]}')
+
+        return response
 
 @user_auth_and_jwt
 def host_submission(request, fileservice_uuid):
