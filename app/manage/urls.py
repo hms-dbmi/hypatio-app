@@ -28,6 +28,7 @@ from manage.api import grant_view_permission
 from manage.api import remove_view_permission
 from manage.api import sync_view_permissions
 from manage.api import export_submissions
+from manage.api import download_submissions_export
 
 app_name = ManageConfig.name
 
@@ -51,6 +52,7 @@ urlpatterns = [
     url(r'^download-team-submissions/(?P<project_key>[^/]+)/(?P<team_leader_email>[^/]+)/$', download_team_submissions, name='download-team-submissions'),
     url(r'^download-submission/(?P<fileservice_uuid>[^/]+)/$', download_submission, name='download-submission'),
     url(r'^export-submissions/(?P<project_key>[^/]+)/$', export_submissions, name='export-submissions'),
+    url(r'^download-submissions-export/(?P<project_key>[^/]+)/(?P<fileservice_uuid>[^/]+)/$', download_submissions_export, name='download-submissions-export'),
     url(r'^host-submission/(?P<fileservice_uuid>[^/]+)/$', host_submission, name='host-submission'),
     url(r'^sync-view-permissions/(?P<project_key>[^/]+)/$', sync_view_permissions, name='sync-view-permissions'),
     url(r'^grant-view-permission/(?P<project_key>[^/]+)/(?P<user_email>[^/]+)/$', grant_view_permission, name='grant-view-permission'),
