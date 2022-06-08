@@ -459,9 +459,9 @@
                             <td>{{ export.request_date|date:"c" }}</td>
                             <td>{{ export.uuid }}</td>
                             <td>
-                                <a class="btn btn-default btn-xs btn-default" href="{% url 'manage:download-submissions-export' project.project_key export.uuid %}" download>
+                                <button onclick="window.location.href='{% url 'manage:download-submissions-export' project.project_key export.uuid %}'" class="btn btn-default btn-xs btn-default">
                                     Download
-                                </a>
+                                </button>
                             </td>
                         </tr>
                         {% endfor %}
