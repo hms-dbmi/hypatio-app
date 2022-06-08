@@ -1,14 +1,17 @@
 import uuid
 import os
 import shutil
-import zipfile
+import json
 import requests
+import tempfile
+from datetime import datetime
 from django_q.tasks import Chain, async_task
 from django.conf import settings
 from django.contrib.auth.models import User
 
 from projects.models import DataProject
 from projects.models import ChallengeTaskSubmission
+from projects.models import ChallengeTaskSubmissionDownload
 from manage.models import ChallengeTaskSubmissionExport
 from dbmi_client import fileservice
 from manage.api import zip_submission_file
@@ -33,67 +36,142 @@ def export_task_submissions(project_id, requester):
         # Get project and challenge task
         project = DataProject.objects.get(id=project_id)
 
-        # A list of file paths to each submission's zip file.
-        zipped_submissions_paths = []
-
         # Get all submissions made by this team for this project.
         submissions = ChallengeTaskSubmission.objects.filter(
             challenge_task__in=project.challengetask_set.all(),
             deleted=False
         )
 
-        # For each submission, create a zip file and add the path to the list of zip files.
-        for submission in submissions:
-            try:
-                zip_file_path = zip_submission_file(submission, requester)
-                zipped_submissions_paths.append(zip_file_path)
-            except Exception as e:
-                logger.exception(f"{project.project_key}: Could not export submission '{submission.uuid}': {e}", exc_info=True)
-
-        # Create a directory to store the final encompassing zip file.
-        final_zip_file_directory = "/tmp/" + str(uuid.uuid4())
-        if not os.path.exists(final_zip_file_directory):
-            os.makedirs(final_zip_file_directory)
-
-        # Combine all the zipped tasks into one file zip file.
-        final_zip_file_name = project.project_key + "__submissions.zip"
-        final_zip_file_path = os.path.join(final_zip_file_directory, final_zip_file_name)
-        with zipfile.ZipFile(final_zip_file_path, mode="w") as zf:
-            for zip_file in zipped_submissions_paths:
-                zf.write(zip_file, arcname=os.path.basename(zip_file))
-
-        # Perform the request to upload the file
+        # Create a temporary directory
         export_uuid = export_location = None
-        with open(final_zip_file_path, "rb") as file:
+        with tempfile.TemporaryDirectory() as directory:
 
-            # Build upload request
-            files = {"file": file}
-            try:
-                # Create the file in Fileservice
-                metadata = {
-                    "project": project.project_key,
-                    "type": "export",
-                }
-                tags = ["hypatio", "export", "submissions", project.project_key, requester]
-                export_uuid, upload_data = fileservice.create_archivefile_upload(final_zip_file_name, metadata, tags)
+            # Create directory to put submissions in
+            submissions_directory_path = os.path.join(directory, f"{project.project_key}_submissions_{datetime.now().isoformat()}")
 
-                # Get the location
-                export_location = upload_data["locationid"]
+            # For each submission, create a directory for the file and its metadata file
+            submission_file_response = None
+            for submission in submissions:
+                try:
+                    # Set the name of the containing directory
+                    submission_directory_path = os.path.join(submissions_directory_path, f"{submission.participant.user.email}_{submission.uuid}")
 
-                # Upload to S3
-                response = requests.post(upload_data["post"]["url"], data=upload_data["post"]["fields"], files=files)
-                response.raise_for_status()
+                    # Create a record of the user downloading the file.
+                    ChallengeTaskSubmissionDownload.objects.create(
+                        user=User.objects.get(email=requester),
+                        submission=submission
+                    )
 
-                # Mark the upload as complete
-                fileservice.uploaded_archivefile(export_uuid, export_location)
+                    # Create a temporary directory to hold the files specific to this submission that need to be zipped together.
+                    if not os.path.exists(submission_directory_path):
+                        os.makedirs(submission_directory_path)
 
-            except KeyError as e:
-                logger.error('Failed export post generation: {}'.format(upload_data))
-                logger.exception(e)
+                    # Create a json file with the submission info string.
+                    info_file_name = "submission_info.json"
+                    with open(os.path.join(submission_directory_path, info_file_name), mode="w") as f:
+                        f.write(submission.submission_info)
 
-            except requests.exceptions.HTTPError as e:
-                logger.error('Failed export upload: {}'.format(upload_data))
-                logger.exception(e)
+                    # Determine filename
+                    try:
+                        submission_file_name = json.loads(submission.submission_info).get("filename")
+                        if not submission_file_name:
+
+                            # Check fileservice
+                            submission_file_name = fileservice.get_archivefile(submission.uuid)["filename"]
+                    except Exception as e:
+                        logger.exception(
+                            f"Could not determine filename for submission",
+                            exc_info=True,
+                            extra={
+                                "submission": submission,
+                                "archivefile_uuid": submission.uuid,
+                                "submission_info": submission.submission_info,
+                            }
+                        )
+
+                        # Use a default filename
+                        submission_file_name = "submission_file.zip"
+
+                    # Get the submission file's byte contents from S3.
+                    submission_file_download_url = fileservice.get_archivefile_proxy_url(uuid=submission.uuid)
+                    headers = {"Authorization": f"{settings.FILESERVICE_AUTH_HEADER_PREFIX} {settings.FILESERVICE_SERVICE_TOKEN}"}
+                    with requests.get(submission_file_download_url, headers=headers, stream=True) as submission_file_response:
+                        submission_file_response.raise_for_status()
+
+                        # Write the submission file's bytes to a zip file.
+                        with open(os.path.join(submission_directory_path, submission_file_name), mode="wb") as f:
+                            shutil.copyfileobj(submission_file_response.raw, f)
+
+                except requests.exceptions.HTTPError as e:
+                    logger.exception(
+                        f"{project.project_key}: Could not download submission '{submission.uuid}': {e}",
+                        extra={
+                            "submission": submission,
+                            "archivefile_uuid": submission.uuid,
+                            "response": submission_file_response.content,
+                            "status_code": submission_file_response.status_code
+                        })
+
+                except Exception as e:
+                    logger.exception(
+                        f"{project.project_key}: Could not export submission '{submission.uuid}': {e}",
+                        exc_info=True
+                    )
+
+            # Set the archive name
+            archive_basename = f"{project.project_key}_submissions"
+
+            # Archive the directory
+            archive_path = shutil.make_archive(archive_basename, "zip", submissions_directory_path)
+
+            # Perform the request to upload the file
+            with open(archive_path, "rb") as file:
+
+                # Build upload request
+                response = None
+                files = {"file": file}
+                try:
+                    # Create the file in Fileservice
+                    metadata = {
+                        "project": project.project_key,
+                        "type": "export",
+                    }
+                    tags = ["hypatio", "export", "submissions", project.project_key, requester]
+                    export_uuid, upload_data = fileservice.create_archivefile_upload(os.path.basename(archive_path), metadata, tags)
+
+                    # Get the location
+                    export_location = upload_data["locationid"]
+
+                    # Upload to S3
+                    response = requests.post(upload_data["post"]["url"], data=upload_data["post"]["fields"], files=files)
+                    response.raise_for_status()
+
+                    # Mark the upload as complete
+                    fileservice.uploaded_archivefile(export_uuid, export_location)
+
+                except KeyError as e:
+                    logger.error(
+                        f'{project.project_key}: Failed export post generation: {upload_data}',
+                        exc_info=True
+                    )
+                    raise e
+
+                except requests.exceptions.HTTPError as e:
+                    logger.exception(
+                        f'{project.project_key}: Failed export upload: {upload_data}',
+                        extra={
+                            "response": response.content,
+                            "status_code": response.status_code
+                        }
+                    )
+                    raise e
+
+                except Exception as e:
+                    logger.exception(
+                        f"{project.project_key}: Could not export submissions: {e}",
+                        exc_info=True,
+                    )
+                    raise e
 
         # Create the model entry for the export
         export = ChallengeTaskSubmissionExport.objects.create(
@@ -116,13 +194,6 @@ def export_task_submissions(project_id, requester):
             extra={"site_url": settings.SITE_URL, "project": project}
         )
 
-        # Delete all the directories holding the zip files.
-        for path in zipped_submissions_paths:
-            shutil.rmtree(os.path.dirname(os.path.realpath((path))))
-
-        # Delete the final zip file.
-        shutil.rmtree(final_zip_file_directory)
-
     except Exception as e:
         logger.exception(
             f"Export challenge task submissions error: {e}",
@@ -132,3 +203,4 @@ def export_task_submissions(project_id, requester):
                 "requester": requester,
             }
         )
+        raise e
