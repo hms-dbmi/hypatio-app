@@ -10,6 +10,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="google-site-verification" content="OdYYzhkJpqgioUekvMbDvbyW6spxovdO_jmqVkiKVDE" />
 
+        <!-- Use actual HTTP request methods for Intercooler.js -->
+        <meta name="intercoolerjs:use-actual-http-method" content="true"/>
+
         <!-- Global site tag (gtag.js) - Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=UA-70908320-25"></script>
         <script>
@@ -46,6 +49,10 @@
         <script type='text/javascript' src="{% static 'js/popper.min.js' %}"></script>
         <script type='text/javascript' src="{% static 'plugins/bootstrap-notify/bootstrap-notify.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'plugins/intercooler/intercooler.min.js' %}"></script>
+
+        <!-- Bootstrap Dialog Plugin -->
+        <script src="{% static 'js/bootstrap-dialog.min.js' %}"></script>
+        <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-dialog.min.css' %}" />
 
         <title>{% block tab_name %}DBMI Portal{% endblock %}</title>
 

@@ -462,6 +462,9 @@
                                 <button onclick="window.location.href='{% url 'manage:download-submissions-export' project.project_key export.uuid %}'" class="btn btn-default btn-xs btn-default">
                                     Download
                                 </button>
+                                <button class="btn btn-default btn-xs btn-default delete-link" ic-trigger-on="delete-confirmed" ic-delete-from="{% url 'manage:delete-submissions-export' project.project_key export.uuid %}" ic-target="closest tr">
+                                    Delete
+                                </button>
                             </td>
                         </tr>
                         {% endfor %}
@@ -811,6 +814,31 @@
             // that they should refresh the page to see any changes
             var teamStatus = $(this).find('.team-status-column');
             teamStatus.html('<span class="label label-default">Refresh to see changes</span>');
+        });
+
+        $(document).on('click', '#submissions-exports-table .delete-link', function () {
+
+            var link = $(this);
+
+            BootstrapDialog.show({
+
+                message: 'Are you sure you want to delete this export?',
+                buttons: [{
+                    label: 'Cancel',
+                    cssClass: 'btn-default',
+                    action: function (dialogItself) {
+                        dialogItself.close();
+                    }
+                }, {
+                    label: 'Confirm',
+                    icon: 'glyphicon glyphicon-trash',
+                    cssClass: 'btn-danger',
+                    action: function (dialogItself) {
+                        dialogItself.close();
+                        $(link).trigger('delete-confirmed'); // this lines up with the ic-trigger name on the element
+                    }
+                }]
+              });
         });
     });
 </script>

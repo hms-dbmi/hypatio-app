@@ -15,12 +15,10 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
-from django.core.files.storage import default_storage
 
 from hypatio.auth0authenticate import user_auth_and_jwt
-
 from contact.views import email_send
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_names
@@ -918,6 +916,59 @@ def download_submissions_export(request, project_key, fileservice_uuid):
         logger.debug(f'Sending user to S3 proxy: {response["X-Accel-Redirect"]}')
 
         return response
+
+
+@user_auth_and_jwt
+def delete_submissions_export(request, project_key, fileservice_uuid):
+    """
+    An HTTP DELETE endpoint that allows a user to delete a ChallengeTask's
+    submissions export file from AWS/fileservice.
+    """
+    logger.debug(f"delete_submissions_export: {request.method}")
+    if request.method == "DELETE":
+
+        # Check permissions in SciAuthZ.
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        is_manager = sciauthz.user_has_manage_permission(project_key)
+
+        if not is_manager:
+            logger.debug("[delete_submissions_export] - No Access for user " + request.user.email)
+            return HttpResponse("You do not have access to delete this file.", status=403)
+
+        try:
+            # Get the submission export
+            export = ChallengeTaskSubmissionExport.objects.get(uuid=fileservice_uuid)
+
+            # Do the delete
+            fileservice.delete_archivefile(uuid=export.uuid, location=export.location)
+
+            # Delete the row
+            export.delete()
+
+            # Set a header to remove the table row
+            response = HttpResponse(status=204)
+            response["X-IC-Remove"] = "1s"
+            response["X-IC-Script"] = "notify('success','Submissions export successfully deleted','thumbs-up');"
+            return response
+
+        except Exception as e:
+            logger.exception(
+                f"Error deleting export: {e}",
+                exc_info=True,
+                extra={
+                    "project": project_key,
+                    "archivefile_uuid": fileservice_uuid,
+                }
+            )
+
+            # Put a message and return error response
+            response = HttpResponse(status=500)
+            response["X-IC-Script"] = "notify('danger','Submissions export could not be deleted','warning-sign');"
+            return response
+
+    else:
+        return HttpResponse(status=501)
 
 @user_auth_and_jwt
 def host_submission(request, fileservice_uuid):
