@@ -23,6 +23,7 @@ class Command(BaseCommand):
         # Positional arguments
         parser.add_argument('project_key', type=str)
         parser.add_argument('agreement_form', type=str)
+        parser.add_argument('status', type=str, default='A')
 
     def handle(self, *args, **options):
 
@@ -35,7 +36,11 @@ class Command(BaseCommand):
         # Get the objects
         project = DataProject.objects.get(project_key=options['project_key'])
         agreement_form = AgreementForm.objects.get(short_name=options['agreement_form'])
-        signed_agreement_forms = SignedAgreementForm.objects.filter(project=project, agreement_form=agreement_form)
+        signed_agreement_forms = SignedAgreementForm.objects.filter(
+            project=project,
+            agreement_form=agreement_form,
+            status=options["status"],
+        )
 
         # Ensure we've got Qualtrics surveys
         if not signed_agreement_forms:
