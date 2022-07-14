@@ -43,6 +43,43 @@
     </div>
 
     <div class="form-group">
+        <label>Did you use data besides the assessment and plan we provided?</label>
+        <div class="form-group">
+            <label class="radio-inline">
+                <input type="radio" name="additional-data" id="additional-data-yes" value="true" required> Yes
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="additional-data" id="additional-data-no" value="false" required> No
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>If yes to the above question, did you use the entire progress note?</label>
+        <div class="form-group">
+            <label class="radio">
+                <input type="radio" name="entire-progress-note" id="entire-progress-note-yes" value="true" required> Yes, used the entire progress note
+            </label>
+            <label class="radio">
+                <input type="radio" name="entire-progress-note" id="entire-progress-note-no" value="false" required> No, did not use the entire progress note
+            </label>
+            <label class="radio">
+                <input type="radio" name="entire-progress-note" id="entire-progress-note-notapplic" value="not-applicable" required> N/A (did not use data besides provided assessment and plan)
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="other-parts">Did you use other parts of MIMIC-III besides the progress notes?</label>
+        <input type="text" class="form-control" id="other-parts" name="other-parts" placeholder="e.g., discharge summary, other progress notes with the same HADM ID">
+    </div>
+
+    <div class="form-group">
+        <label for="multi-modal">Did you use multi-modal data?</label>
+        <input type="text" class="form-control" id="multi-modal" name="multi-modal" placeholder="e.g., structural data, image, etc.">
+    </div>
+
+    <div class="form-group">
         <label for="submission-code" style="margin-right: 10px;">Internal submission code:</label>
         <input type="text" class="form-control" id="submission-code" name="submission-code" placeholder="(This is for your reference, to remember the details of your submission)">
     </div>
