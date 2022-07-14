@@ -1,17 +1,17 @@
 <div class="form-content">
 
     <div class="form-group">
-        <label for="other-dataset-used">Did you use any other datasets?</label>
+        <label for="other-dataset-used">1. Did you use any other datasets?</label>
         <input type="text" class="form-control" id="other-dataset-used" name="other-dataset-used" placeholder="dataset reference or link" required>
     </div>
 
     <div class="form-group">
-        <label for="external-resource-used">Did you use any external resources?</label>
+        <label for="external-resource-used">2. Did you use any external resources?</label>
         <input type="text" class="form-control" id="external-resource-used" name="external-resource-used" placeholder="embeddings, ontologies, etc." required>
     </div>
 
     <div class="form-group">
-        <label>Did you use medical doctors' expertise?</label>
+        <label>3. Did you use medical doctors' expertise?</label>
         <div class="form-group">
             <label class="radio-inline">
                 <input type="radio" name="md-involved" id="md-involved-yes" value="true" required> Yes
@@ -23,7 +23,7 @@
     </div>
 
     <div class="form-group">
-        <label>System type:</label>
+        <label>4. System type:</label>
         <div class="form-group">
             <label class="radio-inline">
                 <input type="radio" name="submission-type" id="submission-type-rule-based" value="rule-based" required> Rule-based
@@ -38,12 +38,12 @@
     </div>
 
     <div class="form-group">
-        <label for="method-used">Briefly describe what method you used</label>
+        <label for="method-used">5. Briefly describe what method you used</label>
         <input type="text" class="form-control" id="method-used" name="method-used" placeholder="SVM, CRF, RNN, BERT, GPT-2, ensemble, etc." required>
     </div>
 
     <div class="form-group">
-        <label>Did you use data besides the assessment and plan we provided?</label>
+        <label>6. Did you use data besides the assessment and plan we provided?</label>
         <div class="form-group">
             <label class="radio-inline">
                 <input type="radio" name="additional-data" id="additional-data-yes" value="true" required> Yes
@@ -55,32 +55,32 @@
     </div>
 
     <div class="form-group">
-        <label>If yes to the above question, did you use the entire progress note?</label>
+        <label>7. If yes to question 6 above, did you use the entire progress note?</label>
         <div class="form-group">
-            <label class="radio">
-                <input type="radio" name="entire-progress-note" id="entire-progress-note-yes" value="true" required> Yes, used the entire progress note
+            <label class="radio-inline">
+                <input type="radio" name="entire-progress-note" id="entire-progress-note-yes" value="true" required> Yes, used entire progress note
             </label>
-            <label class="radio">
-                <input type="radio" name="entire-progress-note" id="entire-progress-note-no" value="false" required> No, did not use the entire progress note
+            <label class="radio-inline">
+                <input type="radio" name="entire-progress-note" id="entire-progress-note-no" value="false" required> No
             </label>
-            <label class="radio">
-                <input type="radio" name="entire-progress-note" id="entire-progress-note-notapplic" value="not-applicable" required> N/A (did not use data besides provided assessment and plan)
+            <label class="radio-inline">
+                <input type="radio" name="entire-progress-note" id="entire-progress-note-notapplic" value="not-applicable" required> N/A
             </label>
         </div>
     </div>
 
     <div class="form-group">
-        <label for="other-parts">Did you use other parts of MIMIC-III besides the progress notes?</label>
+        <label for="other-parts">8. Did you use other parts of MIMIC-III besides the progress notes?</label>
         <input type="text" class="form-control" id="other-parts" name="other-parts" placeholder="e.g., discharge summary, other progress notes with the same HADM ID">
     </div>
 
     <div class="form-group">
-        <label for="multi-modal">Did you use multi-modal data?</label>
+        <label for="multi-modal">9. Did you use multi-modal data?</label>
         <input type="text" class="form-control" id="multi-modal" name="multi-modal" placeholder="e.g., structural data, image, etc.">
     </div>
 
     <div class="form-group">
-        <label for="submission-code" style="margin-right: 10px;">Internal submission code:</label>
+        <label for="submission-code" style="margin-right: 10px;">10. Internal submission code:</label>
         <input type="text" class="form-control" id="submission-code" name="submission-code" placeholder="(This is for your reference, to remember the details of your submission)">
     </div>
 </div>
