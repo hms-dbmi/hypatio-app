@@ -1,0 +1,9 @@
+{% if project %}
+    {{ project|upper }} Operation
+{% else %}
+    Hypatio Operation
+{% endif %}
+
+{{ operation }}
+----------------------------------------------------
+{{ message }}
