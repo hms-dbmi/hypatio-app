@@ -108,6 +108,7 @@ class AgreementForm(models.Model):
     type = models.CharField(max_length=50, choices=AGREEMENT_FORM_TYPE, blank=True, null=True)
     order = models.IntegerField(default=50, help_text="Indicate an order (lowest number = first listing) for how the Agreement Forms should be listed during registration workflows.")
     content = models.TextField(blank=True, null=True, help_text="If Agreement Form type is set to 'MODEL', the HTML set here will be rendered for the user")
+    internal = models.BooleanField(default=False, help_text="Internal agreement forms are never presented to participants and are only submitted by administrators on behalf of participants")
 
     def __str__(self):
         return '%s' % (self.name)
