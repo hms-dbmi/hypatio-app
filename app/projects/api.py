@@ -423,10 +423,6 @@ def upload_challengetasksubmission_file(request):
                     logger.warning(f"[{project_key}][{request.user.email}] No Access")
                     return HttpResponse("You do not have access to upload this file.", status=403)
 
-        if filename.split(".")[-1] != "zip":
-            logger.error('Not a zip file.')
-            return HttpResponse("Only .zip files are accepted", status=400)
-
         try:
             task = ChallengeTask.objects.get(id=task_id)
         except exceptions.ObjectDoesNotExist:
@@ -505,7 +501,8 @@ def upload_challengetasksubmission_file(request):
                 participant=participant,
                 uuid=data['uuid'],
                 location=data['location'],
-                submission_info=submission_info_json
+                submission_info=submission_info_json,
+                file_type=task.submission_file_type,
             )
 
             # Send an email notification to the submitters.
