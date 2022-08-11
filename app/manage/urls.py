@@ -6,6 +6,7 @@ from manage.views import DataProjectManageView
 from manage.views import manage_team
 from manage.views import ProjectParticipants
 from manage.views import team_notification
+from manage.views import UploadSignedAgreementFormView
 
 from manage.api import set_dataproject_details
 from manage.api import set_dataproject_registration_status
@@ -58,6 +59,7 @@ urlpatterns = [
     url(r'^grant-view-permission/(?P<project_key>[^/]+)/(?P<user_email>[^/]+)/$', grant_view_permission, name='grant-view-permission'),
     url(r'^remove-view-permission/(?P<project_key>[^/]+)/(?P<user_email>[^/]+)/$', remove_view_permission, name='remove-view-permission'),
     url(r'^get-project-participants/(?P<project_key>[^/]+)/$', ProjectParticipants.as_view(), name='get-project-participants'),
+    url(r'^upload-signed-agreement-form/(?P<project_key>[^/]+)/(?P<user_email>[^/]+)/$', UploadSignedAgreementFormView.as_view(), name='upload-signed-agreement-form'),
     url(r'^(?P<project_key>[^/]+)/$', DataProjectManageView.as_view(), name='manage-project'),
     url(r'^(?P<project_key>[^/]+)/(?P<team_leader>[^/]+)/$', manage_team, name='manage-team'),
 ]
