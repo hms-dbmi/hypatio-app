@@ -197,6 +197,10 @@
                                         <span class="glyphicon {% if form.status == 'P' %}glyphicon-alert{% elif form.status == 'A' %}glyphicon-ok{% elif form.status == 'R' %}glyphicon-ban-circle{% endif %}" aria-hidden="true"></span> {{ form.agreement_form.short_name }}
                                     </a>
                                 {% endfor %}
+                                <button type="button" class="btn btn-default btn-xs btn-primary" ic-get-from="{% url 'manage:upload-signed-agreement-form' project.project_key member.email %}" data-toggle="modal" data-target="#page-modal" data-backdrop="static" data-keyboard="false" ic-target="#page-modal-content">
+                                    Upload Form <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
+                                </button>
+
                             </td>
                             <td>
                                 {% if member.access_granted %}
@@ -527,4 +531,12 @@ $('#notification-form-modal').on('submit', '#notification-form', function() {
 
     });
 </script>
+
+{# Add a placeholder for any modal dialogs #}
+<div id='page-modal' class='modal fade' tabindex='-1'>
+  <div class="modal-dialog" role="document">
+      <div id='page-modal-content' class="modal-content">
+      </div>
+  </div>
+</div>
 {% endblock %}

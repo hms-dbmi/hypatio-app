@@ -1,5 +1,5 @@
 import logging
-
+from datetime import datetime
 from hypatio.auth0authenticate import user_auth_and_jwt
 
 from django.conf import settings
@@ -25,6 +25,7 @@ from hypatio.scireg_services import get_user_profile, get_distinct_countries_par
 
 from manage.forms import NotificationForm
 from manage.models import ChallengeTaskSubmissionExport
+from manage.forms import UploadSignedAgreementFormForm
 from projects.models import AgreementForm, ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import Participant
@@ -33,6 +34,7 @@ from projects.models import TeamComment
 from projects.models import SignedAgreementForm
 from projects.models import HostedFile
 from projects.models import HostedFileDownload
+from projects.models import SIGNED_FORM_APPROVED
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -604,6 +606,15 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
                     team_accepted_forms += 1
                     signed_accepted_agreement_forms += 1
 
+            # Add internal signed agreement forms
+            for signed_agreement_form in SignedAgreementForm.objects.filter(
+                agreement_form__internal=True,
+                user__email=email,
+                project=project):
+
+                    # Add it
+                    signed_agreement_forms.append(signed_agreement_form)
+
         team_member_details.append({
             'email': email,
             'user_info': user_info,
@@ -643,3 +654,101 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
     }
 
     return render(request, template_name, context=context)
+
+
+@method_decorator([user_auth_and_jwt], name='dispatch')
+class UploadSignedAgreementFormView(View):
+    """
+    View to upload signed agreement forms for participants.
+
+    * Requires token authentication.
+    * Only admin users are able to access this view.
+    """
+    def get(self, request, project_key, user_email, *args, **kwargs):
+        """
+        Return the upload form template
+        """
+        user = request.user
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+        is_manager = sciauthz.user_has_manage_permission(project_key)
+
+        if not is_manager:
+            logger.debug('User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                email=user.email,
+                project_key=project_key
+            ))
+            return HttpResponse(403)
+
+        # Return file upload form
+        form = UploadSignedAgreementFormForm(initial={
+            "project_key": project_key,
+            "participant": user_email,
+        })
+
+        # Set context
+        context = {
+            "form": form,
+            "project_key": project_key,
+            "user_email": user_email,
+        }
+
+        # Render html
+        return render(request, "manage/upload-signed-agreement-form.html", context)
+
+    def post(self, request, project_key, user_email, *args, **kwargs):
+        """
+        Process the form
+        """
+        user = request.user
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+        is_manager = sciauthz.user_has_manage_permission(project_key)
+
+        if not is_manager:
+            logger.debug('User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                email=user.email,
+                project_key=project_key
+            ))
+            return HttpResponse(403)
+
+        # Assembles the form and run validation.
+        form = UploadSignedAgreementFormForm(data=request.POST, files=request.FILES)
+        if not form.is_valid():
+            logger.warning('Form failed: {}'.format(form.errors.as_json()))
+            return HttpResponse(status=400)
+
+        logger.debug(f"[upload_signed_agreement_form] Data -> {form.cleaned_data}")
+
+        signed_agreement_form = form.cleaned_data['signed_agreement_form']
+        agreement_form = form.cleaned_data['agreement_form']
+        project_key = form.cleaned_data['project_key']
+        participant_email = form.cleaned_data['participant']
+
+        project = DataProject.objects.get(project_key=project_key)
+        participant = Participant.objects.get(project=project, user__email=participant_email)
+
+        signed_agreement_form = SignedAgreementForm(
+            user=participant.user,
+            agreement_form=agreement_form,
+            project=project,
+            date_signed=datetime.now(),
+            upload=signed_agreement_form,
+            status=SIGNED_FORM_APPROVED,
+        )
+        signed_agreement_form.save()
+
+        # Create the response.
+        response = HttpResponse(status=201)
+
+        # Setup the script run.
+        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
+            "success", "Signed agreement form successfully uploaded", "thumbs-up"
+        )
+
+        # Close the modal
+        response['X-IC-Script'] += "$('#page-modal').modal('hide');"
+
+        return response
