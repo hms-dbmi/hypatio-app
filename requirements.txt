@@ -8,21 +8,21 @@ arrow==1.2.2 \
     --hash=sha256:05caf1fd3d9a11a1135b2b6f09887421153b94558e5ef4d090b567b47173ac2b \
     --hash=sha256:d622c46ca681b5b3e3574fcb60a04e5cc81b9625112d5fb2b44220c36c892177
     # via django-q
-awscli==1.25.37 \
-    --hash=sha256:43e6062245ffcbc3b2903c7c5255ab573eea29f5f14be9c1b20e433f7b338a51 \
-    --hash=sha256:878b985f1587fa69bbb2193c138c9851b5f0369c9a140b1a33e6a519d1a0a876
+awscli==1.25.49 \
+    --hash=sha256:0223f8ad26e22121e19cb959f35d300e9777ff207c0633db7cb2dfa578d6fcad \
+    --hash=sha256:66f0a07a341d58a3849effcf258f4f241bcfb962c647e33de66673f2109eb59c
     # via -r requirements.in
 blessed==1.19.1 \
     --hash=sha256:63b8554ae2e0e7f43749b6715c734cc8f3883010a809bf16790102563e6cf25b \
     --hash=sha256:9a0d099695bf621d4680dd6c73f6ad547f6a3442fbdbe80c4b1daa1edbc492fc
     # via django-q
-boto3==1.24.37 \
-    --hash=sha256:801c64aa3dbeabbf2e06e27bc3530245ebc6b14b6d7e8bcff08ff67ec6e60c88 \
-    --hash=sha256:c5f0b44a77d01d6f714f91f181b1e0819fed9b99423234cd4c2cce6704e915b3
+boto3==1.24.49 \
+    --hash=sha256:19ce58ed29d8b9dc892c06978c0097e7149641511c6b41142ecfee0a5ed19b5b \
+    --hash=sha256:c960712b3a833d321a997a9fb59f3da21b026d5a23727c9cb49866d3794cdb67
     # via -r requirements.in
-botocore==1.27.37 \
-    --hash=sha256:4616a7bb869b890c4b582460423e04447dd24b4af76ac761ec68236b6cb0ef7a \
-    --hash=sha256:c73988eff91897fe840ae6a9b459705e3086bc7f62f37a12999a7f4564002f63
+botocore==1.27.49 \
+    --hash=sha256:8e9556ef9f7f492e0755437a1430e32f63ddaf6df61c105957805067b5e22dbb \
+    --hash=sha256:ac491c54cdf4126c98a999c5d473d734dc91c5b1e003d0fdafd5007d1408d046
     # via
     #   awscli
     #   boto3
@@ -167,8 +167,9 @@ django-countries==6.1.3 \
     --hash=sha256:64015977a5989bcb0e645007299b19fe8ac117466af375161b26bcfa32ae2808 \
     --hash=sha256:a0f77154ae08cb38a0d65530a399ead5f5837ebf6c74f7576e71bb7acdacca94
     # via -r requirements.in
-django-dbmi-client==0.5.1 \
-    --hash=sha256:d2b64316e6291d8941417f8130c8f77fd97460a20180aff2f9a20b7683f75ec8
+django-dbmi-client==0.5.2 \
+    --hash=sha256:270fff5b6f089858b7bb6f4c3fe64c8d616348146feb5b8c6c1f158f1dab144d \
+    --hash=sha256:4dbd944c7fd5d4f13ce073facb761df175057d24ff4e28153a8a97e38c5d93cd
     # via -r requirements.in
 django-health-check==3.16.5 \
     --hash=sha256:1edfd49293ccebbce29f9da609c407f307aee240ab799ab4201031341ae78c0f \
