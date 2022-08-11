@@ -42,6 +42,18 @@ AGREEMENT_FORM_TYPE = (
     (AGREEMENT_FORM_TYPE_FILE, 'FILE'),
 )
 
+FILE_TYPE_ZIP = "zip"
+FILE_TYPE_PDF = "pdf"
+
+FILES_TYPES = (
+    (FILE_TYPE_ZIP, "ZIP"),
+    (FILE_TYPE_PDF, "PDF"),
+)
+
+FILES_CONTENT_TYPES = {
+    FILE_TYPE_ZIP: "application/zip",
+    FILE_TYPE_PDF: "application/pdf",
+}
 
 def get_agreement_form_upload_path(instance, filename):
 
@@ -567,12 +579,19 @@ class ChallengeTask(models.Model):
     # Should supervisors be notified of submissions of this task
     notify_supervisors_of_submissions = models.BooleanField(default=False, blank=False, null=False, help_text="Sends a notification to any emails listed in the project's supervisors field.")
 
+    # The content type to restrict file uploads to
+    submission_file_type = models.CharField(max_length=15, default=FILE_TYPE_ZIP, choices=FILES_TYPES)
+
     def __str__(self):
         return '%s: %s' % (self.data_project.project_key, self.title)
 
     def clean(self):
         if self.opened_time is not None and self.closed_time is not None and (self.opened_time > self.closed_time or self.closed_time < self.opened_time):
             raise ValidationError("Closed time must be a datetime after opened time")
+
+    @property
+    def submission_file_content_type(self):
+        return FILES_CONTENT_TYPES[self.submission_file_type]
 
 
 class ChallengeTaskSubmission(models.Model):
@@ -590,6 +609,7 @@ class ChallengeTaskSubmission(models.Model):
     location = models.CharField(max_length=12, default=None, blank=True, null=True)
     submission_info = models.TextField(default=None, blank=True, null=True)
     deleted = models.BooleanField(default=False)
+    file_type = models.CharField(max_length=15, default=FILE_TYPE_ZIP, choices=FILES_TYPES)
 
     def __str__(self):
         return '%s' % (self.uuid)
