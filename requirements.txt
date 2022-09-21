@@ -228,8 +228,8 @@ jmespath==1.0.1 \
     # via
     #   boto3
     #   botocore
-jwcrypto==1.3.1 \
-    --hash=sha256:54b551b115ffb4d12b1f1ee93b8ba2a71bb8556ba3d85d62f707549613da877c
+jwcrypto==1.4 \
+    --hash=sha256:30bcfc2d199f2f1a52d04558ffa99112ad81d7b787f29e0d9aa4ef499934307e
     # via
     #   -r requirements.in
     #   django-dbmi-client
