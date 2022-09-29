@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django_jsonfield_backport.models import JSONField
+from django.db.models import JSONField
 from django.core.files.uploadedfile import UploadedFile
 
 TEAM_PENDING = 'Pending'
