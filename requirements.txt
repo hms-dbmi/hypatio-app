@@ -12,21 +12,21 @@ asgiref==3.5.2 \
     --hash=sha256:1d2880b792ae8757289136f1db2b7b99100ce959b2aa57fd69dab783d05afac4 \
     --hash=sha256:4a29362a6acebe09bf1d6640db38c1dc3d9217c68e6f9f6204d72667fc19a424
     # via django
-awscli==1.25.83 \
-    --hash=sha256:1269504799e81d05398248ab34c0c3a39a8b4a96e551bf60fcc9932962eed463 \
-    --hash=sha256:73acd376a4ebfa97fe6d8bf2a012de37410685f666f5cebce9fa60980d145737
+awscli==1.25.85 \
+    --hash=sha256:3a6591048a12e901919240350a68d9695f79df6a7c1b7106b674d3ad2e1e22e2 \
+    --hash=sha256:4ab4ba304809b35a48cb9ecd6e50eb6c45eabdd380dd67bc635e7d6e2ea78625
     # via -r requirements.in
 blessed==1.19.1 \
     --hash=sha256:63b8554ae2e0e7f43749b6715c734cc8f3883010a809bf16790102563e6cf25b \
     --hash=sha256:9a0d099695bf621d4680dd6c73f6ad547f6a3442fbdbe80c4b1daa1edbc492fc
     # via django-q
-boto3==1.24.82 \
-    --hash=sha256:2a9b283cd4208cfcea873baac29e5ceb011afbd5a5c5b7a35cb305f377c39f60 \
-    --hash=sha256:90d590eda672775ef5ad0cdd4f5c2a51a964e3de631f3deccbc96e29cf0cd5a9
+boto3==1.24.84 \
+    --hash=sha256:6194763348545bb1669ce8d03ba104be1ba822daa184613aa10b9303a6a79017 \
+    --hash=sha256:be151711bbb4db53e85dd5bbe506002ce6f2f21fc4e45fcf6d2cf356d32cc4c6
     # via -r requirements.in
-botocore==1.27.82 \
-    --hash=sha256:034cdcfb74bcca9124fcaafed857ad78ec572ff95ed802b0608fa7505aaf4a1f \
-    --hash=sha256:b122c7048a79fef53f3d45f7ca2999c2559e15fc4531653824ebd3154d77ede5
+botocore==1.27.84 \
+    --hash=sha256:11f05d2acdf9a5f722856704b7b951b180647fb4340e1b5048b27273dc323909 \
+    --hash=sha256:da15026329706caf83323d84996f5ff5c527837347633fca9b3b1be0efa60841
     # via
     #   awscli
     #   boto3
@@ -280,9 +280,9 @@ python-magic==0.4.27 \
     --hash=sha256:c1ba14b08e4a5f5c31a302b7721239695b2f0f058d125bd5ce1ee36b9d9d3c3b \
     --hash=sha256:c212960ad306f700aa0d01e5d7a325d20548ff97eb9920dcd29513174f0294d3
     # via -r requirements.in
-pytz==2022.2.1 \
-    --hash=sha256:220f481bdafa09c3955dfbdddb7b57780e9a94f5127e35456a48589b9e0c0197 \
-    --hash=sha256:cea221417204f2d1a2aa03ddae3e867921971d0d76f14d87abb4414415bbdcf5
+pytz==2022.4 \
+    --hash=sha256:2c0784747071402c6e99f0bafdb7da0fa22645f06554c7ae06bf6358897e9c91 \
+    --hash=sha256:48ce799d83b6f8aab2020e369b627446696619e79645419610b9facd909b3174
     # via djangorestframework
 pyyaml==5.4.1 \
     --hash=sha256:08682f6b72c722394747bddaf0aa62277e02557c0fd1c42cb853016a38f8dedf \
