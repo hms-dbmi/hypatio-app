@@ -12,21 +12,21 @@ asgiref==3.5.2 \
     --hash=sha256:1d2880b792ae8757289136f1db2b7b99100ce959b2aa57fd69dab783d05afac4 \
     --hash=sha256:4a29362a6acebe09bf1d6640db38c1dc3d9217c68e6f9f6204d72667fc19a424
     # via django
-awscli==1.25.83 \
-    --hash=sha256:1269504799e81d05398248ab34c0c3a39a8b4a96e551bf60fcc9932962eed463 \
-    --hash=sha256:73acd376a4ebfa97fe6d8bf2a012de37410685f666f5cebce9fa60980d145737
+awscli==1.25.87 \
+    --hash=sha256:479556c396e7e77a67463e543f3e32ae41ac268ae7f6a788165f3886c58d8d70 \
+    --hash=sha256:e2ba3a1dc593fdcf12bf2ff3f150ec731229d643f6e9b4cedb6b01401c2bb5eb
     # via -r requirements.in
 blessed==1.19.1 \
     --hash=sha256:63b8554ae2e0e7f43749b6715c734cc8f3883010a809bf16790102563e6cf25b \
     --hash=sha256:9a0d099695bf621d4680dd6c73f6ad547f6a3442fbdbe80c4b1daa1edbc492fc
     # via django-q
-boto3==1.24.82 \
-    --hash=sha256:2a9b283cd4208cfcea873baac29e5ceb011afbd5a5c5b7a35cb305f377c39f60 \
-    --hash=sha256:90d590eda672775ef5ad0cdd4f5c2a51a964e3de631f3deccbc96e29cf0cd5a9
+boto3==1.24.86 \
+    --hash=sha256:59e9c39c867b5fd0575a50d8fafdf72c823c5510254a8615dff24f1584408121 \
+    --hash=sha256:c1d4e5d73d7720402c6538965efd6df5807492db8a71f30221dc11355d06db05
     # via -r requirements.in
-botocore==1.27.82 \
-    --hash=sha256:034cdcfb74bcca9124fcaafed857ad78ec572ff95ed802b0608fa7505aaf4a1f \
-    --hash=sha256:b122c7048a79fef53f3d45f7ca2999c2559e15fc4531653824ebd3154d77ede5
+botocore==1.27.86 \
+    --hash=sha256:830359c8bf22f2a386431825060ff9666519c032f2ccd4a69f1a702f7195f6c0 \
+    --hash=sha256:dcfe1825b84d17cf11653f8bb4bc77c2f172dcec1dc68eee932d68e5e6ed89d5
     # via
     #   awscli
     #   boto3
@@ -143,9 +143,9 @@ deprecated==1.2.13 \
     --hash=sha256:43ac5335da90c31c24ba028af536a91d41d53f9e6901ddb021bcc572ce44e38d \
     --hash=sha256:64756e3e14c8c5eea9795d93c524551432a0be75629f8f29e67ab8caf076c76d
     # via jwcrypto
-django==4.1.1 \
-    --hash=sha256:a153ffd5143bf26a877bfae2f4ec736ebd8924a46600ca089ad96b54a1d4e28e \
-    --hash=sha256:acb21fac9275f9972d81c7caf5761a89ec3ea25fe74545dd26b8a48cb3a0203e
+django==4.1.2 \
+    --hash=sha256:26dc24f99c8956374a054bcbf58aab8dc0cad2e6ac82b0fe036b752c00eee793 \
+    --hash=sha256:b8d843714810ab88d59344507d4447be8b2cf12a49031363b6eed9f1b9b2280f
     # via
     #   -r requirements.in
     #   django-bootstrap-datepicker-plus
@@ -280,9 +280,9 @@ python-magic==0.4.27 \
     --hash=sha256:c1ba14b08e4a5f5c31a302b7721239695b2f0f058d125bd5ce1ee36b9d9d3c3b \
     --hash=sha256:c212960ad306f700aa0d01e5d7a325d20548ff97eb9920dcd29513174f0294d3
     # via -r requirements.in
-pytz==2022.2.1 \
-    --hash=sha256:220f481bdafa09c3955dfbdddb7b57780e9a94f5127e35456a48589b9e0c0197 \
-    --hash=sha256:cea221417204f2d1a2aa03ddae3e867921971d0d76f14d87abb4414415bbdcf5
+pytz==2022.4 \
+    --hash=sha256:2c0784747071402c6e99f0bafdb7da0fa22645f06554c7ae06bf6358897e9c91 \
+    --hash=sha256:48ce799d83b6f8aab2020e369b627446696619e79645419610b9facd909b3174
     # via djangorestframework
 pyyaml==5.4.1 \
     --hash=sha256:08682f6b72c722394747bddaf0aa62277e02557c0fd1c42cb853016a38f8dedf \
