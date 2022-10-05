@@ -2,8 +2,8 @@ import requests
 from furl import furl
 import logging
 
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from dbmi_client.settings import dbmi_settings
 
 from projects.models import DataProject
 from projects.models import Participant
@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 
 class DBMIAuthz:
 
-    user_permissions_url = settings.AUTHZ_BASE + "/user_permission/"
-    create_profile_permission_url = settings.AUTHZ_BASE + "/user_permission/create_registration_permission_record/"
-    create_view_permission_url = settings.AUTHZ_BASE + "/user_permission/create_item_view_permission_record/"
-    remove_view_permission_url = settings.AUTHZ_BASE + "/user_permission/remove_item_view_permission_record/"
+    user_permissions_url = dbmi_settings.AUTHZ_URL + "/user_permission/"
+    create_profile_permission_url = dbmi_settings.AUTHZ_URL + "/user_permission/create_registration_permission_record/"
+    create_view_permission_url = dbmi_settings.AUTHZ_URL + "/user_permission/create_item_view_permission_record/"
+    remove_view_permission_url = dbmi_settings.AUTHZ_URL + "/user_permission/remove_item_view_permission_record/"
 
     @classmethod
     def _permissions_query(cls, request, email=None, item=None, search=None):

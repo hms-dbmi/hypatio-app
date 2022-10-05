@@ -57,7 +57,7 @@ def set_dataproject_registration_status(request):
     project_key = request.POST.get("project_key")
     project = get_object_or_404(DataProject, project_key=project_key)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -101,7 +101,7 @@ def set_dataproject_visible_status(request):
     project_key = request.POST.get("project_key")
     project = get_object_or_404(DataProject, project_key=project_key)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -145,7 +145,7 @@ def set_dataproject_details(request):
     project_key = request.POST.get("project_key")
     project = get_object_or_404(DataProject, project_key=project_key)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -200,7 +200,7 @@ def get_static_agreement_form_html(request):
     project_key = request.GET.get("project-key")
     project = get_object_or_404(DataProject, project_key=project_key)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -250,7 +250,7 @@ def get_hosted_file_edit_form(request):
     project_key = request.GET.get("project-key")
     project = get_object_or_404(DataProject, project_key=project_key)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -293,7 +293,7 @@ def get_hosted_file_logs(request):
     project_key = request.GET.get("project-key")
     project = get_object_or_404(DataProject, project_key=project_key)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -350,7 +350,7 @@ def process_hosted_file_edit_form_submission(request):
     project_id = request.POST.get("project")
     project = get_object_or_404(DataProject, id=project_id)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
     if not is_manager:
@@ -393,7 +393,7 @@ def download_signed_form(request):
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
     project = signed_form.project
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
     if not is_manager:
@@ -448,7 +448,7 @@ def get_signed_form_status(request):
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
     project = signed_form.project
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
     if not is_manager:
@@ -482,7 +482,7 @@ def change_signed_form_status(request):
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
     project = signed_form.project
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
     if not is_manager:
@@ -528,7 +528,7 @@ def change_signed_form_status(request):
             team.save()
 
             for member in team.participant_set.all():
-                sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+                sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
                 sciauthz.remove_view_permission(signed_form.project.project_key, member.user.email)
 
                 # Remove their VIEW permission
@@ -573,7 +573,7 @@ def save_team_comment(request):
     user = request.user
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
     if not is_manager:
@@ -609,7 +609,7 @@ def set_team_status(request):
     user = request.user
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
     logger.debug(
@@ -652,7 +652,7 @@ def set_team_status(request):
     # If setting to Active, grant each team member access permissions.
     if status == "active":
         for member in team.participant_set.all():
-            sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+            sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
             sciauthz.create_view_permission(project_key, member.user.email)
 
             # Add permission to Participant
@@ -662,7 +662,7 @@ def set_team_status(request):
     # If setting to Deactivated, revoke each team member's permissions.
     elif status == "deactivated":
         for member in team.participant_set.all():
-            sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+            sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
             sciauthz.remove_view_permission(project_key, member.user.email)
 
             # Remove permission from Participant
@@ -707,7 +707,7 @@ def delete_team(request):
     user = request.user
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
     if not is_manager:
@@ -725,7 +725,7 @@ def delete_team(request):
 
     # First revoke all VIEW permissions
     for member in team.participant_set.all():
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+        sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
         sciauthz.remove_view_permission(project_key, member.user.email)
 
         # Remove permission from Participant
@@ -769,7 +769,7 @@ def download_team_submissions(request, project_key, team_leader_email):
 
         # Check permissions in SciAuthZ.
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        sciauthz = SciAuthZ(user_jwt, request.user.email)
         is_manager = sciauthz.user_has_manage_permission(project_key)
 
         if not is_manager:
@@ -834,7 +834,7 @@ def download_submission(request, fileservice_uuid):
 
         # Check permissions in SciAuthZ.
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        sciauthz = SciAuthZ(user_jwt, request.user.email)
         is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
         if not is_manager:
@@ -867,7 +867,7 @@ def export_submissions(request, project_key):
 
         # Check permissions in SciAuthZ.
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        sciauthz = SciAuthZ(user_jwt, request.user.email)
         is_manager = sciauthz.user_has_manage_permission(project_key)
 
         if not is_manager:
@@ -893,7 +893,7 @@ def download_submissions_export(request, project_key, fileservice_uuid):
 
         # Check permissions in SciAuthZ.
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        sciauthz = SciAuthZ(user_jwt, request.user.email)
         is_manager = sciauthz.user_has_manage_permission(project_key)
 
         if not is_manager:
@@ -934,7 +934,7 @@ def host_submission(request, fileservice_uuid):
         submission = get_object_or_404(ChallengeTaskSubmission, uuid=fileservice_uuid)
         project = submission.challenge_task.data_project
 
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+        sciauthz = SciAuthZ(user_jwt, user.email)
         is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
         if not is_manager:
@@ -986,7 +986,7 @@ def host_submission(request, fileservice_uuid):
         user = request.user
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+        sciauthz = SciAuthZ(user_jwt, user.email)
         is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
         if not is_manager:
@@ -1041,7 +1041,7 @@ def download_email_list(request):
 
     # Check Permissions in SciAuthZ
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    sciauthz = SciAuthZ(user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -1113,7 +1113,7 @@ def grant_view_permission(request, project_key, user_email):
 
     # Check Permissions in SciAuthZ
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    sciauthz = SciAuthZ(user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     logger.debug(
@@ -1182,7 +1182,7 @@ def remove_view_permission(request, project_key, user_email):
 
     # Check Permissions in SciAuthZ
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    sciauthz = SciAuthZ(user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     logger.debug(
@@ -1232,7 +1232,7 @@ def sync_view_permissions(request, project_key):
 
     # Check Permissions in SciAuthZ
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    sciauthz = SciAuthZ(user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     logger.debug(

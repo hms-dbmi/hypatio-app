@@ -1,10 +1,8 @@
-import jwt
 from furl import furl
 import json
 import base64
 import logging
 import requests
-import jwcrypto.jwk as jwk
 from functools import wraps
 
 from django.contrib.auth.models import User
@@ -14,6 +12,9 @@ from django.conf import settings
 from django.shortcuts import redirect
 from django.contrib.auth import logout
 from django.core.exceptions import PermissionDenied
+from dbmi_client.settings import dbmi_settings
+from dbmi_client.settings import dbmi_settings
+from dbmi_client.authn import validate_request, login_redirect_url
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ def jwt_and_manage(item):
 
                     # Confirm user is a manager of the given project
                     permissions_url = sciauthz_permission_url(item, email)
-                    response = requests.get(permissions_url, headers=sciauthz_headers(request), verify=verify_requests())
+                    response = requests.get(permissions_url, headers=sciauthz_headers(request))
                     content = response.content
                     response.raise_for_status()
 
@@ -191,22 +192,6 @@ def sciauthz_permission_url(item, email):
     return url.url
 
 
-def verify_requests():
-    '''
-    Checks settings to see if requests should be verified, defaults to True
-    :return: Whether to verify requests or not
-    :rtype: bool
-    '''
-    # Check for setting on verifying requests
-    if hasattr(settings, 'VERIFY_REQUESTS'):
-        return settings.VERIFY_REQUESTS
-
-    # Log it
-    logger.debug('VERIFY_REQUESTS setting is missing, defaulting to "True"')
-
-    return True
-
-
 def sciauthz_headers(request):
     '''
     Returns the headers needed to authenticate requests against SciAuthZ
@@ -220,239 +205,6 @@ def sciauthz_headers(request):
     jwt_string = request.COOKIES.get("DBMI_JWT", None)
 
     return {"Authorization": "JWT " + jwt_string, 'Content-Type': 'application/json'}
-
-
-def validate_jwt(request):
-    """
-    Determines if the JWT is valid based on expiration and signature evaluation.
-    :param request:
-    :return: None if JWT is invalid or missing.
-    """
-    # Extract JWT token into a string.
-    jwt_string = request.COOKIES.get("DBMI_JWT", None)
-
-    # Check that we actually have a token.
-    if jwt_string is not None:
-
-        # Attempt to validate the JWT (Checks both expiry and signature)
-        try:
-            payload = jwt.decode(jwt_string,
-                                 base64.b64decode(settings.AUTH0_SECRET, '-_'),
-                                 algorithms=['HS256'],
-                                 leeway=120,
-                                 audience=settings.AUTH0_CLIENT_ID)
-
-            return payload
-
-        except jwt.ExpiredSignatureError:
-            logger.debug("JWT Expired.")
-
-        except jwt.InvalidTokenError:
-            logger.debug("Invalid JWT Token.")
-
-        except Exception as e:
-            logger.exception('Unexpected validation error: {}'.format(e), exc_info=True,
-                             extra={'jwt': jwt_string})
-
-    return None
-
-
-def validate_request(request):
-    '''
-    Pulls the current cookie and verifies the JWT and
-    then returns the JWT payload. Returns None
-    if the JWT is invalid or missing.
-    :param request: The Django request object
-    :return: dict
-    '''
-    # Extract JWT token into a string.
-    jwt_string = request.COOKIES.get("DBMI_JWT", None)
-
-    # Check that we actually have a token.
-    if jwt_string is not None:
-        return validate_rs256_jwt(jwt_string)
-    else:
-        return None
-
-
-def get_public_keys_from_auth0(refresh=False):
-    '''
-    Retrieves the public key from Auth0 to verify JWTs. Will
-    cache the JSON response from Auth0 in Django settings
-    until instructed to refresh the JWKS.
-    :param refresh: Purges cached JWK and fetches from remote
-    :return: dict
-    '''
-
-    # If refresh, delete cached key
-    if refresh:
-        delattr(settings, 'AUTH0_JWKS')
-
-    jwks = None
-    content = None
-    try:
-        # Look in settings
-        if hasattr(settings, 'AUTH0_JWKS'):
-            logger.debug('Using cached JWKS')
-
-            # Parse the cached dict and return it
-            return json.loads(settings.AUTH0_JWKS)
-
-        else:
-
-            logger.debug('Fetching remote JWKS')
-
-            # Make the request
-            response = requests.get("https://" + settings.AUTH0_DOMAIN + "/.well-known/jwks.json")
-            content = response.content
-            response.raise_for_status()
-
-            # Parse it
-            jwks = response.json()
-
-            # Cache it
-            setattr(settings, 'AUTH0_JWKS', json.dumps(jwks))
-
-            return jwks
-
-    except KeyError as e:
-        logging.exception('Parsing public keys failed: {}'.format(e), exc_info=True,
-                          extra={'domain': settings.AUTH0_DOMAIN, 'jwks': jwks})
-
-    except json.JSONDecodeError as e:
-        logging.exception('Parsing public keys failed: {}'.format(e), exc_info=True,
-                          extra={'domain': settings.AUTH0_DOMAIN, 'jwks': jwks})
-
-    except requests.HTTPError as e:
-        logging.exception('Gettting public keys failed: {}'.format(e), exc_info=True,
-                          extra={'domain': settings.AUTH0_DOMAIN, 'content': content})
-
-    except Exception as e:
-        logging.exception('Unexpected public key error: {}'.format(e), exc_info=True,
-                          extra={'domain': settings.AUTH0_DOMAIN, 'content': content})
-
-    return None
-
-
-def retrieve_public_key(jwt_string):
-    '''
-    Gets the public key used to sign the JWT from the public JWK
-    hosted on Auth0. Auth0 typically only returns one public key
-    in the JWK set but to handle situations in which signing keys
-    are being rotated, this method is build to search through
-    multiple JWK that could be in the set.
-
-    As JWKS are being cached, if a JWK cannot be found, cached
-    JWKS is purged and a new JWKS is fetched from Auth0. The
-    fresh JWKS is then searched again for the needed key.
-
-    Returns the key ID if found, otherwise returns None
-    :param jwt_string: The JWT token as a string
-    :return: str
-    '''
-
-    try:
-        # Get the JWK
-        jwks = get_public_keys_from_auth0(refresh=False)
-
-        # Decode the JWTs header component
-        unverified_header = jwt.get_unverified_header(str(jwt_string))
-
-        # Check the JWK for the key the JWT was signed with
-        rsa_key = get_rsa_from_jwks(jwks, unverified_header['kid'])
-        if not rsa_key:
-            logger.debug('No matching key found in JWKS, refreshing')
-            logger.debug('Unverified JWT key id: {}'.format(unverified_header['kid']))
-            logger.debug('Cached JWK keys: {}'.format([jwk['kid'] for jwk in jwks['keys']]))
-
-            # No match found, refresh the jwks
-            jwks = get_public_keys_from_auth0(refresh=True)
-            logger.debug('Refreshed JWK keys: {}'.format([jwk['kid'] for jwk in jwks['keys']]))
-
-            # Try it again
-            rsa_key = get_rsa_from_jwks(jwks, unverified_header['kid'])
-            if not rsa_key:
-                logger.warning('No matching key found despite refresh, failing: {}'.format(unverified_header.get('kid')))
-
-        return rsa_key
-
-    except jwt.exceptions.DecodeError as e:
-        logger.debug('Invalid JWT used: {}'.format(e))
-
-    except KeyError as e:
-        logger.exception('Comparing public key failed: {}'.format(e), exc_info=True,
-                         extra={'jwt': jwt_string, 'jwks': jwks})
-
-    except Exception as e:
-        logger.exception('Unexpected public key error: {}'.format(e), exc_info=True,
-                         extra={'jwt': jwt_string, 'jwks': jwks})
-
-    return None
-
-
-def get_rsa_from_jwks(jwks, jwt_kid):
-    '''
-    Searches the JWKS for the signing key used
-    for the JWT. Returns a dict of the JWK
-    properties if found, None otherwise.
-    :param jwks: The set of JWKs from Auth0
-    :param jwt_kid: The key ID of the signing key
-    :return: dict
-    '''
-    # Build the dict containing rsa values
-    for key in jwks["keys"]:
-        if key["kid"] == jwt_kid:
-            rsa_key = {
-                "kty": key["kty"],
-                "kid": key["kid"],
-                "use": key["use"],
-                "n": key["n"],
-                "e": key["e"]
-            }
-
-            return rsa_key
-
-    # No matching key found, must refresh JWT keys
-    return None
-
-
-def validate_rs256_jwt(jwt_string):
-    '''
-    Verifies the given RS256 JWT. Returns the payload
-    if verified, otherwise returns None.
-    :param jwt_string: JWT as a string
-    :return: dict
-    '''
-
-    rsa_pub_key = retrieve_public_key(jwt_string)
-    payload = None
-
-    if rsa_pub_key:
-        jwk_key = jwk.JWK(**rsa_pub_key)
-
-        # Iterate each possible client ID
-        for client_id in settings.AUTH0_CLIENT_ID_LIST:
-
-            # Attempt to validate the JWT (Checks both expiry and signature)
-            try:
-                payload = jwt.decode(jwt_string,
-                                    jwk_key.export_to_pem(private_key=False),
-                                    algorithms=['RS256'],
-                                    leeway=120,
-                                    audience=client_id)
-                return payload
-
-            except jwt.ExpiredSignatureError:
-                logger.debug("JWT Expired.")
-
-            except jwt.InvalidTokenError:
-                logger.debug("Invalid JWT Token.")
-
-            except Exception as e:
-                logger.exception('Unexpected validation error: {}'.format(e), exc_info=True,
-                                extra={'jwt': jwt_string, 'auth0_client_id': client_id})
-
-    return None
 
 
 def jwt_login(request, jwt_payload):
@@ -486,8 +238,7 @@ def logout_redirect(request):
     logout(request)
 
     # Build the URL
-    login_url = furl(settings.AUTHENTICATION_LOGIN_URL)
-    login_url.query.params.add('next', request.build_absolute_uri())
+    login_url = furl(login_redirect_url(request, next_url=request.build_absolute_uri()))
 
     # Check for branding
     if hasattr(settings, 'SCIAUTH_BRANDING'):
@@ -499,7 +250,7 @@ def logout_redirect(request):
 
     # Set the URL and purge cookies
     response = redirect(login_url.url)
-    response.delete_cookie('DBMI_JWT', domain=settings.COOKIE_DOMAIN)
+    response.delete_cookie('DBMI_JWT', domain=dbmi_settings.JWT_COOKIE_DOMAIN)
     logger.debug('Redirecting to: {}'.format(login_url.url))
 
     return response

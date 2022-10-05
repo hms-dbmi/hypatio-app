@@ -2,20 +2,22 @@ import json
 import logging
 import requests
 
-from hypatio.auth0authenticate import user_auth_and_jwt
-from hypatio.auth0authenticate import validate_request as validate_jwt
-from hypatio.auth0authenticate import logout_redirect
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.urls import reverse
+from furl import furl
+from dbmi_client.settings import dbmi_settings
+from dbmi_client.authn import logout_redirect_url
 
 from hypatio import scireg_services
-
-from .forms import RegistrationForm
+from hypatio.auth0authenticate import user_auth_and_jwt
+from hypatio.auth0authenticate import validate_request as validate_jwt
+from hypatio.auth0authenticate import logout_redirect
+from profile.forms import RegistrationForm
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -24,8 +26,7 @@ logger = logging.getLogger(__name__)
 @user_auth_and_jwt
 def signout(request):
     logout(request)
-    response = redirect(settings.AUTH0_LOGOUT_URL)
-    response.delete_cookie('DBMI_JWT', domain=settings.COOKIE_DOMAIN)
+    response = redirect(logout_redirect_url(request, request.build_absolute_uri(reverse("index"))))
     return response
 
 
@@ -51,12 +52,13 @@ def update_profile(request):
             logger.debug('[HYPATIO][DEBUG] Profile form fields submitted: ' + json.dumps(registration_form.cleaned_data))
 
             # Create a new registration with a POST
+            url = furl(dbmi_settings.REG_URL) / "api" / "register"
             if registration_form.cleaned_data['id'] == "":
-                requests.post(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data), verify=settings.VERIFY_REQUESTS)
+                requests.post((url / "/").url, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data))
             # Update an existing registration with a PUT to the specific ID
             else:
-                registration_url = settings.SCIREG_REGISTRATION_URL + registration_form.cleaned_data['id'] + '/'
-                requests.put(registration_url, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data), verify=settings.VERIFY_REQUESTS)
+                url.path.segments.extend([registration_form.cleaned_data['id'], ""])
+                requests.put(url.url, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data))
 
             return HttpResponse(200)
         else:
@@ -74,7 +76,8 @@ def profile(request, template_name='profile/profile.html'):
     jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
     # Query SciReg to get the user's information
-    registration_info = requests.get(settings.SCIREG_REGISTRATION_URL, headers=jwt_headers, verify=settings.VERIFY_REQUESTS).json()
+    url = furl(dbmi_settings.REG_URL) / "api" / "register" / "/"
+    registration_info = requests.get(url.url, headers=jwt_headers).json()
 
     logger.debug('[HYPATIO][DEBUG] Registration info ' + json.dumps(registration_info))
 
