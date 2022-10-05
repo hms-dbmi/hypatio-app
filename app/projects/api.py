@@ -214,7 +214,7 @@ def leave_team(request):
 
     # TODO user does not have permissions to remove their view permission (whether or not it exists)
     # Remove VIEW permissions on the DataProject
-    # sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+    # sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
     # sciauthz.remove_view_permission(project_key, request.user.email)
 
     # TODO remove team leader's scireg permissions
@@ -296,7 +296,7 @@ def join_team(request):
                                    extra=context)
 
     # Create record to allow leader access to profile.
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+    sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
     sciauthz.create_profile_permission(team_leader, project_key)
 
     return redirect('/projects/' + request.POST.get('project_key') + '/')
@@ -417,7 +417,7 @@ def upload_challengetasksubmission_file(request):
 
                 # Check that user has permissions to be submitting files for this project.
                 user_jwt = request.COOKIES.get("DBMI_JWT", None)
-                sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+                sciauthz = SciAuthZ(user_jwt, request.user.email)
 
                 if not sciauthz.user_has_single_permission(project_key, "VIEW", request.user.email):
                     logger.warning(f"[{project_key}][{request.user.email}] No Access")
@@ -540,7 +540,7 @@ def delete_challengetasksubmission(request):
 
         # Check that user has permissions to be viewing files for this project.
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        sciauthz = SciAuthZ(user_jwt, request.user.email)
 
         submission_uuid = request.POST.get('submission_uuid')
         submission = ChallengeTaskSubmission.objects.get(uuid=submission_uuid)
