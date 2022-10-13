@@ -21,6 +21,7 @@ def check_fileservice(sender, **kwargs):
 
 class ProjectsConfig(AppConfig):
     name = 'projects'
+    default_auto_field = 'django.db.models.BigAutoField'
 
     def ready(self):
         """

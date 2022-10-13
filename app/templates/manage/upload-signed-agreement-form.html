@@ -1,0 +1,20 @@
+{% load bootstrap3 %}
+
+<form id="upload-signed-agreement-form-form" class="file-upload-form" method="post" enctype="multipart/form-data" ic-post-to="{% url 'manage:upload-signed-agreement-form' project_key user_email %}">
+    <div class="modal-header modal-header-primary">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h3 class="modal-title">Signed Agreement Form Upload</h3>
+    </div>
+    <div class="modal-body">
+        {% csrf_token %}
+        {% bootstrap_form form inline=True %}
+    </div>
+    <div class="modal-footer">
+        {% buttons %}
+            <button id="file-upload-close-button" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button id="file-upload-submit-button" type="submit" class="btn btn-primary">Submit
+                <span id="file-upload-form-indicator" style="display: none; margin-left: 5px;" class="ic-indicator glyphicon glyphicon-refresh gly-spin"></span>
+            </button>
+        {% endbuttons %}
+    </div>
+</form>
