@@ -3,9 +3,10 @@ from django.core.validators import RegexValidator
 from bootstrap_datepicker_plus import DateTimePickerInput
 from dal import autocomplete
 
-from projects.models import DataProject
+from projects.models import AgreementForm, DataProject
 from projects.models import HostedFile
 from projects.models import Team
+from projects.models import AGREEMENT_FORM_TYPE_FILE
 
 # TODO Convert all other manual forms into Django forms
 # ...
@@ -63,3 +64,18 @@ class NotificationForm(forms.Form):
     project = forms.ModelChoiceField(queryset=DataProject.objects.all(), widget=forms.HiddenInput)
     message = forms.CharField(label='Message', required=True, widget=forms.Textarea)
     team = forms.ModelChoiceField(queryset=Team.objects.all(), widget=forms.HiddenInput)
+
+
+class UploadSignedAgreementFormForm(forms.Form):
+    agreement_form = forms.ModelChoiceField(queryset=AgreementForm.objects.filter(type=AGREEMENT_FORM_TYPE_FILE, internal=True), widget=forms.Select(attrs={'class': 'form-control'}))
+    project_key = forms.CharField(label='Project Key', max_length=128, required=True, widget=forms.HiddenInput())
+    participant = forms.CharField(label='Participant', max_length=128, required=True, widget=forms.HiddenInput())
+    signed_agreement_form = forms.FileField(label="Signed Agreement Form PDF", required=True)
+
+    def __init__(self, *args, **kwargs):
+            project_key = kwargs.pop('project_key', None)
+            super(UploadSignedAgreementFormForm, self).__init__(*args, **kwargs)
+
+            # Limit agreement form choices to those related to the passed project
+            if project_key:
+                self.fields['agreement_form'].queryset = DataProject.objects.get(project_key=project_key).agreement_forms.all()

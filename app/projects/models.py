@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django_jsonfield_backport.models import JSONField
+from django.db.models import JSONField
 from django.core.files.uploadedfile import UploadedFile
 
 TEAM_PENDING = 'Pending'
@@ -42,6 +42,18 @@ AGREEMENT_FORM_TYPE = (
     (AGREEMENT_FORM_TYPE_FILE, 'FILE'),
 )
 
+FILE_TYPE_ZIP = "zip"
+FILE_TYPE_PDF = "pdf"
+
+FILES_TYPES = (
+    (FILE_TYPE_ZIP, "ZIP"),
+    (FILE_TYPE_PDF, "PDF"),
+)
+
+FILES_CONTENT_TYPES = {
+    FILE_TYPE_ZIP: "application/zip",
+    FILE_TYPE_PDF: "application/pdf",
+}
 
 def get_agreement_form_upload_path(instance, filename):
 
@@ -96,6 +108,7 @@ class AgreementForm(models.Model):
     type = models.CharField(max_length=50, choices=AGREEMENT_FORM_TYPE, blank=True, null=True)
     order = models.IntegerField(default=50, help_text="Indicate an order (lowest number = first listing) for how the Agreement Forms should be listed during registration workflows.")
     content = models.TextField(blank=True, null=True, help_text="If Agreement Form type is set to 'MODEL', the HTML set here will be rendered for the user")
+    internal = models.BooleanField(default=False, help_text="Internal agreement forms are never presented to participants and are only submitted by administrators on behalf of participants")
 
     def __str__(self):
         return '%s' % (self.name)
@@ -567,12 +580,19 @@ class ChallengeTask(models.Model):
     # Should supervisors be notified of submissions of this task
     notify_supervisors_of_submissions = models.BooleanField(default=False, blank=False, null=False, help_text="Sends a notification to any emails listed in the project's supervisors field.")
 
+    # The content type to restrict file uploads to
+    submission_file_type = models.CharField(max_length=15, default=FILE_TYPE_ZIP, choices=FILES_TYPES)
+
     def __str__(self):
         return '%s: %s' % (self.data_project.project_key, self.title)
 
     def clean(self):
         if self.opened_time is not None and self.closed_time is not None and (self.opened_time > self.closed_time or self.closed_time < self.opened_time):
             raise ValidationError("Closed time must be a datetime after opened time")
+
+    @property
+    def submission_file_content_type(self):
+        return FILES_CONTENT_TYPES[self.submission_file_type]
 
 
 class ChallengeTaskSubmission(models.Model):
@@ -590,6 +610,7 @@ class ChallengeTaskSubmission(models.Model):
     location = models.CharField(max_length=12, default=None, blank=True, null=True)
     submission_info = models.TextField(default=None, blank=True, null=True)
     deleted = models.BooleanField(default=False)
+    file_type = models.CharField(max_length=15, default=FILE_TYPE_ZIP, choices=FILES_TYPES)
 
     def __str__(self):
         return '%s' % (self.uuid)
