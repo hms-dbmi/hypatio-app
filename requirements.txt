@@ -12,21 +12,21 @@ asgiref==3.5.2 \
     --hash=sha256:1d2880b792ae8757289136f1db2b7b99100ce959b2aa57fd69dab783d05afac4 \
     --hash=sha256:4a29362a6acebe09bf1d6640db38c1dc3d9217c68e6f9f6204d72667fc19a424
     # via django
-awscli==1.25.90 \
-    --hash=sha256:51341ff0e4b1e93e34254f7585c40d6480034df77d6f198ff26418d4c9afd067 \
-    --hash=sha256:ec2fa932bee68fe7b6ba83df2343844a7fd9bb74dc26a98386d185860ff8a913
+awscli==1.26.4 \
+    --hash=sha256:af4b6893d659af3109d90b9a645d271fb980e5b4ffd2755d7968eafd79b97590 \
+    --hash=sha256:c63311d99ae709e44c986d71503ca84221d8396856116609a8e9e1af755ccbbf
     # via -r requirements.in
 blessed==1.19.1 \
     --hash=sha256:63b8554ae2e0e7f43749b6715c734cc8f3883010a809bf16790102563e6cf25b \
     --hash=sha256:9a0d099695bf621d4680dd6c73f6ad547f6a3442fbdbe80c4b1daa1edbc492fc
     # via django-q
-boto3==1.24.89 \
-    --hash=sha256:346f8f0d101a4261dac146a959df18d024feda6431e1d9d84f94efd24d086cae \
-    --hash=sha256:d0d8ffcdc10821c4562bc7f935cdd840033bbc342ac0e14b6bdd348b3adf4c04
+boto3==1.25.4 \
+    --hash=sha256:03e5055d64a596f7a95ed0ca9fda1b67b7aed00d428e4ccef97f2f82b72ec875 \
+    --hash=sha256:4bbfe9540673940f5a3dea505c5469f48708a56fb588640adb8b6ab7d5f425be
     # via -r requirements.in
-botocore==1.27.89 \
-    --hash=sha256:238f1dfdb8d8d017c2aea082609a3764f3161d32745900f41bcdcf290d95a048 \
-    --hash=sha256:621f5413be8f97712b7e36c1b075a8791d1d1b9971a7ee060cdcdf5e2debf6c1
+botocore==1.28.4 \
+    --hash=sha256:09387978a75e7108aa15e8d67bfeb7938cce3d7043339c971daf4277dc4db804 \
+    --hash=sha256:ade670506c9e837f61d590873a11c5d06ab9a8492b8d5b853d6c4059ecddc03d
     # via
     #   awscli
     #   boto3
@@ -263,9 +263,9 @@ pycparser==2.21 \
     --hash=sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9 \
     --hash=sha256:e644fdec12f7872f86c58ff790da456218b10f863970249516d60a5eaca77206
     # via cffi
-pyjwt==2.5.0 \
-    --hash=sha256:8d82e7087868e94dd8d7d418e5088ce64f7daab4b36db654cbaedb46f9d1ca80 \
-    --hash=sha256:e77ab89480905d86998442ac5788f35333fa85f65047a534adc38edf3c88fc3b
+pyjwt==2.6.0 \
+    --hash=sha256:69285c7e31fc44f68a1feb309e948e0df53259d579295e6cfe2b1792329f05fd \
+    --hash=sha256:d83c3d892a77bbb74d3e1a2cfa90afaadb60945205d1095d9221f04466f64c14
     # via
     #   -r requirements.in
     #   django-dbmi-client
@@ -280,9 +280,9 @@ python-magic==0.4.27 \
     --hash=sha256:c1ba14b08e4a5f5c31a302b7721239695b2f0f058d125bd5ce1ee36b9d9d3c3b \
     --hash=sha256:c212960ad306f700aa0d01e5d7a325d20548ff97eb9920dcd29513174f0294d3
     # via -r requirements.in
-pytz==2022.4 \
-    --hash=sha256:2c0784747071402c6e99f0bafdb7da0fa22645f06554c7ae06bf6358897e9c91 \
-    --hash=sha256:48ce799d83b6f8aab2020e369b627446696619e79645419610b9facd909b3174
+pytz==2022.5 \
+    --hash=sha256:335ab46900b1465e714b4fda4963d87363264eb662aab5e65da039c25f1f5b22 \
+    --hash=sha256:c4d88f472f54d615e9cd582a5004d1e5f624854a6a27a6211591c251f22a6914
     # via djangorestframework
 pyyaml==5.4.1 \
     --hash=sha256:08682f6b72c722394747bddaf0aa62277e02557c0fd1c42cb853016a38f8dedf \
