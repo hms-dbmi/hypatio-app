@@ -5,6 +5,7 @@ from hypatio.auth0authenticate import public_user_auth_and_jwt
 from contact.forms import ContactForm
 
 from projects.models import DataProject
+from manage.views import is_ajax
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
@@ -57,7 +58,7 @@ def contact_form(request, project_key=None):
                                  extra=context)
 
             # Check how the request was made.
-            if request.is_ajax():
+            if is_ajax(request):
                 return HttpResponse('SUCCESS', status=200) if success else HttpResponse('ERROR', status=500)
             else:
                 if success:
@@ -73,7 +74,7 @@ def contact_form(request, project_key=None):
             logger.error("[HYPATIO][ERROR][contact_form] Form is invalid! - " + str(request.user.id))
 
             # Check how the request was made.
-            if request.is_ajax():
+            if is_ajax(request):
                 return HttpResponse('INVALID', status=500)
             else:
                 messages.error(request, 'An unexpected error occurred, please try again')
