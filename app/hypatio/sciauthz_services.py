@@ -5,7 +5,7 @@ import json
 import furl
 import logging
 
-from django.conf import settings
+from dbmi_client.settings import dbmi_settings
 
 from projects.models import DataProject
 
@@ -16,17 +16,12 @@ class SciAuthZ:
     JWT_HEADERS = None
     CURRENT_USER_EMAIL = None
 
-    def __init__(self, authz_base, jwt, user_email):
+    def __init__(self, jwt, user_email):
 
-        user_permissions_url = authz_base + "/user_permission/"
-        create_profile_permission = authz_base + "/user_permission/create_registration_permission_record/"
-        create_view_permission = authz_base + "/user_permission/create_item_view_permission_record/"
-        remove_view_permission = authz_base + "/user_permission/remove_item_view_permission_record/"
-
-        self.USER_PERMISSIONS_URL = user_permissions_url
-        self.CREATE_PROFILE_PERMISSION = create_profile_permission
-        self.CREATE_ITEM_PERMISSION = create_view_permission
-        self.REMOVE_ITEM_PERMISSION = remove_view_permission
+        self.USER_PERMISSIONS_URL = dbmi_settings.AUTHZ_URL + "/user_permission/"
+        self.CREATE_PROFILE_PERMISSION = dbmi_settings.AUTHZ_URL + "/user_permission/create_registration_permission_record/"
+        self.CREATE_ITEM_PERMISSION = dbmi_settings.AUTHZ_URL + "/user_permission/create_item_view_permission_record/"
+        self.REMOVE_ITEM_PERMISSION = dbmi_settings.AUTHZ_URL + "/user_permission/remove_item_view_permission_record/"
 
         jwt_headers = {"Authorization": "JWT " + jwt, 'Content-Type': 'application/json'}
 
@@ -45,7 +40,7 @@ class SciAuthZ:
         permissions_url.query.params.add('search', 'Hypatio,MANAGE')
 
         try:
-            user_permissions = requests.get(permissions_url.url, headers=self.JWT_HEADERS, verify=settings.VERIFY_REQUESTS).json()
+            user_permissions = requests.get(permissions_url.url, headers=self.JWT_HEADERS).json()
         except JSONDecodeError:
             user_permissions = None
 
@@ -74,7 +69,6 @@ class SciAuthZ:
                 user_permissions_request = requests.get(
                     authz_url.url,
                     headers=self.JWT_HEADERS,
-                    verify=settings.VERIFY_REQUESTS
                 ).json()
 
                 # If there are any permissions returned, add them to the list.
@@ -108,7 +102,6 @@ class SciAuthZ:
             self.CREATE_PROFILE_PERMISSION,
             headers=modified_headers,
             data=data,
-            verify=settings.VERIFY_REQUESTS
         )
 
         return profile_permission
@@ -124,7 +117,7 @@ class SciAuthZ:
             "item": 'Hypatio.' + project
         }
 
-        view_permission = requests.post(self.CREATE_ITEM_PERMISSION, headers=modified_headers, data=context, verify=settings.VERIFY_REQUESTS)
+        view_permission = requests.post(self.CREATE_ITEM_PERMISSION, headers=modified_headers, data=context)
         return view_permission
 
     def remove_view_permission(self, project, grantee_email):
@@ -138,7 +131,7 @@ class SciAuthZ:
             "item": 'Hypatio.' + project
         }
 
-        view_permission = requests.post(self.REMOVE_ITEM_PERMISSION, headers=modified_headers, data=context, verify=settings.VERIFY_REQUESTS)
+        view_permission = requests.post(self.REMOVE_ITEM_PERMISSION, headers=modified_headers, data=context)
         return view_permission
 
     def user_has_single_permission(self, permission, value, email=None):
@@ -151,7 +144,7 @@ class SciAuthZ:
             f.args["email"] = email
 
         try:
-            user_permissions = requests.get(f.url, headers=self.JWT_HEADERS, verify=settings.VERIFY_REQUESTS).json()
+            user_permissions = requests.get(f.url, headers=self.JWT_HEADERS).json()
         except JSONDecodeError:
             logger.debug("[SCIAUTHZ][user_has_single_permission] - No Valid permissions returned.")
             return False
@@ -217,7 +210,6 @@ class SciAuthZ:
                 user_permissions_request = requests.get(
                     authz_url,
                     headers=self.JWT_HEADERS,
-                    verify=settings.VERIFY_REQUESTS
                 ).json()
 
                 # If there are any permissions returned, add them to the list.
