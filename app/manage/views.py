@@ -39,6 +39,12 @@ from projects.models import SIGNED_FORM_APPROVED
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+
+def is_ajax(request):
+    # Returns whether a request is a vanilla ajax request or not
+    return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+
+
 @method_decorator(user_auth_and_jwt, name='dispatch')
 class DataProjectListManageView(TemplateView):
     """
@@ -453,7 +459,7 @@ def team_notification(request, project_key=None):
                 msg.send()
 
                 # Handle outcome
-                if request.is_ajax():
+                if is_ajax(request):
                     return HttpResponse('SUCCESS', status=200)
                 else:
                     # Set a message.
@@ -465,7 +471,7 @@ def team_notification(request, project_key=None):
                 })
 
                 # Check how the request was made.
-                if request.is_ajax():
+                if is_ajax(request):
                     return HttpResponse('ERROR', status=500)
                 else:
                     messages.error(request, 'An unexpected error occurred, please try again')
@@ -481,7 +487,7 @@ def team_notification(request, project_key=None):
             })
 
             # Check how the request was made.
-            if request.is_ajax():
+            if is_ajax(request):
                 return HttpResponse(form.errors.as_json(), status=500)
             else:
                 messages.error(request, 'The form was invalid, please try again')
@@ -507,7 +513,7 @@ def team_notification(request, project_key=None):
         logger.exception(f"Could not determine project", exc_info=True, extra={
             'request': request,
         })
-        if request.is_ajax():
+        if is_ajax(request):
             return HttpResponse('The project could not be determined, cannot send message.', status=500)
         else:
             messages.error(request, 'The project could not be determined, cannot send message.')
@@ -520,7 +526,7 @@ def team_notification(request, project_key=None):
         logger.exception(f"Could not determine team leader", exc_info=True, extra={
             'request': request,
         })
-        if request.is_ajax():
+        if is_ajax(request):
             return HttpResponse('The team leader could not be determined, cannot send message.', status=500)
         else:
             messages.error(request, 'The team leader could not be determined, cannot send message.')
