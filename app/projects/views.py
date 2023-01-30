@@ -10,16 +10,14 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
+
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.dbmiauthz_services import DBMIAuthz
 from hypatio.scireg_services import get_current_user_profile
 from hypatio.scireg_services import get_user_email_confirmation_status
-
 from profile.forms import RegistrationForm
-
 from hypatio.auth0authenticate import public_user_auth_and_jwt
 from hypatio.auth0authenticate import user_auth_and_jwt
-
 from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK, TEAM_ACTIVE, TEAM_READY
 from projects.models import AGREEMENT_FORM_TYPE_STATIC
 from projects.models import AGREEMENT_FORM_TYPE_MODEL
@@ -29,7 +27,6 @@ from projects.models import DataProject
 from projects.models import HostedFile
 from projects.models import Participant
 from projects.models import SignedAgreementForm
-
 from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
 from projects.panels import SIGNUP_STEP_CURRENT_STATUS
 from projects.panels import SIGNUP_STEP_FUTURE_STATUS
@@ -50,7 +47,7 @@ def signed_agreement_form(request):
     signed_agreement_form_id = request.GET['signed_form_id']
 
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    sciauthz = SciAuthZ(user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     project = get_object_or_404(DataProject, project_key=project_key)
