@@ -7,7 +7,7 @@
             Signed {{ signed_form.date_signed|timezone:"America/New_York" }} (EST)
         </div>
         <div class="col-md-3">
-            <a class="btn btn-default btn-sm pull-right" href="{% url 'projects:signed_agreement_form' %}?signed_form_id={{ signed_form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">View</a>
+            <a class="btn btn-default btn-sm pull-right" href="{% url 'projects:signed_agreement_form' %}?signed_form_id={{ signed_form.id }}&project_key={{ signed_form.project.project_key }}" target="_blank" role="button">View</a>
         </div>
     </div>
 {% endfor %}

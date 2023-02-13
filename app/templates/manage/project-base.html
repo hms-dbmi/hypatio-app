@@ -183,14 +183,16 @@
                                         Edit
                                     </a>
                                     <a class="btn btn-default pull-right"
+                                       style="margin-right: 10px;"
                                         href="#"
                                         role="button"
                                         data-toggle="modal"
                                         data-target="#modal-hosted-file-logs"
                                         ic-get-from="{% url 'manage:get-hosted-file-logs' %}"
                                         ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
-                                        ic-target="#modal-hosted-file-logs-body">
-                                        Edit
+                                        ic-target="#modal-hosted-file-logs-body"
+                                        ic-beforeSend-action="initDownloadLogs">
+                                        Logs
                                     </a>
                                 </div>
                             </div>
@@ -260,6 +262,18 @@
         <h3>Access management</h3>
     </div>
 </div>
+
+{% if project.teams_source %}
+<div class="row">
+    <div class="col-md-12">
+        <p><span class="label label-info">Info</span>&nbsp;&nbsp;<strong>This project is configured to import teams from <a href="{% url 'manage:manage-project' project_key=project.teams_source.project_key %}" target="_blank">{{ project.teams_source.name }}</a>.
+        {% if project.teams_source_message %}
+            {{ project.teams_source_message | safe }}
+        {% endif %}
+        </strong></p>
+    </div>
+</div>
+{% endif %}
 
 <div class="row">
     <div class="col-lg-12">
@@ -339,49 +353,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for participant_info in participants %}
-                            <tr class="participant-row">
-                                <td>{{ participant_info.participant.user.email }}</td>
-                                {% if project.has_teams %}
-                                    <td>{{ participant_info.participant.team.team_leader.email }}</td>
-                                {% endif %}
-                                <td>
-                                    {% if participant_info.view_permissions %}
-                                        Access granted
-                                    {% else %}
-                                        No access
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% for form in participant_info.signed_forms %}
-                                    <a class="btn btn-default btn-xs {% if form.status == 'P' %}btn-warning{% elif form.status == 'A' %}btn-default{% elif form.status == 'R' %}btn-danger{% endif %} download-signed-form" href="{% url 'projects:signed_agreement_form' %}?signed_form_id={{ form.id }}&project_key={{ project.project_key }}" target="_blank" role="button">
-                                        {{ form.agreement_form.short_name }} <span class="glyphicon {% if form.status == 'P' %}glyphicon-alert{% elif form.status == 'A' %}glyphicon-ok{% elif form.status == 'R' %}glyphicon-ban-circle{% endif %}" aria-hidden="true"></span>
-                                    </a>
-                                    {% endfor %}
-                                </td>
-                                <td>
-                                    {% if participant_info.view_permissions %}
-                                        <button type="button" class="btn btn-default btn-xs" ic-post-to="{% url 'manage:remove-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
-                                            Revoke access <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
-                                        </button>
-                                    {% else %}
-                                        {% if participant_info.signed_accepted_agreement_forms == num_required_forms %}
-                                            {% if not project.has_teams %}
-                                                <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key participant_info.participant.user.email %}" ic-replace-target="true">
-                                                    Grant access <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
-                                                </button>
-                                            {% else %}
-                                                Grant approval via team management.
-                                            {% endif %}
-                                        {% else %}
-                                            Forms incomplete or pending your review
-                                        {% endif %}
-                                    {% endif %}
-                                </td>
-                                <td>{{ participant_info.download_count }}</td>
-                                <td>{{ participant_info.upload_count }}</td>
-                            </tr>
-                            {% endfor %}
+                          {# Loaded via DataTables.js #}
                         </tbody>
                     </table>
                 </div>
@@ -425,7 +397,7 @@
                             <td>{{ submission.participant.team.team_leader.email }}</td>
                             {% endif %}
                             <td>{{ submission.challenge_task.title }}</td>
-                            <td>{{ submission.upload_date|timezone:"America/New_York" }} (EST)</td>
+                            <td>{{ submission.upload_date|date:"c" }}</td>
                             <td>{{ submission.uuid }}</td>
                             <td>
                                 <button class="btn btn-default btn-xs view-submission-info" data-toggle="modal" data-target="#modal-submission-info" data-submission-uuid="{{ submission.uuid }}" data-submission-info="{{ submission.submission_info }}">
@@ -434,6 +406,7 @@
                                 <a class="btn btn-default btn-xs btn-default" href="{% url 'manage:download-submission' submission.uuid %}" download>
                                     Download
                                 </a>
+                                {% if project.hosted_submissions %}
                                 <a class="btn btn-default btn-xs btn-success"
                                    style="margin-top: 4px;"
                                     href="#"
@@ -444,6 +417,51 @@
                                     ic-target="#modal-host-submission-body">
                                     Host
                                 </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="heading-description">
+                <h2 class="panel-title">Submissions Exports
+                  <small>
+                      <button type="button" class="btn btn-primary btn-xs pull-right"
+                        ic-get-from="{% url 'manage:export-submissions' project.project_key %}"
+                        ic-on-success="$('#export-modal').modal();">
+                          Export Submissions <i class="ic-indicator fa fa-spinner fa-spin" style="display:none"></i>
+                      </button>
+                  </small>
+                </h2>
+            </div>
+            <div class="panel-body">
+                <table id="submissions-exports-table" class="table table-bordered table-hover table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Requester</th>
+                            <th>Requested Date</th>
+                            <th>File ID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for export in submissions_exports %}
+                        <tr>
+                            <td>{{ export.requester.email }}</td>
+                            <td>{{ export.request_date|date:"c" }}</td>
+                            <td>{{ export.uuid }}</td>
+                            <td>
+                                <button onclick="window.location.href='{% url 'manage:download-submissions-export' project.project_key export.uuid %}'" class="btn btn-default btn-xs btn-default">
+                                    Download
+                                </button>
                             </td>
                         </tr>
                         {% endfor %}
@@ -523,7 +541,7 @@
 </div>
 
 <div id="modal-hosted-file-logs" class="modal fade">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -557,11 +575,43 @@
   </div>
 </div>
 
+<div class="modal fade" id="export-modal" tabindex="-1" role="dialog" aria-labelledby="export-modal-title">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+          </button>
+          <h5 class="modal-title" id="export-modal-title">Submissions Export</h5>
+        </div>
+        <div class="modal-body">
+            <p>The submissions export task has been started. You will receive an email when it is ready for download. You can also try refreshing the page in a few minutes to see it in the table when competed.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:window.location.reload();">Reload Page</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 {% endblock %}
 
 {% block footerscripts %}
 <!-- Initialize DataTables -->
+<script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
 <script type="application/javascript">
+    function initDownloadLogs() {
+
+        // Ensure content is remove and loading is hown
+        $("#modal-hosted-file-logs-body").html('<div id="modal-hosted-file-logs-loading" style="text-align: center; margin: 20px;"><i class="fas fa-circle-notch fa-spin fa-2x"></i>&nbsp;&nbsp;Loading...</div>');
+    }
+
+    $('#modal-hosted-file-logs').on('shown.bs.modal', function () {
+      $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
+    });
+
     $(document).ready(function() {
         $('#team-table').DataTable({
             // Order by the Status column to prioritize pending access.
@@ -570,9 +620,27 @@
 
         $('#participant-table').DataTable({
             // Order by the Access column to prioritize pending access.
+            "dom": 'Blfrtip',
             "processing": true,
             "serverSide": true,
             "ajax": "{% url 'manage:get-project-participants' project_key=project_key %}",
+            "buttons": {
+              "dom": {
+                "button": {
+                  "tag": "button",
+                  "className": ""
+                }
+              },
+              "buttons": [
+                {
+                  text: 'Awaiting Review',
+                  className: 'btn btn-default',
+                  action: function ( e, dt, node, config ) {
+                    dt.search('Pending', false);
+                  }
+                }
+              ]
+            },
             "columnDefs": [
                 {
                     "targets": [{% if project.has_teams %}1, 2, 3, 5, 6{% else %}1, 2, 4, 5{% endif %}],
@@ -592,7 +660,7 @@
                             var form = data[index];
 
                             // Set the base URL for the forms
-                            var formUrl = '{% url "projects:signed_agreement_form" %}?project_key={{ project_key }}&signed_form_id=' + form['id'];
+                            var formUrl = '{% url "projects:signed_agreement_form" %}?project_key=' + form['project'] + '&signed_form_id=' + form['id'];
 
                             // Set form type and icon classes
                             var formClasses = (function(formStatus) {
@@ -678,7 +746,57 @@
             },
         });
 
-        $('#submissions-table').DataTable();
+        $('#submissions-table').DataTable({
+            "columnDefs": [{
+                "targets": [{% if project.has_teams %}3{% else %}2{% endif %}],
+                "render":  function(data, type, full, meta){
+
+                    // Check for a valid date timestamp
+                    var pattern = new RegExp("[0-9]+");
+                    if (!pattern.test(data)) {
+                        if (type === 'sort' || type === 'type') {
+                            return 0;
+                        } else {
+                            return data;
+                        }
+                    }
+
+                    // Return raw dates for sorting
+                    if (type === 'sort' || type === 'type')
+                        return data;
+
+                    // Parse date and get components
+                    var date = new Date(data);
+                    return date.toLocaleString();
+                }
+            }]
+        });
+
+        $('#submissions-exports-table').DataTable({
+            "columnDefs": [{
+                "targets": [1],
+                "render":  function(data, type, full, meta){
+
+                    // Check for a valid date timestamp
+                    var pattern = new RegExp("[0-9]+");
+                    if (!pattern.test(data)) {
+                        if (type === 'sort' || type === 'type') {
+                            return 0;
+                        } else {
+                            return data;
+                        }
+                    }
+
+                    // Return raw dates for sorting
+                    if (type === 'sort' || type === 'type')
+                        return data;
+
+                    // Parse date and get components
+                    var date = new Date(data);
+                    return date.toLocaleString();
+                }
+            }]
+        });
     });
 </script>
 

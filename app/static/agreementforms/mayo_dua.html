@@ -4,14 +4,14 @@
 
     <br>
 
-	<p>THIS AGREEMENT is made effective the <input type="text" class="" id="day" maxlength="2" placeholder="day" required> day of <input type="text" class="" id="month" maxlength="20" placeholder="month" required>, <input type="text" class="" id="year" maxlength="4" placeholder="year" required> ("EFFECTIVE DATE") by and between <input type="text" class="" id="institution" placeholder="" required> (Institution name, denoted as "RECIPIENT") and MAYO CLINIC, a Minnesota nonprofit corporation, on its own behalf and for the benefit of all present and future entities that are legal affiliates of Mayo Clinic, a Minnesota nonprofit corporation (Mayo Clinic and all of its affiliates are herein individually and collectively referred to as "MAYO").  The purpose of this Agreement is to satisfy certain obligations of Mayo under the Health Insurance Portability and Accountability Act of 1996 and its implementing regulations (45 C.F.R. Parts 160-64) ("HIPAA") to ensure the integrity and confidentiality of Protected Health Information exchanged in the form of a Limited Data Set for the protocol "THYME" ("Protocol").  The data has been collected under Mayo Clinic IRB approval: #17-003030: Open Health Natural Language Processing Collaboratory.  The PI at <input type="text" class="" id="institution" placeholder="" required> (Institution) is <input type="text" class="" id="pi-name" placeholder="" required> and the PI at Mayo Clinic is Dr. H. Liu. </p>
-    
+	<p>THIS AGREEMENT is made effective the <input type="text" class="" id="day" name="day" maxlength="2" placeholder="day" required> day of <input type="text" class="" id="month" name="month" maxlength="20" placeholder="month" required>, <input type="text" class="" id="year" name="year" maxlength="4" placeholder="year" required> ("EFFECTIVE DATE") by and between <input type="text" class="" id="institution" name="institution" placeholder="" required> (Institution name, denoted as "RECIPIENT") and MAYO CLINIC, a Minnesota nonprofit corporation, on its own behalf and for the benefit of all present and future entities that are legal affiliates of Mayo Clinic, a Minnesota nonprofit corporation (Mayo Clinic and all of its affiliates are herein individually and collectively referred to as "MAYO").  The purpose of this Agreement is to satisfy certain obligations of Mayo under the Health Insurance Portability and Accountability Act of 1996 and its implementing regulations (45 C.F.R. Parts 160-64) ("HIPAA") to ensure the integrity and confidentiality of Protected Health Information exchanged in the form of a Limited Data Set for the protocol "THYME" ("Protocol").  The data has been collected under Mayo Clinic IRB approval: #17-003030: Open Health Natural Language Processing Collaboratory.  The PI at <input type="text" class="" id="institution" name="institution" placeholder="" required> (Institution) is <input type="text" class="" id="pi-name" name="pi-name" placeholder="" required> and the PI at Mayo Clinic is Dr. H. Liu. </p>
+
     <br>
-	
+
     <p>In consideration of the foregoing and other good and valuable consideration, the receipt and sufficiency of which are hereby acknowledged, Recipient and Mayo agree as follows:</p>
-    
+
     <br>
-    
+
     <p>1 <b><u>Definitions</u></b>.  Capitalized terms used, but not otherwise defined, in this Agreement shall have the meanings given them in HIPAA. For convenience of reference, the definitions of "Individually Identifiable Health Information," "Limited Data Set," and "Protected Health Information" as of the Effective Date are as follows:</p>
 
 	<p>1.1 <b><u>"Individually Identifiable Health Information"</u></b> means information that is a subset of health information, including demographic information collected from an individual, and (i) is created or received by a healthcare provider, health plan, employer, or health care clearinghouse; and (ii) relates to the past, present, or future physical or mental health or condition of an individual; the provision of healthcare to an individual; or the past, present, or future payment for the provision of health care to an individual; and (a) that identifies the individual, or (b) with respect to which there is a reasonable basis to believe the information can be used to identify the individual.</p>
@@ -22,7 +22,7 @@
 
     <p>2 <b><u>Applicability of Terms; Conflicts.</u></b>  As of the Effective Date, this Agreement automatically amends all existing agreements between Recipient and Mayo involving the use or disclosure of a Limited Data Set for the Protocol.    In the event of any conflict or inconsistency between a provision of this Agreement and a provision of any other agreement between Recipient and Mayo regarding the Protocol, the provision of this Agreement shall control unless: (i) Mayo specifically agrees to the contrary in writing, or (ii) the provision in such other agreement establishes additional rights for Mayo or additional duties for or restrictions on Recipient with respect to a Limited Data Set, in which case the provision of such other agreement will control.</p>
 
-	<p>3 <b><u>Obligations and Activities of Recipient</u></b></p> 
+	<p>3 <b><u>Obligations and Activities of Recipient</u></b></p>
 
     <p>3.1 <b><u>Non-disclosure:</u></b>  Recipient will not use or disclose a Limited Data Set other than as permitted or required by this Agreement or as Required By Law or as otherwise authorized by Mayo.</p>
 
@@ -66,12 +66,12 @@
 
     <hr>
 
-    <h3>RECIPIENT:</h3>	
+    <h3>RECIPIENT:</h3>
 
     <br>
 
     <label class="checkbox-inline">
-        <input type="checkbox" id="i-agree" value="Yes" required> I agree to the terms and conditions above. By clicking the "I Agree" checkbox I certify that this is my legal signature.
+        <input type="checkbox" id="i-agree" name="i-agree" value="Yes" required> I agree to the terms and conditions above. By clicking the "I Agree" checkbox I certify that this is my legal signature.
     </label>
 
     <br>
@@ -79,15 +79,15 @@
 
     <div class="form-group">
         <label for="data-user-signature">Institution:</label>
-        <input type="text" class="form-control" id="recipient-institution" required>
+        <input type="text" class="form-control" id="recipient-institution" name="recipient-institution" required>
     </div>
     <div class="form-group">
         <label for="data-user-signature">By:</label>
-        <input type="text" class="form-control" id="recipient-by" required>
+        <input type="text" class="form-control" id="recipient-by" name="recipient-by" required>
     </div>
     <div class="form-group">
         <label for="data-user-signature">Its:</label>
-        <input type="text" class="form-control" id="recipient-its" required>
+        <input type="text" class="form-control" id="recipient-its" name="recipient-its" required>
     </div>
 
     <br>
@@ -98,21 +98,21 @@
 
     <div class="form-group">
         <label for="data-user-signature">Attn:</label>
-        <input type="text" class="form-control" id="recipient-attn" required>
+        <input type="text" class="form-control" id="recipient-attn" name="recipient-attn" required>
     </div>
     <div class="form-group">
         <label for="data-user-signature">Phone:</label>
-        <input type="text" class="form-control" id="recipient-phone" required>
+        <input type="text" class="form-control" id="recipient-phone" name="recipient-phone" required>
     </div>
     <div class="form-group">
         <label for="data-user-signature">Fax:</label>
-        <input type="text" class="form-control" id="recipient-fax">
+        <input type="text" class="form-control" id="recipient-fax" name="recipient-fax">
     </div>
 
     <hr>
-    
-    <h3>MAYO:</h3>	
-    <h4>MAYO CLINIC	</h4>				
+
+    <h3>MAYO:</h3>
+    <h4>MAYO CLINIC	</h4>
 
     <br>
 

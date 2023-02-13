@@ -1,23 +1,32 @@
 import logging
-
-from pyauth0jwt.auth0authenticate import user_auth_and_jwt
+from datetime import datetime
+from hypatio.auth0authenticate import user_auth_and_jwt
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 from django.db.models import F
-from django.http import HttpResponse, JsonResponse
+from django.db.models import Q
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.contrib import messages
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.views.generic.base import View
 from django.core.paginator import Paginator
+from django.urls import reverse
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from dbmi_client import fileservice
 
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_user_profile, get_distinct_countries_participating
 
-from projects.models import ChallengeTaskSubmission
+from manage.forms import NotificationForm
+from manage.models import ChallengeTaskSubmissionExport
+from manage.forms import UploadSignedAgreementFormForm
+from projects.models import AgreementForm, ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import Participant
 from projects.models import Team
@@ -25,9 +34,16 @@ from projects.models import TeamComment
 from projects.models import SignedAgreementForm
 from projects.models import HostedFile
 from projects.models import HostedFileDownload
+from projects.models import SIGNED_FORM_APPROVED
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+
+def is_ajax(request):
+    # Returns whether a request is a vanilla ajax request or not
+    return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+
 
 @method_decorator(user_auth_and_jwt, name='dispatch')
 class DataProjectListManageView(TemplateView):
@@ -56,7 +72,7 @@ class DataProjectListManageView(TemplateView):
         context = super(DataProjectListManageView, self).get_context_data(**kwargs)
 
         user_jwt = self.request.COOKIES.get("DBMI_JWT", None)
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, self.request.user.email)
+        sciauthz = SciAuthZ(user_jwt, self.request.user.email)
         projects_managed = sciauthz.get_projects_managed_by_user()
 
         context['projects'] = projects_managed
@@ -89,7 +105,7 @@ class DataProjectManageView(TemplateView):
 
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-        self.sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        self.sciauthz = SciAuthZ(user_jwt, request.user.email)
         is_manager = self.sciauthz.user_has_manage_permission(project_key)
 
         if not is_manager:
@@ -140,6 +156,9 @@ class DataProjectManageView(TemplateView):
             teams = []
             for team in self.project.team_set.all():
 
+                # Allow hiding of teams
+                team_hidden = False
+
                 team_downloads = 0
                 team_uploads = 0
 
@@ -154,13 +173,29 @@ class DataProjectManageView(TemplateView):
                     except ObjectDoesNotExist:
                         team_uploads += 0
 
-                teams.append({
-                    'team_leader': team.team_leader.email,
-                    'member_count': team.participant_set.all().count(),
-                    'status': team.status,
-                    'downloads': team_downloads,
-                    'submissions': team_uploads,
-                })
+                    # If this is a project that is using shared teams, determine if this team should be hidden or not
+                    # This is required since shared teams don't implicitly have all forms completed.
+                    if self.project.hide_incomplete_teams and self.project.teams_source and not team_hidden:
+
+                        # Get all related signed agreement forms
+                        signed_agreement_forms = SignedAgreementForm.objects.filter(
+                            Q(user=participant.user, agreement_form__in=self.project.agreement_forms.all()) &
+                            (Q(project=self.project) | Q(project__shares_agreement_forms=True))
+                        )
+
+                        # Compare number of agreement forms
+                        if len(signed_agreement_forms) < len(self.project.agreement_forms.all()):
+                            logger.debug(f"{self.project.project_key}/{team.id}/{participant.user.email}: {len(signed_agreement_forms)} SignedAgreementForms: HIDDEN")
+                            team_hidden = True
+
+                if not team_hidden:
+                    teams.append({
+                        'team_leader': team.team_leader.email,
+                        'member_count': team.participant_set.all().count(),
+                        'status': team.status,
+                        'downloads': team_downloads,
+                        'submissions': team_uploads,
+                    })
 
             context['teams'] = teams
 
@@ -186,6 +221,15 @@ class DataProjectManageView(TemplateView):
             challenge_task__in=self.project.challengetask_set.all(),
             deleted=False
         )
+
+        # Collect all submissions made for tasks related to this project.
+        for export in ChallengeTaskSubmissionExport.objects.filter(
+            data_project=self.project,
+        ).order_by("-request_date"):
+            export.download_url = fileservice.get_archivefile_proxy_url(uuid=export.uuid)
+
+            # Add it to context
+            context.setdefault('submissions_exports', []).append(export)
 
         context['num_required_forms'] = self.project.agreement_forms.count()
 
@@ -263,14 +307,27 @@ class ProjectParticipants(View):
         else:
             sort_order = ['user__email'] if order_direction == 'asc' else ['-user__email']
 
-        # Paginate participants
-        query_set = project.participant_set.filter(user__email__icontains=search).order_by(*sort_order).all() \
-            if search else project.participant_set.order_by(*sort_order).all()
-        paginator = Paginator(query_set, length)
+        # Get list of SignedAgreementForms for this project so we can hide Participants that have yet to complete at
+        # least one of the required forms
+        ready_users = [
+            s.user for s in SignedAgreementForm.objects.filter(
+                Q(agreement_form__in=project.agreement_forms.all()) &
+                (Q(project=project) | Q(project__shares_agreement_forms=True))
+            ).select_related("user")
+        ]
+        logger.debug(f"{project.project_key}: {len(ready_users)} Ready Participants")
+
+        # Set queryset
+        query_set = project.participant_set.filter(user__in=ready_users).order_by(*sort_order)
+
+        # Setup paginator
+        paginator = Paginator(
+            query_set.filter(user__email__icontains=search) if search else query_set,
+            length
+        )
 
         # Determine page index (1-index) from DT parameters
         page = start / length + 1
-        logger.debug('Participant page: {}'.format(page))
         participant_page = paginator.page(page)
 
         participants = []
@@ -291,11 +348,24 @@ class ProjectParticipants(View):
 
             # For each of the available agreement forms for this project, display only latest version completed by the user
             for agreement_form in project.agreement_forms.all():
-                signed_form = SignedAgreementForm.objects.filter(
-                    user__email=participant.user.email,
-                    project=project,
-                    agreement_form=agreement_form
-                ).last()
+
+                # Check if this project uses shared agreement forms
+                if project.shares_agreement_forms:
+
+                    # Fetch without a specific project
+                    signed_form = SignedAgreementForm.objects.filter(
+                        user__email=participant.user.email,
+                        agreement_form=agreement_form,
+                    ).last()
+
+                else:
+
+                    # Fetch only for this project
+                    signed_form = SignedAgreementForm.objects.filter(
+                        user__email=participant.user.email,
+                        project=project,
+                        agreement_form=agreement_form
+                    ).last()
 
                 if signed_form is not None:
                     signed_agreement_forms.append(signed_form)
@@ -311,7 +381,8 @@ class ProjectParticipants(View):
                     {
                         'status': f.status,
                         'id': f.id,
-                        'name': f.agreement_form.short_name
+                        'name': f.agreement_form.short_name,
+                        'project': f.project.project_key,
                     } for f in signed_agreement_forms
                 ],
                 {
@@ -334,13 +405,135 @@ class ProjectParticipants(View):
         # Build DataTables response data
         data = {
             'draw': draw,
-            'recordsTotal': project.participant_set.count(),
+            'recordsTotal': query_set.count(),
             'recordsFiltered': paginator.count,
             'data': participants,
             'error': None,
         }
 
         return JsonResponse(data=data)
+
+
+@user_auth_and_jwt
+def team_notification(request, project_key=None):
+    """
+    Manages sending notifications to team leaders
+
+    :param request: The current HTTP request
+    :type request: HttpRequest
+    """
+    # If this is a POST request we need to process the form data.
+    if request.method == 'POST':
+        logger.debug(f"Team notification: POST")
+
+        # Process the form.
+        form = NotificationForm(request.POST)
+        if form.is_valid():
+
+            # Get the project
+            project = form.cleaned_data['project']
+            team = form.cleaned_data['team']
+
+            # Form the context.
+            context = {
+                'administrator_message': form.cleaned_data['message'],
+                'project': project,
+                'team': team,
+                'site_url': settings.SITE_URL
+            }
+
+            # Send it out.
+            email_template='team_notification'
+            subject='DBMI Portal - Team Notification'
+
+            # Render templates
+            msg_html = render_to_string('email/email_team_notification.html', context)
+            msg_plain = render_to_string('email/email_team_notification.txt', context)
+
+            try:
+                msg = EmailMultiAlternatives(subject=subject,
+                                            body=msg_plain,
+                                            from_email=settings.DEFAULT_FROM_EMAIL,
+                                            to=[team.team_leader.email])
+                msg.attach_alternative(msg_html, "text/html")
+                msg.send()
+
+                # Handle outcome
+                if is_ajax(request):
+                    return HttpResponse('SUCCESS', status=200)
+                else:
+                    # Set a message.
+                    messages.success(request, 'Thanks, your notification has been sent!')
+
+            except Exception as ex:
+                logger.exception(ex, exc_info=True, extra={
+                    'email': email_template, 'extra': context
+                })
+
+                # Check how the request was made.
+                if is_ajax(request):
+                    return HttpResponse('ERROR', status=500)
+                else:
+                    messages.error(request, 'An unexpected error occurred, please try again')
+
+                    # Send them back
+                    return HttpResponseRedirect(reverse(
+                        'projects:view-project',
+                        kwargs={'project_key': form.cleaned_data['project']}
+                    ))
+        else:
+            logger.error(f"Invalid team notification form", extra={
+                'request': request, 'errors': form.errors.as_json(),
+            })
+
+            # Check how the request was made.
+            if is_ajax(request):
+                return HttpResponse(form.errors.as_json(), status=500)
+            else:
+                messages.error(request, 'The form was invalid, please try again')
+                return HttpResponseRedirect(reverse(
+                    'projects:view-project',
+                    kwargs={'project_key': form.cleaned_data['project']}
+                ))
+
+    logger.debug(f"Team notification: GET")
+
+    # If a GET (or any other method) we'll create a blank form.
+    initial = {}
+
+    # If a project key was supplied and it matches a real project, pre-populate the form with it.
+    try:
+        if project_key:
+            data_project = DataProject.objects.get(project_key=project_key)
+        else:
+            data_project = DataProject.objects.get(id=request.GET["project"])
+
+        initial['project'] = data_project
+    except ObjectDoesNotExist:
+        logger.exception(f"Could not determine project", exc_info=True, extra={
+            'request': request,
+        })
+        if is_ajax(request):
+            return HttpResponse('The project could not be determined, cannot send message.', status=500)
+        else:
+            messages.error(request, 'The project could not be determined, cannot send message.')
+
+    # Get the team
+    try:
+        team = Team.objects.get(id=request.GET["team"])
+        initial['team'] = team
+    except ObjectDoesNotExist:
+        logger.exception(f"Could not determine team leader", exc_info=True, extra={
+            'request': request,
+        })
+        if is_ajax(request):
+            return HttpResponse('The team leader could not be determined, cannot send message.', status=500)
+        else:
+            messages.error(request, 'The team leader could not be determined, cannot send message.')
+
+    # Generate and render the form.
+    form = NotificationForm(initial=initial)
+    return render(request, 'manage/notification.html', {'notification_form': form})
 
 
 @user_auth_and_jwt
@@ -352,7 +545,7 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
     user = request.user
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -386,19 +579,31 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
         else:
             user_info = None
 
-        # Make a request to DBMIAuthZ to check for this person's permissions.
-        access_granted = sciauthz.user_has_single_permission(project_key, "VIEW", email)
+        # Check if this participant has access
+        access_granted = member.permission == "VIEW"
 
         signed_agreement_forms = []
         signed_accepted_agreement_forms = 0
 
         # For each of the available agreement forms for this project, display only latest version completed by the user
         for agreement_form in project.agreement_forms.all():
-            signed_form = SignedAgreementForm.objects.filter(
-                user__email=email,
-                project=project,
-                agreement_form=agreement_form
-            ).last()
+
+            # If this project accepts agreement forms from other projects, check those
+            if project.shares_agreement_forms:
+
+                # Fetch without a specific project
+                signed_form = SignedAgreementForm.objects.filter(
+                    user__email=email,
+                    agreement_form=agreement_form,
+                ).last()
+
+            else:
+                # Fetch only for the current project
+                signed_form = SignedAgreementForm.objects.filter(
+                    user__email=email,
+                    project=project,
+                    agreement_form=agreement_form
+                ).last()
 
             if signed_form is not None:
                 signed_agreement_forms.append(signed_form)
@@ -406,6 +611,15 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
                 if signed_form.status == 'A':
                     team_accepted_forms += 1
                     signed_accepted_agreement_forms += 1
+
+            # Add internal signed agreement forms
+            for signed_agreement_form in SignedAgreementForm.objects.filter(
+                agreement_form__internal=True,
+                user__email=email,
+                project=project):
+
+                    # Add it
+                    signed_agreement_forms.append(signed_agreement_form)
 
         team_member_details.append({
             'email': email,
@@ -446,3 +660,101 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
     }
 
     return render(request, template_name, context=context)
+
+
+@method_decorator([user_auth_and_jwt], name='dispatch')
+class UploadSignedAgreementFormView(View):
+    """
+    View to upload signed agreement forms for participants.
+
+    * Requires token authentication.
+    * Only admin users are able to access this view.
+    """
+    def get(self, request, project_key, user_email, *args, **kwargs):
+        """
+        Return the upload form template
+        """
+        user = request.user
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+        sciauthz = SciAuthZ(user_jwt, user.email)
+        is_manager = sciauthz.user_has_manage_permission(project_key)
+
+        if not is_manager:
+            logger.debug('User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                email=user.email,
+                project_key=project_key
+            ))
+            return HttpResponse(403)
+
+        # Return file upload form
+        form = UploadSignedAgreementFormForm(initial={
+            "project_key": project_key,
+            "participant": user_email,
+        })
+
+        # Set context
+        context = {
+            "form": form,
+            "project_key": project_key,
+            "user_email": user_email,
+        }
+
+        # Render html
+        return render(request, "manage/upload-signed-agreement-form.html", context)
+
+    def post(self, request, project_key, user_email, *args, **kwargs):
+        """
+        Process the form
+        """
+        user = request.user
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+        sciauthz = SciAuthZ(user_jwt, user.email)
+        is_manager = sciauthz.user_has_manage_permission(project_key)
+
+        if not is_manager:
+            logger.debug('User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                email=user.email,
+                project_key=project_key
+            ))
+            return HttpResponse(403)
+
+        # Assembles the form and run validation.
+        form = UploadSignedAgreementFormForm(data=request.POST, files=request.FILES)
+        if not form.is_valid():
+            logger.warning('Form failed: {}'.format(form.errors.as_json()))
+            return HttpResponse(status=400)
+
+        logger.debug(f"[upload_signed_agreement_form] Data -> {form.cleaned_data}")
+
+        signed_agreement_form = form.cleaned_data['signed_agreement_form']
+        agreement_form = form.cleaned_data['agreement_form']
+        project_key = form.cleaned_data['project_key']
+        participant_email = form.cleaned_data['participant']
+
+        project = DataProject.objects.get(project_key=project_key)
+        participant = Participant.objects.get(project=project, user__email=participant_email)
+
+        signed_agreement_form = SignedAgreementForm(
+            user=participant.user,
+            agreement_form=agreement_form,
+            project=project,
+            date_signed=datetime.now(),
+            upload=signed_agreement_form,
+            status=SIGNED_FORM_APPROVED,
+        )
+        signed_agreement_form.save()
+
+        # Create the response.
+        response = HttpResponse(status=201)
+
+        # Setup the script run.
+        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
+            "success", "Signed agreement form successfully uploaded", "thumbs-up"
+        )
+
+        # Close the modal
+        response['X-IC-Script'] += "$('#page-modal').modal('hide');"
+
+        return response

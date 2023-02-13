@@ -1,0 +1,13 @@
+{% load projects_extras %}
+{% load tz %}
+
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+  {% for project in panel.additional_context.sub_projects %}
+      <div class="row">
+          <div class="col-md-12">
+              {% include "projects/project-blurb.html" with project=project project_counter=forloop.counter0 %}
+              <br/>
+          </div>
+      </div>
+  {% endfor %}
+</div>

@@ -1,12 +1,12 @@
-import os
 import datetime
-import furl
+from furl import furl
 import logging
 
 from django import template
 from django.conf import settings
-from django.utils.safestring import mark_safe
 from django.utils.timezone import utc
+from django.template.loader import render_to_string
+from dbmi_client.authn import login_redirect_url
 
 from hypatio.dbmiauthz_services import DBMIAuthz
 
@@ -17,18 +17,13 @@ logger = logging.getLogger(__name__)
 
 @register.filter
 def get_html_form_file_contents(form_file_path):
-
-    form_path = os.path.join(settings.STATIC_ROOT, form_file_path)
-    return open(form_path, 'r').read()
+    return render_to_string(form_file_path)
 
 @register.filter
 def get_login_url(current_uri):
 
     # Build the login URL
-    login_url = furl.furl(settings.ACCOUNT_SERVER_URL)
-
-    # Add the next URL
-    login_url.args.add('next', current_uri)
+    login_url = furl(login_redirect_url(None, next_url=current_uri))
 
     # Add project, if any
     project = getattr(settings, 'PROJECT', None)

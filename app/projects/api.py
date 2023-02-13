@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 import logging
 
-from pyauth0jwt.auth0authenticate import user_auth_and_jwt
+from hypatio.auth0authenticate import user_auth_and_jwt
 
 from django.conf import settings
 from django.contrib import messages
@@ -37,7 +37,7 @@ from projects.models import SignedAgreementForm
 from projects.models import Team
 from projects.models import SIGNED_FORM_REJECTED
 from projects.models import HostedFileSet
-
+from projects import models
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 class HostedFileSetAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             return HostedFileSet.objects.none()
 
         queryset = HostedFileSet.objects.all()
@@ -214,7 +214,7 @@ def leave_team(request):
 
     # TODO user does not have permissions to remove their view permission (whether or not it exists)
     # Remove VIEW permissions on the DataProject
-    # sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+    # sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
     # sciauthz.remove_view_permission(project_key, request.user.email)
 
     # TODO remove team leader's scireg permissions
@@ -296,7 +296,7 @@ def join_team(request):
                                    extra=context)
 
     # Create record to allow leader access to profile.
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+    sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
     sciauthz.create_profile_permission(team_leader, project_key)
 
     return redirect('/projects/' + request.POST.get('project_key') + '/')
@@ -396,17 +396,32 @@ def upload_challengetasksubmission_file(request):
         # If the project requires authorization to access, check for permissions before allowing submission
         if project.requires_authorization:
 
-            # Check that user has permissions to be submitting files for this project.
-            user_jwt = request.COOKIES.get("DBMI_JWT", None)
-            sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+            # Get their permission for this project
+            has_permission = False
+            try:
+                participant = Participant.objects.get(user=request.user, project=project)
+                has_permission = participant.permission == "VIEW"
+                if not has_permission:
+                    logger.debug(f"[{project_key}][{request.user.email}] No  VIEW access for user")
+            except ObjectDoesNotExist as e:
+                logger.exception(f"Participant does not exist", exc_info=False, extra={
+                    "request": request, "project": project_key, "user": request.user,
+                })
 
-            if not sciauthz.user_has_single_permission(project_key, "VIEW", request.user.email):
-                logger.debug("[upload_challengetasksubmission_file] - No Access for user " + request.user.email)
-                return HttpResponse("You do not have access to upload this file.", status=403)
+            # Check AuthZ
+            if not has_permission:
+                logger.warning(
+                    f"[{project_key}][{request.user.email}] Local permission "
+                    f"does not exist, checking DBMI AuthZ for "
+                )
 
-        if filename.split(".")[-1] != "zip":
-            logger.error('Not a zip file.')
-            return HttpResponse("Only .zip files are accepted", status=400)
+                # Check that user has permissions to be submitting files for this project.
+                user_jwt = request.COOKIES.get("DBMI_JWT", None)
+                sciauthz = SciAuthZ(user_jwt, request.user.email)
+
+                if not sciauthz.user_has_single_permission(project_key, "VIEW", request.user.email):
+                    logger.warning(f"[{project_key}][{request.user.email}] No Access")
+                    return HttpResponse("You do not have access to upload this file.", status=403)
 
         try:
             task = ChallengeTask.objects.get(id=task_id)
@@ -486,7 +501,8 @@ def upload_challengetasksubmission_file(request):
                 participant=participant,
                 uuid=data['uuid'],
                 location=data['location'],
-                submission_info=submission_info_json
+                submission_info=submission_info_json,
+                file_type=task.submission_file_type,
             )
 
             # Send an email notification to the submitters.
@@ -524,7 +540,7 @@ def delete_challengetasksubmission(request):
 
         # Check that user has permissions to be viewing files for this project.
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        sciauthz = SciAuthZ(user_jwt, request.user.email)
 
         submission_uuid = request.POST.get('submission_uuid')
         submission = ChallengeTaskSubmission.objects.get(uuid=submission_uuid)
@@ -632,6 +648,69 @@ def save_signed_agreement_form(request):
     )
     signed_agreement_form.save()
 
+    # Persist fields to JSON field on object
+    try:
+        # Set fields that we do not need to persist here
+        exclusions = [
+            "csrfmiddlewaretoken", "project_key", "agreement_form_id",
+            "agreement_text"
+        ]
+
+        # Save form fields
+        fields = {k:v for k, v in request.POST.items() if k.lower() not in exclusions}
+        signed_agreement_form.fields = fields
+
+        # Save
+        signed_agreement_form.save()
+
+    except Exception as e:
+        logger.exception(
+            f"HYP/Projects/API: Fields error: {e}",
+            exc_info=True,
+            extra={"form": agreement_form.short_name, "fields": request.POST,}
+        )
+
+    # TODO: The following behavior should be removed as soon as it is possible
+
+    # Create a row for storing fields
+    model_name = f"{agreement_form.short_name.upper()}SignedAgreementFormFields"
+    if not hasattr(models, model_name):
+        logger.error(
+            f"HYP/Projects/API: Cannot persist fields for signed agreement "
+            f"form: {agreement_form.short_name.upper()}"
+            )
+
+    else:
+        try:
+            # Create the object
+            model_class = getattr(models, model_name)
+            signed_agreement_form_fields = model_class(
+                signed_agreement_form=signed_agreement_form
+            )
+
+            # Save form fields
+            for key, data in request.POST.items():
+
+                # Replace dashes with underscore
+                _field = key.replace("-", "_")
+
+                # Check if field on model
+                if hasattr(signed_agreement_form_fields, _field):
+
+                    # Set it
+                    setattr(signed_agreement_form_fields, _field, data)
+
+                else:
+                    logger.warning(f"HYP/Projects/API: '{model_name}' unhandled field: '{_field}'")
+
+            # Save
+            signed_agreement_form_fields.save()
+        except Exception as e:
+            logger.exception(
+                f"HYP/Projects/API: Fields error: {e}",
+                exc_info=True,
+                extra={"form": agreement_form.short_name, "model": model_name})
+
     return HttpResponse(status=200)
 
 @user_auth_and_jwt
@@ -720,3 +799,46 @@ def submit_user_permission_request(request):
         logger.exception(e)
 
     return HttpResponse(200)
+
+
+
+@user_auth_and_jwt
+def upload_signed_agreement_form(request):
+    """
+    An HTTP POST endpoint that takes the contents of an agreement form that a
+    user has submitted and saves it to the database.
+    """
+    logger.debug(f"[upload_signed_agreement_form]: POST -> {request.POST}")
+    logger.debug(f"[upload_signed_agreement_form]: FILES -> {request.FILES}")
+
+    upload = request.FILES['upload']
+    agreement_form_id = request.POST['agreement_form_id']
+    project_key = request.POST['project_key']
+    agreement_text = request.POST['agreement_text']
+
+    agreement_form = AgreementForm.objects.get(id=agreement_form_id)
+    project = DataProject.objects.get(project_key=project_key)
+
+    # Only create a new record if one does not already exist in a state other than Rejected.
+    existing_signed_form = SignedAgreementForm.objects.filter(
+        user=request.user,
+        agreement_form=agreement_form,
+        project=project,
+    ).exclude(
+        status=SIGNED_FORM_REJECTED
+    )
+
+    if existing_signed_form.exists():
+        logger.debug('%s already has signed the agreement form "%s" for project "%s".', request.user.email, agreement_form.name, project.project_key)
+        return HttpResponse(status=400)
+
+    signed_agreement_form = SignedAgreementForm(
+        user=request.user,
+        agreement_form=agreement_form,
+        project=project,
+        date_signed=datetime.now(),
+        upload=upload
+    )
+    signed_agreement_form.save()
+
+    return HttpResponse(status=200)

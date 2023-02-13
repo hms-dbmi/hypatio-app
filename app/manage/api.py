@@ -5,15 +5,21 @@ import os
 import shutil
 import uuid
 import zipfile
+import magic
+from urllib.parse import urlparse
+import urllib
+from django_q.tasks import async_task
+from dbmi_client import fileservice
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.template.loader import render_to_string
+from django.core.files.storage import default_storage
 
-from pyauth0jwt.auth0authenticate import user_auth_and_jwt
+from hypatio.auth0authenticate import user_auth_and_jwt
 
 from contact.views import email_send
 from hypatio.sciauthz_services import SciAuthZ
@@ -24,6 +30,7 @@ from manage.forms import HostSubmissionForm
 from manage.utils import zip_submission_file
 from projects.templatetags import projects_extras
 
+from manage.models import ChallengeTaskSubmissionExport
 from projects.models import AgreementForm
 from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
@@ -32,6 +39,8 @@ from projects.models import Participant
 from projects.models import SignedAgreementForm
 from projects.models import Team
 from projects.models import TeamComment
+from projects.serializers import HostedFileSerializer, HostedFileDownloadSerializer
+from projects.models import AGREEMENT_FORM_TYPE_MODEL, AGREEMENT_FORM_TYPE_FILE
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -48,7 +57,7 @@ def set_dataproject_registration_status(request):
     project_key = request.POST.get("project_key")
     project = get_object_or_404(DataProject, project_key=project_key)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -92,7 +101,7 @@ def set_dataproject_visible_status(request):
     project_key = request.POST.get("project_key")
     project = get_object_or_404(DataProject, project_key=project_key)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -136,7 +145,7 @@ def set_dataproject_details(request):
     project_key = request.POST.get("project_key")
     project = get_object_or_404(DataProject, project_key=project_key)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -191,7 +200,7 @@ def get_static_agreement_form_html(request):
     project_key = request.GET.get("project-key")
     project = get_object_or_404(DataProject, project_key=project_key)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -210,10 +219,22 @@ def get_static_agreement_form_html(request):
     except ObjectDoesNotExist:
         return HttpResponse("Error: form not found.", status=404)
 
-    if agreement_form.form_file_path is None or agreement_form.form_file_path == "":
-        return HttpResponse("Error: form file path is missing.", status=400)
+    if agreement_form.type == AGREEMENT_FORM_TYPE_MODEL:
+        if agreement_form.content is None or agreement_form.content == "":
+            return HttpResponse("Error: form content is missing.", status=400)
 
-    form_contents = projects_extras.get_html_form_file_contents(agreement_form.form_file_path)
+        form_contents = agreement_form.content
+    elif agreement_form.type == AGREEMENT_FORM_TYPE_FILE:
+        if agreement_form.content is None or agreement_form.content == "":
+            return HttpResponse("Error: form content is missing.", status=400)
+
+        form_contents = agreement_form.upload
+    else:
+        if agreement_form.form_file_path is None or agreement_form.form_file_path == "":
+            return HttpResponse("Error: form file path is missing.", status=400)
+
+        form_contents = projects_extras.get_html_form_file_contents(agreement_form.form_file_path)
+
     return HttpResponse(form_contents)
 
 @user_auth_and_jwt
@@ -229,7 +250,7 @@ def get_hosted_file_edit_form(request):
     project_key = request.GET.get("project-key")
     project = get_object_or_404(DataProject, project_key=project_key)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -272,12 +293,12 @@ def get_hosted_file_logs(request):
     project_key = request.GET.get("project-key")
     project = get_object_or_404(DataProject, project_key=project_key)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
         logger.debug(
-            '[HYPATIO][DEBUG][get_static_agreement_form_html] User {email} does not have MANAGE permissions for item {project_key}.'.format(
+            '[HYPATIO][DEBUG][get_hosted_file_logs] User {email} does not have MANAGE permissions for item {project_key}.'.format(
                 email=user.email,
                 project_key=project_key
             )
@@ -287,15 +308,30 @@ def get_hosted_file_logs(request):
     hosted_file_uuid = request.GET.get("hosted-file-uuid")
 
     try:
-        hosted_file = HostedFile.objects.get(project=project, uuid=hosted_file_uuid).select_related()
+        hosted_file = HostedFile.objects.get(project=project, uuid=hosted_file_uuid)
     except ObjectDoesNotExist:
+        logger.debug(
+            '[HYPATIO][DEBUG][get_hosted_file_logs] User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                email=user.email,
+                project_key=project_key
+            )
+        )
         return HttpResponse("Error: file not found.", status=404)
+    except Exception as e:
+        logger.exception(
+            '[HYPATIO][EXCEPTION][get_hosted_file_logs] Could not perform fetch for '
+            'file download logs: {e}.'.format(e=e), exc_info=True, extra={
+                'user': user.email, 'project': project_key, 'hosted_file': hosted_file_uuid
+            }
+        )
+        return HttpResponse("Error: fetch failed with error", status=500)
 
     response_html = render_to_string(
         'manage/hosted-file-logs.html',
         context={
-            'downloads': hosted_file.hostedfiledownload_set,
-            'file': hosted_file
+            'downloads': [HostedFileDownloadSerializer(downloads).data for downloads in
+                          hosted_file.hostedfiledownload_set.all().order_by('download_date')],
+            'file': HostedFileSerializer(hosted_file).data,
         },
         request=request
     )
@@ -314,7 +350,7 @@ def process_hosted_file_edit_form_submission(request):
     project_id = request.POST.get("project")
     project = get_object_or_404(DataProject, id=project_id)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
     if not is_manager:
@@ -357,7 +393,7 @@ def download_signed_form(request):
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
     project = signed_form.project
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
     if not is_manager:
@@ -369,13 +405,63 @@ def download_signed_form(request):
         )
         return HttpResponse("Error: permissions.", status=403)
 
+    # Set details of the file download
     affected_user = signed_form.user
     date_as_string = datetime.strftime(signed_form.date_signed, "%Y%m%d-%H%M")
 
-    filename = affected_user.email + '-' + signed_form.agreement_form.short_name + '-' + date_as_string + '.txt'
-    response = HttpResponse(signed_form.agreement_text, content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; filename={0}'.format(filename)
+    # Check type
+    if signed_form.agreement_form.type == AGREEMENT_FORM_TYPE_FILE:
+
+        # Download the file
+        file = signed_form.upload.open(mode="rb").read()
+
+        # Determine MIME
+        mime = magic.from_buffer(file, mime=True)
+
+        # Get the signed URL for the file in S3
+        filename = signed_form.upload.name
+        response = HttpResponse(file, content_type=mime)
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+
+    else:
+
+        filename = affected_user.email + '-' + signed_form.agreement_form.short_name + '-' + date_as_string + '.txt'
+        response = HttpResponse(signed_form.agreement_text, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+
     return response
+
+@user_auth_and_jwt
+def get_signed_form_status(request):
+    """
+    An HTTP POST endpoint for fetching a signed form's status.
+    """
+    form_id = request.POST.get("form_id")
+
+    logger.debug(f'[get_signed_form_status] {request.user.email} -> {form_id}')
+
+    # Get the form
+    signed_form = get_object_or_404(SignedAgreementForm, id=form_id)
+
+    # Confirm permissions on project form was signed for
+    user = request.user
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    project = signed_form.project
+
+    sciauthz = SciAuthZ(user_jwt, user.email)
+    is_manager = sciauthz.user_has_manage_permission(project.project_key)
+
+    if not is_manager:
+        logger.debug(
+            '[HYPATIO][DEBUG][change_signed_form_status] User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                email=user.email,
+                project_key=project.project_key
+            )
+        )
+        return HttpResponse("Error: permissions.", status=403)
+
+    return HttpResponse(signed_form.status, status=200)
+
 
 @user_auth_and_jwt
 def change_signed_form_status(request):
@@ -396,7 +482,7 @@ def change_signed_form_status(request):
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
     project = signed_form.project
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
     if not is_manager:
@@ -442,8 +528,12 @@ def change_signed_form_status(request):
             team.save()
 
             for member in team.participant_set.all():
-                sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+                sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
                 sciauthz.remove_view_permission(signed_form.project.project_key, member.user.email)
+
+                # Remove their VIEW permission
+                member.permission = None
+                member.save()
 
             logger.debug('[HYPATIO][change_signed_form_status] Emailing the whole team that their status has been moved to Ready because someone has a pending form')
 
@@ -483,7 +573,7 @@ def save_team_comment(request):
     user = request.user
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
     if not is_manager:
@@ -519,7 +609,7 @@ def set_team_status(request):
     user = request.user
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
     logger.debug(
@@ -562,7 +652,7 @@ def set_team_status(request):
     # If setting to Active, grant each team member access permissions.
     if status == "active":
         for member in team.participant_set.all():
-            sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+            sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
             sciauthz.create_view_permission(project_key, member.user.email)
 
             # Add permission to Participant
@@ -572,7 +662,7 @@ def set_team_status(request):
     # If setting to Deactivated, revoke each team member's permissions.
     elif status == "deactivated":
         for member in team.participant_set.all():
-            sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+            sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
             sciauthz.remove_view_permission(project_key, member.user.email)
 
             # Remove permission from Participant
@@ -617,7 +707,7 @@ def delete_team(request):
     user = request.user
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
     if not is_manager:
@@ -635,8 +725,12 @@ def delete_team(request):
 
     # First revoke all VIEW permissions
     for member in team.participant_set.all():
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, request.COOKIES.get("DBMI_JWT", None), request.user.email)
+        sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
         sciauthz.remove_view_permission(project_key, member.user.email)
+
+        # Remove permission from Participant
+        member.permission = None
+        member.save()
 
     logger.debug('[HYPATIO][delete_team] Sending a notification to team members.')
 
@@ -675,7 +769,7 @@ def download_team_submissions(request, project_key, team_leader_email):
 
         # Check permissions in SciAuthZ.
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        sciauthz = SciAuthZ(user_jwt, request.user.email)
         is_manager = sciauthz.user_has_manage_permission(project_key)
 
         if not is_manager:
@@ -697,7 +791,7 @@ def download_team_submissions(request, project_key, team_leader_email):
 
         # For each submission, create a zip file and add the path to the list of zip files.
         for submission in submissions:
-            zip_file_path = zip_submission_file(submission, request)
+            zip_file_path = zip_submission_file(submission, request.user.email, request)
             zipped_submissions_paths.append(zip_file_path)
 
         # Create a directory to store the final encompassing zip file.
@@ -740,7 +834,7 @@ def download_submission(request, fileservice_uuid):
 
         # Check permissions in SciAuthZ.
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        sciauthz = SciAuthZ(user_jwt, request.user.email)
         is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
         if not is_manager:
@@ -748,7 +842,7 @@ def download_submission(request, fileservice_uuid):
             return HttpResponse("You do not have access to download this file.", status=403)
 
         # Download the submission file from fileservice and zip it up with the info json.
-        zip_file_path = zip_submission_file(submission, request)
+        zip_file_path = zip_submission_file(submission, request.user.email, request)
         zip_file_name = os.path.basename(zip_file_path)
 
         # Prepare the zip file to be served.
@@ -758,6 +852,70 @@ def download_submission(request, fileservice_uuid):
 
         # Delete the directory containing the zip file.
         shutil.rmtree(os.path.dirname(os.path.realpath((zip_file_path))))
+
+        return response
+
+
+@user_auth_and_jwt
+def export_submissions(request, project_key):
+    """
+    An HTTP GET endpoint that allows a user to download a ChallengeTaskSubmission's
+    file from AWS/fileservice.
+    """
+
+    if request.method == "GET":
+
+        # Check permissions in SciAuthZ.
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+        sciauthz = SciAuthZ(user_jwt, request.user.email)
+        is_manager = sciauthz.user_has_manage_permission(project_key)
+
+        if not is_manager:
+            logger.debug("[download_team_submissions] - No Access for user " + request.user.email)
+            return HttpResponse("You do not have access to download this file.", status=403)
+
+        project = get_object_or_404(DataProject, project_key=project_key)
+
+        # Run the task
+        async_task('manage.tasks.export_task_submissions', project.id, request.user.email)
+
+        # Prepare the zip file to be served.
+        return HttpResponse(status=201)
+
+
+@user_auth_and_jwt
+def download_submissions_export(request, project_key, fileservice_uuid):
+    """
+    An HTTP GET endpoint that allows a user to download a ChallengeTask's
+    submissions export file from AWS/fileservice.
+    """
+    if request.method == "GET":
+
+        # Check permissions in SciAuthZ.
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+        sciauthz = SciAuthZ(user_jwt, request.user.email)
+        is_manager = sciauthz.user_has_manage_permission(project_key)
+
+        if not is_manager:
+            logger.debug("[download_submissions_export] - No Access for user " + request.user.email)
+            return HttpResponse("You do not have access to download this file.", status=403)
+
+        # Get filename
+        filename = f"{project_key}_export_{fileservice_uuid}.zip"
+
+        # Get the url
+        url = fileservice.get_archivefile_download_url(fileservice_uuid)
+
+        # Prepare the parts
+        protocol = urlparse(url).scheme
+        path = urllib.parse.quote_plus(url.replace(protocol + '://', ''))
+
+        # Let NGINX handle it
+        response = HttpResponse()
+        response['X-Accel-Redirect'] = '/proxy/' + protocol + '/' + path
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+
+        logger.debug(f'Sending user to S3 proxy: {response["X-Accel-Redirect"]}')
 
         return response
 
@@ -776,7 +934,7 @@ def host_submission(request, fileservice_uuid):
         submission = get_object_or_404(ChallengeTaskSubmission, uuid=fileservice_uuid)
         project = submission.challenge_task.data_project
 
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+        sciauthz = SciAuthZ(user_jwt, user.email)
         is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
         if not is_manager:
@@ -828,7 +986,7 @@ def host_submission(request, fileservice_uuid):
         user = request.user
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+        sciauthz = SciAuthZ(user_jwt, user.email)
         is_manager = sciauthz.user_has_manage_permission(project.project_key)
 
         if not is_manager:
@@ -883,7 +1041,7 @@ def download_email_list(request):
 
     # Check Permissions in SciAuthZ
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    sciauthz = SciAuthZ(user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -955,7 +1113,7 @@ def grant_view_permission(request, project_key, user_email):
 
     # Check Permissions in SciAuthZ
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    sciauthz = SciAuthZ(user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     logger.debug(
@@ -1024,7 +1182,7 @@ def remove_view_permission(request, project_key, user_email):
 
     # Check Permissions in SciAuthZ
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    sciauthz = SciAuthZ(user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     logger.debug(
@@ -1074,7 +1232,7 @@ def sync_view_permissions(request, project_key):
 
     # Check Permissions in SciAuthZ
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+    sciauthz = SciAuthZ(user_jwt, request.user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     logger.debug(
@@ -1104,12 +1262,6 @@ def sync_view_permissions(request, project_key):
 
             # Set it
             participant.permission = 'VIEW'
-            participant.save()
-
-        elif participant.user.email.lower() not in permitted_emails:
-
-            # Clear it
-            participant.permission = None
             participant.save()
 
     return HttpResponse(status=200)
