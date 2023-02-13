@@ -1,41 +1,50 @@
-FROM python:3.6-alpine3.8 AS builder
+FROM hmsdbmitc/dbmisvc:debian11-slim-python3.10-0.5.0 AS builder
 
-# Install dependencies
-RUN apk add --update \
-    build-base \
-    g++ \
-    libffi-dev \
-    mariadb-dev \
-    jpeg-dev \
-    zlib-dev
-
-# Add requirements
-ADD app/requirements.txt /requirements.txt
-
-# Install Python packages
-RUN pip install -r /requirements.txt
-
-FROM hmsdbmitc/dbmisvc:3.6-alpine
-
-RUN apk add --no-cache --update \
-    bash \
-    nginx \
-    curl \
-    openssl \
-    jq \
-    mariadb-connector-c \
-    jpeg-dev \
-    zlib-dev \
-  && rm -rf /var/cache/apk/*
-
-# Copy pip packages from builder
-COPY --from=builder /root/.cache /root/.cache
+# Install requirements
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        bzip2 \
+        gcc \
+        default-libmysqlclient-dev \
+        libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Add requirements
-ADD app/requirements.txt /requirements.txt
+ADD requirements.* /
 
-# Install Python packages
-RUN pip install -r /requirements.txt
+# Build Python wheels with hash checking
+RUN pip install -U wheel \
+    && pip wheel -r /requirements.txt \
+        --wheel-dir=/root/wheels
+
+FROM hmsdbmitc/dbmisvc:debian11-slim-python3.10-0.5.0
+
+# Copy Python wheels from builder
+COPY --from=builder /root/wheels /root/wheels
+
+# Install requirements
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        default-libmysqlclient-dev \
+        libmagic1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add requirements files
+ADD requirements.* /
+
+# Install Python packages from wheels
+RUN pip install --no-index \
+        --find-links=/root/wheels \
+        --force-reinstall \
+        # Use requirements without hashes to allow using wheels.
+        # For some reason the hashes of the wheels change between stages
+        # and Pip errors out on the mismatches.
+        -r /requirements.in
+
+# Setup entry scripts
+ADD docker-entrypoint-init.d/* /docker-entrypoint-init.d/
 
 # Copy app source
 COPY /app /app
@@ -71,3 +80,7 @@ ENV DBMI_APP_STATIC_ROOT=/app/assets
 ENV DBMI_HEALTHCHECK=true
 ENV DBMI_HEALTHCHECK_PATH=/healthcheck
 ENV DBMI_APP_HEALTHCHECK_PATH=/healthcheck
+
+# File proxy
+ENV DBMI_FILE_PROXY=true
+ENV DBMI_FILE_PROXY_PATH=/proxy

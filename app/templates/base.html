@@ -8,6 +8,7 @@
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="google-site-verification" content="OdYYzhkJpqgioUekvMbDvbyW6spxovdO_jmqVkiKVDE" />
 
         <!-- Global site tag (gtag.js) - Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=UA-70908320-25"></script>
@@ -36,7 +37,7 @@
 
         <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/vnd.microsoft.icon"/>
 
-        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) --> 
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
         <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'plugins/jquery/jquery-ui.js' %}"></script>
 
@@ -45,11 +46,11 @@
         <script type='text/javascript' src="{% static 'js/popper.min.js' %}"></script>
         <script type='text/javascript' src="{% static 'plugins/bootstrap-notify/bootstrap-notify.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'plugins/intercooler/intercooler.min.js' %}"></script>
-        
+
         <title>{% block tab_name %}DBMI Portal{% endblock %}</title>
 
         <script type="application/javascript">
-            
+
             function notify(type, message, icon) {
                 $.notify({
                     // options
@@ -79,28 +80,28 @@
                     }
                 });
             }
-    
+
             $( document ).ready(function() {
                 $('.collapse').on('show.bs.collapse', function() {
                     var icon = $( this ).closest('.panel-default' ).find( '.step-icon' )[0]
-    
+
                     // Find the control.
                     $( icon ).addClass('glyphicon-collapse-up').removeClass('glyphicon-collapse-down');
                 });
-    
+
                 $('.collapse').on('hide.bs.collapse', function() {
                     var icon = $( this ).closest('.panel-default' ).find( '.step-icon' )[0]
-    
+
                     // Check if completed.
                     var collapsedClass = 'glyphicon-collapse-down'
                     if( $( icon ).hasClass('filled_out_already') ) {
                         collapsedClass = 'glyphicon-check'
                     }
-    
+
                     // Find the control.
                     $( icon ).addClass(collapsedClass).removeClass('glyphicon-collapse-up');
                 });
-    
+
                 // AJAX for posting
                 $(".contact-form-button").on('click', function () {
 
@@ -123,7 +124,7 @@
                     });
                     return false;
                 });
-    
+
                 $('#contact-form-modal').on('submit', '#contact-form', function() {
                     $.ajax({
                         url : "/contact/contact_form/",
@@ -198,26 +199,24 @@
                 <div class="navbar-header"><a href="/" class="navbar-brand">DBMI Data Portal</a>
                     <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
                 </div>
-                
+
                 <div class="navbar-collapse collapse" id="navbar-main">
                     <ul class="nav navbar-nav">
-                        
+
                         {% url 'index' as index_url %}
                         <li class="nav-item{% if request.path == index_url %} active{% endif %}"><a class="nav-link" href="{{ index_url }}">Home</a></li>
-                        
-                        {% url 'data-sets' as data_sets_url %}
-                        <li class="nav-item{% if request.path == data_sets_url %} active{% endif %}"><a class="nav-link" href="{{ data_sets_url }}">Data Sets</a></li>
+
+                        {% url 'projects:view-project' 'n2c2-nlp' as data_sets_url %}
+                        <li class="nav-item{% if request.path == data_sets_url %} active{% endif %}"><a class="nav-link" href="{{ data_sets_url }}">n2c2 Data Sets</a></li>
 
                         {% url 'data-challenges' as data_challenges_url %}
-                        <li class="nav-item{% if request.path == data_challenges_url %} active{% endif %}"><a class="nav-link" href="{{ data_challenges_url }}">Data Challenges</a></li>
-
-                        {% url 'software-projects' as software_projects_url %}
-                        <li class="nav-item{% if request.path == software_projects_url %} active{% endif %}"><a class="nav-link" href="{{ software_projects_url }}">Software</a></li>
+                        <li class="nav-item{% if request.path == data_challenges_url %} active{% endif %}"><a class="nav-link" href="{{ data_challenges_url }}">n2c2 Challenges</a></li>
 
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="download">Contact <span class="caret"></span></a>
                             <ul class="dropdown-menu" aria-labelledby="download">
-                                <li><a class="nav-link" href="https://dbmi.hms.harvard.edu/" target="_blank">Visit the main DBMI website <span class="fas fa-sm fa-external-link"></span></a></li>
+                                <li><a class="nav-link" href="https://n2c2.dbmi.hms.harvard.edu/" target="_blank">n2c2 website <span class="fas fa-sm fa-external-link"></span></a></li>
+                                <li><a class="nav-link" href="https://dbmi.hms.harvard.edu/" target="_blank">DBMI website <span class="fas fa-sm fa-external-link"></span></a></li>
                                 <li><a class="nav-link contact-form-button" href="#">Email us <span class="fas fa-sm fa-envelope"></span></a></li>
                             </ul>
                         </li>
@@ -228,12 +227,12 @@
                                 <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="download">{{ request.user.email }}<span class="caret"></span></a>
                                 <ul class="dropdown-menu" aria-labelledby="downloadn">
                                     <li><a class="nav-link" href="{% url 'profile:profile' %}">Profile <span class="fas fa-sm fa-user"></span></a></li>
-                                    
+
                                     {% is_project_manager request as is_manager %}
                                     {% if is_manager %}
                                         <li><a class="nav-link" href="{% url 'manage:manage-projects' %}">Manage Projects</a></li>
                                     {% endif %}
-                                    
+
                                     <li><a class="nav-link" href="{% url 'profile:signout' %}">Sign Out</a></li>
                                 </ul>
                             </li>
@@ -244,7 +243,7 @@
                 </div>
             </div>
         </div>
-    
+
         {% block content %}
         {% endblock %}
 

@@ -1,10 +1,11 @@
 import logging
 
-from pyauth0jwt.auth0authenticate import public_user_auth_and_jwt
+from hypatio.auth0authenticate import public_user_auth_and_jwt
 
 from contact.forms import ContactForm
 
 from projects.models import DataProject
+from manage.views import is_ajax
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
@@ -57,7 +58,7 @@ def contact_form(request, project_key=None):
                                  extra=context)
 
             # Check how the request was made.
-            if request.is_ajax():
+            if is_ajax(request):
                 return HttpResponse('SUCCESS', status=200) if success else HttpResponse('ERROR', status=500)
             else:
                 if success:
@@ -65,16 +66,22 @@ def contact_form(request, project_key=None):
                     messages.success(request, 'Thanks, your message has been submitted!')
                 else:
                     messages.error(request, 'An unexpected error occurred, please try again')
-                return HttpResponseRedirect(reverse('dashboard:dashboard'))
+                return HttpResponseRedirect(reverse(
+                    'projects:view-project',
+                    kwargs={'project_key': form.cleaned_data['project']}
+                ))
         else:
             logger.error("[HYPATIO][ERROR][contact_form] Form is invalid! - " + str(request.user.id))
 
             # Check how the request was made.
-            if request.is_ajax():
+            if is_ajax(request):
                 return HttpResponse('INVALID', status=500)
             else:
                 messages.error(request, 'An unexpected error occurred, please try again')
-                return HttpResponseRedirect(reverse('dashboard:dashboard'))
+                return HttpResponseRedirect(reverse(
+                    'projects:view-project',
+                    kwargs={'project_key': form.cleaned_data['project']}
+                ))
 
     # If a GET (or any other method) we'll create a blank form.
     initial = {}
@@ -114,7 +121,9 @@ def email_send(subject=None, recipients=None, email_template=None, extra=None):
         msg.attach_alternative(msg_html, "text/html")
         msg.send()
     except Exception as ex:
-        print(ex)
+        logger.exception(ex, exc_info=True, extra={
+            'email': email_template, 'extra': extra
+        })
         sent_without_error = False
 
     logger.debug("[HYPATIO][DEBUG][email_send] E-Mail Status - " + str(sent_without_error))

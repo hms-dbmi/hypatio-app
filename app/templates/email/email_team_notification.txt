@@ -1,0 +1,8 @@
+This is a notification that a {{ project.name }} challenge administrator has a message for your team.
+
+"{{ administrator_message }}"
+
+You can use the following link to return to the {{ project.name }} challenge page:
+{{ site_url }}projects/{{ project.project_key }}/
+
+Thank you.

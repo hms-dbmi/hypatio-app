@@ -21,10 +21,14 @@ def check_fileservice(sender, **kwargs):
 
 class ProjectsConfig(AppConfig):
     name = 'projects'
+    default_auto_field = 'django.db.models.BigAutoField'
 
     def ready(self):
         """
         Run any one-time only startup routines here
         """
+        # Import signals
+        import projects.signals
+
         # Check Fileservice groups once
         post_migrate.connect(check_fileservice, sender=self)

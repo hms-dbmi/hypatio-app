@@ -12,11 +12,10 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 import sys
+import logging
 
 from os.path import normpath, join, dirname, abspath
-from django.utils.crypto import get_random_string
-
-chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+from dbmi_client import environment
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,14 +24,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", get_random_string(50, chars))
+SECRET_KEY = environment.get_str("SECRET_KEY", required=True)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DJANGO_DEBUG", False)
+DEBUG = environment.get_bool("DJANGO_DEBUG", default=False)
 
 PROJECT = 'hypatio'
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(',')
+ALLOWED_HOSTS = environment.get_list("ALLOWED_HOSTS", required=True)
 
 # Application definition
 
@@ -48,24 +47,27 @@ INSTALLED_APPS = [
     'jquery',
     'bootstrap3',
     'contact',
+    'manage',
     'django_countries',
     'profile',
     'projects',
-    'pyauth0jwt',
     'health_check',
     'raven.contrib.django.raven_compat',
     'bootstrap_datepicker_plus',
+    'storages',
+    'django_jsonfield_backport',
+    'django_q',
 ]
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'hypatio.middleware.XRobotsTagMiddleware',
 ]
 
 ROOT_URLCONF = 'hypatio.urls'
@@ -73,7 +75,10 @@ ROOT_URLCONF = 'hypatio.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [normpath(join(BASE_DIR, 'templates'))],
+        'DIRS': [
+            normpath(join(BASE_DIR, 'templates')),
+            normpath(join(dirname(dirname(abspath(__file__))), 'assets')),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -96,10 +101,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hypatio',
-        'USER': os.environ.get("MYSQL_USERNAME"),
-        'PASSWORD': os.environ.get("MYSQL_PASSWORD"),
-        'HOST': os.environ.get("MYSQL_HOST"),
-        'PORT': os.environ.get("MYSQL_PORT"),
+        'USER': environment.get_str("MYSQL_USERNAME", default='hypatio'),
+        'PASSWORD': environment.get_str("MYSQL_PASSWORD", required=True),
+        'HOST': environment.get_str("MYSQL_HOST", required=True),
+        'PORT': environment.get_str("MYSQL_PORT", '3306'),
     }
 }
 
@@ -121,26 +126,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-SITE_URL = os.environ.get("SITE_URL")
+SITE_URL = environment.get_str("SITE_URL", required=True)
 
-AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN")
-AUTH0_CLIENT_ID_LIST = os.environ.get("AUTH0_CLIENT_ID_LIST","").split(",")
-AUTH0_SECRET = os.environ.get("AUTH0_SECRET")
-AUTH0_SUCCESS_URL = os.environ.get("AUTH0_SUCCESS_URL")
-AUTH0_LOGOUT_URL = os.environ.get("AUTH0_LOGOUT_URL","")
-
-AUTHENTICATION_BACKENDS = ['pyauth0jwt.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend']
-
-AUTHENTICATION_LOGIN_URL = os.environ.get("ACCOUNT_SERVER_URL")
-ACCOUNT_SERVER_URL = os.environ.get("ACCOUNT_SERVER_URL")
-SCIREG_SERVER_URL = os.environ.get("SCIREG_SERVER_URL", "")
-AUTHZ_BASE = os.environ.get("AUTHZ_BASE", "")
-
-USER_PERMISSIONS_URL = AUTHZ_BASE + "/user_permission/"
-
-SCIREG_REGISTRATION_URL = SCIREG_SERVER_URL + "/api/register/"
-
-COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN")
+AUTHENTICATION_BACKENDS = ['hypatio.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend']
 
 SSL_SETTING = "https"
 VERIFY_REQUESTS = True
@@ -148,16 +136,16 @@ VERIFY_REQUESTS = True
 CONTACT_FORM_RECIPIENTS="dbmi_tech_core@hms.harvard.edu"
 DEFAULT_FROM_EMAIL="dbmi_tech_core@hms.harvard.edu"
 
-RECAPTCHA_KEY = os.environ.get('RECAPTCHA_KEY')
-RECAPTCHA_CLIENT_ID = os.environ.get('RECAPTCHA_CLIENT_ID')
-
-EMAIL_CONFIRM_SUCCESS_URL = os.environ.get('EMAIL_CONFIRM_SUCCESS_URL')
+RECAPTCHA_KEY = environment.get_str('RECAPTCHA_KEY', required=True)
+RECAPTCHA_CLIENT_ID = environment.get_str('RECAPTCHA_CLIENT_ID', required=True)
 
 ##########
 # S3 Configurations
-S3_AWS_ACCESS_KEY_ID = os.environ.get('S3_AWS_ACCESS_KEY_ID')
-S3_AWS_SECRET_ACCESS_KEY = os.environ.get('S3_AWS_SECRET_ACCESS_KEY')
-S3_BUCKET = os.environ.get('S3_BUCKET')
+S3_BUCKET = environment.get_str('S3_BUCKET', required=True)
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_STORAGE_BUCKET_NAME = environment.get_str('S3_BUCKET', required=True)
+AWS_LOCATION = 'upload'
 
 ##########
 
@@ -213,27 +201,83 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ##########
 
-EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django_smtp_ssl.SSLEmailBackend")
-EMAIL_USE_SSL = EMAIL_BACKEND == 'django_smtp_ssl.SSLEmailBackend'
-EMAIL_HOST = os.environ.get("EMAIL_HOST")
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-EMAIL_PORT = os.environ.get("EMAIL_PORT")
+#####################################################################################
+# DBMI Client Configurations
+#####################################################################################
 
+DBMI_CLIENT_CONFIG = {
+    'CLIENT': 'hypatio',
+    'ENVIRONMENT': environment.get_str('DBMI_ENV', required=True),
+    'ENABLE_LOGGING': True,
+    'LOG_LEVEL': environment.get_int('DBMI_LOG_LEVEL', default=logging.WARNING),
+
+    # AuthZ
+    'AUTHZ_ADMIN_GROUP': 'hypatio-admins',
+    'AUTHZ_ADMIN_PERMISSION': 'ADMIN',
+    'JWT_COOKIE_DOMAIN': environment.get_str('COOKIE_DOMAIN', required=True),
+    'AUTHN_TITLE': 'DBMI Portal',
+
+    # Set auth configurations
+    'AUTH_CLIENTS': environment.get_dict('AUTH_CLIENTS', required=True),
+
+    # Fileservice
+    'FILESERVICE_URL': environment.get_str('FILESERVICE_API_URL', required=True),
+    'FILESERVICE_GROUP': environment.get_str('FILESERVICE_GROUP', required=True),
+    'FILESERVICE_BUCKETS': [environment.get_str('FILESERVICE_AWS_BUCKET', required=True)],
+    'FILESERVICE_TOKEN': environment.get_str('FILESERVICE_SERVICE_TOKEN', required=True),
+
+    # Misc
+    'DRF_OBJECT_OWNER_KEY': 'email',
+}
+
+#####################################################################################
+
+#####################################################################################
+# Email Configurations
+#####################################################################################
+
+EMAIL_BACKEND = environment.get_str("EMAIL_BACKEND", "django_smtp_ssl.SSLEmailBackend")
+EMAIL_USE_SSL = EMAIL_BACKEND == 'django_smtp_ssl.SSLEmailBackend'
+EMAIL_HOST = environment.get_str("EMAIL_HOST", required=True)
+EMAIL_HOST_USER = environment.get_str("EMAIL_HOST_USER", required=not DEBUG)
+EMAIL_HOST_PASSWORD = environment.get_str("EMAIL_HOST_PASSWORD", required=EMAIL_HOST_USER is not None)
+EMAIL_PORT = environment.get_str("EMAIL_PORT", required=True)
+
+#####################################################################################
 
 #####################################################################################
 # FileService Configurations
 #####################################################################################
 
-FILESERVICE_API_URL = os.environ.get('FILESERVICE_API_URL')
-FILESERVICE_GROUP = os.environ.get('FILESERVICE_GROUP')
-FILESERVICE_AWS_BUCKET = os.environ.get('FILESERVICE_AWS_BUCKET')
+FILESERVICE_API_URL = environment.get_str('FILESERVICE_API_URL', required=True)
+FILESERVICE_GROUP = environment.get_str('FILESERVICE_GROUP', required=True)
+FILESERVICE_AWS_BUCKET = environment.get_str('FILESERVICE_AWS_BUCKET', required=True)
 FILESERVICE_SERVICE_ACCOUNT = 'hypatio'
-FILESERVICE_SERVICE_TOKEN = os.environ.get('FILESERVICE_SERVICE_TOKEN')
+FILESERVICE_SERVICE_TOKEN = environment.get_str('FILESERVICE_SERVICE_TOKEN', required=True)
 FILESERVICE_AUTH_HEADER_PREFIX = 'Token'
 
 #####################################################################################
 
+#####################################################################################
+# Django-Q settings
+#####################################################################################
+
+Q_CLUSTER = {
+    'name': 'hypatio',
+    'workers': 8,
+    'recycle': 500,
+    'timeout': 18000,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'retry': 20000,
+    'label': 'Hypatio Tasks',
+    'orm': 'default',
+    'guard_cycle': 60,
+}
+
+#####################################################################################
 
 LOGGING = {
     'version': 1,
@@ -294,14 +338,9 @@ LOGGING = {
 }
 
 RAVEN_CONFIG = {
-    'dsn': os.environ.get("RAVEN_URL", ""),
+    'dsn': environment.get_str("RAVEN_URL", required=True),
     # If you are using git, you can also automatically configure the
     # release based on the git info.
     'release': '1',
     'site': 'HYPATIO'
 }
-
-try:
-    from .local_settings import *
-except ImportError:
-    pass

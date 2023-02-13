@@ -4,26 +4,35 @@ import shutil
 import uuid
 import zipfile
 import requests
+from django.conf import settings
+from django.contrib.auth.models import User
+from dbmi_client import fileservice
 
-from hypatio import file_services as fileservice
-
+from hypatio import file_services
 from projects.models import ChallengeTaskSubmissionDownload
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 
-def zip_submission_file(submission, request):
+def zip_submission_file(submission, requester, request=None):
     """
     Creates a zip file containing a ChallengeTaskSubmission's file and the info json. The
     submission file is pulled from fileservice.
 
-    Returns the path to the zip file.
+    :param submission: The submission object to zip
+    :type submission: ChallengeTaskSubmission
+    :param requester: The email of the admin requesting the export
+    :type requester: str
+    :param request: The current request, if any
+    :type: request: HttpRequest
+    :returns: Returns the path to the zip file.
+    :rtype: str
     """
 
     # Create a record of the user downloading the file.
-    download_record = ChallengeTaskSubmissionDownload.objects.create(
-        user=request.user,
+    ChallengeTaskSubmissionDownload.objects.create(
+        user=User.objects.get(email=requester),
         submission=submission
     )
 
@@ -38,8 +47,11 @@ def zip_submission_file(submission, request):
         f.write(submission.submission_info)
 
     # Get the submission file's byte contents from S3.
-    submission_file_download_url = fileservice.get_fileservice_download_url(request, submission.uuid)
-    submission_file_request = requests.get(submission_file_download_url)
+    submission_file_download_url = fileservice.get_archivefile_proxy_url(uuid=submission.uuid)
+
+    # Use token in headers
+    headers = {"Authorization": f"{settings.FILESERVICE_AUTH_HEADER_PREFIX} {settings.FILESERVICE_SERVICE_TOKEN}"}
+    submission_file_request = requests.get(submission_file_download_url, headers=headers)
 
     # Write the submission file's bytes to a zip file.
     submission_file_name = "submission_file.zip"

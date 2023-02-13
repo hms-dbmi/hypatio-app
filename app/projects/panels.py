@@ -50,3 +50,13 @@ class DataProjectActionablePanel(DataProjectPanel):
 
     def __init__(self, title, bootstrap_color, template, additional_context=None):
         super().__init__(title, bootstrap_color, template, additional_context)
+
+class DataProjectSharedTeamsPanel(DataProjectPanel):
+    """
+    This class holds information needed to display panels on the DataProject
+    page that do have actions.
+    """
+
+    def __init__(self, title, bootstrap_color, template, status, additional_context=None):
+        super().__init__(title, bootstrap_color, template, additional_context)
+        self.status = status
