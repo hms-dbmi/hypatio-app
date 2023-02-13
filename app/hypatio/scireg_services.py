@@ -4,21 +4,20 @@ import json
 from furl import furl
 from json import JSONDecodeError
 
-from django.conf import settings
-
+from dbmi_client.settings import dbmi_settings
 
 import logging
 logger = logging.getLogger(__name__)
 
-VERIFY_SSL = True
-
+# Set the base API URL for registration related queries
+DBMI_REG_API_URL = furl(dbmi_settings.REG_URL) / "api" / "register"
 
 def build_headers_with_jwt(user_jwt):
     return {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
 
 
 def send_confirmation_email(user_jwt, current_uri):
-    send_confirm_email_url = settings.SCIREG_REGISTRATION_URL + 'send_confirmation_email/'
+    send_confirm_email_url = (DBMI_REG_API_URL / 'send_confirmation_email/').url
 
     logger.debug("[HYPATIO][DEBUG][send_confirmation_email] - Sending user confirmation e-mail to " + send_confirm_email_url)
 
@@ -36,7 +35,7 @@ def get_user_email_confirmation_status(user_jwt):
     Returns True or False.
     """
 
-    response = requests.get(settings.SCIREG_REGISTRATION_URL, headers=build_headers_with_jwt(user_jwt))
+    response = requests.get(DBMI_REG_API_URL.url, headers=build_headers_with_jwt(user_jwt))
 
     try:
         email_status = response.json()['results'][0]['email_confirmed']
@@ -50,7 +49,7 @@ def get_user_email_confirmation_status(user_jwt):
 
 def get_current_user_profile(user_jwt):
 
-    f = furl(settings.SCIREG_REGISTRATION_URL)
+    f = furl(DBMI_REG_API_URL.url)
 
     try:
         profile = requests.get(f.url, headers=build_headers_with_jwt(user_jwt)).json()
@@ -63,7 +62,7 @@ def get_current_user_profile(user_jwt):
 
 def get_user_profile(user_jwt, email_of_profile, project_key):
 
-    f = furl(settings.SCIREG_REGISTRATION_URL)
+    f = furl(DBMI_REG_API_URL.url)
 
     f.args["email"] = email_of_profile
     f.args["project"] = 'Hypatio.' + project_key
@@ -82,7 +81,7 @@ def get_distinct_countries_participating(user_jwt, participants, project_key):
     containing the unique countries of these participants and a count for each.
     """
 
-    url = settings.SCIREG_REGISTRATION_URL + 'get_countries/'
+    url = (DBMI_REG_API_URL / 'get_countries/').url
 
     # From a QuerySet of participants, get a list of their emails
     emails = [participant.user.email for participant in participants]
@@ -108,7 +107,7 @@ def get_names(user_jwt, participants, project_key):
     containing the first and last names of each participant.
     """
 
-    url = settings.SCIREG_REGISTRATION_URL + 'get_names/'
+    url = (DBMI_REG_API_URL.url / 'get_names/').url
 
     # From a QuerySet of participants, get a list of their emails
     emails = list(participants.values_list('user__email', flat=True))
