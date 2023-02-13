@@ -128,24 +128,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 SITE_URL = environment.get_str("SITE_URL", required=True)
 
-AUTH0_DOMAIN = environment.get_str("AUTH0_DOMAIN", required=True)
-AUTH0_CLIENT_ID_LIST = environment.get_list("AUTH0_CLIENT_ID_LIST", required=True)
-AUTH0_SECRET = environment.get_str("AUTH0_SECRET", required=True)
-AUTH0_SUCCESS_URL = environment.get_str("AUTH0_SUCCESS_URL", required=True)
-AUTH0_LOGOUT_URL = environment.get_str("AUTH0_LOGOUT_URL", required=True)
-
 AUTHENTICATION_BACKENDS = ['hypatio.auth0authenticate.Auth0Authentication', 'django.contrib.auth.backends.ModelBackend']
-
-AUTHENTICATION_LOGIN_URL = environment.get_str("ACCOUNT_SERVER_URL", required=True)
-ACCOUNT_SERVER_URL = environment.get_str("ACCOUNT_SERVER_URL", required=True)
-SCIREG_SERVER_URL = environment.get_str("SCIREG_SERVER_URL", required=True)
-AUTHZ_BASE = environment.get_str("AUTHZ_BASE", required=True)
-
-USER_PERMISSIONS_URL = AUTHZ_BASE + "/user_permission/"
-
-SCIREG_REGISTRATION_URL = SCIREG_SERVER_URL + "/api/register/"
-
-COOKIE_DOMAIN = environment.get_str("COOKIE_DOMAIN", required=True)
 
 SSL_SETTING = "https"
 VERIFY_REQUESTS = True
@@ -155,8 +138,6 @@ DEFAULT_FROM_EMAIL="dbmi_tech_core@hms.harvard.edu"
 
 RECAPTCHA_KEY = environment.get_str('RECAPTCHA_KEY', required=True)
 RECAPTCHA_CLIENT_ID = environment.get_str('RECAPTCHA_CLIENT_ID', required=True)
-
-EMAIL_CONFIRM_SUCCESS_URL = environment.get_str('EMAIL_CONFIRM_SUCCESS_URL', required=True)
 
 ##########
 # S3 Configurations
@@ -234,11 +215,10 @@ DBMI_CLIENT_CONFIG = {
     'AUTHZ_ADMIN_GROUP': 'hypatio-admins',
     'AUTHZ_ADMIN_PERMISSION': 'ADMIN',
     'JWT_COOKIE_DOMAIN': environment.get_str('COOKIE_DOMAIN', required=True),
-
-    # Auth0
-    'AUTH0_TENANT': AUTH0_DOMAIN.lower().replace(".auth0.com", ""),
-    'AUTH0_CLIENT_ID': next(iter(AUTH0_CLIENT_ID_LIST)),
     'AUTHN_TITLE': 'DBMI Portal',
+
+    # Set auth configurations
+    'AUTH_CLIENTS': environment.get_dict('AUTH_CLIENTS', required=True),
 
     # Fileservice
     'FILESERVICE_URL': environment.get_str('FILESERVICE_API_URL', required=True),
@@ -364,8 +344,3 @@ RAVEN_CONFIG = {
     'release': '1',
     'site': 'HYPATIO'
 }
-
-try:
-    from .local_settings import *
-except ImportError:
-    pass

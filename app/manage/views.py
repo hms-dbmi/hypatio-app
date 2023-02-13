@@ -72,7 +72,7 @@ class DataProjectListManageView(TemplateView):
         context = super(DataProjectListManageView, self).get_context_data(**kwargs)
 
         user_jwt = self.request.COOKIES.get("DBMI_JWT", None)
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, self.request.user.email)
+        sciauthz = SciAuthZ(user_jwt, self.request.user.email)
         projects_managed = sciauthz.get_projects_managed_by_user()
 
         context['projects'] = projects_managed
@@ -105,7 +105,7 @@ class DataProjectManageView(TemplateView):
 
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-        self.sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, request.user.email)
+        self.sciauthz = SciAuthZ(user_jwt, request.user.email)
         is_manager = self.sciauthz.user_has_manage_permission(project_key)
 
         if not is_manager:
@@ -545,7 +545,7 @@ def manage_team(request, project_key, team_leader, template_name='manage/team.ht
     user = request.user
     user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-    sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+    sciauthz = SciAuthZ(user_jwt, user.email)
     is_manager = sciauthz.user_has_manage_permission(project_key)
 
     if not is_manager:
@@ -677,7 +677,7 @@ class UploadSignedAgreementFormView(View):
         user = request.user
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+        sciauthz = SciAuthZ(user_jwt, user.email)
         is_manager = sciauthz.user_has_manage_permission(project_key)
 
         if not is_manager:
@@ -710,7 +710,7 @@ class UploadSignedAgreementFormView(View):
         user = request.user
         user_jwt = request.COOKIES.get("DBMI_JWT", None)
 
-        sciauthz = SciAuthZ(settings.AUTHZ_BASE, user_jwt, user.email)
+        sciauthz = SciAuthZ(user_jwt, user.email)
         is_manager = sciauthz.user_has_manage_permission(project_key)
 
         if not is_manager:

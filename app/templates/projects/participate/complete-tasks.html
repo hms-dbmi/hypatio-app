@@ -149,7 +149,7 @@
           // Validate content type
           if( file.type !== fileInput.data("content-type")) {
             console.log(`Blob type ${file.type} !== ${fileInput.data("content-type")}`);
-            error(`Only files of type "${fileInput.data("content-type")}" are accepted`, form);
+            error(`Content type "${file.type}" is not accepted. Only files of type "${fileInput.data("content-type")}" are accepted.`, form);
             return true;
           }
 
