@@ -43,7 +43,7 @@
                     <div class="form-group">
                       <input class="file-upload-file" name="file" type="file"
                         accept=".{{ task_detail.task.submission_file_type }}"
-                        data-content-type="{{ task_detail.task.submission_file_content_type }}">
+                        data-content-type="{{ task_detail.task.submission_file_content_types|join:";" }}">
                     </div>
                     <div class="form-group">
                       <input id="file-upload-filename" class="file-upload-filename" name="filename" type="text" hidden="true" />
@@ -147,10 +147,13 @@
           }
 
           // Validate content type
-          if( file.type !== fileInput.data("content-type")) {
-            console.log(`Blob type ${file.type} !== ${fileInput.data("content-type")}`);
-            error(`Content type "${file.type}" is not accepted. Only files of type "${fileInput.data("content-type")}" are accepted.`, form);
-            return true;
+          let contentTypes = fileInput.data("content-type").split(";");
+          let contentTypesString = `"${contentTypes.join("\", \"")}"`;
+          console.log(`Checking type "${file.type}" in "${contentTypesString}"`);
+          if( ! contentTypes.includes(file.type) ) {
+            console.log(`Blob type ${file.type} not in "${contentTypesString}"`);
+            error(`Content type "${file.type}" is not accepted. Only files of type "${contentTypesString}" are accepted.`, form);
+            return false;
           }
 
           // Get the form data.
