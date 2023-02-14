@@ -51,8 +51,8 @@ FILES_TYPES = (
 )
 
 FILES_CONTENT_TYPES = {
-    FILE_TYPE_ZIP: "application/zip",
-    FILE_TYPE_PDF: "application/pdf",
+    FILE_TYPE_ZIP: ["application/zip", "application/x-zip-compressed", "multipart/x-zip", "application/x-zip"],
+    FILE_TYPE_PDF: ["application/pdf", "application/x-pdf"],
 }
 
 def get_agreement_form_upload_path(instance, filename):
@@ -591,7 +591,7 @@ class ChallengeTask(models.Model):
             raise ValidationError("Closed time must be a datetime after opened time")
 
     @property
-    def submission_file_content_type(self):
+    def submission_file_content_types(self):
         return FILES_CONTENT_TYPES[self.submission_file_type]
 
 
