@@ -218,6 +218,8 @@ footer {
     line-height: 1.5rem;
 }
 
+/* Bootstrap callout styling */
+
 .bs-callout {
     padding: 20px;
     margin: 20px 0;
@@ -289,4 +291,40 @@ footer {
 
 .bs-callout-info h4 {
     color: #5bc0de;
+}
+
+/* Bootstrap accordian panels styling */
+
+.panel-group {
+    padding-top: 10px;
+ }
+
+.panel-heading.panel-heading-toggle .panel-title:after {
+    font-family:'Glyphicons Halflings';
+    content:"\e113";
+    float: right;
+}
+.panel-heading.panel-heading-toggle.collapsed .panel-title:after {
+    content:"\e114";
+}
+
+.panel-heading-toggle {
+  cursor: pointer;
+}
+
+/* DataTables general styling */
+
+.dataTables_processing {
+    z-index: 999;
+}
+
+table.dataTable.table-hover > tbody > tr:hover > * {
+    box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.005) !important;
+}
+
+/* Manage views general styling */
+
+#files-collapse .panel-body {
+    max-height: 600px;
+    overflow: auto;
 }

@@ -12,12 +12,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # For some reason, this migration error will occur:
-        #   "Unknown column 'dataprojectsubmission_id' in 'projects_teamsubmissionsdownload_participant_submissions'"
-        # To resolve this, rename the column before renaming the model. Requires sqlparse library installed.
-        migrations.RunSQL(
-            "ALTER TABLE projects_teamsubmissionsdownload_participant_submissions CHANGE COLUMN participantsubmission_id dataprojectsubmission_id char(32);"
-        ),
         migrations.RenameModel(
             old_name='DataProjectSubmission',
             new_name='ChallengeTaskSubmission',

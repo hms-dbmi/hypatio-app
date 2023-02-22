@@ -22,47 +22,56 @@ from projects.models import MAYOSignedAgreementFormFields
 from projects.models import MIMIC3SignedAgreementFormFields
 
 class DataProjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'project_key', 'informational_only', 'registration_open', 'requires_authorization', 'is_challenge', 'order')
+    list_display = ('name', 'project_key', 'informational_only', 'registration_open', 'requires_authorization', 'is_challenge', 'order', 'created', 'modified', )
     list_filter = ('informational_only', 'registration_open', 'requires_authorization', 'is_challenge')
+    readonly_fields = ('created', 'modified', )
 
 class AgreementformAdmin(admin.ModelAdmin):
-    list_display = ('name', 'short_name', 'type', 'form_file_path')
+    list_display = ('name', 'short_name', 'type', 'form_file_path', 'created', 'modified', )
+    readonly_fields = ('created', 'modified', )
 
 class SignedagreementformAdmin(admin.ModelAdmin):
-    list_display = ('user', 'agreement_form', 'date_signed', 'status')
+    list_display = ('user', 'agreement_form', 'date_signed', 'status', 'created', 'modified', )
     search_fields = ('user__email', )
+    readonly_fields = ('created', 'modified', )
 
 class TeamAdmin(admin.ModelAdmin):
-    list_display = ('team_leader', 'data_project')
+    list_display = ('team_leader', 'data_project', 'created', 'modified', )
     list_filter = ('data_project', )
     search_fields = ('data_project__project_key', 'team_leader__email')
+    readonly_fields = ('created', 'modified', )
 
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ('user', 'project', 'team')
+    list_display = ('user', 'project', 'team', 'created', 'modified', )
     list_filter = ('project', )
     search_fields = ('project__project_key', 'team__team_leader__email', 'user__email')
+    readonly_fields = ('created', 'modified', )
 
 class InstitutionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'logo_path')
+    list_display = ('name', 'logo_path', 'created', 'modified', )
+    readonly_fields = ('created', 'modified', )
 
 class HostedFileAdmin(admin.ModelAdmin):
-    list_display = ('long_name', 'project', 'hostedfileset', 'file_name', 'file_location', 'order')
+    list_display = ('long_name', 'project', 'hostedfileset', 'file_name', 'file_location', 'order', 'created', 'modified',)
     list_filter = ('project', )
     search_fields = ('project__project_key', 'file_name', )
+    readonly_fields = ('created', 'modified', )
 
 class HostedFileSetAdmin(admin.ModelAdmin):
-    list_display = ('title', 'project', 'order')
+    list_display = ('title', 'project', 'order', 'created', 'modified', )
     list_filter = ('project', )
+    readonly_fields = ('created', 'modified', )
 
 class HostedFileDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'hosted_file', 'download_date')
     search_fields = ('user__email', )
 
 class ChallengeTaskAdmin(admin.ModelAdmin):
-    list_display = ('data_project', 'title', 'enabled', 'opened_time', 'closed_time')
+    list_display = ('data_project', 'title', 'enabled', 'opened_time', 'closed_time', 'created', 'modified', )
+    readonly_fields = ('created', 'modified', )
 
 class ChallengeTaskSubmissionAdmin(admin.ModelAdmin):
-    list_display = ('participant', 'challenge_task', 'upload_date', 'uuid')
+    list_display = ('participant', 'challenge_task', 'upload_date', 'uuid', )
     list_filter = ('participant__project', 'challenge_task')
     search_fields = ('participant__project__project_key', 'participant__user__email', 'challenge_task__title')
 
