@@ -514,42 +514,55 @@ def change_signed_form_status(request):
                                    email_template='email_signed_form_rejection_notification',
                                    extra=context)
 
-        # If the user is a participant on a team, then the team status may need to be changed
         try:
+            # Fetch participant so we can revoke permissions for them and team, if applicable
             participant = Participant.objects.get(user=affected_user, project=signed_form.project)
             team = participant.team
-        except ObjectDoesNotExist:
-            participant = None
-            team = None
 
-        # If the team is in an Active status, move the team status down to Ready and remove everyone's VIEW permissions
-        if team is not None and team.status == "Active":
-            team.status = "Ready"
-            team.save()
+            # If just a participant, remove their view permissions
+            if not team:
 
-            for member in team.participant_set.all():
                 sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
-                sciauthz.remove_view_permission(signed_form.project.project_key, member.user.email)
+                sciauthz.remove_view_permission(signed_form.project.project_key, affected_user.email)
 
                 # Remove their VIEW permission
-                member.permission = None
-                member.save()
+                participant.permission = None
+                participant.save()
 
-            logger.debug('[HYPATIO][change_signed_form_status] Emailing the whole team that their status has been moved to Ready because someone has a pending form')
+            # If the team is in an Active status, move the team status down to Ready and remove everyone's VIEW permissions
+            elif team is not None and team.status == "Active":
+                team.status = "Ready"
+                team.save()
 
-            # Send an email notification to the team
-            context = {'status': "ready",
-                       'reason': 'Your team has been temporarily disabled because of an issue with a team members\' forms. Challenge administrators will resolve this shortly.',
-                       'project': signed_form.project,
-                       'site_url': settings.SITE_URL}
+                for member in team.participant_set.all():
+                    sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
+                    sciauthz.remove_view_permission(signed_form.project.project_key, member.user.email)
 
-            # Email list
-            emails = [member.user.email for member in team.participant_set.all()]
+                    # Remove their VIEW permission
+                    member.permission = None
+                    member.save()
 
-            email_success = email_send(subject='DBMI Portal - Team Status Changed',
-                                       recipients=emails,
-                                       email_template='email_new_team_status_notification',
-                                       extra=context)
+                logger.debug('[HYPATIO][change_signed_form_status] Emailing the whole team that their status has been moved to Ready because someone has a pending form')
+
+                # Send an email notification to the team
+                context = {'status': "ready",
+                        'reason': 'Your team has been temporarily disabled because of an issue with a team members\' forms. Challenge administrators will resolve this shortly.',
+                        'project': signed_form.project,
+                        'site_url': settings.SITE_URL}
+
+                # Email list
+                emails = [member.user.email for member in team.participant_set.all()]
+
+                email_success = email_send(subject='DBMI Portal - Team Status Changed',
+                                        recipients=emails,
+                                        email_template='email_new_team_status_notification',
+                                        extra=context)
+        except ObjectDoesNotExist:
+            logger.error(
+                f'[HYPATIO][change_signed_form_status] Could not find Participant for '
+                f'{affected_user.email} / {signed_form.project.project_key}'
+            )
+
     else:
         logger.debug('[HYPATIO][change_signed_form_status] Given status "' + status + '" not one of allowed statuses.')
         return HttpResponse(500)
