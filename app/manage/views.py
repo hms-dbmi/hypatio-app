@@ -304,21 +304,13 @@ class ProjectParticipants(View):
             sort_order = ['user__email'] if order_direction == 'asc' else ['-user__email']
         elif order_column == 3 and not project.has_teams or order_column == 4 and project.has_teams:
             sort_order = ['permission', 'user__email'] if order_direction == 'asc' else ['-permission', '-user__email']
+        elif order_column == 6 and not project.has_teams or order_column == 7 and project.has_teams:
+            sort_order = ['modified', 'user__email'] if order_direction == 'asc' else ['-modified', '-user__email']
         else:
             sort_order = ['user__email'] if order_direction == 'asc' else ['-user__email']
 
-        # Get list of SignedAgreementForms for this project so we can hide Participants that have yet to complete at
-        # least one of the required forms
-        ready_users = [
-            s.user for s in SignedAgreementForm.objects.filter(
-                Q(agreement_form__in=project.agreement_forms.all()) &
-                (Q(project=project) | Q(project__shares_agreement_forms=True))
-            ).select_related("user")
-        ]
-        logger.debug(f"{project.project_key}: {len(ready_users)} Ready Participants")
-
-        # Set queryset
-        query_set = project.participant_set.filter(user__in=ready_users).order_by(*sort_order)
+        # Get the entire list of current Project Participants
+        query_set = project.participant_set.order_by(*sort_order)
 
         # Setup paginator
         paginator = Paginator(
@@ -394,6 +386,152 @@ class ProjectParticipants(View):
                 },
                 download_count,
                 upload_count,
+                participant.modified,
+            ]
+
+            # If project has teams, add that
+            if project.has_teams:
+                participant_row.insert(1, participant.team.team_leader.email.lower() if participant.team and participant.team.team_leader else '')
+
+            participants.append(participant_row)
+
+        # Build DataTables response data
+        data = {
+            'draw': draw,
+            'recordsTotal': query_set.count(),
+            'recordsFiltered': paginator.count,
+            'data': participants,
+            'error': None,
+        }
+
+        return JsonResponse(data=data)
+
+
+@method_decorator(user_auth_and_jwt, name='dispatch')
+class ProjectPendingParticipants(View):
+
+    def get(self, request, project_key, *args, **kwargs):
+
+        # Pull the project
+        try:
+            project = DataProject.objects.get(project_key=project_key)
+        except DataProject.NotFound:
+            logger.exception('DataProject for key "{}" not found'.format(project_key))
+            return HttpResponse(status=404)
+
+        # Get needed params
+        draw = int(request.GET['draw'])
+        start = int(request.GET['start'])
+        length = int(request.GET['length'])
+        order_column = int(request.GET['order[0][column]'])
+        order_direction = request.GET['order[0][dir]']
+
+        # Check for a search value
+        search = request.GET['search[value]']
+
+        # Check what we're sorting by and in what direction
+        if order_column == 0:
+            sort_order = ['user__email'] if order_direction == 'asc' else ['-user__email']
+        elif order_column == 3 and not project.has_teams or order_column == 4 and project.has_teams:
+            sort_order = ['modified', '-user__email'] if order_direction == 'asc' else ['-modified', 'user__email']
+        else:
+            sort_order = ['modified', '-user__email'] if order_direction == 'asc' else ['-modified', 'user__email']
+
+        # Build the query
+
+        # Firstly, we want users with a created Participant for the project, without a permission
+        # or specifically, without access being granted yet
+        query_set = Participant.objects.filter(Q(project=project, permission__isnull=True))
+
+        # Iterate agreement forms
+        for agreement_form in project.agreement_forms.all():
+
+            # Filter by the presence of this agreement form in either a pending or accepted state
+            agreement_form_query = Q(
+                user__signedagreementform__agreement_form=agreement_form,
+                user__signedagreementform__status__in=["A", "P"],
+            )
+
+            # Ensure the agreement form is for this project or a project that shares agreement forms
+            agreement_form_query &= (
+                Q(user__signedagreementform__project=project) |
+                Q(user__signedagreementform__project__shares_agreement_forms=True)
+            )
+
+            # Filter
+            query_set = query_set.filter(agreement_form_query)
+
+        # We only want distinct Participants belonging to the users query
+        query_set = query_set.order_by(*sort_order)
+
+        # Setup paginator
+        paginator = Paginator(
+            query_set.filter(user__email__icontains=search) if search else query_set,
+            length
+        )
+
+        # Determine page index (1-index) from DT parameters
+        page = start / length + 1
+        participant_page = paginator.page(page)
+
+        participants = []
+        for participant in participant_page:
+
+            signed_agreement_forms = []
+            signed_accepted_agreement_forms = 0
+
+            # For each of the available agreement forms for this project, display only latest version completed by the user
+            for agreement_form in project.agreement_forms.all():
+
+                # Check if this project uses shared agreement forms
+                if project.shares_agreement_forms:
+
+                    # Fetch without a specific project
+                    signed_form = SignedAgreementForm.objects.filter(
+                        user__email=participant.user.email,
+                        agreement_form=agreement_form,
+                    ).last()
+
+                else:
+
+                    # Fetch only for this project
+                    signed_form = SignedAgreementForm.objects.filter(
+                        user__email=participant.user.email,
+                        project=project,
+                        agreement_form=agreement_form
+                    ).last()
+
+                if signed_form is not None:
+                    signed_agreement_forms.append(signed_form)
+
+                    # Collect how many forms are approved to craft language for status
+                    if signed_form.status == 'A':
+                        signed_accepted_agreement_forms += 1
+
+            # Get the last date of the last updated signed agreement form
+            modified = max([s.modified for s in signed_agreement_forms])
+
+            # Build the row of the table for this participant
+            participant_row = [
+                participant.user.email.lower(),
+                'Access granted' if participant.permission == 'VIEW' else 'No access',
+                [
+                    {
+                        'status': f.status,
+                        'id': f.id,
+                        'name': f.agreement_form.short_name,
+                        'project': f.project.project_key,
+                    } for f in signed_agreement_forms
+                ],
+                {
+                    'access': True if participant.permission == 'VIEW' else False,
+                    'email': participant.user.email.lower(),
+                    'signed': signed_accepted_agreement_forms,
+                    'team': True if project.has_teams else False,
+                    'required': project.agreement_forms.count()
+                },
+                participant.modified,
+                modified,
             ]
 
             # If project has teams, add that
