@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import JSONField
 from django.core.files.uploadedfile import UploadedFile
 
+
 TEAM_PENDING = 'Pending'
 TEAM_READY = 'Ready'
 TEAM_ACTIVE = 'Active'
@@ -86,6 +87,10 @@ class Institution(models.Model):
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
     logo_path = models.CharField(max_length=300, blank=True, null=True)
 
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return '%s' % (self.name)
 
@@ -102,13 +107,16 @@ class AgreementForm(models.Model):
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
     short_name = models.CharField(max_length=16, blank=False, null=False)
     description = models.TextField(blank=True)
-    created = models.DateTimeField(auto_now_add=True)
     form_file_path = models.CharField(max_length=300, blank=True, null=True)
     external_link = models.CharField(max_length=300, blank=True, null=True)
     type = models.CharField(max_length=50, choices=AGREEMENT_FORM_TYPE, blank=True, null=True)
     order = models.IntegerField(default=50, help_text="Indicate an order (lowest number = first listing) for how the Agreement Forms should be listed during registration workflows.")
     content = models.TextField(blank=True, null=True, help_text="If Agreement Form type is set to 'MODEL', the HTML set here will be rendered for the user")
     internal = models.BooleanField(default=False, help_text="Internal agreement forms are never presented to participants and are only submitted by administrators on behalf of participants")
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '%s' % (self.name)
@@ -178,6 +186,10 @@ class DataProject(models.Model):
     show_jwt = models.BooleanField(default=False, blank=False, null=False)
 
     order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for how the DataProjects should be listed.")
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '%s' % (self.project_key)
@@ -419,6 +431,10 @@ class Team(models.Model):
     status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
     source = models.ForeignKey("Team", null=True, blank=True, on_delete=models.CASCADE)
 
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
     class Meta:
         unique_together = ('team_leader', 'data_project',)
 
@@ -449,6 +465,10 @@ class Participant(models.Model):
     team_wait_on_leader = models.BooleanField(default=False)
     team_pending = models.BooleanField(default=False)
     team_approved = models.BooleanField(default=False)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
 
     # TODO remove all these?
     def assign_pending(self, team):
@@ -494,6 +514,10 @@ class HostedFileSet(models.Model):
     project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
     order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for file sets to appear within a DataProject.")
 
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return self.project.project_key + ': ' + self.title
 
@@ -526,6 +550,10 @@ class HostedFile(models.Model):
 
     order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for files to appear within a DataProject.")
 
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return '%s - %s' % (self.project, self.long_name)
 
@@ -549,6 +577,10 @@ class TeamComment(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     text = models.CharField(max_length=2000, blank=False, null=False)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '%s %s %s' % (self.user, self.team, self.date)
@@ -582,6 +614,10 @@ class ChallengeTask(models.Model):
 
     # The content type to restrict file uploads to
     submission_file_type = models.CharField(max_length=15, default=FILE_TYPE_ZIP, choices=FILES_TYPES)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '%s: %s' % (self.data_project.project_key, self.title)
