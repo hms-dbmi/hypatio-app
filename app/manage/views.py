@@ -431,25 +431,22 @@ class ProjectPendingParticipants(View):
 
         # Check what we're sorting by and in what direction
         if order_column == 0:
-            sort_order = ['user__email'] if order_direction == 'asc' else ['-user__email']
+            sort_order = ['email'] if order_direction == 'asc' else ['-email']
         elif order_column == 3 and not project.has_teams or order_column == 4 and project.has_teams:
-            sort_order = ['modified', '-user__email'] if order_direction == 'asc' else ['-modified', 'user__email']
+            sort_order = ['modified', '-email'] if order_direction == 'asc' else ['-modified', 'email']
         else:
-            sort_order = ['modified', '-user__email'] if order_direction == 'asc' else ['-modified', 'user__email']
+            sort_order = ['modified', '-email'] if order_direction == 'asc' else ['-modified', 'email']
 
         # Build the query
 
-        # Firstly, we want users with a created Participant for the project, without a permission
-        # or specifically, without access being granted yet
-        query_set = Participant.objects.filter(Q(project=project, permission__isnull=True))
-
-        # Iterate agreement forms
+        # Find users with all agreement forms approved, but waiting final grant of access
+        participants_waiting_access = Participant.objects.filter(Q(project=project, permission__isnull=True))
         for agreement_form in project.agreement_forms.all():
 
             # Filter by the presence of this agreement form in either a pending or accepted state
             agreement_form_query = Q(
                 user__signedagreementform__agreement_form=agreement_form,
-                user__signedagreementform__status__in=["A", "P"],
+                user__signedagreementform__status="A",
             )
 
             # Ensure the agreement form is for this project or a project that shares agreement forms
@@ -459,10 +456,24 @@ class ProjectPendingParticipants(View):
             )
 
             # Filter
-            query_set = query_set.filter(agreement_form_query)
+            participants_waiting_access = participants_waiting_access.filter(agreement_form_query)
+
+        # Secondly, we want Participants with at least one pending SignedAgreementForm
+        participants_awaiting_approval = Participant.objects.filter(Q(project=project, permission__isnull=True)).filter(
+            Q(
+                user__signedagreementform__agreement_form__in=project.agreement_forms.all(),
+                user__signedagreementform__status="P",
+            ) & (
+                Q(user__signedagreementform__project=project) |
+                Q(user__signedagreementform__project__shares_agreement_forms=True)
+            )
+        )
 
         # We only want distinct Participants belonging to the users query
-        query_set = query_set.order_by(*sort_order)
+        # Django won't sort on a related field after this union so we annotate each queryset with the user's email to sort on
+        query_set = participants_waiting_access.annotate(email=F("user__email")) \
+            .union(participants_awaiting_approval.annotate(email=F("user__email"))) \
+            .order_by(*sort_order)
 
         # Setup paginator
         paginator = Paginator(
@@ -508,9 +519,6 @@ class ProjectPendingParticipants(View):
                     if signed_form.status == 'A':
                         signed_accepted_agreement_forms += 1
 
-            # Get the last date of the last updated signed agreement form
-            modified = max([s.modified for s in signed_agreement_forms])
-
             # Build the row of the table for this participant
             participant_row = [
                 participant.user.email.lower(),
@@ -531,7 +539,6 @@ class ProjectPendingParticipants(View):
                     'required': project.agreement_forms.count()
                 },
                 participant.modified,
-                modified,
             ]
 
             # If project has teams, add that

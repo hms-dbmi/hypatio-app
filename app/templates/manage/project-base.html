@@ -356,7 +356,6 @@
                                 <th>Forms</th>
                                 <th>Actions</th>
                                 <th>Request Date</th>
-                                <th>Last Signed Form Date</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -778,7 +777,7 @@
                     }
                 },
                 {
-                    "targets": [{% if project.has_teams %}5, 6{% else %}4, 5{% endif %}],
+                    "targets": [{% if project.has_teams %}5{% else %}4{% endif %}],
                     "render": function (data, type, full, meta) {
 
                         // Return raw dates for sorting
