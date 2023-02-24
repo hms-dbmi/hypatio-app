@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 
-from projects.models import AgreementForm, SignedAgreementForm
+from projects.models import AgreementForm, SignedAgreementForm, Participant
 
 
 def migrate_agreement_form_model(apps, schema_editor):
@@ -15,6 +15,22 @@ def migrate_agreement_form_model(apps, schema_editor):
         # Set the dates
         agreement_form.modified = agreement_form.created
         agreement_form.save()
+
+
+def migrate_participants_model(apps, schema_editor):
+    """
+    Attempts to set a roughly accurate date of when each object would have
+    been created. This is calculated by fetching the date of the last
+    signed SignedAgreementForm relevant to the DataProjects.
+    """
+    for participant in Participant.objects.all():
+
+        # Fetch signed agreement forms
+        signed_agreement_form = SignedAgreementForm.objects.filter(user=participant.user, project=participant.project).last()
+
+        # Set the dates
+        participant.created = signed_agreement_form.date_signed
+        participant.modified = signed_agreement_form.date_signed
 
 
 class Migration(migrations.Migration):
@@ -110,6 +126,7 @@ class Migration(migrations.Migration):
             field=models.DateTimeField(default="2023-01-01T00:00:00.000Z"),
         ),
         migrations.RunPython(migrate_agreement_form_model),
+        migrations.RunPython(migrate_participants_model),
         migrations.AlterField(
             model_name='agreementform',
             name='modified',
