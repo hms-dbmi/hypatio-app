@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 
-from projects.models import AgreementForm, SignedAgreementForm
+from projects.models import AgreementForm, SignedAgreementForm, Participant
 
 
 def migrate_agreement_form_model(apps, schema_editor):
