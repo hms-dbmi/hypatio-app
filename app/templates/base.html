@@ -206,12 +206,6 @@
                         {% url 'index' as index_url %}
                         <li class="nav-item{% if request.path == index_url %} active{% endif %}"><a class="nav-link" href="{{ index_url }}">Home</a></li>
 
-                        {% url 'projects:view-project' 'n2c2-nlp' as data_sets_url %}
-                        <li class="nav-item{% if request.path == data_sets_url %} active{% endif %}"><a class="nav-link" href="{{ data_sets_url }}">n2c2 Data Sets</a></li>
-
-                        {% url 'data-challenges' as data_challenges_url %}
-                        <li class="nav-item{% if request.path == data_challenges_url %} active{% endif %}"><a class="nav-link" href="{{ data_challenges_url }}">n2c2 Challenges</a></li>
-
                         {% for group in navigation.groups %}
                         {% url 'group' group.key as group_url %}
                         <li class="nav-item{% if request.path == group_url or group.key == navigation.active_group.key %} active{% endif %}"><a class="nav-link" href="{{ group_url }}">{{ group.navigation_title|default:group.title }}</a></li>

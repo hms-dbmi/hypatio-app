@@ -5,12 +5,12 @@
 
 {% block title %}{{ group.title }}{% endblock %}
 {% block subtitle %}
-{{ group.description }}
+{{ group.description|safe }}
 {% endblock %}
 
 {% block subcontent %}
 <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-{% for project in group.dataproject_set.all %}
+{% for project in projects %}
     <div class="row">
         <div class="col-md-12">
             {% include "projects/project-blurb.html" with project_counter=forloop.counter0 %}

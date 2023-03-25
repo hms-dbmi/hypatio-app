@@ -150,6 +150,7 @@ class GroupView(TemplateView):
 
         # Add the project to the context.
         context['group'] = self.group
+        context['projects'] = DataProject.objects.filter(group=self.group, visible=True).order_by(F('order').asc(nulls_last=True))
 
         return context
 
