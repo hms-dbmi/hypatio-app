@@ -1,0 +1,22 @@
+{% extends 'sub-base.html' %}
+
+{% block headscripts %}
+{% endblock %}
+
+{% block title %}{{ group.title }}{% endblock %}
+{% block subtitle %}
+{{ group.description }}
+{% endblock %}
+
+{% block subcontent %}
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+{% for project in group.dataproject_set.all %}
+    <div class="row">
+        <div class="col-md-12">
+            {% include "projects/project-blurb.html" with project_counter=forloop.counter0 %}
+            <br/>
+        </div>
+    </div>
+{% endfor %}
+</div>
+{% endblock %}

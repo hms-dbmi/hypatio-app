@@ -187,6 +187,14 @@ class DataProject(models.Model):
 
     order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for how the DataProjects should be listed.")
 
+    group = models.ForeignKey(
+        to="Group",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        help_text="Set this to manage where this project is shown in the navigation and interface."
+    )
+
     # Meta
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -672,3 +680,21 @@ class ChallengeTaskSubmissionDownload(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     submission = models.ForeignKey(ChallengeTaskSubmission, on_delete=models.PROTECT)
     download_date = models.DateTimeField(auto_now_add=True)
+
+
+class Group(models.Model):
+    """
+    An optional grouping for projects.
+    """
+
+    key = models.CharField(max_length=100, blank=False, null=False, unique=True)
+    title = models.CharField(max_length=255, blank=False, null=False)
+    description = models.TextField(blank=True)
+    navigation_title = models.CharField(max_length=20, blank=True, null=True)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title

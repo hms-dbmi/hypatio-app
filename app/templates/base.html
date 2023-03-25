@@ -212,6 +212,11 @@
                         {% url 'data-challenges' as data_challenges_url %}
                         <li class="nav-item{% if request.path == data_challenges_url %} active{% endif %}"><a class="nav-link" href="{{ data_challenges_url }}">n2c2 Challenges</a></li>
 
+                        {% for group in navigation.groups %}
+                        {% url 'group' group.key as group_url %}
+                        <li class="nav-item{% if request.path == group_url or group.key == navigation.active_group.key %} active{% endif %}"><a class="nav-link" href="{{ group_url }}">{{ group.navigation_title|default:group.title }}</a></li>
+                        {% endfor %}
+
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="download">Contact <span class="caret"></span></a>
                             <ul class="dropdown-menu" aria-labelledby="download">
