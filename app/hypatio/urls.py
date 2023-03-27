@@ -14,6 +14,7 @@ urlpatterns = [
     re_path(r'^manage/', include('manage.urls', namespace='manage')),
     re_path(r'^projects/', include('projects.urls', namespace='projects')),
     re_path(r'^profile/', include('profile.urls', namespace='profile')),
+    re_path(r'^api/', include('api.urls', namespace='api')),
     re_path(r'^data-sets/$', list_data_projects, name='data-sets'),
     re_path(r'^data-challenges/$', list_data_challenges, name='data-challenges'),
     re_path(r'^software-projects/$', list_software_projects, name='software-projects'),
