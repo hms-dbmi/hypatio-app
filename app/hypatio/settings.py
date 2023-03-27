@@ -57,6 +57,9 @@ INSTALLED_APPS = [
     'storages',
     'django_jsonfield_backport',
     'django_q',
+    'rest_framework',
+    'drf_spectacular',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -275,6 +278,30 @@ Q_CLUSTER = {
     'label': 'Hypatio Tasks',
     'orm': 'default',
     'guard_cycle': 60,
+}
+
+#####################################################################################
+
+#####################################################################################
+# Django Rest Framework settings
+#####################################################################################
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+#####################################################################################
+# API Schema settings
+#####################################################################################
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'HMS DBMI Portal API',
+    'DESCRIPTION': 'API for Portal projects and data sets',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SERVE_AUTHENTICATION': [],
+    # OTHER SETTINGS
 }
 
 #####################################################################################
