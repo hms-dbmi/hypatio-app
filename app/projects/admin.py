@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import escape, mark_safe
 
+from projects.models import Group
 from projects.models import DataProject
 from projects.models import AgreementForm
 from projects.models import SignedAgreementForm
@@ -20,6 +21,12 @@ from projects.models import DUASignedAgreementFormFields
 from projects.models import ROCSignedAgreementFormFields
 from projects.models import MAYOSignedAgreementFormFields
 from projects.models import MIMIC3SignedAgreementFormFields
+
+
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ('title', 'key', 'created', 'modified', )
+    readonly_fields = ('created', 'modified', )
+
 
 class DataProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'project_key', 'informational_only', 'registration_open', 'requires_authorization', 'is_challenge', 'order', 'created', 'modified', )
@@ -140,6 +147,7 @@ class MIMIC3SignedAgreementFormFieldsAdmin(SignedAgreementFormFieldsAdmin):
     pass
 
 
+admin.site.register(Group, GroupAdmin)
 admin.site.register(DataProject, DataProjectAdmin)
 admin.site.register(AgreementForm, AgreementformAdmin)
 admin.site.register(SignedAgreementForm, SignedagreementformAdmin)
