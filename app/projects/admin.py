@@ -16,12 +16,6 @@ from projects.models import ChallengeTask
 from projects.models import ChallengeTaskSubmission
 from projects.models import ChallengeTaskSubmissionDownload
 from projects.models import Bucket
-from projects.models import NLPDUASignedAgreementFormFields
-from projects.models import NLPWHYSignedAgreementFormFields
-from projects.models import DUASignedAgreementFormFields
-from projects.models import ROCSignedAgreementFormFields
-from projects.models import MAYOSignedAgreementFormFields
-from projects.models import MIMIC3SignedAgreementFormFields
 
 
 class GroupAdmin(admin.ModelAdmin):
