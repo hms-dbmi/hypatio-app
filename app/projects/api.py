@@ -360,10 +360,10 @@ def download_dataset(request):
     # Save a record of this person downloading this file.
     HostedFileDownload.objects.create(user=request.user, hosted_file=file_to_download)
 
-    s3_filename = file_to_download.file_location + "/" + file_to_download.file_name
-    logger.debug("[download_dataset] - User " + request.user.email + " is downloading file " + s3_filename + " from bucket " + settings.S3_BUCKET + ".")
+    file_uri = f"{file_to_download.project.bucket.uri}/{file_to_download.file_location}/{file_to_download.file_name}"
+    logger.debug(f"[download_dataset] - User {request.user.email} is downloading file {file_uri}.")
 
-    download_url = get_download_url(s3_filename)
+    download_url = get_download_url(file_uri)
 
     response = redirect(download_url)
     response['Content-Disposition'] = 'attachment'
