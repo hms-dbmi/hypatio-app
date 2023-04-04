@@ -1018,14 +1018,18 @@ def host_submission(request, fileservice_uuid):
             return HttpResponse(host_submission_form.errors.as_json(), status=400)
 
         try:
-            # Do the copy
-            logger.debug(f'[HYPATIO][DEBUG][host_submission] Copying submission "{submission}" '
-                         f'to hosted location "{host_submission_form.cleaned_data["file_location"]}/'
-                         f'{host_submission_form.cleaned_data["file_name"]}"')
+            # Build the destination URI
+            file_uri = f"{project.bucket.uri}/" \
+                       f"{host_submission_form.cleaned_data['file_location']}/" \
+                       f"{host_submission_form.cleaned_data['file_name']}"
 
-            if host_file(request=request, file_uuid=fileservice_uuid,
-                         file_location=host_submission_form.cleaned_data['file_location'],
-                         file_name=host_submission_form.cleaned_data['file_name']):
+            # Do the copy
+            logger.debug(
+                f'[HYPATIO][DEBUG][host_submission] Copying submission '
+                f'"{submission}" to hosted location "{file_uri}"'
+            )
+
+            if host_file(request=request, file_uuid=fileservice_uuid, file_uri=file_uri):
                 logger.debug(f'[HYPATIO][DEBUG][host_submission] File was copied successfully')
                 host_submission_form.save()
 
