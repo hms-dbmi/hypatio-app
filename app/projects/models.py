@@ -115,7 +115,7 @@ class Bucket(models.Model):
     def clean(self):
 
         # Check for multiple defaults
-        if self.objects.filter(default=True):
+        if self.default and Bucket.objects.filter(default=True):
             raise ValidationError('Only one bucket may be configured as the default at one time.')
 
         # Check bucket for needed permissions
