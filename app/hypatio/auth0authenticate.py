@@ -14,7 +14,7 @@ from django.contrib.auth import logout
 from django.core.exceptions import PermissionDenied
 from dbmi_client.settings import dbmi_settings
 from dbmi_client.settings import dbmi_settings
-from dbmi_client.authn import validate_request, login_redirect_url
+from dbmi_client.authn import validate_request, login_redirect_url, get_jwt_payload, get_jwt
 
 logger = logging.getLogger(__name__)
 
@@ -259,14 +259,20 @@ def logout_redirect(request):
 class Auth0Authentication(object):
 
     def authenticate(self, request, **token_dictionary):
-        logger.debug("Authenticate User: {}/{}".format(token_dictionary.get('sub'), token_dictionary.get('email')))
+
+        # Get the JWT payload
+        payload = get_jwt_payload(request, verify=True)
+        if not payload:
+            return None
+
+        logger.debug("Authenticate User: {}/{}".format(payload.get('sub'), payload.get('email')))
 
         try:
-            user = User.objects.get(username=token_dictionary["email"])
+            user = User.objects.get(username=payload["email"])
         except User.DoesNotExist:
-            logger.debug("User not found, creating: {}".format(token_dictionary.get('email')))
+            logger.debug("User not found, creating: {}".format(payload.get('email')))
 
-            user = User(username=token_dictionary["email"], email=token_dictionary["email"])
+            user = User(username=payload["email"], email=payload["email"])
             user.save()
         return user
 
