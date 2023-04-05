@@ -1,57 +1,24 @@
-from django.http import Http404
-from django.contrib.auth.models import User
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
-
-from datetime import datetime, timedelta
-from rest_framework.generics import ListAPIView, RetrieveAPIView
-from rest_framework.views import APIView
 from rest_framework import viewsets
+from rest_framework import mixins
 from rest_framework.response import Response
-from rest_framework import authentication, permissions
-from rest_framework import exceptions
+from rest_framework import authentication
+from rest_framework import permissions
 from rest_framework.decorators import action
-from dbmi_client import authz
 from dbmi_client.authn import DBMIModelUser
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, OpenApiParameter, extend_schema_view
 
-from api.scheme import JWTScheme
 from projects.models import DataProject, HostedFile
 from api.serializers import (
     DataProjectSerializer,
     HostedFileSerializer,
     HostedFileDownloadSerializer,
 )
-from hypatio.file_services import get_download_url
+from api.auth import HostedFilePermission
 
-
-class HostedFilePermission(permissions.BasePermission):
-    """
-    This BasePermission subclass ensures the requesting user has adequate
-    permissions on the DataProject to which the HostedFile belongs.
-    """
-
-    READ_PERMISSIONS = ["VIEW", "MANAGE"]
-    WRITE_PERMISSIONS = ["MANAGE"]
-
-    def has_permission(self, request, view):
-        if not request.user.is_authenticated:
-            return False
-
-        # Check Participant objects first
-        if request.user.participant_set.filter(
-                project=view.project,
-                permission__in=self.READ_PERMISSIONS):
-            return True
-
-        if authz.has_a_permission(
-                request=request,
-                email=request.user.email,
-                item=f"Hypatio.{view.project.project_key}",
-                permissions=self.READ_PERMISSIONS,
-                check_parents=True):
-            return True
+import logging
+logger = logging.getLogger(__name__)
 
 
 class DataProjectViewSet(viewsets.ReadOnlyModelViewSet):
