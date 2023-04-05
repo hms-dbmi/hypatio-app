@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'django_jsonfield_backport',
     'django_q',
     'rest_framework',
+    'rest_framework.authtoken',
     'drf_spectacular',
     'django_filters',
 ]

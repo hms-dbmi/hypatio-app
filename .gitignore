@@ -7,3 +7,15 @@ app/db.sqlite3
 app/hypatio/local_settings.py
 .vscode/settings.json
 backup
+
+# CDK
+*.swp
+package-lock.json
+__pycache__
+.pytest_cache
+.venv
+*.egg-info
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
