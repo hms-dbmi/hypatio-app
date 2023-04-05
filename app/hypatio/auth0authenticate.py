@@ -219,7 +219,7 @@ def jwt_login(request, jwt_payload):
 
     request.session['profile'] = jwt_payload
 
-    user = django_auth.authenticate(**jwt_payload)
+    user = django_auth.authenticate(request, **jwt_payload)
 
     if user:
         login(request, user)
