@@ -2,10 +2,15 @@ from django.urls import include, re_path
 from django.http import HttpResponse
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from rest_framework_nested import routers
-from api.api import DataProjectViewSet, HostedFileViewSet
+from api.api import (
+    DataProjectViewSet,
+    HostedFileViewSet,
+    FileSyncViewSet,
+)
 
 router = routers.SimpleRouter()
 router.register(r'projects', DataProjectViewSet)
+router.register(r'file-sync', FileSyncViewSet, basename="file-sync")
 
 projects_router = routers.NestedSimpleRouter(router, r'projects', lookup='project')
 projects_router.register(r'files', HostedFileViewSet, basename='project-files')

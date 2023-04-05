@@ -1,6 +1,5 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
-from rest_framework import mixins
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
@@ -84,3 +83,29 @@ class HostedFileViewSet(viewsets.ReadOnlyModelViewSet):
     def download(self, request, project_id, id):
         serializer = HostedFileDownloadSerializer(self.get_object())
         return Response(serializer.data)
+
+
+class FileSyncViewSet(viewsets.ViewSet):
+    """
+    A viewset that manages API for file syncing.
+    """
+    authentication_classes = [authentication.TokenAuthentication, ]
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def create(self, request, *args, **kwargs):
+
+        # Ensure the request body follows structure
+        if "records" not in request.data:
+            return Response({"error": "Request data must include 'records' list"}, status=400)
+
+        # Parse the request object and get buckets to sync
+        buckets = []
+        for record in request.data["records"]:
+
+            # Get bucket name
+            buckets.append(record["s3"]["bucket"]["name"])
+
+        # Do the syncs
+        logger.info(f"Syncing buckets: {buckets}")
+
+        return Response(status=201)
