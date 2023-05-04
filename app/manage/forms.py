@@ -1,6 +1,6 @@
 from django import forms
 from django.core.validators import RegexValidator
-from bootstrap_datepicker_plus import DateTimePickerInput
+from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 from dal import autocomplete
 
 from projects.models import AgreementForm, DataProject
@@ -52,8 +52,8 @@ class HostSubmissionForm(forms.ModelForm):
         widgets = {
             'long_name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': '5'}),
-            'opened_time': DateTimePickerInput(attrs={'class': 'form-control', 'placeholder': 'MM/DD/YYYY HH:MM'}).start_of('available days'),
-            'closed_time': DateTimePickerInput(attrs={'class': 'form-control', 'placeholder': 'MM/DD/YYYY HH:MM'}).end_of('available days'),
+            'opened_time': DateTimePickerInput(attrs={'class': 'form-control', 'placeholder': 'MM/DD/YYYY HH:MM'}),
+            'closed_time': DateTimePickerInput(attrs={'class': 'form-control', 'placeholder': 'MM/DD/YYYY HH:MM'}, range_from='opened_time'),
             'hostedfileset': autocomplete.ModelSelect2(url='projects:hostedfileset-autocomplete', forward=['project'], attrs={'class': 'form-control form-control-select2'})
         }
 
