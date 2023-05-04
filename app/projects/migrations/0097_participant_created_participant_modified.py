@@ -11,29 +11,10 @@ def migrate_participants_model(apps, schema_editor):
     been created. This is calculated by fetching the date of the last
     signed SignedAgreementForm relevant to the DataProjects.
     """
-    for participant in Participant.objects.all():
-
-        # Fetch signed agreement forms
-        signed_agreement_form = SignedAgreementForm.objects.filter(user=participant.user, project=participant.project).last()
-        if signed_agreement_form:
-
-            # Set the dates
-            participant.created = signed_agreement_form.date_signed
-            participant.modified = signed_agreement_form.date_signed
-
-            # Do the update
-            Participant.objects.filter(pk=participant.pk).update(
-                created=signed_agreement_form.date_signed,
-                modified=signed_agreement_form.date_signed
-            )
-
-        else:
-
-            # Do the update
-            Participant.objects.filter(pk=participant.pk).update(
-                created="2018-02-20T00:00:00Z",
-                modified="2018-02-20T00:00:00Z",
-            )
+    # Do nothing due to issue with Django accessing properties not added
+    # until later migration
+    # This migration was moved to 0100
+    pass
 
 
 class Migration(migrations.Migration):
