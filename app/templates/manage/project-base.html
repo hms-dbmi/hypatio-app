@@ -8,7 +8,9 @@
 {% block headscripts %}
 <!-- For DataTables -->
 <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables/dataTables.dataTables.min.js' %}"></script>
 <script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.dataTables.min.css' %}">
 <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.min.css' %}">
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
@@ -20,10 +22,15 @@
 {% endblock %}
 
 {% block subcontent %}
-<div class="row">
-    <div class="col-md-12" style="margin-bottom: 15px;">
-        <h3>Essentials</h3>
-    </div>
+
+<div class="page-header">
+  <div class='btn-toolbar pull-right'>
+      <div class='btn-group'>
+          <button type='button' class='btn btn-primary' onclick="$('.panel-collapse').collapse('hide');">Collapse All</button>
+          <button type='button' class='btn btn-primary' onclick="$('.panel-collapse').collapse('show');">Expand All</button>
+      </div>
+  </div>
+  <h3>Essentials</h3>
 </div>
 
 <div class="row">
@@ -111,9 +118,10 @@
 <div class="row">
     <div class="col-lg-4">
         <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading-description">
+            <div class="panel-heading panel-heading-toggle heading-description" role="tab" data-toggle="collapse" data-target="#forms-collapse">
                 <h2 class="panel-title">Agreement Forms</h2>
             </div>
+            <div id="forms-collapse" class="panel-collapse collapse in">
             <div class="panel-body">
                 {% for agreement_form in project.agreement_forms.all %}
                 <div class="row">
@@ -138,70 +146,73 @@
                 {% endfor %}
                 <p class="help-block">Please contact a DBMI Tech-Core developer for help with adding or editing an agreement form.</p>
             </div>
+          </div>
         </div>
     </div>
 
     <div class="col-lg-8">
         <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading-description">
+            <div class="panel-heading panel-heading-toggle heading-description" role="tab" data-toggle="collapse" data-target="#files-collapse">
                 <h2 class="panel-title">Files</h2>
             </div>
-            <div class="panel-body">
-                {% for file_group in file_groups %}
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <h4>{{ file_group.group_name }}:</h4>
-                            {% if file_group.files|length == 0 %}
-                                <p>No files in this set</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% for hosted_file in file_group.files %}
-                        <div class="row" style="margin-bottom: 10px;">
-                            <div class="col-sm-8">
-                                <h5>
-                                    {{ hosted_file.long_name }}
-                                </h5>
-                                {% is_hostedfile_currently_enabled hosted_file as file_enabled %}
-                                {% if file_enabled %}
-                                Downloads currently enabled
-                                {% else %}
-                                <span class="text-danger"><i>Downloads currently disabled</i></span>
-                                {% endif %}
-                            </div>
+            <div id="files-collapse" class="panel-collapse collapse in">
+              <div class="panel-body">
+                  {% for file_group in file_groups %}
+                      <div class="row">
+                          <div class="col-sm-12">
+                              <h4>{{ file_group.group_name }}:</h4>
+                              {% if file_group.files|length == 0 %}
+                                  <p>No files in this set</p>
+                              {% endif %}
+                          </div>
+                      </div>
+                      {% for hosted_file in file_group.files %}
+                          <div class="row" style="margin-bottom: 10px;">
+                              <div class="col-sm-8">
+                                  <h5>
+                                      {{ hosted_file.long_name }}
+                                  </h5>
+                                  {% is_hostedfile_currently_enabled hosted_file as file_enabled %}
+                                  {% if file_enabled %}
+                                  Downloads currently enabled
+                                  {% else %}
+                                  <span class="text-danger"><i>Downloads currently disabled</i></span>
+                                  {% endif %}
+                              </div>
 
-                            <div class="col-sm-4">
-                                <div class="pull-right">
-                                    <a class="btn btn-default pull-right edit-agreement-form-button"
-                                        href="#"
-                                        role="button"
-                                        data-toggle="modal"
-                                        data-target="#modal-edit-hosted-file"
-                                        ic-get-from="{% url 'manage:get-hosted-file-edit-form' %}"
-                                        ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
-                                        ic-target="#modal-edit-hosted-file-body">
-                                        Edit
-                                    </a>
-                                    <a class="btn btn-default pull-right"
-                                       style="margin-right: 10px;"
-                                        href="#"
-                                        role="button"
-                                        data-toggle="modal"
-                                        data-target="#modal-hosted-file-logs"
-                                        ic-get-from="{% url 'manage:get-hosted-file-logs' %}"
-                                        ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
-                                        ic-target="#modal-hosted-file-logs-body"
-                                        ic-beforeSend-action="initDownloadLogs">
-                                        Logs
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                    <hr>
-                {% endfor %}
-                <p class="help-block">Please contact a DBMI Tech-Core developer for help with adding a new data file or to move files to different subgroups.</p>
-                <!-- <button class="btn btn-primary pull-right">Add another</button> -->
+                              <div class="col-sm-4">
+                                  <div class="pull-right">
+                                      <a class="btn btn-default pull-right edit-agreement-form-button"
+                                          href="#"
+                                          role="button"
+                                          data-toggle="modal"
+                                          data-target="#modal-edit-hosted-file"
+                                          ic-get-from="{% url 'manage:get-hosted-file-edit-form' %}"
+                                          ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
+                                          ic-target="#modal-edit-hosted-file-body">
+                                          Edit
+                                      </a>
+                                      <a class="btn btn-default pull-right"
+                                        style="margin-right: 10px;"
+                                          href="#"
+                                          role="button"
+                                          data-toggle="modal"
+                                          data-target="#modal-hosted-file-logs"
+                                          ic-get-from="{% url 'manage:get-hosted-file-logs' %}"
+                                          ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
+                                          ic-target="#modal-hosted-file-logs-body"
+                                          ic-beforeSend-action="initDownloadLogs">
+                                          Logs
+                                      </a>
+                                  </div>
+                              </div>
+                          </div>
+                      {% endfor %}
+                      <hr>
+                  {% endfor %}
+                  <p class="help-block">Please contact a DBMI Tech-Core developer for help with adding a new data file or to move files to different subgroups.</p>
+                  <!-- <button class="btn btn-primary pull-right">Add another</button> -->
+              </div>
             </div>
         </div>
     </div>
@@ -278,43 +289,45 @@
 <div class="row">
     <div class="col-lg-12">
         {% if project.has_teams %}
-        <div class="panel panel-default">
+        <div class="panel-heading panel-heading-toggle heading-description" role="tab" data-toggle="collapse" data-target="#teams-collapse">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Team list</h2>
             </div>
-            <div class="panel-body">
-                <table id="team-table" class="table table-bordered table-hover table-responsive">
-                    <thead>
-                        <tr>
-                            <th>Team</th>
-                            <th>Members</th>
-                            <th>Status</th>
-                            <th>Downloads</th>
-                            <th>Submissions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for team in teams %}
-                        <tr class="team-row" data-team="{{ team.team_leader }}" style="cursor: pointer;">
-                            <td>{{ team.team_leader }}</td>
-                            <td>{{ team.member_count }}</td>
-                            <td class="team-status-column">
-                            {% if team.status == "Pending" %}
-                                Pending
-                            {% elif team.status == "Ready" %}
-                                <span class="label label-warning">Ready to activate</span>
-                            {% elif team.status == "Active" %}
-                                Active
-                            {% elif team.status == "Deactivated" %}
-                                Deactivated
-                            {% endif %}
-                            </td>
-                            <td>{{ team.downloads }}</td>
-                            <td>{{ team.submissions }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+            <div id="teams-collapse" class="panel-collapse collapse in">
+              <div class="panel-body">
+                  <table id="team-table" class="table table-bordered table-hover table-responsive">
+                      <thead>
+                          <tr>
+                              <th>Team</th>
+                              <th>Members</th>
+                              <th>Status</th>
+                              <th>Downloads</th>
+                              <th>Submissions</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                      {% for team in teams %}
+                          <tr class="team-row" data-team="{{ team.team_leader }}" style="cursor: pointer;">
+                              <td>{{ team.team_leader }}</td>
+                              <td>{{ team.member_count }}</td>
+                              <td class="team-status-column">
+                              {% if team.status == "Pending" %}
+                                  Pending
+                              {% elif team.status == "Ready" %}
+                                  <span class="label label-warning">Ready to activate</span>
+                              {% elif team.status == "Active" %}
+                                  Active
+                              {% elif team.status == "Deactivated" %}
+                                  Deactivated
+                              {% endif %}
+                              </td>
+                              <td>{{ team.downloads }}</td>
+                              <td>{{ team.submissions }}</td>
+                          </tr>
+                      {% endfor %}
+                      </tbody>
+                  </table>
+              </div>
             </div>
         </div>
         {% endif %}
@@ -322,23 +335,17 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-12">
-        <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">
-                    Full participant list
-                    <small>
-                        <button type="button" class="btn btn-primary btn-xs pull-right"
-                                ic-post-to="{% url 'manage:sync-view-permissions' project.project_key %}"
-                                ic-on-success="$('#sync-modal').modal();">
-                            Sync VIEW permissions <i class="ic-indicator fa fa-spinner fa-spin" style="display:none"></i>
-                        </button>
-                    </small>
-                </h2>
-            </div>
+  <div class="col-lg-12">
+      <div class="panel panel-default">
+        <div class="panel-heading panel-heading-toggle heading-description" role="tab" data-toggle="collapse" data-target="#pending-participants-collapse">
+              <h2 class="panel-title">
+                  Pending participant list
+              </h2>
+          </div>
+          <div id="pending-participants-collapse" class="panel-collapse collapse in">
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table id="participant-table" class="table table-bordered table-hover">
+                    <table id="pending-participant-table" class="table table-bordered table-hover">
                         <thead>
                             <tr>
                                 <th>Email</th>
@@ -348,8 +355,7 @@
                                 <th>Access</th>
                                 <th>Forms</th>
                                 <th>Actions</th>
-                                <th>Downloads</th>
-                                <th>Uploads</th>
+                                <th>Request Date</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -357,6 +363,51 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+          </div>
+      </div>
+  </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+          <div class="panel-heading panel-heading-toggle heading-description" role="tab" data-toggle="collapse" data-target="#participants-collapse">
+                <h2 class="panel-title">
+                    Full participant list
+                    <small>
+                        <button type="button" class="btn btn-primary btn-xs pull-right" style="margin-left: 10px;"
+                                ic-post-to="{% url 'manage:sync-view-permissions' project.project_key %}"
+                                ic-on-success="$('#sync-modal').modal();">
+                            Sync VIEW permissions <i class="ic-indicator fa fa-spinner fa-spin" style="display:none"></i>
+                        </button>
+                    </small>
+                </h2>
+            </div>
+            <div id="participants-collapse" class="panel-collapse collapse in">
+              <div class="panel-body">
+                  <div class="table-responsive">
+                      <table id="participant-table" class="table table-bordered table-hover">
+                          <thead>
+                              <tr>
+                                  <th>Email</th>
+                                  {% if project.has_teams %}
+                                      <th>Team</th>
+                                  {% endif %}
+                                  <th>Access</th>
+                                  <th>Forms</th>
+                                  <th>Actions</th>
+                                  <th>Downloads</th>
+                                  <th>Uploads</th>
+                                  <th>Date</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                            {# Loaded via DataTables.js #}
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
             </div>
         </div>
     </div>
@@ -372,57 +423,59 @@
 <div class="row">
     <div class="col-lg-12">
         <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading-description">
+          <div class="panel-heading panel-heading-toggle heading-description" role="tab" data-toggle="collapse" data-target="#submissions-collapse">
                 <h2 class="panel-title">Submissions</h2>
             </div>
-            <div class="panel-body">
-                <table id="submissions-table" class="table table-bordered table-hover table-responsive">
-                    <thead>
-                        <tr>
-                            <th>Person</th>
-                            {% if project.has_teams %}
-                            <th>Team</th>
-                            {% endif %}
-                            <th>Task</th>
-                            <th>Submitted Date</th>
-                            <th>File ID</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for submission in submissions %}
-                        <tr>
-                            <td>{{ submission.participant.user.email }}</td>
-                            {% if project.has_teams %}
-                            <td>{{ submission.participant.team.team_leader.email }}</td>
-                            {% endif %}
-                            <td>{{ submission.challenge_task.title }}</td>
-                            <td>{{ submission.upload_date|date:"c" }}</td>
-                            <td>{{ submission.uuid }}</td>
-                            <td>
-                                <button class="btn btn-default btn-xs view-submission-info" data-toggle="modal" data-target="#modal-submission-info" data-submission-uuid="{{ submission.uuid }}" data-submission-info="{{ submission.submission_info }}">
-                                    Details
-                                </button>
-                                <a class="btn btn-default btn-xs btn-default" href="{% url 'manage:download-submission' submission.uuid %}" download>
-                                    Download
-                                </a>
-                                {% if project.hosted_submissions %}
-                                <a class="btn btn-default btn-xs btn-success"
-                                   style="margin-top: 4px;"
-                                    href="#"
-                                    role="button"
-                                    data-toggle="modal"
-                                    data-target="#modal-host-submission"
-                                    ic-get-from="{% url 'manage:host-submission' submission.uuid %}"
-                                    ic-target="#modal-host-submission-body">
-                                    Host
-                                </a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div id="submissions-collapse" class="panel-collapse collapse in">
+              <div class="panel-body">
+                  <table id="submissions-table" class="table table-bordered table-hover table-responsive">
+                      <thead>
+                          <tr>
+                              <th>Person</th>
+                              {% if project.has_teams %}
+                              <th>Team</th>
+                              {% endif %}
+                              <th>Task</th>
+                              <th>Submitted Date</th>
+                              <th>File ID</th>
+                              <th>Actions</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {% for submission in submissions %}
+                          <tr>
+                              <td>{{ submission.participant.user.email }}</td>
+                              {% if project.has_teams %}
+                              <td>{{ submission.participant.team.team_leader.email }}</td>
+                              {% endif %}
+                              <td>{{ submission.challenge_task.title }}</td>
+                              <td>{{ submission.upload_date|date:"c" }}</td>
+                              <td>{{ submission.uuid }}</td>
+                              <td>
+                                  <button class="btn btn-default btn-xs view-submission-info" data-toggle="modal" data-target="#modal-submission-info" data-submission-uuid="{{ submission.uuid }}" data-submission-info="{{ submission.submission_info }}">
+                                      Details
+                                  </button>
+                                  <a class="btn btn-default btn-xs btn-default" href="{% url 'manage:download-submission' submission.uuid %}" download>
+                                      Download
+                                  </a>
+                                  {% if project.hosted_submissions %}
+                                  <a class="btn btn-default btn-xs btn-success"
+                                    style="margin-top: 4px;"
+                                      href="#"
+                                      role="button"
+                                      data-toggle="modal"
+                                      data-target="#modal-host-submission"
+                                      ic-get-from="{% url 'manage:host-submission' submission.uuid %}"
+                                      ic-target="#modal-host-submission-body">
+                                      Host
+                                  </a>
+                                  {% endif %}
+                              </td>
+                          </tr>
+                          {% endfor %}
+                      </tbody>
+                  </table>
+              </div>
             </div>
         </div>
     </div>
@@ -431,10 +484,10 @@
 <div class="row">
     <div class="col-lg-12">
         <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading-description">
+          <div class="panel-heading panel-heading-toggle heading-description" role="tab" data-toggle="collapse" data-target="#submission-exports-collapse">
                 <h2 class="panel-title">Submissions Exports
                   <small>
-                      <button type="button" class="btn btn-primary btn-xs pull-right"
+                      <button type="button" class="btn btn-primary btn-xs pull-right" style="margin-left: 10px;"
                         ic-get-from="{% url 'manage:export-submissions' project.project_key %}"
                         ic-on-success="$('#export-modal').modal();">
                           Export Submissions <i class="ic-indicator fa fa-spinner fa-spin" style="display:none"></i>
@@ -442,31 +495,33 @@
                   </small>
                 </h2>
             </div>
-            <div class="panel-body">
-                <table id="submissions-exports-table" class="table table-bordered table-hover table-responsive">
-                    <thead>
-                        <tr>
-                            <th>Requester</th>
-                            <th>Requested Date</th>
-                            <th>File ID</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for export in submissions_exports %}
-                        <tr>
-                            <td>{{ export.requester.email }}</td>
-                            <td>{{ export.request_date|date:"c" }}</td>
-                            <td>{{ export.uuid }}</td>
-                            <td>
-                                <button onclick="window.location.href='{% url 'manage:download-submissions-export' project.project_key export.uuid %}'" class="btn btn-default btn-xs btn-default">
-                                    Download
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div id="submission-exports-collapse" class="panel-collapse collapse in">
+              <div class="panel-body">
+                  <table id="submissions-exports-table" class="table table-bordered table-hover table-responsive">
+                      <thead>
+                          <tr>
+                              <th>Requester</th>
+                              <th>Requested Date</th>
+                              <th>File ID</th>
+                              <th>Actions</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {% for export in submissions_exports %}
+                          <tr>
+                              <td>{{ export.requester.email }}</td>
+                              <td>{{ export.request_date|date:"c" }}</td>
+                              <td>{{ export.uuid }}</td>
+                              <td>
+                                  <button onclick="window.location.href='{% url 'manage:download-submissions-export' project.project_key export.uuid %}'" class="btn btn-default btn-xs btn-default">
+                                      Download
+                                  </button>
+                              </td>
+                          </tr>
+                          {% endfor %}
+                      </tbody>
+                  </table>
+              </div>
             </div>
         </div>
     </div>
@@ -598,9 +653,6 @@
 {% endblock %}
 
 {% block footerscripts %}
-<!-- Initialize DataTables -->
-<script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
 <script type="application/javascript">
     function initDownloadLogs() {
 
@@ -618,28 +670,177 @@
             "order": [[2, "desc"]]
         });
 
-        $('#participant-table').DataTable({
+        var pendingParticipantTable = $('#pending-participant-table').DataTable({
             // Order by the Access column to prioritize pending access.
             "dom": 'Blfrtip',
             "processing": true,
             "serverSide": true,
-            "ajax": "{% url 'manage:get-project-participants' project_key=project_key %}",
-            "buttons": {
-              "dom": {
-                "button": {
-                  "tag": "button",
-                  "className": ""
-                }
-              },
-              "buttons": [
-                {
-                  text: 'Awaiting Review',
-                  className: 'btn btn-default',
-                  action: function ( e, dt, node, config ) {
-                    dt.search('Pending', false);
+            "ajax": "{% url 'manage:get-project-pending-participants' project_key=project_key %}",
+            "initComplete": function(settings, json) {
+              var textBox = $('#pending-participant-table_filter label input');
+              textBox.unbind();
+              textBox.bind('keyup input', function(e) {
+                  if(e.keyCode == 8 && !textBox.val() || e.keyCode == 46 && !textBox.val()) {
+                      // do nothing ¯\_(ツ)_/¯
+                  } else if(e.keyCode == 13 || !textBox.val()) {
+                    pendingParticipantTable.search(this.value).draw();
                   }
+              });
+            },
+            "order": [[{% if project.has_teams %}5{% else %}4{% endif %}, "desc"]],
+            "columnDefs": [
+                {
+                    "targets": [{% if project.has_teams %}1, 2, 3{% else %}1, 2{% endif %}],
+                    "orderable": false
+                },
+                {
+                    "targets": {% if project.has_teams %}3{% else %}2{% endif %},
+                    "render":  function(data, type, full, meta) {
+
+                        // Build HTML render
+                        var html = '';
+
+                        // Data is an array of forms
+                        for (index = 0; index < data.length; index++) {
+
+                            // Get the form
+                            var form = data[index];
+
+                            // Set the base URL for the forms
+                            var formUrl = '{% url "projects:signed_agreement_form" %}?project_key=' + form['project'] + '&signed_form_id=' + form['id'];
+
+                            // Set form type and icon classes
+                            var formClasses = (function(formStatus) {
+                              switch(formStatus) {
+                                case 'P':
+                                  return ['btn-warning', 'glyphicon-alert'];
+                                case 'A':
+                                  return ['btn-default', 'glyphicon-ok'];
+                                case 'R':
+                                  return ['btn-danger', 'glyphicon-ban-circle'];
+                                default:
+                                  return ['btn-warning', 'glyphicon-alert'];
+                              }
+                            })(form['status']);
+
+                            // Set link HTML with placeholders for button classes
+                            var link = '<a style="display: block; margin: 2px;" ' +
+                                'class="btn btn-default btn-xs ' + formClasses[0] +
+                                ' download-signed-form" href="' + formUrl +
+                                '" target="_blank" role="button">' + form['name'] +
+                                '  <span class="glyphicon ' + formClasses[1] +
+                                '" aria-hidden="true"></span></a>';
+
+                            // Append it to the other elements
+                            html += link
+                        }
+
+                        return html;
+                    }
+                },
+                {
+                    "targets": {% if project.has_teams %}4{% else %}3{% endif %},
+                    "render":  function(data, type, full, meta) {
+
+                        // Determine output based on access, forms signed, etc.
+                        if(data['access']) {
+
+                            // Set the URL for revoking access
+                            var buttonUrl = '{% url "manage:remove-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
+
+                            // Return the button to revoke
+                            return '<button type="button" class="btn btn-default btn-xs" ic-post-to="' + buttonUrl +
+                                '" ic-on-success="$(\'#pending-participant-table\').DataTable().draw(false);$(\'#participant-table\').DataTable().draw(false);">Revoke access  ' +
+                                '<span class="glyphicon glyphicon-ban-circle" ' +
+                                'aria-hidden="true"></span></button>';
+
+                        } else if(data['signed'] == data['required'] && !data['team']) {
+
+                            // Set the URL for approving access
+                            var buttonUrl = '{% url "manage:grant-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
+
+                            // Return button to approve user
+                            return '<button type="button" class="btn btn-default btn-xs btn-success" ' +
+                                'ic-post-to="' + buttonUrl +
+                                '" ic-on-success="$(\'#pending-participant-table\').DataTable().draw(false);$(\'#participant-table\').DataTable().draw(false);">Grant access  ' +
+                                '<span class="glyphicon glyphicon-alert" aria-hidden="true"></span>' +
+                                '</button>';
+
+                        } else if(data['signed'] == data['required'] && data['team']) {
+
+                            return 'Grant approval via team management.';
+
+                        } else {
+
+                            return 'Forms incomplete or pending your review';
+                        }
+                    }
+                },
+                {
+                    "targets": [{% if project.has_teams %}5{% else %}4{% endif %}],
+                    "render": function (data, type, full, meta) {
+
+                        // Return raw dates for sorting
+                        if (type === 'sort' || type === 'type')
+                            return data;
+
+                        // Parse date and get components
+                        var date = new Date(data);
+                        var y = date.getFullYear();
+                        var m = date.getMonth() + 1;
+                        var d = date.getDate();
+                        var h = date.getHours();
+                        var min = ("0" + date.getMinutes()).slice(-2);
+
+                        return m + '-' + d + '-' + y + ' ' + h + ':' + min;
+                    }
                 }
-              ]
+            ],
+            "drawCallback": function( settings ) {
+
+                // Collect all Intercooler links
+                $('#pending-participant-table [ic-get-from], #pending-participant-table [ic-post-to], ' +
+                  '#pending-participant-table [ic-put-to], #pending-participant-table [ic-patch-to], ' +
+                  '#pending-participant-table [ic-delete-from]').each(function() {
+
+                    // Check attribute
+                    if( !$(this).attr('ic-id') ) {
+
+                        // Process it
+                        Intercooler.processNodes($(this));
+                    }
+                });
+            },
+        });
+
+        var participantTable = $('#participant-table').DataTable({
+            // Order by the Access column to prioritize pending access.
+            "dom": 'Blfrtip',
+            "searching": true,
+            "search": {
+              "return": true
+            },
+            "initComplete": function(settings, json) {
+              var textBox = $('#participant-table_filter label input');
+              textBox.unbind();
+              textBox.bind('keyup input', function(e) {
+                  if(e.keyCode == 8 && !textBox.val() || e.keyCode == 46 && !textBox.val()) {
+                      // do nothing ¯\_(ツ)_/¯
+                  } else if(e.keyCode == 13 || !textBox.val()) {
+                    participantTable.search(this.value).draw();
+                  }
+              });
+            },
+            "processing": true,
+            "serverSide": true,
+            "ajax": "{% url 'manage:get-project-participants' project_key=project_key %}",
+            "language": {
+                 "lengthMenu": "_MENU_ per page",
+                 "zeroRecords": "No records found",
+                 "info": "Showing <b>_START_ to _END_</b> (of _TOTAL_)",
+                 "infoFiltered": "",
+                 "infoEmpty": "No records found",
+                 "processing": '<i class="fa fa-spinner fa-spin fa-2x fa-fw"></i>'
             },
             "columnDefs": [
                 {
@@ -703,7 +904,7 @@
 
                             // Return the button to revoke
                             return '<button type="button" class="btn btn-default btn-xs" ic-post-to="' + buttonUrl +
-                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);">Revoke access  ' +
+                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);$(\'#pending-participant-table\').DataTable().draw(false);">Revoke access  ' +
                                 '<span class="glyphicon glyphicon-ban-circle" ' +
                                 'aria-hidden="true"></span></button>';
 
@@ -715,7 +916,7 @@
                             // Return button to approve user
                             return '<button type="button" class="btn btn-default btn-xs btn-success" ' +
                                 'ic-post-to="' + buttonUrl +
-                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);">Grant access  ' +
+                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);$(\'#pending-participant-table\').DataTable().draw(false);">Grant access  ' +
                                 '<span class="glyphicon glyphicon-alert" aria-hidden="true"></span>' +
                                 '</button>';
 

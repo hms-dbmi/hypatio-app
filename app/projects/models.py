@@ -1,12 +1,20 @@
 import uuid
+import re
 from datetime import datetime
 
+import boto3
+from botocore.exceptions import ClientError
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db.models import JSONField
 from django.core.files.uploadedfile import UploadedFile
+from django.utils.translation import gettext_lazy as _
+
+import logging
+logger = logging.getLogger(__name__)
+
 
 TEAM_PENDING = 'Pending'
 TEAM_READY = 'Ready'
@@ -55,6 +63,8 @@ FILES_CONTENT_TYPES = {
     FILE_TYPE_PDF: ["application/pdf", "application/x-pdf"],
 }
 
+
+
 def get_agreement_form_upload_path(instance, filename):
 
     form_directory = 'agreementforms/'
@@ -77,6 +87,137 @@ def get_institution_logo_upload_path(instance, filename):
     return '%s/%s.%s' % (form_directory, file_name, file_extension)
 
 
+class Bucket(models.Model):
+    """
+    An object store for project files.
+    """
+
+    class Provider(models.TextChoices):
+        S3 = 's3', _('AWS S3')
+
+    name = models.CharField(max_length=255, blank=False, null=False)
+    default = models.BooleanField(default=False)
+    provider = models.CharField(
+        max_length=255,
+        blank=False,
+        null=False,
+        choices=Provider.choices,
+        default=Provider.S3,
+    )
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+
+        # Check for multiple defaults
+        if self.default and Bucket.objects.filter(default=True):
+            raise ValidationError('Only one bucket may be configured as the default at one time.')
+
+        # Check bucket for needed permissions
+        try:
+            match self.provider:
+                case Bucket.Provider.S3:
+                    try:
+                        # Get the s3 client
+                        s3 = boto3.client("s3")
+
+                        # Download the test file
+                        s3.list_objects_v2(
+                            Bucket=self.name,
+                        )
+
+                        # Create a test file
+                        key = f"test.{uuid.uuid4()}.txt"
+                        s3.put_object(
+                            Body="This is a test file.",
+                            Bucket=self.name,
+                            Key=key,
+                        )
+
+                        # Download the test file
+                        s3.get_object(
+                            Bucket=self.name,
+                            Key=key,
+                        )
+
+                        # Delete the test file
+                        s3.delete_object(
+                            Bucket=self.name,
+                            Key=key,
+                        )
+
+                    except ClientError as e:
+                        logger.exception(f"Bucket permissions error: {e.response}")
+                        raise ValidationError('This application has not been granted sufficient permissions on the bucket. Check logs for more info.')
+
+                case _:
+                    raise ValidationError('This application has not implemented validation for the specified bucket provider.')
+
+        except Exception as e:
+            logger.exception(f"Bucket check error: {e}", exc_info=True)
+            raise ValidationError('This application could not verify sufficient bucket permissions. Check logs for more info.')
+
+    @property
+    def uri(self):
+        return f"{self.provider}://{self.name}"
+
+    @classmethod
+    def get_default_pk(cls):
+        """
+        Returns the primary key of the default bucket. If this bucket does not
+        exist, it is created using the S3_BUCKET parameter in settings.
+
+        :return: The primary key of the default bucket
+        :rtype: int
+        """
+        bucket, created = cls.objects.get_or_create(
+            name=settings.S3_BUCKET,
+            default=True,
+            provider=Bucket.Provider.S3,
+        )
+
+        # Log if created
+        if created:
+            logger.info(f"Default bucket '{bucket.provider}://{bucket.name}' was created")
+
+        return bucket.pk
+
+    @classmethod
+    def split_uri(cls, uri):
+        """
+        Accepts a bucket object's URI and splits it into three components:
+        provider, bucket and key. These three values are returned as a tuple.
+        The provider is converted to an instance of Bucket.Provider. If the
+        passed URI contains an unsupported provider, an exception is raised.
+
+        :param uri: The URI of the object
+        :type uri: str
+        :raises ValueError: Raises an error if the URI is invalid
+        :raises ValueError: Raises an error if the URI's provider is unsupported
+        :return: Returns a tuple of the URI's components
+        :rtype: Bucket.Provider, str, str
+        """
+        provider = None
+        try:
+            # Separate URI
+            pattern = r"(\w+):\/\/([^:\/\/]+?)\/(.+)"
+            provider, bucket, key = re.match(pattern, uri.lower()).groups()
+
+            return Bucket.Provider(provider), bucket, key
+
+        except ValueError:
+            raise ValueError(f"Unsupported bucket provider: '{provider}'")
+
+        except Exception as e:
+            logger.exception(f"Invalid file URI '{uri}': {e}")
+            raise ValueError(f"Invalid file URI: '{uri}'")
+
+
 class Institution(models.Model):
     """
     This represents an institution such as a university that might be co-sponsoring a challenge.
@@ -85,6 +226,10 @@ class Institution(models.Model):
 
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
     logo_path = models.CharField(max_length=300, blank=True, null=True)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '%s' % (self.name)
@@ -102,13 +247,16 @@ class AgreementForm(models.Model):
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name="name")
     short_name = models.CharField(max_length=16, blank=False, null=False)
     description = models.TextField(blank=True)
-    created = models.DateTimeField(auto_now_add=True)
     form_file_path = models.CharField(max_length=300, blank=True, null=True)
     external_link = models.CharField(max_length=300, blank=True, null=True)
     type = models.CharField(max_length=50, choices=AGREEMENT_FORM_TYPE, blank=True, null=True)
     order = models.IntegerField(default=50, help_text="Indicate an order (lowest number = first listing) for how the Agreement Forms should be listed during registration workflows.")
     content = models.TextField(blank=True, null=True, help_text="If Agreement Form type is set to 'MODEL', the HTML set here will be rendered for the user")
     internal = models.BooleanField(default=False, help_text="Internal agreement forms are never presented to participants and are only submitted by administrators on behalf of participants")
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '%s' % (self.name)
@@ -179,6 +327,26 @@ class DataProject(models.Model):
 
     order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for how the DataProjects should be listed.")
 
+    group = models.ForeignKey(
+        to="Group",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        help_text="Set this to manage where this project is shown in the navigation and interface."
+    )
+
+    # Set the optional bucket to use for storage
+    bucket = models.ForeignKey(
+        to="Bucket",
+        on_delete=models.SET_DEFAULT,
+        default=Bucket.get_default_pk,
+        help_text="Set this to a specific bucket where this project's files should be stored."
+    )
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return '%s' % (self.project_key)
 
@@ -235,6 +403,297 @@ class SignedAgreementForm(models.Model):
     class Meta:
         verbose_name = 'Signed Agreement Form'
         verbose_name_plural = 'Signed Agreement Forms'
+
+class Team(models.Model):
+    """
+    This model describes a team of participants that are competing in a data challenge.
+    """
+
+    team_leader = models.ForeignKey(User, on_delete=models.PROTECT)
+    data_project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
+    status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
+    source = models.ForeignKey("Team", null=True, blank=True, on_delete=models.CASCADE)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('team_leader', 'data_project',)
+
+    def get_submissions(self):
+        """
+        Returns a queryset of the non-deleted ChallengeTaskSubmission records for this team.
+        """
+
+        participants = self.participant_set.all()
+
+        return ChallengeTaskSubmission.objects.filter(
+            participant__in=participants,
+            deleted=False
+        )
+
+    def __str__(self):
+        return '%s' % self.team_leader.email
+
+
+class Participant(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE)
+    permission = models.CharField(max_length=250, blank=True, null=True)
+
+    # TODO remove or consolidate all these fields
+    team_wait_on_leader_email = models.CharField(max_length=100, blank=True, null=True)
+    team_wait_on_leader = models.BooleanField(default=False)
+    team_pending = models.BooleanField(default=False)
+    team_approved = models.BooleanField(default=False)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    # TODO remove all these?
+    def assign_pending(self, team):
+        self.set_pending()
+        self.team = team
+
+    def assign_approved(self, team):
+        self.set_approved()
+        self.team = team
+
+    def set_pending(self):
+        self.team_pending = True
+        self.team_wait_on_leader = False
+        self.team_wait_on_leader_email = None
+        self.team_approved = False
+
+    def set_approved(self):
+        self.team_approved = True
+        self.team_wait_on_leader = False
+        self.team_wait_on_leader_email = None
+        self.team_pending = False
+
+    def get_submissions(self):
+        """
+        Returns a queryset of the non-deleted ChallengeTaskSubmission records for this participant.
+        """
+
+        return ChallengeTaskSubmission.objects.filter(
+            participant=self,
+            deleted=False
+        )
+
+    def __str__(self):
+        return '%s - %s' % (self.user, self.project)
+
+
+class HostedFileSet(models.Model):
+    """
+    An optional grouping for hosted files within a project.
+    """
+
+    title = models.CharField(max_length=100, blank=False, null=False)
+    project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
+    order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for file sets to appear within a DataProject.")
+
+    # Set the optional bucket to use for storage
+    bucket = models.ForeignKey(
+        to="Bucket",
+        on_delete=models.SET_DEFAULT,
+        default=Bucket.get_default_pk,
+        help_text="Set this to a specific bucket where this set's files are stored.",
+    )
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.project.project_key + ': ' + self.title
+
+
+class HostedFile(models.Model):
+    """
+    Tracks the files belonging to projects that users will be able to download.
+    """
+
+    project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
+
+    # This UUID should be used in all templates instead of the pk id.
+    uuid = models.UUIDField(null=False, unique=True, editable=False, default=uuid.uuid4)
+
+    # How the file should be displayed on the front end.
+    long_name = models.CharField(max_length=100, blank=False, null=False)
+    description = models.CharField(max_length=2000, blank=True, null=True)
+
+    # Information for where to find the file in S3.
+    file_name = models.CharField(max_length=100, blank=False, null=False)
+    file_location = models.CharField(max_length=100, blank=False, null=False)
+
+    # Files can optionally be grouped under a set within a project.
+    hostedfileset = models.ForeignKey(HostedFileSet, blank=True, null=True, on_delete=models.SET_NULL)
+
+    # Should the file appear on the front end (and when).
+    enabled = models.BooleanField(default=False)
+    opened_time = models.DateTimeField(blank=True, null=True)
+    closed_time = models.DateTimeField(blank=True, null=True)
+
+    order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for files to appear within a DataProject.")
+
+    # Set the optional bucket to use for storage
+    bucket = models.ForeignKey(
+        to="Bucket",
+        on_delete=models.SET_DEFAULT,
+        default=Bucket.get_default_pk,
+        help_text="Set this to a specific bucket where this file is stored.",
+    )
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return '%s - %s' % (self.project, self.long_name)
+
+    def clean(self):
+        if self.opened_time is not None and self.closed_time is not None and (self.opened_time > self.closed_time or self.closed_time < self.opened_time):
+            raise ValidationError("Closed time must be a datetime after opened time")
+
+
+class HostedFileDownload(models.Model):
+    """
+    Tracks who is attempting to download a hosted file.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    hosted_file = models.ForeignKey(HostedFile, on_delete=models.PROTECT)
+    download_date = models.DateTimeField(auto_now_add=True)
+
+
+class TeamComment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    text = models.CharField(max_length=2000, blank=False, null=False)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return '%s %s %s' % (self.user, self.team, self.date)
+
+
+class ChallengeTask(models.Model):
+    """
+    Describes a task that a data challenge might require. User's submissions for tasks are captured
+    in the ChallengeTaskSubmission model.
+    """
+
+    data_project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
+
+    # How should the task be displayed on the front end
+    title = models.CharField(max_length=200, default=None, blank=False, null=False)
+    description = models.CharField(max_length=2000, blank=True, null=True)
+
+    # Optional path to an html file that contains a form that should be completed when uploading a task solution
+    submission_form_file_path = models.CharField(max_length=300, blank=True, null=True)
+
+    # If blank, allow infinite submissions
+    max_submissions = models.IntegerField(default=1, blank=True, null=True, help_text="Leave blank if you want there to be no cap.")
+
+    # Should the task appear on the front end (and when)
+    enabled = models.BooleanField(default=False, blank=False, null=False)
+    opened_time = models.DateTimeField(blank=True, null=True)
+    closed_time = models.DateTimeField(blank=True, null=True)
+
+    # Should supervisors be notified of submissions of this task
+    notify_supervisors_of_submissions = models.BooleanField(default=False, blank=False, null=False, help_text="Sends a notification to any emails listed in the project's supervisors field.")
+
+    # The content type to restrict file uploads to
+    submission_file_type = models.CharField(max_length=15, default=FILE_TYPE_ZIP, choices=FILES_TYPES)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return '%s: %s' % (self.data_project.project_key, self.title)
+
+    def clean(self):
+        if self.opened_time is not None and self.closed_time is not None and (self.opened_time > self.closed_time or self.closed_time < self.opened_time):
+            raise ValidationError("Closed time must be a datetime after opened time")
+
+    @property
+    def submission_file_content_types(self):
+        return FILES_CONTENT_TYPES[self.submission_file_type]
+
+
+class ChallengeTaskSubmission(models.Model):
+    """
+    Captures the files that participants are submitting for their challenges. Through the Participant model
+    you can get to what team and project this submission pertains to. The location field is for fileservice
+    integration. The submission_form_answers field stores any answers a participant might provide when
+    submitting their work.
+    """
+
+    challenge_task = models.ForeignKey(ChallengeTask, on_delete=models.PROTECT)
+    participant = models.ForeignKey(Participant, on_delete=models.PROTECT)
+    upload_date = models.DateTimeField(auto_now_add=True)
+    uuid = models.UUIDField(null=False, unique=True, primary_key=True, default=None)
+    location = models.CharField(max_length=12, default=None, blank=True, null=True)
+    submission_info = models.TextField(default=None, blank=True, null=True)
+    deleted = models.BooleanField(default=False)
+    file_type = models.CharField(max_length=15, default=FILE_TYPE_ZIP, choices=FILES_TYPES)
+
+    def __str__(self):
+        return '%s' % (self.uuid)
+
+
+# TODO remove
+class ParticipantProject(models.Model):
+    """
+    Used by the PayerDB. Is this still needed?
+    """
+
+    name = models.CharField(max_length=20)
+
+    class Meta:
+        abstract = True
+
+
+class ChallengeTaskSubmissionDownload(models.Model):
+    """
+    Tracks who is attempting to download a submission file.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    submission = models.ForeignKey(ChallengeTaskSubmission, on_delete=models.PROTECT)
+    download_date = models.DateTimeField(auto_now_add=True)
+
+
+class Group(models.Model):
+    """
+    An optional grouping for projects.
+    """
+
+    key = models.CharField(max_length=100, blank=False, null=False, unique=True)
+    title = models.CharField(max_length=255, blank=False, null=False)
+    description = models.TextField(blank=True)
+    navigation_title = models.CharField(max_length=20, blank=True, null=True)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+################################################################################
+# Deprecated models
+################################################################################
 
 
 class MIMIC3SignedAgreementFormFields(models.Model):
@@ -408,231 +867,3 @@ class NLPDUASignedAgreementFormFields(models.Model):
     class Meta:
         verbose_name = 'NLP DUA signed agreement form fields'
         verbose_name_plural = 'NLP DUA signed agreement form fields'
-
-class Team(models.Model):
-    """
-    This model describes a team of participants that are competing in a data challenge.
-    """
-
-    team_leader = models.ForeignKey(User, on_delete=models.PROTECT)
-    data_project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
-    status = models.CharField(max_length=30, choices=TEAM_STATUS, default='Pending')
-    source = models.ForeignKey("Team", null=True, blank=True, on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = ('team_leader', 'data_project',)
-
-    def get_submissions(self):
-        """
-        Returns a queryset of the non-deleted ChallengeTaskSubmission records for this team.
-        """
-
-        participants = self.participant_set.all()
-
-        return ChallengeTaskSubmission.objects.filter(
-            participant__in=participants,
-            deleted=False
-        )
-
-    def __str__(self):
-        return '%s' % self.team_leader.email
-
-
-class Participant(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.CASCADE)
-    permission = models.CharField(max_length=250, blank=True, null=True)
-
-    # TODO remove or consolidate all these fields
-    team_wait_on_leader_email = models.CharField(max_length=100, blank=True, null=True)
-    team_wait_on_leader = models.BooleanField(default=False)
-    team_pending = models.BooleanField(default=False)
-    team_approved = models.BooleanField(default=False)
-
-    # TODO remove all these?
-    def assign_pending(self, team):
-        self.set_pending()
-        self.team = team
-
-    def assign_approved(self, team):
-        self.set_approved()
-        self.team = team
-
-    def set_pending(self):
-        self.team_pending = True
-        self.team_wait_on_leader = False
-        self.team_wait_on_leader_email = None
-        self.team_approved = False
-
-    def set_approved(self):
-        self.team_approved = True
-        self.team_wait_on_leader = False
-        self.team_wait_on_leader_email = None
-        self.team_pending = False
-
-    def get_submissions(self):
-        """
-        Returns a queryset of the non-deleted ChallengeTaskSubmission records for this participant.
-        """
-
-        return ChallengeTaskSubmission.objects.filter(
-            participant=self,
-            deleted=False
-        )
-
-    def __str__(self):
-        return '%s - %s' % (self.user, self.project)
-
-
-class HostedFileSet(models.Model):
-    """
-    An optional grouping for hosted files within a project.
-    """
-
-    title = models.CharField(max_length=100, blank=False, null=False)
-    project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
-    order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for file sets to appear within a DataProject.")
-
-    def __str__(self):
-        return self.project.project_key + ': ' + self.title
-
-
-class HostedFile(models.Model):
-    """
-    Tracks the files belonging to projects that users will be able to download.
-    """
-
-    project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
-
-    # This UUID should be used in all templates instead of the pk id.
-    uuid = models.UUIDField(null=False, unique=True, editable=False, default=uuid.uuid4)
-
-    # How the file should be displayed on the front end.
-    long_name = models.CharField(max_length=100, blank=False, null=False)
-    description = models.CharField(max_length=2000, blank=True, null=True)
-
-    # Information for where to find the file in S3.
-    file_name = models.CharField(max_length=100, blank=False, null=False)
-    file_location = models.CharField(max_length=100, blank=False, null=False)
-
-    # Files can optionally be grouped under a set within a project.
-    hostedfileset = models.ForeignKey(HostedFileSet, blank=True, null=True, on_delete=models.SET_NULL)
-
-    # Should the file appear on the front end (and when).
-    enabled = models.BooleanField(default=False)
-    opened_time = models.DateTimeField(blank=True, null=True)
-    closed_time = models.DateTimeField(blank=True, null=True)
-
-    order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for files to appear within a DataProject.")
-
-    def __str__(self):
-        return '%s - %s' % (self.project, self.long_name)
-
-    def clean(self):
-        if self.opened_time is not None and self.closed_time is not None and (self.opened_time > self.closed_time or self.closed_time < self.opened_time):
-            raise ValidationError("Closed time must be a datetime after opened time")
-
-
-class HostedFileDownload(models.Model):
-    """
-    Tracks who is attempting to download a hosted file.
-    """
-
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    hosted_file = models.ForeignKey(HostedFile, on_delete=models.PROTECT)
-    download_date = models.DateTimeField(auto_now_add=True)
-
-
-class TeamComment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True)
-    text = models.CharField(max_length=2000, blank=False, null=False)
-
-    def __str__(self):
-        return '%s %s %s' % (self.user, self.team, self.date)
-
-
-class ChallengeTask(models.Model):
-    """
-    Describes a task that a data challenge might require. User's submissions for tasks are captured
-    in the ChallengeTaskSubmission model.
-    """
-
-    data_project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
-
-    # How should the task be displayed on the front end
-    title = models.CharField(max_length=200, default=None, blank=False, null=False)
-    description = models.CharField(max_length=2000, blank=True, null=True)
-
-    # Optional path to an html file that contains a form that should be completed when uploading a task solution
-    submission_form_file_path = models.CharField(max_length=300, blank=True, null=True)
-
-    # If blank, allow infinite submissions
-    max_submissions = models.IntegerField(default=1, blank=True, null=True, help_text="Leave blank if you want there to be no cap.")
-
-    # Should the task appear on the front end (and when)
-    enabled = models.BooleanField(default=False, blank=False, null=False)
-    opened_time = models.DateTimeField(blank=True, null=True)
-    closed_time = models.DateTimeField(blank=True, null=True)
-
-    # Should supervisors be notified of submissions of this task
-    notify_supervisors_of_submissions = models.BooleanField(default=False, blank=False, null=False, help_text="Sends a notification to any emails listed in the project's supervisors field.")
-
-    # The content type to restrict file uploads to
-    submission_file_type = models.CharField(max_length=15, default=FILE_TYPE_ZIP, choices=FILES_TYPES)
-
-    def __str__(self):
-        return '%s: %s' % (self.data_project.project_key, self.title)
-
-    def clean(self):
-        if self.opened_time is not None and self.closed_time is not None and (self.opened_time > self.closed_time or self.closed_time < self.opened_time):
-            raise ValidationError("Closed time must be a datetime after opened time")
-
-    @property
-    def submission_file_content_types(self):
-        return FILES_CONTENT_TYPES[self.submission_file_type]
-
-
-class ChallengeTaskSubmission(models.Model):
-    """
-    Captures the files that participants are submitting for their challenges. Through the Participant model
-    you can get to what team and project this submission pertains to. The location field is for fileservice
-    integration. The submission_form_answers field stores any answers a participant might provide when
-    submitting their work.
-    """
-
-    challenge_task = models.ForeignKey(ChallengeTask, on_delete=models.PROTECT)
-    participant = models.ForeignKey(Participant, on_delete=models.PROTECT)
-    upload_date = models.DateTimeField(auto_now_add=True)
-    uuid = models.UUIDField(null=False, unique=True, primary_key=True, default=None)
-    location = models.CharField(max_length=12, default=None, blank=True, null=True)
-    submission_info = models.TextField(default=None, blank=True, null=True)
-    deleted = models.BooleanField(default=False)
-    file_type = models.CharField(max_length=15, default=FILE_TYPE_ZIP, choices=FILES_TYPES)
-
-    def __str__(self):
-        return '%s' % (self.uuid)
-
-
-# TODO remove
-class ParticipantProject(models.Model):
-    """
-    Used by the PayerDB. Is this still needed?
-    """
-
-    name = models.CharField(max_length=20)
-
-    class Meta:
-        abstract = True
-
-
-class ChallengeTaskSubmissionDownload(models.Model):
-    """
-    Tracks who is attempting to download a submission file.
-    """
-
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    submission = models.ForeignKey(ChallengeTaskSubmission, on_delete=models.PROTECT)
-    download_date = models.DateTimeField(auto_now_add=True)

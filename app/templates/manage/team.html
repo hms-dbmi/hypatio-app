@@ -4,8 +4,11 @@
 {% load tz %}
 
 {% block headscripts %}
+<!-- For DataTables -->
 <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables/dataTables.dataTables.min.js' %}"></script>
 <script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.dataTables.min.css' %}">
 <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.min.css' %}">
 {% endblock %}
 

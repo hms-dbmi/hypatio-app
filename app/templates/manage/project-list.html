@@ -7,7 +7,9 @@
 {% block headscripts %}
 <!-- For DataTables -->
 <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables/dataTables.dataTables.min.js' %}"></script>
 <script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.dataTables.min.css' %}">
 <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.min.css' %}">
 {% endblock %}
 
@@ -27,6 +29,7 @@ Manage Projects
                     <th>Registration</th>
                     <th>Visibility</th>
                     <th>Actions</th>
+                    <th>Order</th>
                 </tr>
             </thead>
             <tbody>
@@ -56,6 +59,7 @@ Manage Projects
                         {% endif %}
                     </td>
                     <td><a href="{% url 'manage:manage-project' project.project_key %}" class="btn btn-sm btn-primary">Manage</a></td>
+                    <td>{%if project.order is not None %}{{ project.order }}{% else %}0{% endif %}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -68,7 +72,24 @@ Manage Projects
 <script type="application/javascript">
     // Initialize DataTables
     $(document).ready(function() {
-        $('#projects-table').DataTable();
+        $('#projects-table').DataTable({
+          "order": [[6, "asc"], [0, "asc"]],
+          "columnDefs": [
+            {
+              "targets": [0, 4],
+              "orderable": true
+            },
+            {
+              "targets": [1, 2, 3, 5],
+              "orderable": false
+            },
+            {
+              "targets": [6],
+              "orderable": true,
+              "visible": false,
+            }
+          ]
+        });
     });
 </script>
 {% endblock %}
