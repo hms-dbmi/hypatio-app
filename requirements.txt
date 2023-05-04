@@ -14,21 +14,21 @@ asgiref==3.6.0 \
     # via
     #   django
     #   django-countries
-awscli==1.27.118 \
-    --hash=sha256:590fcdd7c49194b09e575e2e1594c5838a2320d9c8216eda15fdc659c45866fd \
-    --hash=sha256:a41d6d97398cc0ef7a54f788a1909fe98a69694acb1b3ae2a74d1a551abf02e0
+awscli==1.27.123 \
+    --hash=sha256:0eb798ba1f733eb6f14cf7bfc18196cf083fc5b32f3bc434f436914100213855 \
+    --hash=sha256:b5458e90d549454311046f0d6d814892872e5abdfe2a90309c7589588cf8c238
     # via -r requirements.in
 blessed==1.20.0 \
     --hash=sha256:0c542922586a265e699188e52d5f5ac5ec0dd517e5a1041d90d2bbf23f906058 \
     --hash=sha256:2cdd67f8746e048f00df47a2880f4d6acbcdb399031b604e34ba8f71d5787680
     # via django-q
-boto3==1.26.118 \
-    --hash=sha256:1ff703152553f4d5fc9774071d114dbf06ec661eb1b29b6051f6b1f9d0c24873 \
-    --hash=sha256:d0ed43228952b55c9f44d1c733f74656418c39c55dbe36bc37feeef6aa583ded
+boto3==1.26.123 \
+    --hash=sha256:2ccb1827dc9d654970375b9bbe1bd77eb6a50ec6fa76cf227a34b4bff144814f \
+    --hash=sha256:51722a3a791108236c8ce05e0ced030b13c08276001132d4153d29353038f8cc
     # via -r requirements.in
-botocore==1.29.118 \
-    --hash=sha256:44cb088a73b02dd716c5c5715143a64d5f10388957285246e11f3cc893eebf9d \
-    --hash=sha256:b51fc5d50cbc43edaf58b3ec4fa933b82755801c453bf8908c8d3e70ae1142c1
+botocore==1.29.123 \
+    --hash=sha256:88f743e1db5bb65e3770af674400642f1d09fca159a1508bdbb8f8cc691589ca \
+    --hash=sha256:b69cdf1c6f451ab1314a363bf97753dfbfe1da93d33853ed241edbdcb806867d
     # via
     #   awscli
     #   boto3
@@ -418,9 +418,9 @@ redis==3.5.3 \
     --hash=sha256:0e7e0cfca8660dea8b7d5cd8c4f6c5e29e11f31158c0b0ae91a397f00e5a05a2 \
     --hash=sha256:432b788c4530cfe16d8d943a09d40ca6c16149727e4afe8c2c9d5580c59d9f24
     # via django-q
-requests==2.28.2 \
-    --hash=sha256:64299f4909223da747622c030b781c0d7811e359c37124b4bd368fb8c6518baa \
-    --hash=sha256:98b1b2782e3c6c4904938b84c0eb932721069dfdb9134313beff7c83c2df24bf
+requests==2.29.0 \
+    --hash=sha256:e8f3c9be120d3333921d213eef078af392fba3933ab7ed2d1cba3b56f2568c3b \
+    --hash=sha256:f2e34a75f4749019bb0e3effb66683630e4ffeaf75819fb51bebef1bf5aef059
     # via
     #   -r requirements.in
     #   django-dbmi-client
