@@ -469,6 +469,11 @@ class ProjectPendingParticipants(View):
             )
         )
 
+        # Add search if necessary
+        if search:
+            participants_waiting_access = participants_waiting_access.filter(user__email__icontains=search)
+            participants_awaiting_approval = participants_awaiting_approval.filter(user__email__icontains=search)
+
         # We only want distinct Participants belonging to the users query
         # Django won't sort on a related field after this union so we annotate each queryset with the user's email to sort on
         query_set = participants_waiting_access.annotate(email=F("user__email")) \
@@ -477,8 +482,8 @@ class ProjectPendingParticipants(View):
 
         # Setup paginator
         paginator = Paginator(
-            query_set.filter(user__email__icontains=search) if search else query_set,
-            length
+            query_set,
+            length,
         )
 
         # Determine page index (1-index) from DT parameters

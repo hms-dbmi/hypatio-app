@@ -30,7 +30,7 @@ def navigation_context(request):
     def group_context():
 
         # Check for an active project and determine its group
-        groups = Group.objects.all()
+        groups = Group.objects.filter(dataproject__isnull=False).distinct()
         active_group = None
         project = DataProject.objects.filter(project_key=os.path.basename(os.path.normpath(request.path))).first()
         if project:
