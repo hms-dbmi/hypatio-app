@@ -206,9 +206,9 @@ class Bucket(models.Model):
         try:
             # Separate URI
             pattern = r"(\w+):\/\/([^:\/\/]+?)\/(.+)"
-            provider, bucket, key = re.match(pattern, uri.lower()).groups()
+            provider, bucket, key = re.match(pattern, uri).groups()
 
-            return Bucket.Provider(provider), bucket, key
+            return Bucket.Provider(provider.lower()), bucket, key
 
         except ValueError:
             raise ValueError(f"Unsupported bucket provider: '{provider}'")
