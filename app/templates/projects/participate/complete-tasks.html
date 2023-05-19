@@ -41,7 +41,7 @@
                     {% endif %}
 
                     {% if task_detail.task.submission_instructions %}
-                      <div class="submission-instructions-alert" class="alert alert-warning" role="alert">
+                      <div id="submission-instructions-alert" class="alert alert-warning" role="alert">
                           {{ task_detail.task.submission_instructions | safe }}
                       </div>
                     {% endif %}
