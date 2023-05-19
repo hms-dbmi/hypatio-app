@@ -600,6 +600,9 @@ class ChallengeTask(models.Model):
     # Optional path to an html file that contains a form that should be completed when uploading a task solution
     submission_form_file_path = models.CharField(max_length=300, blank=True, null=True)
 
+    # Optional HTML content to be displayed along with submission upload for instructions on upload preparation
+    submission_instructions = models.TextField(blank=True, null=True)
+
     # If blank, allow infinite submissions
     max_submissions = models.IntegerField(default=1, blank=True, null=True, help_text="Leave blank if you want there to be no cap.")
 
