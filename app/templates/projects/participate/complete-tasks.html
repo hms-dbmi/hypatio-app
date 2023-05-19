@@ -40,6 +40,12 @@
                         </div>
                     {% endif %}
 
+                    {% if task_detail.task.submission_instructions %}
+                      <div class="submission-instructions-alert" class="alert alert-warning" role="alert">
+                          {{ task_detail.task.submission_instructions | safe }}
+                      </div>
+                    {% endif %}
+
                     <div class="form-group">
                       <input class="file-upload-file" name="file" type="file"
                         accept=".{{ task_detail.task.submission_file_type }}"
