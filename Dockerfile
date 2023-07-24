@@ -9,6 +9,7 @@ RUN apt-get update \
         gcc \
         default-libmysqlclient-dev \
         libssl-dev \
+        pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Add requirements
