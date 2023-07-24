@@ -293,6 +293,41 @@ footer {
     color: #5bc0de;
 }
 
+
+.icon-col {
+    padding-top: 20px;
+    margin-top: 20px;
+    padding-right: 30px;
+}
+
+.icon-col h1 {
+    font-size: 3.5em;
+}
+
+.icon-primary {
+    color: #428bca;
+}
+
+.icon-primary {
+    color: #428bca;
+}
+
+.icon-success {
+    color: #5cb85c;
+}
+
+.icon-danger {
+    color: #d9534f;
+}
+
+.icon-warning {
+    color: #f0ad4e;
+}
+
+.icon-info {
+    color: #5bc0de;
+}
+
 /* Bootstrap accordian panels styling */
 
 .panel-group {
