@@ -101,7 +101,7 @@ WSGI_APPLICATION = 'hypatio.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'hypatio',
+        'NAME': environment.get_str("MYSQL_DATABASE", default='hypatio'),
         'USER': environment.get_str("MYSQL_USERNAME", default='hypatio'),
         'PASSWORD': environment.get_str("MYSQL_PASSWORD", required=True),
         'HOST': environment.get_str("MYSQL_HOST", required=True),
