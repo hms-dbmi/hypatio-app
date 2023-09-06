@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'storages',
     'django_jsonfield_backport',
     'django_q',
+    'django_ses',
 ]
 
 MIDDLEWARE = [
@@ -237,12 +238,23 @@ DBMI_CLIENT_CONFIG = {
 # Email Configurations
 #####################################################################################
 
-EMAIL_BACKEND = environment.get_str("EMAIL_BACKEND", "django_smtp_ssl.SSLEmailBackend")
-EMAIL_USE_SSL = EMAIL_BACKEND == 'django_smtp_ssl.SSLEmailBackend'
-EMAIL_HOST = environment.get_str("EMAIL_HOST", required=True)
-EMAIL_HOST_USER = environment.get_str("EMAIL_HOST_USER", required=not DEBUG)
-EMAIL_HOST_PASSWORD = environment.get_str("EMAIL_HOST_PASSWORD", required=EMAIL_HOST_USER is not None)
-EMAIL_PORT = environment.get_str("EMAIL_PORT", required=True)
+# Determine email backend
+EMAIL_BACKEND = environment.get_str("EMAIL_BACKEND", required=True)
+
+# SMTP Email configuration
+EMAIL_SMTP = EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_USE_SSL = environment.get_bool("EMAIL_USE_SSL", default=EMAIL_SMTP)
+EMAIL_HOST = environment.get_str("EMAIL_HOST", required=EMAIL_SMTP)
+EMAIL_HOST_USER = environment.get_str("EMAIL_HOST_USER", required=False)
+EMAIL_HOST_PASSWORD = environment.get_str("EMAIL_HOST_PASSWORD", required=False)
+EMAIL_PORT = environment.get_str("EMAIL_PORT", required=EMAIL_SMTP)
+
+# AWS SES Email configuration
+EMAIL_SES = EMAIL_BACKEND == "django_ses.SESBackend"
+AWS_SES_SOURCE_ARN=environment.get_str("DBMI_SES_IDENTITY", required=EMAIL_SES)
+AWS_SES_FROM_ARN=environment.get_str("DBMI_SES_IDENTITY", required=EMAIL_SES)
+AWS_SES_RETURN_PATH_ARN=environment.get_str("DBMI_SES_IDENTITY", required=EMAIL_SES)
+USE_SES_V2 = True
 
 #####################################################################################
 
