@@ -135,7 +135,7 @@ AUTHENTICATION_BACKENDS = ['hypatio.auth0authenticate.Auth0Authentication', 'dja
 SSL_SETTING = "https"
 VERIFY_REQUESTS = True
 
-# Pass a comma-separated list of email addresses
+# Pass a list of email addresses
 CONTACT_FORM_RECIPIENTS = environment.get_list('CONTACT_FORM_RECIPIENTS', required=True)
 
 RECAPTCHA_KEY = environment.get_str('RECAPTCHA_KEY', required=True)
