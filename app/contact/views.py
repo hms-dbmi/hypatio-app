@@ -117,7 +117,7 @@ def email_send(subject=None, recipients=None, email_template=None, extra=None):
         msg = EmailMultiAlternatives(subject=subject,
                                      body=msg_plain,
                                      from_email=settings.EMAIL_FROM_ADDRESS,
-                                     reply_to=settings.EMAIL_REPLY_TO_ADDRESS,
+                                     reply_to=(settings.EMAIL_REPLY_TO_ADDRESS, ),
                                      to=recipients)
         msg.attach_alternative(msg_html, "text/html")
         msg.send()
