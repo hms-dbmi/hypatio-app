@@ -604,7 +604,7 @@ def team_notification(request, project_key=None):
                 msg = EmailMultiAlternatives(subject=subject,
                                             body=msg_plain,
                                             from_email=settings.EMAIL_FROM_ADDRESS,
-                                            reply_to=settings.EMAIL_REPLY_TO_ADDRESS,
+                                            reply_to=(settings.EMAIL_REPLY_TO_ADDRESS, ),
                                             to=[team.team_leader.email])
                 msg.attach_alternative(msg_html, "text/html")
                 msg.send()
