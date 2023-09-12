@@ -79,3 +79,7 @@ class UploadSignedAgreementFormForm(forms.Form):
             # Limit agreement form choices to those related to the passed project
             if project_key:
                 self.fields['agreement_form'].queryset = DataProject.objects.get(project_key=project_key).agreement_forms.all()
+
+
+class UploadSignedAgreementFormFileForm(forms.Form):
+    file = forms.FileField(label="Signed Agreement Form PDF", required=True)
