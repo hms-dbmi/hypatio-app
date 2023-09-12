@@ -1,12 +1,12 @@
 {% load bootstrap3 %}
 
-<form id="upload-signed-agreement-form-form" class="file-upload-form" method="post" enctype="multipart/form-data"
-      ic-post-to="{% url 'manage:upload-signed-agreement-form' project_key user_email %}"
-      ic-on-beforeSend="toggleFormButtons('#upload-signed-agreement-form-form')"
-      ic-on-complete="toggleFormButtons('#upload-signed-agreement-form-form')">
+<form id="upload-signed-agreement-form-file-form" class="file-upload-form" method="post" enctype="multipart/form-data"
+      ic-post-to="{% url 'manage:upload-signed-agreement-form-file' signed_agreement_form_id %}"
+      ic-on-beforeSend="toggleFormButtons('#upload-signed-agreement-form-file-form')"
+      ic-on-complete="toggleFormButtons('#upload-signed-agreement-form-file-form')">
     <div class="modal-header modal-header-primary">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h3 class="modal-title">Signed Agreement Form Upload</h3>
+        <h3 class="modal-title">Signed Agreement Form File Upload</h3>
     </div>
     <div class="modal-body">
         {% csrf_token %}
