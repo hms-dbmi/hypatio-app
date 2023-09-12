@@ -603,11 +603,18 @@ class DataProjectView(TemplateView):
         if not self.project.requires_authorization or self.project.has_teams:
             return
 
-        # This step is never completed, it is usually the last step.
-        step_status = self.get_step_status('request_access', False)
-
         # If the user does not have a participant record, they have not yet requested access.
         requested_access = self.participant is not None
+
+        # Check for a prior current step which is possible even when this step is complete
+        # due to rejection of signed agreement forms
+        prior_current_step = next((s for s in context["setup_panels"] if s.status == SIGNUP_STEP_CURRENT_STATUS ), None)
+
+        # This step is never completed, it is usually the last step.
+        step_status = self.get_step_status('request_access', requested_access and not prior_current_step)
+
+        # Always show expanded when completed, unless a prior step is current
+        expanded = requested_access and not prior_current_step
 
         panel = DataProjectSignupPanel(
             title='Request Access',
@@ -615,7 +622,8 @@ class DataProjectView(TemplateView):
             template='projects/signup/request-access.html',
             status=step_status,
             additional_context={
-                'requested_access': requested_access
+                'requested_access': requested_access,
+                'expanded': expanded,
             }
         )
 
