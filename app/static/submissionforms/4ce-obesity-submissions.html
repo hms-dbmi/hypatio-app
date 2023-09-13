@@ -1,0 +1,47 @@
+<div class="form-content">
+
+    <div class="form-group">
+        <label for="institution" style="margin-right: 10px;">What institution do you represent?</label>
+        <input type="text" class="form-control" id="institution" name="institution" placeholder="">
+    </div>
+
+    <div class="form-group">
+        <label for="citations" style="margin-right: 10px;">Data set details</label>
+        <input type="text" class="form-control" id="citations" name="citations" placeholder="">
+    </div>
+
+    <div class="form-group">
+        <label>Do you attest that the data been completely de-identified?</label>
+        <div class="form-group">
+            <label class="radio-inline">
+                <input type="radio" name="md-deidentified" id="md-deidentified-yes" value="true" required> Yes
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="md-deidentified" id="md-deidentified-no" value="false" required> No
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="alert alert-warning" role="alert">
+            <p>Please upload a .zip file containing the following:</p>
+
+            <ol style="margin-top: 5px;">
+                <li>A completely de-identified set of health records</li>
+                <li>A README file that describes the details of what is in the zip file</li>
+                <li>Whatever else is required...</li>
+            </ol>
+        </div>
+    </div>
+    <script type="application/javascript">
+      $(document).ready(function() {
+        $('#md-deidentified-no').on('propertychange input', function (e) {
+          $('input[name="file"]').prop( "disabled", true );
+          notify('warning', 'The Data Portal cannot accept uploads unless you can attest to them fulfilling the requirements', 'exclamation-sign');
+        });
+        $('#md-deidentified-yes').on('propertychange input', function (e) {
+          $('input[name="file"]').prop( "disabled", false );
+        });
+      });
+    </script>
+</div>
