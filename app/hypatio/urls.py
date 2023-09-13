@@ -6,6 +6,7 @@ from hypatio.views import index
 from projects.views import list_data_projects
 from projects.views import list_data_challenges
 from projects.views import list_software_projects
+from projects.views import GroupView
 
 
 urlpatterns = [
@@ -19,5 +20,6 @@ urlpatterns = [
     re_path(r'^data-challenges/$', list_data_challenges, name='data-challenges'),
     re_path(r'^software-projects/$', list_software_projects, name='software-projects'),
     re_path(r'^healthcheck/?', include('health_check.urls')),
+    re_path(r'^groups/(?P<group_key>[^/]+)/?', GroupView.as_view(), name="group"),
     re_path(r'^', index, name='index'),
 ]

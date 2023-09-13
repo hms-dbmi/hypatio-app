@@ -27,6 +27,7 @@ from projects.models import DataProject
 from projects.models import HostedFile
 from projects.models import Participant
 from projects.models import SignedAgreementForm
+from projects.models import Group
 from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
 from projects.panels import SIGNUP_STEP_CURRENT_STATUS
 from projects.panels import SIGNUP_STEP_FUTURE_STATUS
@@ -111,6 +112,47 @@ def list_software_projects(request, template_name='projects/list-software-projec
     context['projects'] = DataProject.objects.filter(is_software=True, visible=True).order_by(F('order').asc(nulls_last=True))
 
     return render(request, template_name, context=context)
+
+
+@method_decorator(public_user_auth_and_jwt, name='dispatch')
+class GroupView(TemplateView):
+    """
+    Builds and renders screens related to Groups.
+    """
+
+    group = None
+    template_name = 'projects/group.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Sets up the instance.
+        """
+
+        # Get the project key from the URL.
+        group_key = self.kwargs['group_key']
+
+        # If this project does not exist, display a 404 Error.
+        try:
+            self.group = Group.objects.get(key=group_key)
+        except ObjectDoesNotExist:
+            error_message = "The group you searched for does not exist."
+            return render(request, '404.html', {'error_message': error_message})
+
+        return super(GroupView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        """
+        Dynamically builds the context for rendering the view based on information
+        about the user and the Group.
+        """
+        # Get super's context. This is the dictionary of variables for the base template being rendered.
+        context = super(GroupView, self).get_context_data(**kwargs)
+
+        # Add the project to the context.
+        context['group'] = self.group
+        context['projects'] = DataProject.objects.filter(group=self.group, visible=True).order_by(F('order').asc(nulls_last=True))
+
+        return context
 
 
 @method_decorator(public_user_auth_and_jwt, name='dispatch')

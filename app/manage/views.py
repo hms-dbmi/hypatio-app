@@ -19,6 +19,7 @@ from django.urls import reverse
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from dbmi_client import fileservice
+from django.shortcuts import get_object_or_404
 
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.scireg_services import get_user_profile, get_distinct_countries_participating
@@ -26,6 +27,7 @@ from hypatio.scireg_services import get_user_profile, get_distinct_countries_par
 from manage.forms import NotificationForm
 from manage.models import ChallengeTaskSubmissionExport
 from manage.forms import UploadSignedAgreementFormForm
+from manage.forms import UploadSignedAgreementFormFileForm
 from projects.models import AgreementForm, ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import Participant
@@ -469,6 +471,11 @@ class ProjectPendingParticipants(View):
             )
         )
 
+        # Add search if necessary
+        if search:
+            participants_waiting_access = participants_waiting_access.filter(user__email__icontains=search)
+            participants_awaiting_approval = participants_awaiting_approval.filter(user__email__icontains=search)
+
         # We only want distinct Participants belonging to the users query
         # Django won't sort on a related field after this union so we annotate each queryset with the user's email to sort on
         query_set = participants_waiting_access.annotate(email=F("user__email")) \
@@ -477,8 +484,8 @@ class ProjectPendingParticipants(View):
 
         # Setup paginator
         paginator = Paginator(
-            query_set.filter(user__email__icontains=search) if search else query_set,
-            length
+            query_set,
+            length,
         )
 
         # Determine page index (1-index) from DT parameters
@@ -598,7 +605,8 @@ def team_notification(request, project_key=None):
             try:
                 msg = EmailMultiAlternatives(subject=subject,
                                             body=msg_plain,
-                                            from_email=settings.DEFAULT_FROM_EMAIL,
+                                            from_email=settings.EMAIL_FROM_ADDRESS,
+                                            reply_to=(settings.EMAIL_REPLY_TO_ADDRESS, ),
                                             to=[team.team_leader.email])
                 msg.attach_alternative(msg_html, "text/html")
                 msg.send()
@@ -897,6 +905,90 @@ class UploadSignedAgreementFormView(View):
         # Setup the script run.
         response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
             "success", "Signed agreement form successfully uploaded", "thumbs-up"
+        )
+
+        # Close the modal
+        response['X-IC-Script'] += "$('#page-modal').modal('hide');"
+
+        return response
+
+
+@method_decorator([user_auth_and_jwt], name='dispatch')
+class UploadSignedAgreementFormFileView(View):
+    """
+    View to upload signed agreement form files for participants.
+
+    * Requires token authentication.
+    * Only admin users are able to access this view.
+    """
+    def get(self, request, signed_agreement_form_id, *args, **kwargs):
+        """
+        Return the upload form template
+        """
+        user = request.user
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+        signed_agreement_form = get_object_or_404(SignedAgreementForm, id=signed_agreement_form_id)
+
+        sciauthz = SciAuthZ(user_jwt, user.email)
+        is_manager = sciauthz.user_has_manage_permission(signed_agreement_form.project.project_key)
+
+        if not is_manager:
+            logger.debug('User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                email=user.email,
+                project_key=signed_agreement_form.project.project_key
+            ))
+            return HttpResponse(403)
+
+        # Return file upload form
+        form = UploadSignedAgreementFormFileForm()
+
+        # Set context
+        context = {
+            "form": form,
+            "signed_agreement_form_id": signed_agreement_form_id,
+        }
+
+        # Render html
+        return render(request, "manage/upload-signed-agreement-form-file.html", context)
+
+    def post(self, request, signed_agreement_form_id, *args, **kwargs):
+        """
+        Process the form
+        """
+        user = request.user
+        user_jwt = request.COOKIES.get("DBMI_JWT", None)
+
+        signed_agreement_form = get_object_or_404(SignedAgreementForm, id=signed_agreement_form_id)
+
+        sciauthz = SciAuthZ(user_jwt, user.email)
+        is_manager = sciauthz.user_has_manage_permission(signed_agreement_form.project.project_key)
+
+        if not is_manager:
+            logger.debug('User {email} does not have MANAGE permissions for item {project_key}.'.format(
+                email=user.email,
+                project_key=signed_agreement_form.project.project_key
+            ))
+            return HttpResponse(403)
+
+        # Assembles the form and run validation.
+        form = UploadSignedAgreementFormFileForm(data=request.POST, files=request.FILES)
+        if not form.is_valid():
+            logger.warning('Form failed: {}'.format(form.errors.as_json()))
+            return HttpResponse(status=400)
+
+        logger.debug(f"[upload_signed_agreement_form_file] Data -> {form.cleaned_data}")
+
+        # Set the file and save
+        signed_agreement_form.upload = form.cleaned_data['file']
+        signed_agreement_form.save()
+
+        # Create the response.
+        response = HttpResponse(status=201)
+
+        # Setup the script run.
+        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
+            "success", "Signed agreement form file successfully uploaded", "thumbs-up"
         )
 
         # Close the modal

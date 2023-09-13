@@ -46,10 +46,10 @@ def contact_form(request, project_key=None):
                 if project.project_supervisors != '' and project.project_supervisors is not None:
                     recipients = project.project_supervisors.split(',')
                 else:
-                    recipients = settings.CONTACT_FORM_RECIPIENTS.split(',')
+                    recipients = settings.CONTACT_FORM_RECIPIENTS
 
             except ObjectDoesNotExist:
-                recipients = settings.CONTACT_FORM_RECIPIENTS.split(',')
+                recipients = settings.CONTACT_FORM_RECIPIENTS
 
             # Send it out.
             success = email_send(subject='DBMI Portal - Contact Inquiry Received',
@@ -116,7 +116,8 @@ def email_send(subject=None, recipients=None, email_template=None, extra=None):
     try:
         msg = EmailMultiAlternatives(subject=subject,
                                      body=msg_plain,
-                                     from_email=settings.DEFAULT_FROM_EMAIL,
+                                     from_email=settings.EMAIL_FROM_ADDRESS,
+                                     reply_to=(settings.EMAIL_REPLY_TO_ADDRESS, ),
                                      to=recipients)
         msg.attach_alternative(msg_html, "text/html")
         msg.send()

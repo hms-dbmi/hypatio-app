@@ -5,6 +5,8 @@ import furl
 from botocore.client import Config
 from django.conf import settings
 
+from projects.models import Bucket
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -262,41 +264,60 @@ def _s3_client():
     return boto3.client('s3', config=Config(signature_version='s3v4'))
 
 
-def get_download_url(file_name, expires_in=3600):
+def get_download_url(file_uri, expires_in=3600):
     """
     Returns an S3 URL for project related files not tracked by fileservice.
     """
 
-    logger.debug('[file_services][get_download_url] Generating URL for {}'.format(file_name))
+    logger.debug('[file_services][get_download_url] Generating URL for {}'.format(file_uri))
 
-    # Generate the URL to get the file object
-    url = _s3_client().generate_presigned_url(
-        ClientMethod='get_object',
-        Params={
-            'Bucket': settings.S3_BUCKET,
-            'Key': file_name
-        },
-        ExpiresIn=expires_in
-    )
+    # Separate URI
+    provider, bucket, key = Bucket.split_uri(file_uri)
 
-    logger.debug('[file_services][get_download_url] Generated URL: {}'.format(url))
+    # Check provider
+    match provider:
+        case Bucket.Provider.S3:
+
+            # Generate the URL to get the file object
+            url = _s3_client().generate_presigned_url(
+                ClientMethod='get_object',
+                Params={
+                    'Bucket': bucket,
+                    'Key': key
+                },
+                ExpiresIn=expires_in
+            )
+
+        case _:
+            raise NotImplementedError(f"Could not generate download URL for URI: {file_uri}")
+
+    logger.debug(f'[file_services][get_download_url] Generated URL: {url}')
 
     return url
 
 
-def upload_file(file_name, file, expires_in=3600):
+def upload_file(file, file_uri, expires_in=3600):
     """
     Enables uploading of files directly to the Hypatio S3 bucket without fileservice tracking.
     """
+    logger.debug('[file_services][upload_file] Uploading file to: {}'.format(file_uri))
 
-    logger.error('[file_services][upload_file] Uploading file: {}'.format(file_name))
+    # Separate URI
+    provider, bucket, key = Bucket.split_uri(file_uri)
 
-    # Generate the POST attributes
-    post = _s3_client().generate_presigned_post(
-        Bucket=settings.S3_BUCKET,
-        Key=file_name,
-        ExpiresIn=expires_in
-    )
+    # Check provider
+    match provider:
+        case Bucket.Provider.S3:
+
+            # Generate the POST attributes
+            post = _s3_client().generate_presigned_post(
+                Bucket=bucket,
+                Key=key,
+                ExpiresIn=expires_in
+            )
+
+        case _:
+            raise NotImplementedError(f"Could not generate upload for URI: {file_uri}")
 
     # Perform the request to upload the file
     files = {"file": file}
@@ -315,34 +336,46 @@ def upload_file(file_name, file, expires_in=3600):
         logger.exception(e)
 
 
-def host_file(request, file_uuid, file_location, file_name):
+def host_file(request, file_uuid, file_uri):
     """
     Copies a file from the Fileservice bucket to the Hypatio hosted files bucket
     """
     try:
-        # Make the request.
+        # Get the original file from Fileservice
         file = get(request, '/api/file/{}/'.format(file_uuid))
         logger.debug(file)
 
-        # Perform the request to copy the file
-        source = {'Bucket': settings.FILESERVICE_AWS_BUCKET, 'Key': file['locations'][0]['url'].split('/', 3)[3]}
-        key = os.path.join(file_location, file_name)
+        # Separate destination URI
+        provider, bucket, key = Bucket.split_uri(file_uri)
 
-        logger.debug(f'Fileservice: Copying {source["Bucket"]}/{source["Key"]}'
-                     f' to {settings.S3_BUCKET}/{key}')
+        # Check provider
+        match provider:
+            case Bucket.Provider.S3:
 
-        # Generate the URL to get the file object
-        _s3_client().copy_object(
-            CopySource=source,
-            Bucket=settings.S3_BUCKET,
-            Key=key,
-        )
+                # Perform the request to copy the file
+                _, origin_bucket, origin_key = Bucket.split_uri(file['locations'][0]['url'])
+                source = {'Bucket': origin_bucket, 'Key': origin_key}
+                logger.debug(
+                    f'Fileservice: Copying s3://{origin_bucket}/{origin_key}'
+                    f' to {provider.value}://{bucket}/{key}'
+                )
 
-        return True
+                # Generate the URL to get the file object
+                _s3_client().copy_object(
+                    CopySource=source,
+                    Bucket=bucket,
+                    Key=key,
+                )
+
+                return True
+
+            case _:
+                raise NotImplementedError(f"Could not generate upload for URI: {file_uri}")
 
     except Exception as e:
         logger.exception('[file_services][host_file] Error: {}'.format(e), exc_info=True, extra={
-            'request': request, 'file_uuid': file_uuid, 'file_location': file_location, 'file_name': file_name
+            'request': request, 'bucket': bucket, 'file_uuid': file_uuid,
+            'file_uri': file_uri,
         })
 
     return False

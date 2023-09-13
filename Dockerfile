@@ -1,4 +1,4 @@
-FROM hmsdbmitc/dbmisvc:debian11-slim-python3.10-0.5.0 AS builder
+FROM hmsdbmitc/dbmisvc:debian11-slim-python3.10-0.5.1 AS builder
 
 # Install requirements
 RUN apt-get update \
@@ -9,6 +9,7 @@ RUN apt-get update \
         gcc \
         default-libmysqlclient-dev \
         libssl-dev \
+        pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Add requirements
@@ -19,7 +20,7 @@ RUN pip install -U wheel \
     && pip wheel -r /requirements.txt \
         --wheel-dir=/root/wheels
 
-FROM hmsdbmitc/dbmisvc:debian11-slim-python3.10-0.5.0
+FROM hmsdbmitc/dbmisvc:debian11-slim-python3.10-0.5.1
 
 # Copy Python wheels from builder
 COPY --from=builder /root/wheels /root/wheels
