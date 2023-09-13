@@ -329,6 +329,9 @@ class DataProject(models.Model):
     )
     teams_source_message = models.TextField(default="Teams approved there will be automatically added to this project but will need still need approval for this project.", blank=True, null=True, verbose_name="Teams Source Message")
 
+    # Set this to show badging to indicate that only commercial entities should apply for access
+    commercial_only = models.BooleanField(default=False, blank=False, null=False, help_text="Commercial only projects are for commercial entities only")
+
     show_jwt = models.BooleanField(default=False, blank=False, null=False)
 
     order = models.IntegerField(blank=True, null=True, help_text="Indicate an order (lowest number = highest order) for how the DataProjects should be listed.")
