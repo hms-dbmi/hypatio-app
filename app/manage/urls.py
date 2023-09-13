@@ -8,6 +8,7 @@ from manage.views import ProjectParticipants
 from manage.views import ProjectPendingParticipants
 from manage.views import team_notification
 from manage.views import UploadSignedAgreementFormView
+from manage.views import UploadSignedAgreementFormFileView
 
 from manage.api import set_dataproject_details
 from manage.api import set_dataproject_registration_status
@@ -62,6 +63,7 @@ urlpatterns = [
     re_path(r'^get-project-participants/(?P<project_key>[^/]+)/$', ProjectParticipants.as_view(), name='get-project-participants'),
     re_path(r'^get-project-pending-participants/(?P<project_key>[^/]+)/$', ProjectPendingParticipants.as_view(), name='get-project-pending-participants'),
     re_path(r'^upload-signed-agreement-form/(?P<project_key>[^/]+)/(?P<user_email>[^/]+)/$', UploadSignedAgreementFormView.as_view(), name='upload-signed-agreement-form'),
+    re_path(r'^upload-signed-agreement-form-file/(?P<signed_agreement_form_id>[^/]+)/$', UploadSignedAgreementFormFileView.as_view(), name='upload-signed-agreement-form-file'),
     re_path(r'^(?P<project_key>[^/]+)/$', DataProjectManageView.as_view(), name='manage-project'),
     re_path(r'^(?P<project_key>[^/]+)/(?P<team_leader>[^/]+)/$', manage_team, name='manage-team'),
 ]
