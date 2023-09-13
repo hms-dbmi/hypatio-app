@@ -57,13 +57,10 @@ INSTALLED_APPS = [
     'storages',
     'django_jsonfield_backport',
     'django_q',
-<<<<<<< HEAD
     'rest_framework',
     'drf_spectacular',
     'django_filters',
-=======
     'django_ses',
->>>>>>> development
 ]
 
 MIDDLEWARE = [
