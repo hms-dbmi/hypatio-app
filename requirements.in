@@ -6,6 +6,7 @@ django-bootstrap3<23.0
 django-bootstrap-datepicker-plus<6.0
 django-countries<8.0
 django-dbmi-client<2.0
+django-filter<24.0
 django-health-check<4.0
 django-jquery<4.0
 django-jsonfield-backport<2.0
@@ -16,6 +17,8 @@ djangorestframework<4.0
 django-ses<4.0
 django-smtp-ssl<2.0
 django-q<2.0
+drf-nested-routers<=1.0
+drf-spectacular<=1.0
 furl<3.0
 mysqlclient<3.0
 python-dateutil<3.0
