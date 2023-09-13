@@ -1,6 +1,7 @@
 import os
 from django.shortcuts import render
 from django.utils.functional import SimpleLazyObject
+from dbmi_client.authn import get_jwt
 
 from hypatio.auth0authenticate import public_user_auth_and_jwt
 from projects.models import Group, DataProject
@@ -43,6 +44,14 @@ def navigation_context(request):
             "active_group": active_group,
         }
 
+    def user_context():
+
+        # Check for signed in user
+        return {
+            "jwt": get_jwt(request),
+        }
+
     return {
-        "navigation": SimpleLazyObject(group_context)
+        "navigation": SimpleLazyObject(group_context),
+        "dbmiuser": SimpleLazyObject(user_context),
     }
