@@ -253,6 +253,12 @@ class AgreementForm(models.Model):
     order = models.IntegerField(default=50, help_text="Indicate an order (lowest number = first listing) for how the Agreement Forms should be listed during registration workflows.")
     content = models.TextField(blank=True, null=True, help_text="If Agreement Form type is set to 'MODEL', the HTML set here will be rendered for the user")
     internal = models.BooleanField(default=False, help_text="Internal agreement forms are never presented to participants and are only submitted by administrators on behalf of participants")
+    skippable = models.BooleanField(
+        default=False,
+        help_text="Allow participants to skip this step in instances where they have submitted the agreement form via"
+                  " email or some other means. They will be required to include the name and contact information of"
+                  " the person who they submitted their signed agreement form to."
+    )
 
     # Meta
     created = models.DateTimeField(auto_now_add=True)

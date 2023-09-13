@@ -28,8 +28,15 @@
 
       <hr>
 
-      <div class="submit_form">
+      <div class="row">
+        <div class="col-xs-12 col-sm-6 submit_form">
           <button id="upload-agreement-form-submit" type="submit" class="btn btn-primary" data-loading-text="<i class='fa fa-spinner fa-spin'></i> Processing">Submit</button>
+        </div>
+        {% if panel.additional_context.agreement_form.skippable %}
+        <div class="col-xs-12 col-sm-6">
+          <button id="upload-agreement-form-completed" type="button" class="btn btn-primary" data-toggle="modal" data-target="#signed-agreement-form-completed-modal">Already Completed</button>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
