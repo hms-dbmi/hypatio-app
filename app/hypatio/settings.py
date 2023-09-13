@@ -146,6 +146,7 @@ RECAPTCHA_CLIENT_ID = environment.get_str('RECAPTCHA_CLIENT_ID', required=True)
 S3_BUCKET = environment.get_str('S3_BUCKET', required=True)
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_STORAGE_BUCKET_NAME = environment.get_str('S3_BUCKET', required=True)
 AWS_LOCATION = 'upload'
 
