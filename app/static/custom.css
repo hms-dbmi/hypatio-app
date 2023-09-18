@@ -17,6 +17,12 @@
     float: right;
     color: gray;
 }
+.pending-step-header span:after {
+    font-family:'Glyphicons Halflings';
+    content:"\e023";
+    float: right;
+    color: #1F1C18;
+}
 .accordion-step-header span:after {
     font-family:'Glyphicons Halflings';
     content:"\e234";
