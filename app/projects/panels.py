@@ -10,6 +10,9 @@ SIGNUP_STEP_FUTURE_STATUS = 'future'
 # For signup steps that will always be displayed no matter what actions are taken.
 SIGNUP_STEP_PERMANENT_STATUS = 'permanent'
 
+# For signup steps that have already been completed but are pending admin action.
+SIGNUP_STEP_PENDING_STATUS = 'pending'
+
 class DataProjectPanel():
     """
     The base class that holds information needed to when displaying a panel
