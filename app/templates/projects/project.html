@@ -62,6 +62,8 @@
                                 current-step-header
                                 {% elif panel.status == SIGNUP_STEP_PERMANENT_STATUS %}
                                 current-step-header
+                                {% elif panel.status == SIGNUP_STEP_PENDING_STATUS %}
+                                pending-step-header
                                 {% else %}
                                 blocked-step-header
                                 {% endif %}">
@@ -69,7 +71,7 @@
                     </div>
                 </h2>
             </div>
-            {% if panel.status == SIGNUP_STEP_CURRENT_STATUS or panel.status == SIGNUP_STEP_PERMANENT_STATUS or panel.additional_context.expanded %}
+            {% if panel.status == SIGNUP_STEP_CURRENT_STATUS or panel.status == SIGNUP_STEP_PERMANENT_STATUS or panel.status == SIGNUP_STEP_PENDING_STATUS %}
             <div class="panel-body">
                 {% include panel.template %}
             </div>
