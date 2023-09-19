@@ -47,6 +47,9 @@
         <script type='text/javascript' src="{% static 'plugins/bootstrap-notify/bootstrap-notify.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'plugins/intercooler/intercooler.min.js' %}"></script>
 
+        <!-- Include portal specific Javascript -->
+        <script type='text/javascript' src="{% static 'js/portal.js' %}"></script>
+
         <title>{% block tab_name %}DBMI Portal{% endblock %}</title>
 
         <script type="application/javascript">
@@ -226,12 +229,14 @@
                                 <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="download">{{ request.user.email }}<span class="caret"></span></a>
                                 <ul class="dropdown-menu" aria-labelledby="downloadn">
                                     <li><a class="nav-link" href="{% url 'profile:profile' %}">Profile <span class="fas fa-sm fa-user"></span></a></li>
-
                                     {% is_project_manager request as is_manager %}
                                     {% if is_manager %}
-                                        <li><a class="nav-link" href="{% url 'manage:manage-projects' %}">Manage Projects</a></li>
+                                    <li><a class="nav-link" href="{% url 'manage:manage-projects' %}">Manage Projects</a></li>
                                     {% endif %}
-
+                                    {% if dbmiuser and dbmiuser.jwt %}
+                                    <li><a id="jwt-copy" class="nav-link clipboard-copy" data-clipboard-text="{{ dbmiuser.jwt|default:"<empty>" }}" data-toggle="tooltip" style="cursor: pointer;" title="Copy API Key" data-tooltip-title="Copy API Key">API Key <i class="fa fa-wrench" aria-hidden="true"></i>
+                                    {% endif %}
+                                    </a></li>
                                     <li><a class="nav-link" href="{% url 'profile:signout' %}">Sign Out</a></li>
                                 </ul>
                             </li>
@@ -255,4 +260,45 @@
 
     {# Allow for some javascript to be added per page #}
     {% block javascript %}{% endblock %}
+
+    <script type="text/javascript" src="{% static 'js/clipboard.min.js' %}"></script>
+    <script type="application/javascript">
+      $(document).ready(function(){
+
+        // Initialize tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+
+        // Reset tooltips
+        $('[data-toggle="tooltip"][data-tooltip-title]').on('hidden.bs.tooltip', function(){
+            $(this).attr('data-original-title', $(this).attr('data-tooltip-title'));
+        });
+
+        // Setup copy button
+        var clipboards = new ClipboardJS(".clipboard-copy");
+        clipboards.on('success', function(e) {
+
+            // Update tooltip
+            $(e.trigger).attr('data-original-title', "Copied!")
+                .tooltip('fixTitle')
+                .tooltip('setContent')
+                .tooltip('show');
+
+            e.clearSelection();
+        });
+
+        clipboards.on('error', function(e) {
+
+            // Update tooltip
+            $(e.trigger).attr('data-original-title', "Error!")
+                .tooltip('fixTitle')
+                .tooltip('setContent')
+                .tooltip('show');
+
+            // Log it
+            console.log('Copy error:' + e.toString());
+
+            e.clearSelection();
+        });
+      });
+  </script>
 </html>

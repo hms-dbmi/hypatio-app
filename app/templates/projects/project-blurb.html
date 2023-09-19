@@ -3,6 +3,9 @@
         <h4 class="panel-title">
             <a class="collapsed" role="button" href="{% url 'projects:view-project' project.project_key %}">
                 <span style="font-size:24px; font-weight: bold;">{{ project.name }}</span>
+                {% if project.commercial_only %}
+                <span style="font-size: 1em; margin-bottom: 8px; margin-left: 10px;" class="badge">Commercial Only</span>
+                {% endif %}
                 <br />
                 <br />
                 {{ project.short_description }}
@@ -10,4 +13,3 @@
         </h4>
     </div>
 </div>
-    

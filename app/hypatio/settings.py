@@ -135,8 +135,8 @@ AUTHENTICATION_BACKENDS = ['hypatio.auth0authenticate.Auth0Authentication', 'dja
 SSL_SETTING = "https"
 VERIFY_REQUESTS = True
 
-CONTACT_FORM_RECIPIENTS="dbmi_tech_core@hms.harvard.edu"
-DEFAULT_FROM_EMAIL="dbmi_tech_core@hms.harvard.edu"
+# Pass a list of email addresses
+CONTACT_FORM_RECIPIENTS = environment.get_list('CONTACT_FORM_RECIPIENTS', required=True)
 
 RECAPTCHA_KEY = environment.get_str('RECAPTCHA_KEY', required=True)
 RECAPTCHA_CLIENT_ID = environment.get_str('RECAPTCHA_CLIENT_ID', required=True)
@@ -146,6 +146,7 @@ RECAPTCHA_CLIENT_ID = environment.get_str('RECAPTCHA_CLIENT_ID', required=True)
 S3_BUCKET = environment.get_str('S3_BUCKET', required=True)
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_STORAGE_BUCKET_NAME = environment.get_str('S3_BUCKET', required=True)
 AWS_LOCATION = 'upload'
 
@@ -240,21 +241,29 @@ DBMI_CLIENT_CONFIG = {
 
 # Determine email backend
 EMAIL_BACKEND = environment.get_str("EMAIL_BACKEND", required=True)
+if EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend":
 
-# SMTP Email configuration
-EMAIL_SMTP = EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_USE_SSL = environment.get_bool("EMAIL_USE_SSL", default=EMAIL_SMTP)
-EMAIL_HOST = environment.get_str("EMAIL_HOST", required=EMAIL_SMTP)
-EMAIL_HOST_USER = environment.get_str("EMAIL_HOST_USER", required=False)
-EMAIL_HOST_PASSWORD = environment.get_str("EMAIL_HOST_PASSWORD", required=False)
-EMAIL_PORT = environment.get_str("EMAIL_PORT", required=EMAIL_SMTP)
+    # SMTP Email configuration
+    EMAIL_USE_SSL = environment.get_bool("EMAIL_USE_SSL", default=True)
+    EMAIL_HOST = environment.get_str("EMAIL_HOST", required=True)
+    EMAIL_HOST_USER = environment.get_str("EMAIL_HOST_USER", required=False)
+    EMAIL_HOST_PASSWORD = environment.get_str("EMAIL_HOST_PASSWORD", required=False)
+    EMAIL_PORT = environment.get_str("EMAIL_PORT", required=True)
 
-# AWS SES Email configuration
-EMAIL_SES = EMAIL_BACKEND == "django_ses.SESBackend"
-AWS_SES_SOURCE_ARN=environment.get_str("DBMI_SES_IDENTITY", required=EMAIL_SES)
-AWS_SES_FROM_ARN=environment.get_str("DBMI_SES_IDENTITY", required=EMAIL_SES)
-AWS_SES_RETURN_PATH_ARN=environment.get_str("DBMI_SES_IDENTITY", required=EMAIL_SES)
-USE_SES_V2 = True
+elif EMAIL_BACKEND == "django_ses.SESBackend":
+
+    # AWS SES Email configuration
+    AWS_SES_SOURCE_ARN = environment.get_str("DBMI_SES_IDENTITY", required=True)
+    AWS_SES_FROM_ARN = environment.get_str("DBMI_SES_IDENTITY", required=True)
+    AWS_SES_RETURN_PATH_ARN = environment.get_str("DBMI_SES_IDENTITY", required=True)
+    USE_SES_V2 = True
+
+else:
+    raise SystemError(f"Email backend '{EMAIL_BACKEND}' is not supported for this application")
+
+# Set default from address
+EMAIL_FROM_ADDRESS = environment.get_str("EMAIL_FROM_ADDRESS", required=True)
+EMAIL_REPLY_TO_ADDRESS = environment.get_str("EMAIL_REPLY_TO_ADDRESS", default=EMAIL_FROM_ADDRESS)
 
 #####################################################################################
 
