@@ -108,11 +108,106 @@
 
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="signed-agreement-form-completed-modal" tabindex="-1" role="dialog" aria-labelledby="signed-agreement-form-completed-modal">
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title" id="signed-agreement-form-completed-modal-title">Tasks</h4>
+          </div>
+          <div class="modal-body">
+              <form id="signed-agreement-form-completed-form">
+                <p>Do you confirm that you have already submitted a fully executed version of this agreement form to a representative of Harvard University?</p>
+                <div class="form-group">
+                  <label for="signed-agreement-form-completed-recipient-input">Please enter the name (and email address if possible) of the representative who received your signed agreement form:</label>
+                  <input type="textarea" class="form-control" name="signed-agreement-form-completed-recipient-input" placeholder="Enter recipient's contact details here..." required>
+                </div>
+              </form>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-success" id="signed-agreement-form-completed-confirm-button">I Confirm</button>
+          </div>
+      </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block footerscripts %}
 <script type="application/javascript">
 $( document ).ready(function() {
+
+    //triggered when modal is about to be shown
+    $('#signed-agreement-form-completed-modal').on('show.bs.modal', function(e) {
+
+      //get data-id attribute of the clicked element
+      var formName = $(e.relatedTarget).closest("form").attr("name");
+
+      //populate the textbox
+      $(e.currentTarget).data("form-name", formName);
+    });
+
+    $('#signed-agreement-form-completed-confirm-button').on("click", function(e) {
+      e.preventDefault();
+
+      // Check form first
+      var completedForm = $('#signed-agreement-form-completed-modal').find("form:first");
+      if( ! $(completedForm)[0].reportValidity()) {
+        return false;
+      }
+
+      // Get input
+      var signedAgreementFormRecipient = $(completedForm).find("input").map(function(){
+        return this.value;
+      }).get().join('');
+
+      // Reset the form
+      $(completedForm)[0].reset();
+
+      // Hide confirmation modal
+      $('#signed-agreement-form-completed-modal').modal('toggle');
+
+      // Get the form and its submit button
+      var formName = $("#signed-agreement-form-completed-modal").data("form-name");
+      var form = $(`form[name=${formName}]`);
+      var formSubmitButton = $(form).find(':submit');
+
+      // Set button to loading
+      formSubmitButton.button("loading");
+
+      // Serialize form fields
+      $(form).find('input[name="agreement_text"]').val(`Already submitted to: ${signedAgreementFormRecipient}`);
+      var formData = $(form).serializeArray();
+      formData.push({name: "recipient", value: signedAgreementFormRecipient});
+
+      // Get form submit URL
+      var actionUrl = $(form).attr('action');
+
+      $.post(actionUrl, $.param(formData), function(res){
+          // $("#loading").hide();
+      }).done(function() {
+          notify('success', "Agreement form submitted!", 'thumbs-up');
+          $(formSubmitButton).button("reset");
+          setTimeout(function() {
+            // Do this in a timeout since Bootstrap's 'button' function breaks jQuery methods in same iteration
+            $(formSubmitButton).html("Form Saved &nbsp;<i class='fa fa-check'></i>").prop("disabled", "disabled").toggleClass("btn-primary btn-success");
+          }, 0);
+
+          // Refresh the page so the user does not see this button again
+          setTimeout(function(){
+              window.location = window.location.pathname
+          }, 1000);
+      }).fail(function() {
+        // Add error message
+        notify('danger', "Agreement form failed to submit. Please try again or contact support.", 'exclamation-sign');
+        console.log("An error occurred, the form couldn't be sent!");
+
+        // Set button to loading
+        formSubmitButton.button("reset");
+      });
+    });
 
     $('form[name=upload_agreement_form_container]').submit(function(e) {
       e.preventDefault();

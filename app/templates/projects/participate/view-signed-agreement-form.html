@@ -14,11 +14,18 @@
     <div class="col-md-7">
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Signed Form Content</h2>
+                <h2 class="panel-title">Signed Form Content
+                  <button type="button" class="btn btn-default btn-xs btn-primary pull-right"
+                          ic-get-from="{% url 'manage:upload-signed-agreement-form-file' signed_form.id %}"
+                          data-toggle="modal" data-target="#page-modal" data-backdrop="static" data-keyboard="false"
+                          ic-target="#page-modal-content">
+                    Upload File&nbsp;&nbsp;<span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span>
+                  </button>
+                </h2>
             </div>
             <div class="panel-body" style="height: 850px;">
                 {# Check type #}
-                {% if signed_form.agreement_form.type == "FILE" %}
+                {% if signed_form.agreement_form.type == "FILE" or signed_form.upload %}
 
                     {# Handle instances where a DUA was submitted when it was not required to upload a file #}
                     {% if not signed_form.upload %}
@@ -156,4 +163,12 @@ $(document).ready(function() {
     });
 });
 </script>
+
+{# Add a placeholder for any modal dialogs #}
+<div id='page-modal' class='modal fade' tabindex='-1'>
+  <div class="modal-dialog" role="document">
+      <div id='page-modal-content' class="modal-content">
+      </div>
+  </div>
+</div>
 {% endblock %}
