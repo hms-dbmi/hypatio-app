@@ -1,4 +1,4 @@
-FROM hmsdbmitc/dbmisvc:debian11-slim-python3.10-0.5.1 AS builder
+FROM hmsdbmitc/dbmisvc:debian12-slim-python3.12-0.6.0 AS builder
 
 # Install requirements
 RUN apt-get update \
@@ -20,7 +20,7 @@ RUN pip install -U wheel \
     && pip wheel -r /requirements.txt \
         --wheel-dir=/root/wheels
 
-FROM hmsdbmitc/dbmisvc:debian11-slim-python3.10-0.5.1
+FROM hmsdbmitc/dbmisvc:debian12-slim-python3.12-0.6.0
 
 # Copy Python wheels from builder
 COPY --from=builder /root/wheels /root/wheels
