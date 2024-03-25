@@ -139,6 +139,12 @@
 <script type="application/javascript">
 $( document ).ready(function() {
 
+    $('#sign-agreement-form').on('input', function() {
+
+      // Hide the 'Already Completed' button
+      $('#agreement-form-completed').hide();
+    });
+
     //triggered when modal is about to be shown
     $('#signed-agreement-form-completed-modal').on('show.bs.modal', function(e) {
 
