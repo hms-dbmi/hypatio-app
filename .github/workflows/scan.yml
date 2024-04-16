@@ -15,7 +15,6 @@ jobs:
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.BLHMSDBMI_DOCKERHUB_USERNAME }}
       DOCKER_HUB_PASSWORD: ${{ secrets.BLHMSDBMI_DOCKERHUB_PASSWORD }}
-      SNYK_TOKEN: ${{ secrets.BLHMSDBMI_SNYK_TOKEN }}
     with:
       repository: ${{ github.repository }}
       commit: ${{ github.sha }}
