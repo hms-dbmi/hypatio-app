@@ -694,6 +694,7 @@ class Group(models.Model):
     title = models.CharField(max_length=255, blank=False, null=False)
     description = models.TextField(blank=True)
     navigation_title = models.CharField(max_length=20, blank=True, null=True)
+    parent = models.ForeignKey("Group", on_delete=models.PROTECT, blank=True, null=True)
 
     # Meta
     created = models.DateTimeField(auto_now_add=True)
