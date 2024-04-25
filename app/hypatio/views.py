@@ -38,7 +38,15 @@ def navigation_context(request):
             # Check for group
             active_group = next((g for g in groups if project in g.dataproject_set.all()), None)
 
+        # Pull out top-level groups
+        parent_groups_keys = groups.filter(parent__isnull=False).values_list('parent', flat=True)
+        parent_groups = Group.objects.filter(id__in=parent_groups_keys)
+
+        # Remove groups that will be placed under a parent group
+        groups = groups.filter(parent__isnull=True)
+
         return {
+            "parent_groups": parent_groups,
             "groups": groups,
             "active_group": active_group,
         }
