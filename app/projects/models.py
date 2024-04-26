@@ -703,6 +703,8 @@ class Group(models.Model):
     def __str__(self):
         return self.title
 
+    def active_project_child_groups(self):
+        return self.group_set.filter(dataproject__isnull=False, dataproject__visible=True).distinct()
 
 ################################################################################
 # Deprecated models
