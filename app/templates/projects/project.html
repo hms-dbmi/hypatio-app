@@ -62,6 +62,8 @@
                                 current-step-header
                                 {% elif panel.status == SIGNUP_STEP_PERMANENT_STATUS %}
                                 current-step-header
+                                {% elif panel.status == SIGNUP_STEP_PENDING_STATUS %}
+                                pending-step-header
                                 {% else %}
                                 blocked-step-header
                                 {% endif %}">
@@ -69,7 +71,7 @@
                     </div>
                 </h2>
             </div>
-            {% if panel.status == SIGNUP_STEP_CURRENT_STATUS or panel.status == SIGNUP_STEP_PERMANENT_STATUS %}
+            {% if panel.status == SIGNUP_STEP_CURRENT_STATUS or panel.status == SIGNUP_STEP_PERMANENT_STATUS or panel.status == SIGNUP_STEP_PENDING_STATUS %}
             <div class="panel-body">
                 {% include panel.template %}
             </div>
@@ -241,8 +243,15 @@ $( document ).ready(function() {
         contentType: false
       }).done(function(){
 
+        // Notify
         notify('success', "Agreement form submitted!", 'thumbs-up');
-        submit_button.replaceWith("<h3><span class='label label-success'>Form saved.</span></h3>");
+
+        // Reset button and update to indicate success
+        $(submit_button).button("reset");
+        setTimeout(function() {
+          // Do this in a timeout since Bootstrap's 'button' function breaks jQuery methods in same iteration
+          $(submit_button).html("Form Saved &nbsp;<i class='fa fa-check'></i>").prop("disabled", "disabled").toggleClass("btn-primary btn-success");
+        }, 0);
 
         // Refresh the page so the user does not see this button again
         setTimeout(function(){
@@ -305,8 +314,16 @@ $( document ).ready(function() {
         $.post($(this).attr('action'), formFields + "&" + $('input[name=agreement_text]').serialize(), function(res){
             // $("#loading").hide();
         }).done(function() {
-            notify('success', "Agreement form submitted!", 'thumbs-up');
-            submit_button.replaceWith("<h3><span class='label label-success'>Form saved.</span></h3>");
+
+          // Notify
+          notify('success', "Agreement form submitted!", 'thumbs-up');
+
+          // Reset button and update to indicate success
+          $(submit_button).button("reset");
+          setTimeout(function() {
+            // Do this in a timeout since Bootstrap's 'button' function breaks jQuery methods in same iteration
+            $(submit_button).html("Form Saved &nbsp;<i class='fa fa-check'></i>").prop("disabled", "disabled").toggleClass("btn-primary btn-success");
+          }, 0);
 
             // Refresh the page so the user does not see this button again
             setTimeout(function(){

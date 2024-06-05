@@ -18,7 +18,7 @@ from hypatio.scireg_services import get_user_email_confirmation_status
 from profile.forms import RegistrationForm
 from hypatio.auth0authenticate import public_user_auth_and_jwt
 from hypatio.auth0authenticate import user_auth_and_jwt
-from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK, TEAM_ACTIVE, TEAM_READY
+from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK, TEAM_ACTIVE, TEAM_READY, TEAM_PENDING
 from projects.models import AGREEMENT_FORM_TYPE_STATIC
 from projects.models import AGREEMENT_FORM_TYPE_MODEL
 from projects.models import AGREEMENT_FORM_TYPE_FILE
@@ -32,6 +32,7 @@ from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
 from projects.panels import SIGNUP_STEP_CURRENT_STATUS
 from projects.panels import SIGNUP_STEP_FUTURE_STATUS
 from projects.panels import SIGNUP_STEP_PERMANENT_STATUS
+from projects.panels import SIGNUP_STEP_PENDING_STATUS
 from projects.panels import DataProjectInformationalPanel
 from projects.panels import DataProjectSignupPanel
 from projects.panels import DataProjectActionablePanel
@@ -220,6 +221,7 @@ class DataProjectView(TemplateView):
         context['SIGNUP_STEP_CURRENT_STATUS'] = SIGNUP_STEP_CURRENT_STATUS
         context['SIGNUP_STEP_FUTURE_STATUS'] = SIGNUP_STEP_FUTURE_STATUS
         context['SIGNUP_STEP_PERMANENT_STATUS'] = SIGNUP_STEP_PERMANENT_STATUS
+        context['SIGNUP_STEP_PENDING_STATUS'] = SIGNUP_STEP_PENDING_STATUS
 
         # If this project is informational only, just show them the description without requiring an account.
         if self.project.informational_only:
@@ -386,7 +388,7 @@ class DataProjectView(TemplateView):
 
         return context
 
-    def get_step_status(self, step_name, step_complete, is_permanent=False):
+    def get_step_status(self, step_name, step_complete, is_permanent=False, is_pending=False):
         """
         Returns the status this step should have. If the given step is incomplete and we do not
         already have a current_step, then this step is the current step and update
@@ -398,6 +400,9 @@ class DataProjectView(TemplateView):
 
             if is_permanent:
                 return SIGNUP_STEP_PERMANENT_STATUS
+
+            if is_pending:
+                return SIGNUP_STEP_PENDING_STATUS
 
             logger.debug(f"{self.project.project_key}/{step_name}: Completed step")
             return SIGNUP_STEP_COMPLETED_STATUS
@@ -603,11 +608,15 @@ class DataProjectView(TemplateView):
         if not self.project.requires_authorization or self.project.has_teams:
             return
 
-        # This step is never completed, it is usually the last step.
-        step_status = self.get_step_status('request_access', False)
-
         # If the user does not have a participant record, they have not yet requested access.
         requested_access = self.participant is not None
+
+        # Check for a prior current step which is possible even when this step is complete
+        # due to rejection of signed agreement forms
+        prior_current_step = next((s for s in context["setup_panels"] if s.status == SIGNUP_STEP_CURRENT_STATUS ), None)
+
+        # This step is never completed, it is usually the last step.
+        step_status = self.get_step_status('request_access', requested_access and not prior_current_step, is_pending=True)
 
         panel = DataProjectSignupPanel(
             title='Request Access',
@@ -615,7 +624,7 @@ class DataProjectView(TemplateView):
             template='projects/signup/request-access.html',
             status=step_status,
             additional_context={
-                'requested_access': requested_access
+                'requested_access': requested_access,
             }
         )
 
@@ -642,8 +651,21 @@ class DataProjectView(TemplateView):
                 team_approved=False
             )
 
-        # This step is never completed.
-        step_status = self.get_step_status('setup_team', False)
+        # This step is completed/pending if the participant has been associated
+        # with a team, or for a team leader, request for access has been made.
+        if team and self.participant.user == team.team_leader:
+
+            # Step is completed if awaiting access
+            completed = team.status == TEAM_READY
+        elif team and self.participant.user != team.team_leader:
+
+            # Step is completed if awaiting access
+            completed = True
+        else:
+            completed = False
+
+        # Determine step status
+        step_status = self.get_step_status('setup_team', completed, is_pending=True)
 
         panel = DataProjectSignupPanel(
             title='Join or Create a Team',

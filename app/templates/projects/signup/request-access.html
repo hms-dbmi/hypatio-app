@@ -3,7 +3,10 @@
 {% if panel.additional_context.requested_access %}
     Your request is being reviewed. Please use the 'Contact Us' link for any further questions.
 {% else %}
-    <form name="access_request_form" action="{% url 'projects:submit_user_permission_request' %}" method="post">
+    <form name="access_request_form" method="post" enctype="multipart/form-data"
+          ic-post-to="{% url 'projects:submit_user_permission_request' %}"
+          ic-on-success="onAccessRequestSuccess()"
+          ic-on-error="onAccessRequestError()">
         <fieldset>
             <div class="row">
                 <div class="col-md-12">
@@ -16,9 +19,9 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary">Request Access</button>
-                        <img name="loading" id="loading" src="{% static 'gears.svg' %}" style="display:none;">
-                        <div id="status" style="color: green; font-size: 1.5em;"></div>
+                        <button id="request-access-submit-button" type="submit" class="btn btn-primary">Request Access
+                            <span id="request-access-indicator" style="display: none; margin-left: 5px;" class="ic-indicator fa fa-spinner fa-spin"></span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -28,22 +31,22 @@
 {% endif %}
 
 <script type="application/javascript">
-    $('form[name=access_request_form]').submit(function(e){
-        e.preventDefault();
 
-        $("#loading").show();
+  function onAccessRequestSuccess() {
 
-        $.post($(this).attr('action'), $(this).serialize(), function(res){
-            $("#loading").hide();
-        }).done(function() {
-            $("#status").text("Access request submitted! Refreshing page...");
+    // Update button
+    $('#request-access-submit-button').html('Request submitted!&nbsp;&nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', true).toggleClass('btn-primary btn-success')
 
-            // Refresh the page so the user does not see the Request Access button again
-            setTimeout(function(){
-                location.reload();
-            },2000);
-        }).fail(function() {
-            $("#status").text("Access request failed.");
-        });
-    });
+    // Notify
+    notify('success', 'Access request submitted', 'thumbs-up');
+
+    // Update panel class
+    $(".container").find(".current-step-header").toggleClass("current-step-header pending-step-header");
+  }
+
+  function onAccessRequestError() {
+
+    // Notify
+    notify('danger', 'Access request failed, please contact support or try again', 'exclamation-sign');
+  }
 </script>

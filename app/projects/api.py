@@ -15,6 +15,7 @@ from django.http import HttpResponse
 from django.http import QueryDict
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
+from django.shortcuts import render
 from dal import autocomplete
 
 from contact.views import email_send
@@ -774,7 +775,7 @@ def submit_user_permission_request(request):
 
     # Check if there are administrators to notify.
     if project.project_supervisors is None or project.project_supervisors == "":
-        return HttpResponse(200)
+        return render(request, 'projects/signup/request-access.html', {"panel": {"additional_context": {"requested_access": True}}})
 
     # Convert the comma separated string of emails into a list.
     supervisor_emails = project.project_supervisors.split(",")
@@ -798,7 +799,7 @@ def submit_user_permission_request(request):
     except Exception as e:
         logger.exception(e)
 
-    return HttpResponse(200)
+    return render(request, 'projects/signup/request-access.html', {"panel": {"additional_context": {"requested_access": True}}})
 
 
 
