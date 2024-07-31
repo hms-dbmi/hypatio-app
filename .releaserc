@@ -1,0 +1,29 @@
+{
+    "branches": [
+        "master",
+        "main",
+        "+([0-9])?(.{+([0-9]),x}).x",
+        {"name": "development", "channel": "pre/rc", "prerelease": "rc"},
+        {"name": "beta", "prerelease": true},
+        {"name": "alpha", "prerelease": true}
+    ],
+    "plugins": [
+        "@semantic-release/commit-analyzer",
+        "@semantic-release/release-notes-generator",
+        ["@semantic-release/changelog", {
+            "changelogFile": "CHANGELOG.md"
+        }],
+        ["@semantic-release/exec", {
+          "prepareCmd": "sed -ie \"s/^version.*/version = \\x22${nextRelease.version}\\x22/g\" pyproject.toml"
+        }],
+        ["@semantic-release/git", {
+            "assets": ["pyproject.toml", "CHANGELOG.md"]
+        }],
+        ["@semantic-release/github", {
+            "successComment": false,
+            "failComment": false,
+            "failTitle": false
+        }]
+    ],
+    "preset": "angular"
+}

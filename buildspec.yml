@@ -5,6 +5,9 @@ env:
     DOCKER_HUB_USERNAME: "/dbmi/codebuild/docker/username"
     DOCKER_HUB_PASSWORD: "/dbmi/codebuild/docker/password"
 phases:
+  install:
+    commands:
+      - pip3 install toml-cli
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
@@ -13,7 +16,7 @@ phases:
       - docker login -u ${DOCKER_HUB_USERNAME} -p ${DOCKER_HUB_PASSWORD}
   build:
     commands:
-      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
+      - docker build --build-arg "VERSION=`toml get project.version --toml-path pyproject.toml`" --build-arg "COMMIT=`cat ./COMMIT`" --build-arg "DATE=`date +'%Y-%m-%dT%H:%M:%S%z'`" -t $IMAGE_REPO_NAME:$IMAGE_TAG .
       - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
   post_build:
     commands:

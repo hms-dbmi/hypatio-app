@@ -1,15 +1,20 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
     - id: trailing-whitespace
     - id: mixed-line-ending
     - id: check-byte-order-marker
     - id: check-merge-conflict
     - id: detect-aws-credentials
+      args: [--allow-missing-credentials]
   - repo: https://github.com/jazzband/pip-tools
     rev: 7.4.1
     hooks:
+      - id: pip-compile
+        name: pip-compile test-requirements.in
+        args: [test-requirements.in, --upgrade, --generate-hashes, --allow-unsafe, --output-file, test-requirements.txt]
+        files: ^test-requirements\.(in|txt)$
       - id: pip-compile
         name: pip-compile dev-requirements.in
         args: [dev-requirements.in, --upgrade, --generate-hashes, --allow-unsafe, --output-file, dev-requirements.txt]

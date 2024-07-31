@@ -16,6 +16,8 @@ import logging
 
 from os.path import normpath, join, dirname, abspath
 from dbmi_client import environment
+from dbmi_client import reporting
+from dbmi_client.logging import config 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -301,68 +303,49 @@ Q_CLUSTER = {
 
 #####################################################################################
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'console': {
-            'format': '[HYPATIO] - [%(asctime)s][%(levelname)s][%(name)s.%(funcName)s:%(lineno)d] - %(message)s',
-        },
-    },
-    'handlers': {
-        'sentry': {
-            'level': 'ERROR',
-            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
-        },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'console',
-            'stream': sys.stdout,
-        },
-    },
-    'root': {
-        'handlers': ['console', ],
-        'level': 'DEBUG'
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', ],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'raven': {
-            'level': 'WARNING',
-            'handlers': ['console'],
-            'propagate': False,
-        },
-        'sentry.errors': {
-            'level': 'WARNING',
-            'handlers': ['console'],
-            'propagate': False,
-        },
-        'botocore': {
-            'level': 'WARNING',
-            'handlers': ['console'],
-            'propagate': True,
-        },
-        'boto3': {
-            'level': 'WARNING',
-            'handlers': ['console'],
-            'propagate': True,
-        },
-        's3transfer': {
-            'level': 'WARNING',
-            'handlers': ['console'],
-            'propagate': True,
-        },
-    },
-}
+#####################################################################################
+# Logging settings
+#####################################################################################
 
-RAVEN_CONFIG = {
-    'dsn': environment.get_str("RAVEN_URL", required=True),
-    # If you are using git, you can also automatically configure the
-    # release based on the git info.
-    'release': '1',
-    'site': 'HYPATIO'
-}
+# Configure  Sentry
+reporting.sentry(
+    sentry_dsn=environment.get_str("SENTRY_DSN", required=True),
+    release=f'{environment.get_str("DBMI_APP_NAME")}@{environment.get_str("DBMI_APP_VERSION")}',
+    environment=environment.get_str("DBMI_ENV", "prod"),
+    sentry_trace_rate=environment.get_float("SENTRY_TRACES_RATE", default=0.0),
+    sentry_profile_rate=environment.get_float("SENTRY_PROFILES_RATE", default=0.0),
+)
+
+# Output the standard logging configuration
+LOGGING = config('HYPATIO', root_level=logging.DEBUG)
+
+# Disable warning level for 4xx request logging
+LOGGING['loggers'].update({
+    'django.request': {
+        'handlers': ['console'],
+        'level': 'ERROR',
+        'propagate': True,
+    },
+    'boto3': {
+        'handlers': ['console'],
+        'level': 'INFO',
+        'propagate': True,
+    },
+    'botocore': {
+        'handlers': ['console'],
+        'level': 'INFO',
+        'propagate': True,
+    },
+    's3transfer': {
+        'handlers': ['console'],
+        'level': 'INFO',
+        'propagate': True,
+    },
+    'urllib3': {
+        'handlers': ['console'],
+        'level': 'INFO',
+        'propagate': True,
+    },
+})
+
+#####################################################################################

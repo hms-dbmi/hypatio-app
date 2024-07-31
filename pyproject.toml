@@ -1,0 +1,56 @@
+[project]
+name = "dbmi-data-portal"
+version = "0.0.0"
+description = "A portal for hosting and managing access to DBMI-provided datasets"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {file = "LICENSE.txt"}
+authors = [
+  {name = "HMS DBMI Tech Dev Core" }
+]
+maintainers = [
+  {name = "HMS DBMI Tech Dev Core" }
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+# Reference dependencies dynamically from requirements files
+dynamic = ["dependencies", "optional-dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.in"]}
+optional-dependencies.dev = { file = ["dev-requirements.in"] }
+optional-dependencies.test = { file = ["test-requirements.in"] }
+
+[project.urls]
+"Homepage" = "https://portal.dbmi.hms.harvard.edu"
+"Bug Reports" = "https://github.com/hms-dbmi/hypatio-app/issues"
+"Source" = "https://github.com/hms-dbmi/hypatio-app/"
+
+[tool.setuptools]
+py-modules = []
+
+[tool.black]
+line-length = 120
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
