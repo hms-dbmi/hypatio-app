@@ -209,6 +209,19 @@
                         {% url 'index' as index_url %}
                         <li class="nav-item{% if request.path == index_url %} active{% endif %}"><a class="nav-link" href="{{ index_url }}">Home</a></li>
 
+                        {% for group in navigation.parent_groups %}
+                        {% url 'group' group.key as group_url %}
+                        <li class="dropdown">
+                          <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{ group.navigation_title|default:group.title }} <span class="caret"></span></a>
+                          <ul class="dropdown-menu" aria-labelledby="{{ group.navigation_title|default:group.title }}">
+                            {% for child in group.active_project_child_groups %}
+                            {% url 'group' child.key as group_url %}
+                            <li class="nav-item{% if request.path == group_url or child.key == navigation.active_group.key %} active{% endif %}"><a class="nav-link" href="{{ group_url }}">{{ child.navigation_title|default:child.title }}</a></li>
+                            {% endfor %}
+                          </ul>
+                        </li>
+                        {% endfor %}
+
                         {% for group in navigation.groups %}
                         {% url 'group' group.key as group_url %}
                         <li class="nav-item{% if request.path == group_url or group.key == navigation.active_group.key %} active{% endif %}"><a class="nav-link" href="{{ group_url }}">{{ group.navigation_title|default:group.title }}</a></li>

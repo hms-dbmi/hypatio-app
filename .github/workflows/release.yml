@@ -1,0 +1,60 @@
+name: Release Build
+
+on:
+  push:
+    branches: [ master, development ]
+  workflow_dispatch:
+    inputs:
+      force:
+        type: boolean
+        default: false
+
+jobs:
+  test-image:
+    uses: hms-dbmi/actions/.github/workflows/test-image-build.yml@main
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.BLHMSDBMI_DOCKERHUB_USERNAME }}
+      DOCKER_HUB_PASSWORD: ${{ secrets.BLHMSDBMI_DOCKERHUB_PASSWORD }}
+    with:
+      repository: ${{ github.repository }}
+      commit: ${{ github.sha }}
+
+  scan-image:
+    uses: hms-dbmi/actions/.github/workflows/scan.yml@main
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.BLHMSDBMI_DOCKERHUB_USERNAME }}
+      DOCKER_HUB_PASSWORD: ${{ secrets.BLHMSDBMI_DOCKERHUB_PASSWORD }}
+    with:
+      repository: ${{ github.repository }}
+      commit: ${{ github.sha }}
+
+  metadata:
+    runs-on: "ubuntu-latest"
+    outputs:
+      branch: ${{ steps.set_branch.outputs.branch }}
+      force: ${{ steps.force.outputs.force }}
+    steps:
+      - name: Set the current branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: set_branch
+      - name: Manage force input
+        id: force
+        env:
+          FORCE_INPUT: ${{ inputs.force }}
+        run: echo "force=${FORCE_INPUT:=false}" >> $GITHUB_OUTPUT
+
+  deploy:
+    uses: hms-dbmi/actions/.github/workflows/dbmisvc-app-deploy.yml@main
+    needs:
+      - "test-image"
+      - "metadata"
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    with:
+      filename: "${{ github.event.repository.name }}-${{ needs.metadata.outputs.branch }}.zip"
+      app: ${{ github.event.repository.name }}
+      role: ${{ vars[ format('BLHMSDBMI_DBMISVC_DEPLOYMENT_{0}_ROLE_ARN', needs.metadata.outputs.branch) ] }}
+      bucket: ${{ vars[ format('BLHMSDBMI_DBMISVC_DEPLOYMENT_{0}_BUCKET', needs.metadata.outputs.branch) ] }}
+      force: ${{ fromJson(needs.metadata.outputs.force) }}
+      backmerge: development

@@ -1,4 +1,4 @@
-FROM hmsdbmitc/dbmisvc:debian12-slim-python3.11-0.6.1 AS builder
+FROM hmsdbmitc/dbmisvc:debian12-slim-python3.11-0.6.2 AS builder
 
 # Install requirements
 RUN apt-get update \
@@ -20,7 +20,23 @@ RUN pip install -U wheel \
     && pip wheel -r /requirements.txt \
         --wheel-dir=/root/wheels
 
-FROM hmsdbmitc/dbmisvc:debian12-slim-python3.11-0.6.1
+FROM hmsdbmitc/dbmisvc:debian12-slim-python3.11-0.6.2
+
+ARG APP_NAME="dbmi-data-portal"
+ARG APP_CODENAME="hypatio"
+ARG VERSION
+ARG COMMIT
+ARG DATE
+
+LABEL org.label-schema.schema-version=1.0 \
+    org.label-schema.vendor="HMS-DBMI" \
+    org.label-schema.version=${VERSION} \
+    org.label-schema.name=${APP_NAME} \
+    org.label-schema.build-date=${DATE} \
+    org.label-schema.description="DBMI Data Portal" \
+    org.label-schema.url="https://github.com/hms-dbmi/hypatio-app" \
+    org.label-schema.vcs-url="https://github.com/hms-dbmi/hypatio-app" \
+    org.label-schema.vcf-ref=${COMMIT}
 
 # Copy Python wheels from builder
 COPY --from=builder /root/wheels /root/wheels
@@ -59,6 +75,10 @@ ENV DBMI_PARAMETER_STORE_PRIORITY=true
 ENV DBMI_AWS_REGION=us-east-1
 
 # App config
+ENV DBMI_APP_NAME=${APP_NAME}
+ENV DBMI_APP_CODENAME=${APP_CODENAME}
+ENV DBMI_APP_VERSION=${VERSION}
+ENV DBMI_APP_COMMIT=${COMMIT}
 ENV DBMI_APP_WSGI=hypatio
 ENV DBMI_APP_ROOT=/app
 ENV DBMI_APP_DB=true
