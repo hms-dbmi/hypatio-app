@@ -1,3 +1,10 @@
+## [1.0.1-rc.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.0.0...v1.0.1-rc.1) (2024-08-01)
+
+
+### Bug Fixes
+
+* **settings:** Removed raven from installed apps ([e56026e](https://github.com/hms-dbmi/hypatio-app/commit/e56026eeb56765e9548107f951fef10c2024e1f5))
+
 # 1.0.0 (2024-08-01)
 
 
