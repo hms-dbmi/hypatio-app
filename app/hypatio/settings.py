@@ -17,7 +17,7 @@ import logging
 from os.path import normpath, join, dirname, abspath
 from dbmi_client import environment
 from dbmi_client import reporting
-from dbmi_client.logging import config 
+from dbmi_client.logging import config
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
