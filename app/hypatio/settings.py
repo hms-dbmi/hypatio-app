@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     'profile',
     'projects',
     'health_check',
-    'raven.contrib.django.raven_compat',
     'bootstrap_datepicker_plus',
     'storages',
     'django_jsonfield_backport',
