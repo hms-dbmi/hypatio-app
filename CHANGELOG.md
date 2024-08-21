@@ -1,3 +1,17 @@
+# [1.1.0-rc.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.0.1...v1.1.0-rc.1) (2024-08-21)
+
+
+### Bug Fixes
+
+* **projects:** Allows automatic access for user covered by an institutional signer that has access ([7f4685c](https://github.com/hms-dbmi/hypatio-app/commit/7f4685c877f07d99cd9a230911cf0da745da6f0e))
+
+
+### Features
+
+* **pdf:** Added an app for rendering PDFs ([dd98208](https://github.com/hms-dbmi/hypatio-app/commit/dd98208d4717265fdf68f2dc6124de20276d994d))
+* **projects:** Added a model for institutional officials/members for blanket DUAs; fixed older fixture that accessed models through ORM causing issues ([6f6667b](https://github.com/hms-dbmi/hypatio-app/commit/6f6667be9724b4185ef6a6c596b4969ce2c5966f))
+* **projects:** Added view and API support for institutional officials; added 4CE DUA ([9538168](https://github.com/hms-dbmi/hypatio-app/commit/95381687e422e576a2a3f98048daa26dbad75fc8))
+
 ## [1.0.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.0.0...v1.0.1) (2024-08-01)
 
 
