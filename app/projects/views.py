@@ -800,7 +800,7 @@ class DataProjectView(TemplateView):
 
         try:
             # Check for an institutional official linked to this user
-            official = InstitutionalOfficial.objects.get(user=self.participant.user)
+            official = InstitutionalOfficial.objects.get(user=self.request.user)
 
             # Add to context
             additional_context["official"] = official
@@ -809,7 +809,7 @@ class DataProjectView(TemplateView):
 
         try:
             # Check for an institutional member linked to this user
-            member = InstitutionalMember.objects.get(user=self.participant.user)
+            member = InstitutionalMember.objects.get(email=self.request.user.email)
 
             # Add to context
             additional_context["member"] = member
@@ -933,16 +933,18 @@ class DataProjectView(TemplateView):
         """
         # Check for institutional access
         try:
-            member = InstitutionalMember.objects.get(official__project=self.project, email=self.request.user.email)
-            logger.debug(f"Institutional member found under official: {member.official.user.email}")
+            # Only perform this check for authenticated users
+            if self.request.user.is_authenticated:
+                member = InstitutionalMember.objects.get(official__project=self.project, email=self.request.user.email)
+                logger.debug(f"Institutional member found under official: {member.official.user.email}")
 
-            # Check if official has access
-            official_participant = Participant.objects.get(project=self.project, user=member.official.user)
-            if official_participant.permission == "VIEW":
-                logger.debug(f"Institutional official has access, granting access to member")
-                return True
-            else:
-                logger.debug(f"Institutional official does not have access")
+                # Check if official has access
+                official_participant = Participant.objects.get(project=self.project, user=member.official.user)
+                if official_participant.permission == "VIEW":
+                    logger.debug(f"Institutional official has access, granting access to member")
+                    return True
+                else:
+                    logger.debug(f"Institutional official does not have access")
 
         except ObjectDoesNotExist:
             logger.debug(f"No institutional member found")
