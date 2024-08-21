@@ -2,20 +2,6 @@
 
 from django.db import migrations, models
 
-from projects.models import AgreementForm, SignedAgreementForm, Participant
-
-
-def migrate_agreement_form_model(apps, schema_editor):
-    """
-    Sets the initial value of the created field to the existing value of the
-    modified field.
-    """
-    for agreement_form in AgreementForm.objects.all():
-
-        # Set the dates
-        agreement_form.modified = agreement_form.created
-        agreement_form.save()
-
 
 class Migration(migrations.Migration):
 
@@ -109,7 +95,7 @@ class Migration(migrations.Migration):
             name='modified',
             field=models.DateTimeField(default="2023-01-01T00:00:00.000Z"),
         ),
-        migrations.RunPython(migrate_agreement_form_model),
+        migrations.RunSQL("UPDATE projects_agreementform SET modified = created"),
         migrations.AlterField(
             model_name='agreementform',
             name='modified',

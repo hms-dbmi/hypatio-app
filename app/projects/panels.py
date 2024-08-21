@@ -60,3 +60,24 @@ class DataProjectSharedTeamsPanel(DataProjectPanel):
     def __init__(self, title, bootstrap_color, template, status, additional_context=None):
         super().__init__(title, bootstrap_color, template, additional_context)
         self.status = status
+
+
+class DataProjectInstitutionalOfficialPanel(DataProjectPanel):
+    """
+    This class holds information needed to display panels on the DataProject
+    page that outline institutional officials and the members they are representing.
+    """
+
+    def __init__(self, title, bootstrap_color, template, additional_context=None):
+        super().__init__(title, bootstrap_color, template, additional_context)
+
+
+class DataProjectInstitutionalMemberPanel(DataProjectPanel):
+    """
+    This class holds information needed to display panels on the DataProject
+    page that outline institutional officials and the members they are representing.
+    """
+
+    def __init__(self, title, bootstrap_color, template, status, additional_context=None):
+        super().__init__(title, bootstrap_color, template, additional_context)
+        self.status = status

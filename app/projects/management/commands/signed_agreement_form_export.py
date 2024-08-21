@@ -67,7 +67,7 @@ class Command(BaseCommand):
 
                     try:
                         # Set the key
-                        key = os.path.join(settings.AWS_LOCATION, signed_agreement_form.upload.name)
+                        key = os.path.join(settings.PROJECTS_UPLOADS_PREFIX, signed_agreement_form.upload.name)
 
                         # Download the file
                         s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, key, os.path.join(archive_root, signed_agreement_form.upload.name))

@@ -19,6 +19,7 @@ from projects.api import save_signed_external_agreement_form
 from projects.api import submit_user_permission_request
 from projects.api import upload_signed_agreement_form
 from projects.api import HostedFileSetAutocomplete
+from projects.api import update_institutional_members
 
 app_name = ProjectsConfig.name
 
@@ -39,5 +40,6 @@ urlpatterns = [
     re_path(r'^download_dataset/$', download_dataset, name='download_dataset'),
     re_path(r'^upload_challengetasksubmission_file/$', upload_challengetasksubmission_file, name="upload_challengetasksubmission_file"),
     re_path(r'^delete_challengetasksubmission/$', delete_challengetasksubmission, name='delete_challengetasksubmission'),
+    re_path(r'^update_institutional_members/$', update_institutional_members, name="update_institutional_members"),
     re_path(r'^(?P<project_key>[^/]+)/$', DataProjectView.as_view(), name="view-project"),
 ]

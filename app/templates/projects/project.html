@@ -242,7 +242,7 @@ $( document ).ready(function() {
       }).done(function(){
 
         notify('success', "Agreement form submitted!", 'thumbs-up');
-        submit_button.replaceWith("<h3><span class='label label-success'>Form saved.</span></h3>");
+        $(submit_button).html("Form Saved &nbsp;<i class='fa fa-check'></i>").prop("disabled", "disabled").toggleClass("btn-primary btn-success");
 
         // Refresh the page so the user does not see this button again
         setTimeout(function(){
@@ -297,7 +297,7 @@ $( document ).ready(function() {
         });
 
         // Find the div element where we want to paste the string containing the completed form
-        var agreement_text_container = $(this).find(".agreement_text");
+        var agreement_text_container = $(this).find(".agreement_text_contents");
 
         // Move the content of the agreement_form block into an input in order to be captured by jQuery serialize
         agreement_text_container.val(agreement_form_contents.text());
@@ -306,7 +306,7 @@ $( document ).ready(function() {
             // $("#loading").hide();
         }).done(function() {
             notify('success', "Agreement form submitted!", 'thumbs-up');
-            submit_button.replaceWith("<h3><span class='label label-success'>Form saved.</span></h3>");
+            $(submit_button).html("Form Saved &nbsp;<i class='fa fa-check'></i>").prop("disabled", "disabled").toggleClass("btn-primary btn-success");
 
             // Refresh the page so the user does not see this button again
             setTimeout(function(){

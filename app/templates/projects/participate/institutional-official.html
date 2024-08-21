@@ -1,0 +1,83 @@
+{% if panel.additional_context.official %}
+<p>You're the official for the institution '{{ panel.additional_context.official.institution }}'.</p>
+<p>Use the following form to manage members of your institution that you represent with your signing authority:</p>
+<h4>Member Details</h4>
+<form id="institutional-members-form" ic-post-to="{% url 'projects:update_institutional_members' %}"
+      ic-on-beforeSend="toggleFormButtons('#institutional-members-form');"
+      ic-on-complete="toggleFormButtons('#institutional-members-form');">
+  <input type="hidden" name="signed-agreement-form" value="{{ panel.additional_context.official.signed_agreement_form.id }}" autocomplete="off" />
+  <div id="member-details">
+    {% csrf_token %}
+    {% for member in panel.additional_context.official.institutionalmember_set.all %}
+    <div class="form-group {% if forloop.counter0 == 0 %}add{% else %}remove{% endif %}-member member-{{ forloop.counter0 }}">
+    <div class="input-group">
+      <input type="email" class="form-control member-emails" id="member-email-{{ forloop.counter0 }}" name="member-emails" autocomplete="false" placeholder="Enter member's email address" value="{{ member.email }}" required />
+      <div class="input-group-btn">
+      {% if forloop.counter0 == 0 %}
+        <button class="btn btn-success" type="button"  onclick="addMember();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+      {% else %}
+        <button class="btn btn-danger" type="button" onclick="removeMember('{{ forloop.counter0 }}');"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>
+      {% endif %}
+      </div>
+    </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="row">
+      <div class="col-xs-12 col-sm-6 submit_form">
+        <button id="institutional-members-form-submit" type="submit" class="btn btn-primary">
+          Submit <i class="ic-indicator fa fa-spinner fa-spin" style="display:none; margin-left: 5px;"></i>
+        </button>
+      </div>
+    </div>
+</form>
+{% elif panel.additional_context.member %}
+<p>You're a member of the the institution '{{ panel.additional_context.member.official.institution }}'. The official that represents you and your institution is <a href="emailto:{{ panel.additional_context.member.official.user.email }}">{{ panel.additional_context.member.official.user.email }}</a>.</p>
+{% endif %}
+
+<script type="text/javascript">
+
+  // Start an index for added member inputs
+  var memberIndex = {{ panel.additional_context.official.institutionalmember_set.all|length }};
+  function addMember() {
+
+    // Increment index
+    memberIndex++;
+    console.log(`Adding member: ${memberIndex}`);
+
+    // Copy element
+    var addMemberElement = $("#member-details .remove-member:last").clone();
+
+    // Remove other member index class
+    $(addMemberElement).removeClass (function (index, css) {
+      return (css.match (/(^|\s)member\-\d+/g) || []).join(' ');
+   });
+
+    // Set new class
+    $(addMemberElement).addClass(`member-${memberIndex}`);
+
+    $("input", addMemberElement).each(function() {
+
+      // Change input's ID
+      $(this).attr("id", `member-email-${memberIndex}`);
+
+      // Clear existing value
+      $(this).attr("value", "");
+      $(this).val("");
+    });
+
+    // Change click handler argument
+    $("button", addMemberElement).each(function() {
+      $(this).attr("onclick", `removeMember('${memberIndex}');`);
+    });
+
+    // Add it
+    $(addMemberElement).appendTo($("#member-details"));
+  }
+
+  function removeMember(index) {
+    console.log(`Removing member: ${index}`);
+    $(`.member-${index}`).remove();
+  }
+
+</script>
