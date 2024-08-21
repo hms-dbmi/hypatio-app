@@ -931,6 +931,21 @@ class DataProjectView(TemplateView):
         considered having been granted access to participate in this DataProject.
         Returns a boolean.
         """
+        # Check for institutional access
+        try:
+            member = InstitutionalMember.objects.get(official__project=self.project, email=self.request.user.email)
+            logger.debug(f"Institutional member found under official: {member.official.user.email}")
+
+            # Check if official has access
+            official_participant = Participant.objects.get(project=self.project, user=member.official.user)
+            if official_participant.permission == "VIEW":
+                logger.debug(f"Institutional official has access, granting access to member")
+                return True
+            else:
+                logger.debug(f"Institutional official does not have access")
+
+        except ObjectDoesNotExist:
+            logger.debug(f"No institutional member found")
 
         # Does user not have VIEW permissions?
         if not context['has_view_permission']:
