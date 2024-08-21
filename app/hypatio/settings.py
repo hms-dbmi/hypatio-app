@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'django_jsonfield_backport',
     'django_q',
     'django_ses',
+    'pdf',
 ]
 
 MIDDLEWARE = [
@@ -149,7 +150,9 @@ S3_BUCKET = environment.get_str('S3_BUCKET', required=True)
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_STORAGE_BUCKET_NAME = environment.get_str('S3_BUCKET', required=True)
-AWS_LOCATION = 'upload'
+
+PROJECTS_UPLOADS_PREFIX = "upload"
+PROJECTS_DOCUMENTS_PREFIX = "documents"
 
 ##########
 
@@ -316,35 +319,12 @@ reporting.sentry(
 )
 
 # Output the standard logging configuration
-LOGGING = config('HYPATIO', root_level=logging.DEBUG)
-
-# Disable warning level for 4xx request logging
-LOGGING['loggers'].update({
-    'django.request': {
-        'handlers': ['console'],
-        'level': 'ERROR',
-        'propagate': True,
-    },
-    'boto3': {
-        'handlers': ['console'],
-        'level': 'INFO',
-        'propagate': True,
-    },
-    'botocore': {
-        'handlers': ['console'],
-        'level': 'INFO',
-        'propagate': True,
-    },
-    's3transfer': {
-        'handlers': ['console'],
-        'level': 'INFO',
-        'propagate': True,
-    },
-    'urllib3': {
-        'handlers': ['console'],
-        'level': 'INFO',
-        'propagate': True,
-    },
+LOGGING = config('HYPATIO', root_level=logging.DEBUG, logger_levels={
+    "django.request": "ERROR",
+    "boto3": "INFO",
+    "botocore": "INFO",
+    "s3transfer": "INFO",
+    "urllib3": "INFO",
 })
 
 #####################################################################################
