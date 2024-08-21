@@ -1,3 +1,10 @@
+# [1.1.0-rc.3](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.0-rc.2...v1.1.0-rc.3) (2024-08-21)
+
+
+### Bug Fixes
+
+* **projects:** Added missing JS library ([f722f7b](https://github.com/hms-dbmi/hypatio-app/commit/f722f7bf0d45a13575e9c91753742daf5dfbe2af))
+
 # [1.1.0-rc.2](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.0-rc.1...v1.1.0-rc.2) (2024-08-21)
 
 
