@@ -1,3 +1,10 @@
+# [1.1.0-rc.2](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.0-rc.1...v1.1.0-rc.2) (2024-08-21)
+
+
+### Bug Fixes
+
+* **projects:** Fixed an issue on DataProject view with un-authenticated user ([c10b074](https://github.com/hms-dbmi/hypatio-app/commit/c10b074888b37b30596703549f34a58b6d2f9e82))
+
 # [1.1.0-rc.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.0.1...v1.1.0-rc.1) (2024-08-21)
 
 
