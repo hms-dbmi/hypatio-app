@@ -3,7 +3,12 @@
 {% if panel.additional_context.requested_access %}
     Your request is being reviewed. Please use the 'Contact Us' link for any further questions.
 {% else %}
-    <form name="access_request_form" action="{% url 'projects:submit_user_permission_request' %}" method="post">
+    <form name="access_request_form"
+      ic-post-to="{% url 'projects:submit_user_permission_request' %}"
+      ic-target="this" ic-replace-target="true" ic-transition-duration="2s"
+      ic-on-beforeSend="toggleFormButtons('#access_request_form');"
+      ic-on-complete="toggleFormButtons('#access_request_form');"
+      ic-on-success="$('#request-access-form-submit').html('Request submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success')">
         <fieldset>
             <div class="row">
                 <div class="col-md-12">
@@ -16,9 +21,9 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary">Request Access</button>
-                        <img name="loading" id="loading" src="{% static 'gears.svg' %}" style="display:none;">
-                        <div id="status" style="color: green; font-size: 1.5em;"></div>
+                        <button id="request-access-form-submit" type="submit" class="btn btn-primary">
+                            Request Access <i class="ic-indicator fa fa-spinner fa-spin" style="display:none; margin-left: 5px;"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -26,24 +31,3 @@
         {% csrf_token %}
     </form>
 {% endif %}
-
-<script type="application/javascript">
-    $('form[name=access_request_form]').submit(function(e){
-        e.preventDefault();
-
-        $("#loading").show();
-
-        $.post($(this).attr('action'), $(this).serialize(), function(res){
-            $("#loading").hide();
-        }).done(function() {
-            $("#status").text("Access request submitted! Refreshing page...");
-
-            // Refresh the page so the user does not see the Request Access button again
-            setTimeout(function(){
-                location.reload();
-            },2000);
-        }).fail(function() {
-            $("#status").text("Access request failed.");
-        });
-    });
-</script>
