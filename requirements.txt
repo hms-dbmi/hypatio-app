@@ -18,23 +18,23 @@ asgiref==3.8.1 \
     # via
     #   django
     #   django-countries
-awscli==1.34.2 \
-    --hash=sha256:695d6542b475e1b66b3461997c1dcb390122eadd120c518c41fb4e5cc6d7dd5b \
-    --hash=sha256:ede310d824251dfbbff8295c479c9cd550d2517b6326b188b738f5455c8094cb
+awscli==1.34.5 \
+    --hash=sha256:00b577be74f157177a903f1d14547929de067327634db12a53e6b1606a514026 \
+    --hash=sha256:e4f55556e8b9b819f539b0595a1af8145d17a396b486250ade25c389969236ff
     # via -r requirements.in
 blessed==1.20.0 \
     --hash=sha256:0c542922586a265e699188e52d5f5ac5ec0dd517e5a1041d90d2bbf23f906058 \
     --hash=sha256:2cdd67f8746e048f00df47a2880f4d6acbcdb399031b604e34ba8f71d5787680
     # via django-q
-boto3==1.35.2 \
-    --hash=sha256:c2f0837a259002489e59d1c30008791e3b3bb59e30e48c64e1d2d270147a4549 \
-    --hash=sha256:cbf197ce28f04bc1ffa1db0aa26a1903d9bfa57a490f70537932e84367cdd15b
+boto3==1.35.5 \
+    --hash=sha256:2cef3aa476181395c260f4b6e6c5565e5a3022a874fb6b579d8e6b169f94e0b3 \
+    --hash=sha256:5724ddeda8e18c7614c20a09c20159ed87ff7439755cf5e250a1a3feaf9afb7e
     # via
     #   -r requirements.in
     #   django-ses
-botocore==1.35.2 \
-    --hash=sha256:92b168d8be79055bb25754aa34d699866d8aa66abc69f8ce99b0c191bd9c6e70 \
-    --hash=sha256:96c8eb6f0baed623a1b57ca9f24cb21d5508872cf0dfebb55527a85b6dbc76ba
+botocore==1.35.5 \
+    --hash=sha256:3a0086c7124cb3b0d9f98563d00ffd14a942c3f9e731d8d1ccf0d3a1ac7ed884 \
+    --hash=sha256:8116b72c7ae845c195146e437e2afd9d17538a37b3f3548dcf67c12c86ba0742
     # via
     #   awscli
     #   boto3
@@ -330,9 +330,9 @@ furl==2.1.3 \
     # via
     #   -r requirements.in
     #   django-dbmi-client
-idna==3.7 \
-    --hash=sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc \
-    --hash=sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0
+idna==3.8 \
+    --hash=sha256:050b4e5baadcd44d760cedbd2b8e639f2ff89bbc7a5730fcc662954303377aac \
+    --hash=sha256:d838c2c0ed6fced7693d5e8ab8e734d5f8fda53a039c0164afb0b82e771e3603
     # via requests
 jmespath==1.0.1 \
     --hash=sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980 \
