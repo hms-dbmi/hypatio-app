@@ -8,10 +8,10 @@
   <input type="hidden" name="signed-agreement-form" value="{{ panel.additional_context.official.signed_agreement_form.id }}" autocomplete="off" />
   <div id="member-details">
     {% csrf_token %}
-    {% for member in panel.additional_context.official.institutionalmember_set.all %}
+    {% for member in panel.additional_context.official.member_emails %}
     <div class="form-group {% if forloop.counter0 == 0 %}add{% else %}remove{% endif %}-member member-{{ forloop.counter0 }}">
     <div class="input-group">
-      <input type="email" class="form-control member-emails" id="member-email-{{ forloop.counter0 }}" name="member-emails" autocomplete="false" placeholder="Enter member's email address" value="{{ member.email }}" required />
+      <input type="email" class="form-control member-emails" id="member-email-{{ forloop.counter0 }}" name="member-emails" autocomplete="false" placeholder="Enter member's email address" value="{{ member }}" required />
       <div class="input-group-btn">
       {% if forloop.counter0 == 0 %}
         <button class="btn btn-success" type="button"  onclick="addMember();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>

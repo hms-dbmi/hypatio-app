@@ -260,6 +260,7 @@ class AgreementForm(models.Model):
                   " the person who they submitted their signed agreement form to."
     )
     template = models.CharField(max_length=300, blank=True, null=True)
+    institutional_signers = models.BooleanField(default=False, help_text="Allows institutional signers to sign for their members. This will auto-approve this agreement form for members whose institutional official has had their agreement form approved.")
 
     # Meta
     created = models.DateTimeField(auto_now_add=True)
@@ -363,6 +364,10 @@ class DataProject(models.Model):
         help_text="Set this to a specific bucket where this project's files should be stored."
     )
 
+    # Automate approval of members covered by an already-approved institutional signer
+    institutional_signers = models.BooleanField(default=False, help_text="Allows institutional signers to sign for their members. This will auto-approve agreement forms for members whose institutional official has had their agreement forms approved.")
+
+
     # Meta
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -399,19 +404,7 @@ class InstitutionalOfficial(models.Model):
     project = models.ForeignKey(DataProject, on_delete=models.PROTECT)
     institution = models.TextField(null=False, blank=False)
     signed_agreement_form = models.ForeignKey("SignedAgreementForm", on_delete=models.PROTECT)
-
-    # Meta
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-
-
-class InstitutionalMember(models.Model):
-    """
-    This represents a member of an institution.
-    """
-    official = models.ForeignKey(InstitutionalOfficial, on_delete=models.PROTECT)
-    email = models.TextField(null=False, blank=False)
-    user = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
+    member_emails = models.JSONField(null=False, blank=False, editable=True)
 
     # Meta
     created = models.DateTimeField(auto_now_add=True)

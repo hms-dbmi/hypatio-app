@@ -44,7 +44,6 @@ from projects.models import Team
 from projects.models import SIGNED_FORM_REJECTED
 from projects.models import HostedFileSet
 from projects.models import InstitutionalOfficial
-from projects.models import InstitutionalMember
 
 logger = logging.getLogger(__name__)
 
@@ -672,9 +671,12 @@ def save_signed_agreement_form(request):
 
             # Retain lists
             if len(value) > 1:
-                fields[key] = value
+
+                # Only retain valid values
+                valid_values = [v for v in value if v]
+                fields[key] = valid_values if valid_values else ""
             else:
-                fields[key] = next(iter(value), None)
+                fields[key] = next(iter(value), "")
 
         # Save fields
         signed_agreement_form.fields = fields
@@ -802,13 +804,52 @@ def submit_user_permission_request(request):
         return response
 
     # Create a new participant record if one does not exist already.
-    Participant.objects.get_or_create(
+    participant, created = Participant.objects.get_or_create(
         user=request.user,
         project=project
     )
 
+    # Check if this project allows institutional signers
+    if project.institutional_signers:
+
+        # Check if this is a member
+        try:
+            official = InstitutionalOfficial.objects.get(
+                project=project,
+                member_emails__contains=request.user.email,
+            )
+
+            # Check if they have access
+            official_participant = Participant.objects.get(user=official.user)
+            if official_participant.permission == "VIEW":
+
+                # Approve signed agreement forms
+                for signed_agreement_form in SignedAgreementForm.objects.filter(project=project, user=request.user):
+
+                    # If allows institutional signers, auto-approve
+                    if signed_agreement_form.agreement_form.institutional_signers:
+
+                        signed_agreement_form.status = "A"
+                        signed_agreement_form.save()
+
+                # Grant this user access immediately if all agreement forms are accepted
+                for agreement_form in project.agreement_forms.all():
+                    if not SignedAgreementForm.objects.filter(
+                        agreement_form=agreement_form,
+                        project=project,
+                        user=request.user,
+                        status="A"
+                        ):
+                        break
+                else:
+                    participant.permission = "VIEW"
+                    participant.save()
+
+        except ObjectDoesNotExist:
+            pass
+
     # Check if there are administrators to notify.
-    if project.project_supervisors:
+    if project.project_supervisors and not participant.permission:
 
         # Convert the comma separated string of emails into a list.
         supervisor_emails = project.project_supervisors.split(",")
@@ -832,6 +873,8 @@ def submit_user_permission_request(request):
         except Exception as e:
             logger.exception(e)
 
+    elif participant.permission:
+        logger.debug(f"Request has been auto-approved due to an institutional signer")
     else:
         logger.warning(f"Project '{project}' has not supervisors to alert on access requests")
 
@@ -854,6 +897,10 @@ def submit_user_permission_request(request):
     response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
         "success", "Your request for access has been submitted", "thumbs-up"
     )
+
+    # Reload page if approved
+    if participant.permission == "VIEW":
+        response['X-IC-Script'] += "setTimeout(function() { location.reload(); }, 2000);"
 
     return response
 
@@ -927,6 +974,10 @@ def update_institutional_members(request):
     # Get the list
     member_emails = [m.lower() for m in request.POST.getlist("member-emails", [])]
 
+    # Get deletions and additions
+    deleted_member_emails = list(set(official.member_emails) - set(member_emails))
+    added_member_emails = list(set(member_emails) - set(official.member_emails))
+
     # Check for duplicates
     if len(set(member_emails)) < len(member_emails):
 
@@ -940,31 +991,34 @@ def update_institutional_members(request):
 
         return response
 
-    # Iterate existing members
-    for member in InstitutionalMember.objects.filter(official=official):
+    # Save the official with updated emails
+    official.member_emails = member_emails
+    official.save()
 
-        # Check if in list
-        if member.email.lower() in member_emails:
-            logger.debug(f"Update institutional members: Member '{member.email}' already exists")
+    # Iterate removed emails and remove access
+    for email in deleted_member_emails:
+        try:
+            participant = Participant.objects.get(project=official.project, user__email=email, permission="VIEW")
 
-            # Remove email from list
-            member_emails.remove(member.email.lower())
+            # Revoke it if found
+            participant.permission = None
+            participant.save()
 
-        elif member.email.lower() not in member_emails:
-            logger.debug(f"Update institutional members: Member '{member.email}' will be deleted")
+        except ObjectDoesNotExist:
+            pass
 
-            # Delete them
-            member.delete()
+    # Iterate added emails and add access if waiting
+    for email in added_member_emails:
+        try:
+            official_participant = Participant.objects.get(project=official.project, user=official.user)
+            participant = Participant.objects.get(project=official.project, user__email=email)
 
-    # Create members from remaining email addresses
-    for member_email in member_emails:
-        logger.debug(f"Update institutional members: Member '{member_email}' will be created")
+            # Add access if found
+            participant.permission = official_participant.permission
+            participant.save()
 
-        # Create them
-        InstitutionalMember.objects.create(
-            official=official,
-            email=member_email,
-        )
+        except ObjectDoesNotExist:
+            pass
 
     # Create the response.
     response = HttpResponse(status=201)
