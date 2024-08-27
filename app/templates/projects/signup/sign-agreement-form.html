@@ -12,14 +12,17 @@
         {% if panel.additional_context.agreement_form.type == 'MODEL' %}
         {{ panel.additional_context.agreement_form.content | safe }}
         {% else %}
-        {{ panel.additional_context.agreement_form.form_file_path|get_html_form_file_contents | safe }}
+        {% get_agreement_form_template panel.additional_context.agreement_form.form_file_path panel.additional_context %}
         {% endif %}
     </div>
 
     <input type="hidden" class="project_key" name="project_key" value="{{ project.project_key }}" />
     <input type="hidden" class="agreement_form_id" name="agreement_form_id" value="{{ panel.additional_context.agreement_form.id }}" />
     <input type="hidden" class="agreement_text" name="agreement_text" value="" />
-
+    {% if institutional_official %}
+    <input type="hidden" name="institutional_official" value="{{ institutional_official.user.email }}" />
+    <input type="hidden" name="institutional_member" value="true" />
+    {% endif %}
     <hr>
 
     <div class="row">

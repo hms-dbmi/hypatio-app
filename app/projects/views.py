@@ -29,7 +29,6 @@ from projects.models import Participant
 from projects.models import SignedAgreementForm
 from projects.models import Group
 from projects.models import InstitutionalOfficial
-from projects.models import InstitutionalMember
 from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
 from projects.panels import SIGNUP_STEP_CURRENT_STATUS
 from projects.panels import SIGNUP_STEP_FUTURE_STATUS
@@ -39,7 +38,6 @@ from projects.panels import DataProjectSignupPanel
 from projects.panels import DataProjectActionablePanel
 from projects.panels import DataProjectSharedTeamsPanel
 from projects.panels import DataProjectInstitutionalOfficialPanel
-from projects.panels import DataProjectInstitutionalMemberPanel
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -332,17 +330,17 @@ class DataProjectView(TemplateView):
 
         else:
 
-            # Add panel for institutional members
-            self.panel_institutional_member(context)
+            # Set institutional context
+            self.get_institutional_context(context)
 
             # Agreement forms step (if needed).
             self.setup_panel_sign_agreement_forms(context)
 
-            # Show JWT step (if needed).
-            self.setup_panel_show_jwt(context)
-
             # Access request step (if needed).
             self.setup_panel_request_access(context)
+
+            # Show JWT step (if needed).
+            self.setup_panel_show_jwt(context)
 
             # Team setup step (if needed).
             self.setup_panel_team(context)
@@ -350,8 +348,22 @@ class DataProjectView(TemplateView):
             # TODO commented out until this is ready.
             # Static page that lets user know to wait.
             # self.step_pending_review(context)
-
         return context
+
+    def get_institutional_context(self, context):
+        """
+        Prepares context for institional signer status, if applicable
+        """
+        # Check if this project/agreement form accepts institutional signers
+        if self.project.institutional_signers:
+            try:
+                # Check for one
+                context["institutional_official"] = InstitutionalOfficial.objects.get(
+                    project=self.project,
+                    member_emails__contains=self.request.user.email,
+                )
+            except ObjectDoesNotExist:
+                pass
 
     def get_participate_context(self, context):
         """
@@ -575,7 +587,10 @@ class DataProjectView(TemplateView):
                 bootstrap_color='default',
                 template=template,
                 status=step_status,
-                additional_context={'agreement_form': form}
+                additional_context={
+                    'agreement_form': form,
+                    "institutional_official": context.get("institutional_official"),
+                }
             )
 
             context['setup_panels'].append(panel)
@@ -795,65 +810,21 @@ class DataProjectView(TemplateView):
         Builds the context needed for the institutional official to manage
         the members that they provide signing authority for.
         """
-        # Setup context
-        additional_context = {}
-
         try:
             # Check for an institutional official linked to this user
             official = InstitutionalOfficial.objects.get(user=self.request.user)
 
-            # Add to context
-            additional_context["official"] = official
-        except ObjectDoesNotExist:
-            pass
-
-        try:
-            # Check for an institutional member linked to this user
-            member = InstitutionalMember.objects.get(email=self.request.user.email)
-
-            # Add to context
-            additional_context["member"] = member
-        except ObjectDoesNotExist:
-            pass
-
-        if additional_context:
+            # Add a panel
             panel = DataProjectInstitutionalOfficialPanel(
                 title='Institutional Official',
                 bootstrap_color='default',
                 template='projects/participate/institutional-official.html',
-                additional_context=additional_context
+                additional_context={
+                    "official": official,
+                }
             )
 
             context['actionable_panels'].append(panel)
-
-    def panel_institutional_member(self, context):
-        """
-        Builds the context needed for the institutional official to manage
-        the members that they provide signing authority for.
-        """
-        try:
-            # Check for an institutional member linked to this user
-            member = InstitutionalMember.objects.get(official__project=self.project, email=self.request.user.email)
-
-            # Add to context
-            additional_context = {
-                "member": member,
-            }
-
-            # This step is never completed.
-            step_status = self.get_step_status('institutional_member', False)
-
-            # Add the panel
-            panel = DataProjectInstitutionalMemberPanel(
-                title='Institutional Member',
-                bootstrap_color='default',
-                template='projects/participate/institutional-member.html',
-                status=step_status,
-                additional_context=additional_context
-            )
-
-            context['setup_panels'].append(panel)
-
         except ObjectDoesNotExist:
             pass
 
@@ -931,23 +902,6 @@ class DataProjectView(TemplateView):
         considered having been granted access to participate in this DataProject.
         Returns a boolean.
         """
-        # Check for institutional access
-        try:
-            # Only perform this check for authenticated users
-            if self.request.user.is_authenticated:
-                member = InstitutionalMember.objects.get(official__project=self.project, email=self.request.user.email)
-                logger.debug(f"Institutional member found under official: {member.official.user.email}")
-
-                # Check if official has access
-                official_participant = Participant.objects.get(project=self.project, user=member.official.user)
-                if official_participant.permission == "VIEW":
-                    logger.debug(f"Institutional official has access, granting access to member")
-                    return True
-                else:
-                    logger.debug(f"Institutional official does not have access")
-
-        except ObjectDoesNotExist:
-            logger.debug(f"No institutional member found")
 
         # Does user not have VIEW permissions?
         if not context['has_view_permission']:

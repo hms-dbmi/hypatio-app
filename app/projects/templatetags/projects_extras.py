@@ -19,6 +19,10 @@ logger = logging.getLogger(__name__)
 def get_html_form_file_contents(form_file_path):
     return render_to_string(form_file_path)
 
+@register.simple_tag
+def get_agreement_form_template(form_file_path, context={}):
+    return render_to_string(form_file_path, context=context)
+
 @register.filter
 def get_login_url(current_uri):
 

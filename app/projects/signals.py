@@ -9,7 +9,6 @@ from projects.models import Participant
 from projects.models import SignedAgreementForm
 from projects.models import TEAM_ACTIVE, TEAM_DEACTIVATED, TEAM_READY
 from projects.models import InstitutionalOfficial
-from projects.models import InstitutionalMember
 
 import logging
 logger = logging.getLogger(__name__)
@@ -144,15 +143,6 @@ def signed_agreement_form_pre_save_handler(sender, **kwargs):
             institution=instance.fields["institute-name"],
             project=instance.project,
             signed_agreement_form=instance,
+            member_emails=instance.fields["member-emails"],
         )
         official.save()
-
-        # Iterate members
-        for email in instance.fields["member-emails"]:
-
-            # Create member
-            member = InstitutionalMember.objects.create(
-                official=official,
-                email=email,
-            )
-            member.save()

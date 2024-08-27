@@ -99,10 +99,12 @@
                 <input type="radio" name="registrant-is" value="individual" required {% if registrant_is == "individual" %}checked{% endif %} />
                 an individual, requesting Data under this Agreement on behalf of themself<br>
             </label>
+            {% if institutional_official %}
             <label>
                 <input type="radio" name="registrant-is" value="member" required {% if registrant_is == "member" %}checked{% endif %} />
                 an institutional member, requesting Data under this Agreement signed by a representing institutional official
             </label>
+            {% endif %}
             <label>
                 <input type="radio" name="registrant-is" value="official" required {% if registrant_is == "official" %}checked{% endif %} />
                 an institutional official, requesting Data under this Agreement on behalf of their institution and its agents and employees
@@ -113,16 +115,18 @@
 
         </div>
 
+        {% if institutional_official %}
         <div id="member-questions" style="display: {% if registrant_is == "member" %}block{% else %}none{% endif %}">
             <h4>Institutional Member</h4>
 
-            <div class="form-group">
-                <label for="official-name">Email of representing institutional official</label>
-                <input type="email" class="form-control" id="official-name" name="official-name" value="{{ official_name|default:'' }}">
-            </div>
-        </div>
+            <label class="checkbox-inline">
+                <input type="checkbox" id="i-reviewed" name="i-reviewed" value="Yes" required {% if i_reviewed == "Yes" %}checked{% endif %}> I have reviewed and understand the terms and conditions outlined above.
+            </label>
 
-        <div id="official-questions" style="display: {% if registrant_is == "official" %}block{% else %}none{% endif %}">
+        </div>
+        {% endif %}
+
+      <div id="official-questions" style="display: {% if registrant_is == "official" %}block{% else %}none{% endif %}">
             <h4>Institutional Official</h4>
 
             <h4>Institution Details</h4>
@@ -166,27 +170,29 @@
             </div>
     </div>
 
-    <h4>Contact Details</h4>
-    <div class="form-group">
-      <label for="signer-name">Name/Title</label>
-      <input type="text" class="form-control" id="signer-name" name="signer-name" value="{{ signer_name|default:'' }}"/>
-    </div>
-    <div class="form-group">
-        <label for="signer-phone">Phone</label>
-        <input type="text" class="form-control" id="signer-phone" name="signer-phone" value="{{ signer_phone|default:'' }}"/>
-    </div>
-    <div class="form-group">
-        <label for="signer-email">E-mail</label>
-        <input type="email" class="form-control" id="signer-email" name="signer-email" value="{{ signer_email|default:'' }}"/>
-    </div>
-    <h4>Signature</h4>
-    <div class="form-group">
-        <label for="name" style="margin-right: 10px; margin-bottom: 15px;">Electronic Signature (Full Name)</label>
-        <input type="text" class="form-control" name="signer-signature" id="signer-signature" placeholder="Type your full name" required value="{{ signer_signature|default:'' }}" />
-    </div>
-    <div class="form-group">
-        <label for="date" style="margin-right: 10px; margin-bottom: 15px;">Date</label>
-        <input type="text" class="form-control" name="date" id="date" placeholder="Date" required value="{{ date|default:'' }}" />
+    <div id="signer-details" style="display: none;">
+      <h4>Contact Details</h4>
+      <div class="form-group">
+        <label for="signer-name">Name/Title</label>
+        <input type="text" class="form-control" id="signer-name" name="signer-name" value="{{ signer_name|default:'' }}" required />
+      </div>
+      <div class="form-group">
+          <label for="signer-phone">Phone</label>
+          <input type="text" class="form-control" id="signer-phone" name="signer-phone" value="{{ signer_phone|default:'' }}" required />
+      </div>
+      <div class="form-group">
+          <label for="signer-email">E-mail</label>
+          <input type="email" class="form-control" id="signer-email" name="signer-email" value="{{ signer_email|default:'' }}" required />
+      </div>
+      <h4>Signature</h4>
+      <div class="form-group">
+          <label for="name" style="margin-right: 10px; margin-bottom: 15px;">Electronic Signature (Full Name)</label>
+          <input type="text" class="form-control" name="signer-signature" id="signer-signature" placeholder="Type your full name" required value="{{ signer_signature|default:'' }}" />
+      </div>
+      <div class="form-group">
+          <label for="date" style="margin-right: 10px; margin-bottom: 15px;">Date</label>
+          <input type="text" class="form-control" name="date" id="date" placeholder="Date" required value="{{ date|default:'' }}" />
+      </div>
     </div>
     </div>
   </div>
@@ -220,6 +226,18 @@
           console.log(`Enabling: ${activeQuestionsId}`);
           $(activeQuestionsId).show();
           $(activeQuestionsId +" :input").prop('required',true);
+
+          // If member, hide signature details
+          if(activeRegistrant === "member") {
+
+            $("#signer-details").hide();
+            $("#signer-details :input").prop('required',false);
+            $("#signer-details :input").val('');
+          } else {
+
+            $("#signer-details").show();
+            $("#signer-details :input").prop('required',true);
+          }
       });
   });
 
