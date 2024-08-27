@@ -1,3 +1,10 @@
+# [1.1.0-rc.5](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.0-rc.4...v1.1.0-rc.5) (2024-08-27)
+
+
+### Bug Fixes
+
+* **projects:** Refactored how institutional officials/members are stored; reworked agreement form workflow for institutional members ([88fa76e](https://github.com/hms-dbmi/hypatio-app/commit/88fa76ef27e5a8254e18d3e52c63c78d0b2f09d5))
+
 # [1.1.0-rc.4](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.0-rc.3...v1.1.0-rc.4) (2024-08-26)
 
 
