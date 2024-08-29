@@ -1,3 +1,10 @@
+# [1.1.0-rc.7](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.0-rc.6...v1.1.0-rc.7) (2024-08-29)
+
+
+### Bug Fixes
+
+* **hypatio:** Refactored how active project is determined for navigation to prevent error when scanners attempt to load non-existent paths ([f956917](https://github.com/hms-dbmi/hypatio-app/commit/f9569176c7ba7a0232f38b7d5f9d1f4173ad626a))
+
 # [1.1.0-rc.6](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.0-rc.5...v1.1.0-rc.6) (2024-08-29)
 
 
