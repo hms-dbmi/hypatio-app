@@ -1,5 +1,6 @@
 import uuid
 import re
+import importlib
 from datetime import datetime
 
 import boto3
@@ -11,6 +12,8 @@ from django.core.exceptions import ValidationError
 from django.db.models import JSONField
 from django.core.files.uploadedfile import UploadedFile
 from django.utils.translation import gettext_lazy as _
+
+import projects
 
 import logging
 logger = logging.getLogger(__name__)
@@ -261,6 +264,7 @@ class AgreementForm(models.Model):
     )
     template = models.CharField(max_length=300, blank=True, null=True)
     institutional_signers = models.BooleanField(default=False, help_text="Allows institutional signers to sign for their members. This will auto-approve this agreement form for members whose institutional official has had their agreement form approved.")
+    form_class = models.CharField(max_length=300, null=True, blank=True)
 
     # Meta
     created = models.DateTimeField(auto_now_add=True)
@@ -278,6 +282,27 @@ class AgreementForm(models.Model):
             raise ValidationError("If the form type is model, the content field should be populated with the agreement form's HTML.")
         if self.type == AGREEMENT_FORM_TYPE_FILE and not self.content and not self.form_file_path:
             raise ValidationError("If the form type is file, the content field should be populated with the agreement form's HTML.")
+
+    def form(self, request, project, *args, **kwargs) -> "projects.forms.AgreementFormForm":
+
+        try:
+            if not self.form_class:
+                return None
+
+            # Create class from string
+            components = self.form_class.rsplit(".", 1)
+            module = importlib.import_module(components[0])
+            form_class = getattr(module, components[1])
+
+            # Instantiate object
+            form = form_class(request, project, self, *args, **kwargs)
+
+            return form
+
+        except Exception as e:
+            logger.exception(f"Agreement form form error: {e}", exc_info=True)
+
+        return None
 
     def agreement_form_4ce_dua_status_change(self, signed_agreement_form):
         """

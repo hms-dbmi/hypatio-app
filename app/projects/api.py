@@ -3,8 +3,6 @@ from datetime import datetime
 import json
 import logging
 
-from hypatio.auth0authenticate import user_auth_and_jwt
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -20,6 +18,7 @@ from django.template import loader
 from django.core.files.base import ContentFile
 from dal import autocomplete
 
+from hypatio.auth0authenticate import user_auth_and_jwt
 from contact.views import email_send
 from hypatio import file_services as fileservice
 from hypatio.file_services import get_download_url
@@ -644,43 +643,75 @@ def save_signed_agreement_form(request):
         logger.debug('%s already has signed the agreement form "%s" for project "%s".', request.user.email, agreement_form.name, project.project_key)
         return HttpResponse(status=400)
 
+    # Check if this agreement form has a specified form class
+    fields = {}
+    if agreement_form.form_class:
+        try:
+            form = agreement_form.form(
+                request=request,
+                project=project,
+                data=request.POST,
+            )
+
+            # Check validity
+            if not form.is_valid():
+                logger.debug(form.errors.as_json())
+
+                # Setup the script run.
+                response = HttpResponse(content=form.errors.as_json(), status=400)
+                response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
+                    "warning", f"The agreement form contained errors, please review", "warning-sign"
+                )
+                return response
+            
+            # Use the data from the form
+            fields = form.cleaned_data
+
+        except Exception as e:
+            logger.exception(f"Agreement form error: {e}", exc_info=True)
+            return HttpResponse(status=500)
+
+    else:
+        try:
+            # Set fields that we do not need to persist here
+            exclusions = [
+                "csrfmiddlewaretoken", "project_key", "agreement_form_id",
+                "agreement_text"
+            ]
+
+            # Save form fields
+            for key, value in dict(request.POST.lists()).items():
+
+                # Check exclusions
+                if key.lower() in exclusions:
+                    continue
+
+                # Retain lists
+                if len(value) > 1:
+
+                    # Only retain valid values
+                    valid_values = [v for v in value if v]
+                    fields[key] = valid_values if valid_values else ""
+                else:
+                    fields[key] = next(iter(value), "")
+
+        except Exception as e:
+            logger.exception(
+                f"HYP/Projects/API: Fields error: {e}",
+                exc_info=True,
+                extra={"form": agreement_form.short_name, "fields": request.POST,}
+            )
+
     signed_agreement_form = SignedAgreementForm(
         user=request.user,
         agreement_form=agreement_form,
         project=project,
         date_signed=datetime.now(),
-        agreement_text=agreement_text
+        agreement_text=agreement_text,
+        fields=fields,
     )
-    signed_agreement_form.save()
 
-    # Persist fields to JSON field on object
     try:
-        # Set fields that we do not need to persist here
-        exclusions = [
-            "csrfmiddlewaretoken", "project_key", "agreement_form_id",
-            "agreement_text"
-        ]
-
-        # Save form fields
-        fields = {}
-        for key, value in dict(request.POST.lists()).items():
-
-            # Check exclusions
-            if key.lower() in exclusions:
-                continue
-
-            # Retain lists
-            if len(value) > 1:
-
-                # Only retain valid values
-                valid_values = [v for v in value if v]
-                fields[key] = valid_values if valid_values else ""
-            else:
-                fields[key] = next(iter(value), "")
-
-        # Save fields
-        signed_agreement_form.fields = fields
-
         # Check for a template
         if agreement_form.template:
 
@@ -721,15 +752,15 @@ def save_signed_agreement_form(request):
                     "signed_agreement_form": signed_agreement_form,
                 })
 
-        # Save
-        signed_agreement_form.save()
-
     except Exception as e:
         logger.exception(
             f"HYP/Projects/API: Fields error: {e}",
             exc_info=True,
             extra={"form": agreement_form.short_name, "fields": request.POST,}
         )
+
+    # Save the agreement form
+    signed_agreement_form.save()
 
     return HttpResponse(status=200)
 
