@@ -1,3 +1,10 @@
+# [1.1.0-rc.6](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.0-rc.5...v1.1.0-rc.6) (2024-08-29)
+
+
+### Features
+
+* **projects:** Setup ability to use a Form class to manage rendering/processing of AgreementForms' data ([c60b9e0](https://github.com/hms-dbmi/hypatio-app/commit/c60b9e0208a451f9c0f07c86cec66143c7fe44d4))
+
 # [1.1.0-rc.5](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.0-rc.4...v1.1.0-rc.5) (2024-08-27)
 
 
