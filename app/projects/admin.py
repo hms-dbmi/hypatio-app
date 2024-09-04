@@ -16,6 +16,7 @@ from projects.models import ChallengeTask
 from projects.models import ChallengeTaskSubmission
 from projects.models import ChallengeTaskSubmissionDownload
 from projects.models import Bucket
+from projects.models import InstitutionalOfficial
 
 
 class GroupAdmin(admin.ModelAdmin):
@@ -58,6 +59,10 @@ class InstitutionAdmin(admin.ModelAdmin):
     list_display = ('name', 'logo_path', 'created', 'modified', )
     readonly_fields = ('created', 'modified', )
 
+class InstitutionalOfficialAdmin(admin.ModelAdmin):
+    list_display = ('user', 'institution', 'project', 'created', 'modified', )
+    readonly_fields = ('created', 'modified', )
+
 class HostedFileAdmin(admin.ModelAdmin):
     list_display = ('long_name', 'project', 'hostedfileset', 'file_name', 'file_location', 'order', 'created', 'modified',)
     list_filter = ('project', )
@@ -95,6 +100,7 @@ admin.site.register(SignedAgreementForm, SignedagreementformAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(Institution, InstitutionAdmin)
+admin.site.register(InstitutionalOfficial, InstitutionalOfficialAdmin)
 admin.site.register(HostedFile, HostedFileAdmin)
 admin.site.register(HostedFileSet, HostedFileSetAdmin)
 admin.site.register(HostedFileDownload, HostedFileDownloadAdmin)

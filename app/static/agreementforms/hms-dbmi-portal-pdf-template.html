@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Consent Approval Process</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+
+        * {
+            font-size: 10px;
+        }
+
+        h1 {
+            font-size: 22px;
+        }
+
+        h2 {
+            font-size: 18px;
+        }
+
+        h3 {
+            font-size: 16px;
+        }
+
+        h4 {
+            font-size: 15px;
+        }
+
+        h5 {
+            font-size: 14px;
+        }
+
+        #ppm-image {
+            margin-right: 20px;
+        }
+
+        input[type="checkbox"] {
+            margin-top: 2px;
+            margin-right: 5px;
+        }
+
+        input[type="text"], input[type="email"] {
+            font-size: 10px;
+            margin-bottom: 5px;
+        }
+
+        div.checkbox {
+            margin-top: 0px;
+        }
+
+        .radio {
+            margin-left: 15px;
+        }
+
+        input[type="radio"] {
+            margin-left: -15px;
+            margin-right: 5px;
+            margin-bottom: -10px;
+        }
+
+        .form-control {
+            height: 28px;
+            padding: 4px 10px;
+        }
+
+        /* Page Breaks */
+        .pb_before { page-break-before:always !important; }
+        .pb_after  { page-break-after:always !important; }
+        .pbi_avoid { page-break-inside:avoid !important; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+        <span><img id="dbmi-image" src="https://portal.dbmi.hms.harvard.edu/static/images/Blavatnikbioinformatics-nomargin.png" style="width: 75%"/></span>
+    </div>
+    <div class="row pb_after">
+        {% autoescape off %}{{ content }}{% endautoescape %}
+    </div>
+</div>
+</body>
+</html>

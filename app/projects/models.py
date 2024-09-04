@@ -1,5 +1,6 @@
 import uuid
 import re
+import importlib
 from datetime import datetime
 
 import boto3
@@ -11,6 +12,8 @@ from django.core.exceptions import ValidationError
 from django.db.models import JSONField
 from django.core.files.uploadedfile import UploadedFile
 from django.utils.translation import gettext_lazy as _
+
+import projects
 
 import logging
 logger = logging.getLogger(__name__)
@@ -259,6 +262,9 @@ class AgreementForm(models.Model):
                   " email or some other means. They will be required to include the name and contact information of"
                   " the person who they submitted their signed agreement form to."
     )
+    template = models.CharField(max_length=300, blank=True, null=True)
+    institutional_signers = models.BooleanField(default=False, help_text="Allows institutional signers to sign for their members. This will auto-approve this agreement form for members whose institutional official has had their agreement form approved.")
+    form_class = models.CharField(max_length=300, null=True, blank=True)
 
     # Meta
     created = models.DateTimeField(auto_now_add=True)
@@ -277,6 +283,37 @@ class AgreementForm(models.Model):
         if self.type == AGREEMENT_FORM_TYPE_FILE and not self.content and not self.form_file_path:
             raise ValidationError("If the form type is file, the content field should be populated with the agreement form's HTML.")
 
+    def form(self, request, project, *args, **kwargs) -> "projects.forms.AgreementFormForm":
+
+        try:
+            if not self.form_class:
+                return None
+
+            # Create class from string
+            components = self.form_class.rsplit(".", 1)
+            module = importlib.import_module(components[0])
+            form_class = getattr(module, components[1])
+
+            # Instantiate object
+            form = form_class(request, project, self, *args, **kwargs)
+
+            return form
+
+        except Exception as e:
+            logger.exception(f"Agreement form form error: {e}", exc_info=True)
+
+        return None
+
+    def agreement_form_4ce_dua_status_change(self, signed_agreement_form):
+        """
+        This method handles status changes on signed versions of this agreement
+        form.
+
+        :param signed_agreement_form: The signed agreement form
+        :type signed_agreement_form: SignedAgreementForm
+        """
+        logger.debug(f"[4CE-DUA]: Handling status update for SignedAgreementForm/{signed_agreement_form.id}")
+        pass
 
 class DataProject(models.Model):
     """
@@ -352,6 +389,10 @@ class DataProject(models.Model):
         help_text="Set this to a specific bucket where this project's files should be stored."
     )
 
+    # Automate approval of members covered by an already-approved institutional signer
+    institutional_signers = models.BooleanField(default=False, help_text="Allows institutional signers to sign for their members. This will auto-approve agreement forms for members whose institutional official has had their agreement forms approved.")
+
+
     # Meta
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -379,6 +420,22 @@ class DataProject(models.Model):
             raise ValidationError('A Project cannot share teams if it is using shared teams from another project')
 
 
+
+class InstitutionalOfficial(models.Model):
+    """
+    This represents a signer that represents an institution.
+    """
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    project = models.ForeignKey(DataProject, on_delete=models.PROTECT)
+    institution = models.TextField(null=False, blank=False)
+    signed_agreement_form = models.ForeignKey("SignedAgreementForm", on_delete=models.PROTECT)
+    member_emails = models.JSONField(null=False, blank=False, editable=True)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+
 def validate_pdf_file(value):
     """
     Ensures only a file with a content type of PDF can be persisted
@@ -388,8 +445,12 @@ def validate_pdf_file(value):
 
 
 def signed_agreement_form_path(instance, filename):
-    # file will be uploaded to AWS_LOCATION/<user email>_<timestamp>_<filename>
-    return f'{instance.user.email}_{datetime.now().isoformat()}_{filename}'
+    # file will be uploaded to PROJECTS_UPLOADS_PREFIX/<user email>_<timestamp>_<filename>
+    return f'{settings.PROJECTS_UPLOADS_PREFIX}/{instance.user.email}_{datetime.now().isoformat()}_{filename}'
+
+def signed_agreement_form_document_path(instance, filename):
+    # file will be uploaded to PROJECTS_DOCUMENTS_PREFIX/<filename>
+    return f'{settings.PROJECTS_DOCUMENTS_PREFIX}/{filename}'
 
 
 class SignedAgreementForm(models.Model):
@@ -405,6 +466,7 @@ class SignedAgreementForm(models.Model):
     status = models.CharField(max_length=1, null=False, blank=False, default='P', choices=SIGNED_FORM_STATUSES)
     upload = models.FileField(null=True, blank=True, validators=[validate_pdf_file], upload_to=signed_agreement_form_path)
     fields = JSONField(null=True, blank=True)
+    document = models.FileField(null=True, blank=True, upload_to=signed_agreement_form_document_path)
 
     # Meta
     created = models.DateTimeField(auto_now_add=True)
@@ -412,6 +474,7 @@ class SignedAgreementForm(models.Model):
     class Meta:
         verbose_name = 'Signed Agreement Form'
         verbose_name_plural = 'Signed Agreement Forms'
+
 
 class Team(models.Model):
     """

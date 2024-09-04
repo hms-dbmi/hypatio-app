@@ -1,11 +1,14 @@
 from django.db.models.signals import post_save
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.db import transaction
 
 from projects.models import DataProject
 from projects.models import Team
 from projects.models import Participant
+from projects.models import SignedAgreementForm
 from projects.models import TEAM_ACTIVE, TEAM_DEACTIVATED, TEAM_READY
+from projects.models import InstitutionalOfficial
 
 import logging
 logger = logging.getLogger(__name__)
@@ -116,3 +119,30 @@ def sync_teams(project):
             # Set as deactivated
             shared_team.status = TEAM_DEACTIVATED
             shared_team.save()
+
+@receiver(pre_save, sender=SignedAgreementForm)
+def signed_agreement_form_pre_save_handler(sender, **kwargs):
+    """
+    This handler manages any routines that should be executed during the
+    status changes of a signed agreement form.
+
+    :param sender: The sender of the signal
+    :type sender: object
+    """
+    instance = kwargs.get("instance")
+    logger.debug(f"Pre-save: {instance}")
+
+    # Check for specific types of forms that require additional handling
+    if instance.status == "A" and instance.agreement_form.short_name == "4ce-dua" \
+        and instance.fields.get("registrant-is") == "official":
+        logger.debug(f"Pre-save institutional official: {instance}")
+
+        # Create official and member objects
+        official = InstitutionalOfficial.objects.create(
+            user=instance.user,
+            institution=instance.fields["institute-name"],
+            project=instance.project,
+            signed_agreement_form=instance,
+            member_emails=instance.fields["member-emails"],
+        )
+        official.save()

@@ -15,12 +15,14 @@
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="heading-description">
                 <h2 class="panel-title">Signed Form Content
+                {% if is_manager %}
                   <button type="button" class="btn btn-default btn-xs btn-primary pull-right"
                           ic-get-from="{% url 'manage:upload-signed-agreement-form-file' signed_form.id %}"
                           data-toggle="modal" data-target="#page-modal" data-backdrop="static" data-keyboard="false"
                           ic-target="#page-modal-content">
                     Upload File&nbsp;&nbsp;<span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span>
                   </button>
+                  {% endif %}
                 </h2>
             </div>
             <div class="panel-body" style="height: 850px;">
@@ -40,6 +42,10 @@
                     </div>
                     {% endif %}
 
+                {% elif signed_form.document %}
+                  <div style="display: flex; width: 100%; height: 100%; flex-direction: column; overflow: hidden;">
+                  <iframe src="{{ signed_form.document.url }}" style="flex-grow: 1; border: none; margin: 0; padding: 0;"></iframe>
+                  </div>
                 {% else %}
                 {{ signed_form.agreement_text|linebreaks }}
                 {% endif %}

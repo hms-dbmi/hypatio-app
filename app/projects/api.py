@@ -3,20 +3,22 @@ from datetime import datetime
 import json
 import logging
 
-from hypatio.auth0authenticate import user_auth_and_jwt
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core import exceptions
 from django.core.exceptions import ObjectDoesNotExist
+from django.template.exceptions import TemplateDoesNotExist
 from django.http import JsonResponse
 from django.http import HttpResponse
 from django.http import QueryDict
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
+from django.template import loader
+from django.core.files.base import ContentFile
 from dal import autocomplete
 
+from hypatio.auth0authenticate import user_auth_and_jwt
 from contact.views import email_send
 from hypatio import file_services as fileservice
 from hypatio.file_services import get_download_url
@@ -25,6 +27,9 @@ from hypatio.dbmiauthz_services import DBMIAuthz
 from projects.templatetags import projects_extras
 from projects.utils import notify_supervisors_of_task_submission
 from projects.utils import notify_task_submitters
+from pdf.renderers import render_pdf
+from projects.panels import DataProjectSignupPanel
+from projects.panels import SIGNUP_STEP_CURRENT_STATUS
 
 from projects.models import AgreementForm
 from projects.models import ChallengeTask
@@ -37,7 +42,7 @@ from projects.models import SignedAgreementForm
 from projects.models import Team
 from projects.models import SIGNED_FORM_REJECTED
 from projects.models import HostedFileSet
-from projects import models
+from projects.models import InstitutionalOfficial
 
 logger = logging.getLogger(__name__)
 
@@ -618,7 +623,6 @@ def save_signed_agreement_form(request):
     An HTTP POST endpoint that takes the contents of an agreement form that a
     user has submitted and saves it to the database.
     """
-
     agreement_form_id = request.POST['agreement_form_id']
     project_key = request.POST['project_key']
     agreement_text = request.POST['agreement_text']
@@ -639,29 +643,114 @@ def save_signed_agreement_form(request):
         logger.debug('%s already has signed the agreement form "%s" for project "%s".', request.user.email, agreement_form.name, project.project_key)
         return HttpResponse(status=400)
 
+    # Check if this agreement form has a specified form class
+    fields = {}
+    if agreement_form.form_class:
+        try:
+            form = agreement_form.form(
+                request=request,
+                project=project,
+                data=request.POST,
+            )
+
+            # Check validity
+            if not form.is_valid():
+                logger.debug(form.errors.as_json())
+
+                # Setup the script run.
+                response = HttpResponse(content=form.errors.as_json(), status=400)
+                response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
+                    "warning", f"The agreement form contained errors, please review", "warning-sign"
+                )
+                return response
+            
+            # Use the data from the form
+            fields = form.cleaned_data
+
+        except Exception as e:
+            logger.exception(f"Agreement form error: {e}", exc_info=True)
+            return HttpResponse(status=500)
+
+    else:
+        try:
+            # Set fields that we do not need to persist here
+            exclusions = [
+                "csrfmiddlewaretoken", "project_key", "agreement_form_id",
+                "agreement_text"
+            ]
+
+            # Save form fields
+            for key, value in dict(request.POST.lists()).items():
+
+                # Check exclusions
+                if key.lower() in exclusions:
+                    continue
+
+                # Retain lists
+                if len(value) > 1:
+
+                    # Only retain valid values
+                    valid_values = [v for v in value if v]
+                    fields[key] = valid_values if valid_values else ""
+                else:
+                    fields[key] = next(iter(value), "")
+
+        except Exception as e:
+            logger.exception(
+                f"HYP/Projects/API: Fields error: {e}",
+                exc_info=True,
+                extra={"form": agreement_form.short_name, "fields": request.POST,}
+            )
+
     signed_agreement_form = SignedAgreementForm(
         user=request.user,
         agreement_form=agreement_form,
         project=project,
         date_signed=datetime.now(),
-        agreement_text=agreement_text
+        agreement_text=agreement_text,
+        fields=fields,
     )
-    signed_agreement_form.save()
 
-    # Persist fields to JSON field on object
     try:
-        # Set fields that we do not need to persist here
-        exclusions = [
-            "csrfmiddlewaretoken", "project_key", "agreement_form_id",
-            "agreement_text"
-        ]
+        # Check for a template
+        if agreement_form.template:
 
-        # Save form fields
-        fields = {k:v for k, v in request.POST.items() if k.lower() not in exclusions}
-        signed_agreement_form.fields = fields
+            # Convert hypens to underscore in context
+            safe_fields = {k.replace("-", "_"):v for k,v in fields.items()}
 
-        # Save
-        signed_agreement_form.save()
+            # Render content of the agreement form
+            signed_agreement_form_content = loader.render_to_string(
+                template_name=agreement_form.form_file_path,
+                context=safe_fields,
+            )
+
+            try:
+                # Attempt to load PDF template
+                loader.get_template(agreement_form.template)
+
+                # Set the filename
+                filename = f"{agreement_form.short_name}-{request.user.email}-{datetime.now().isoformat()}.pdf"
+
+                # Set context
+                context = {
+                    "content": signed_agreement_form_content
+                }
+
+                # Submit consent PDF
+                logger.debug(f"Rendering agreement form with template: {agreement_form.template}")
+                response = render_pdf(filename, request, agreement_form.template, context=context, options={})
+                signed_agreement_form.document = ContentFile(response.content, name=filename)
+
+            except TemplateDoesNotExist:
+                logger.exception(f"Agreement form template not found: {agreement_form.template}", extra={
+                    "agreement_form": agreement_form,
+                    "signed_agreement_form": signed_agreement_form,
+                })
+            except Exception as e:
+                logger.exception(f"Document could not be created: {e}", extra={
+                    "agreement_form": agreement_form,
+                    "signed_agreement_form": signed_agreement_form,
+                })
 
     except Exception as e:
         logger.exception(
@@ -670,46 +759,8 @@ def save_signed_agreement_form(request):
             extra={"form": agreement_form.short_name, "fields": request.POST,}
         )
 
-    # TODO: The following behavior should be removed as soon as it is possible
-
-    # Create a row for storing fields
-    model_name = f"{agreement_form.short_name.upper()}SignedAgreementFormFields"
-    if not hasattr(models, model_name):
-        logger.error(
-            f"HYP/Projects/API: Cannot persist fields for signed agreement "
-            f"form: {agreement_form.short_name.upper()}"
-            )
-
-    else:
-        try:
-            # Create the object
-            model_class = getattr(models, model_name)
-            signed_agreement_form_fields = model_class(
-                signed_agreement_form=signed_agreement_form
-            )
-
-            # Save form fields
-            for key, data in request.POST.items():
-
-                # Replace dashes with underscore
-                _field = key.replace("-", "_")
-
-                # Check if field on model
-                if hasattr(signed_agreement_form_fields, _field):
-
-                    # Set it
-                    setattr(signed_agreement_form_fields, _field, data)
-
-                else:
-                    logger.warning(f"HYP/Projects/API: '{model_name}' unhandled field: '{_field}'")
-
-            # Save
-            signed_agreement_form_fields.save()
-        except Exception as e:
-            logger.exception(
-                f"HYP/Projects/API: Fields error: {e}",
-                exc_info=True,
-                extra={"form": agreement_form.short_name, "model": model_name})
+    # Save the agreement form
+    signed_agreement_form.save()
 
     return HttpResponse(status=200)
 
@@ -761,45 +812,128 @@ def submit_user_permission_request(request):
         project_key = request.POST.get('project_key', None)
         project = DataProject.objects.get(project_key=project_key)
     except ObjectDoesNotExist:
-        return HttpResponse(404)
+        # Create the response.
+        response = HttpResponse(status=404)
+
+        # Setup the script run.
+        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
+            "danger", "The requested project could not be found", "warning-sign"
+        )
+
+        return response
 
     if project.has_teams or not project.requires_authorization:
-        return HttpResponse(400)
+
+        # Create the response.
+        response = HttpResponse(status=400)
+
+        # Setup the script run.
+        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
+            "danger", "The action could not be completed", "warning-sign"
+        )
+
+        return response
 
     # Create a new participant record if one does not exist already.
-    participant = Participant.objects.get_or_create(
+    participant, created = Participant.objects.get_or_create(
         user=request.user,
         project=project
     )
 
+    # Check if this project allows institutional signers
+    if project.institutional_signers:
+
+        # Check if this is a member
+        try:
+            official = InstitutionalOfficial.objects.get(
+                project=project,
+                member_emails__contains=request.user.email,
+            )
+
+            # Check if they have access
+            official_participant = Participant.objects.get(user=official.user)
+            if official_participant.permission == "VIEW":
+
+                # Approve signed agreement forms
+                for signed_agreement_form in SignedAgreementForm.objects.filter(project=project, user=request.user):
+
+                    # If allows institutional signers, auto-approve
+                    if signed_agreement_form.agreement_form.institutional_signers:
+
+                        signed_agreement_form.status = "A"
+                        signed_agreement_form.save()
+
+                # Grant this user access immediately if all agreement forms are accepted
+                for agreement_form in project.agreement_forms.all():
+                    if not SignedAgreementForm.objects.filter(
+                        agreement_form=agreement_form,
+                        project=project,
+                        user=request.user,
+                        status="A"
+                        ):
+                        break
+                else:
+                    participant.permission = "VIEW"
+                    participant.save()
+
+        except ObjectDoesNotExist:
+            pass
+
     # Check if there are administrators to notify.
-    if project.project_supervisors is None or project.project_supervisors == "":
-        return HttpResponse(200)
+    if project.project_supervisors and not participant.permission:
 
-    # Convert the comma separated string of emails into a list.
-    supervisor_emails = project.project_supervisors.split(",")
+        # Convert the comma separated string of emails into a list.
+        supervisor_emails = project.project_supervisors.split(",")
 
-    subject = "DBMI Data Portal - Access requested to dataset"
+        subject = "DBMI Data Portal - Access requested to dataset"
 
-    email_context = {
-        'subject': subject,
-        'project': project,
-        'user_email': request.user.email,
-        'site_url': settings.SITE_URL
+        email_context = {
+            'subject': subject,
+            'project': project,
+            'user_email': request.user.email,
+            'site_url': settings.SITE_URL
+        }
+
+        try:
+            email_success = email_send(
+                subject=subject,
+                recipients=supervisor_emails,
+                email_template='email_access_request_notification',
+                extra=email_context
+            )
+        except Exception as e:
+            logger.exception(e)
+
+    elif participant.permission:
+        logger.debug(f"Request has been auto-approved due to an institutional signer")
+    else:
+        logger.warning(f"Project '{project}' has not supervisors to alert on access requests")
+
+    # Set context
+    context = {
+        "panel": {
+            "additional_context": {
+                "requested_access": True,
+            }
+        }
     }
 
-    try:
-        email_success = email_send(
-            subject=subject,
-            recipients=supervisor_emails,
-            email_template='email_access_request_notification',
-            extra=email_context
-        )
-    except Exception as e:
-        logger.exception(e)
+    # Render the panel and return it
+    content = loader.render_to_string("projects/signup/request-access.html", context=context)
 
-    return HttpResponse(200)
+    # Create the response.
+    response = HttpResponse(content, status=201)
 
+    # Setup the script run.
+    response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
+        "success", "Your request for access has been submitted", "thumbs-up"
+    )
+
+    # Reload page if approved
+    if participant.permission == "VIEW":
+        response['X-IC-Script'] += "setTimeout(function() { location.reload(); }, 2000);"
+
+    return response
 
 
 @user_auth_and_jwt
@@ -842,3 +976,87 @@ def upload_signed_agreement_form(request):
     signed_agreement_form.save()
 
     return HttpResponse(status=200)
+
+@user_auth_and_jwt
+def update_institutional_members(request):
+    """
+    A view for updating the list of members that an institutional official
+    providers signing authority for.
+    """
+    # Get the signed agreement form
+    signed_agreement_form_id = request.POST.get("signed-agreement-form")
+    official = None
+    try:
+        # Fetch the official
+        official = InstitutionalOfficial.objects.get(user=request.user, signed_agreement_form__id=signed_agreement_form_id)
+    except ObjectDoesNotExist:
+        logger.debug(f"No InstitutionalOfficial found for '{request.user.email}'")
+
+        # Create the response.
+        response = HttpResponse(status=404)
+
+        # Setup the script run.
+        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
+            "danger", "An error occurred during the update. Please try again or contact support", "exclamation-sign"
+        )
+
+        return response
+
+    # Get the list
+    member_emails = [m.lower() for m in request.POST.getlist("member-emails", [])]
+
+    # Get deletions and additions
+    deleted_member_emails = list(set(official.member_emails) - set(member_emails))
+    added_member_emails = list(set(member_emails) - set(official.member_emails))
+
+    # Check for duplicates
+    if len(set(member_emails)) < len(member_emails):
+
+        # Create the response.
+        response = HttpResponse(status=400)
+
+        # Setup the script run.
+        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
+            "warning", "Duplicate email addresses are not allowed", "exclamation-sign"
+        )
+
+        return response
+
+    # Save the official with updated emails
+    official.member_emails = member_emails
+    official.save()
+
+    # Iterate removed emails and remove access
+    for email in deleted_member_emails:
+        try:
+            participant = Participant.objects.get(project=official.project, user__email=email, permission="VIEW")
+
+            # Revoke it if found
+            participant.permission = None
+            participant.save()
+
+        except ObjectDoesNotExist:
+            pass
+
+    # Iterate added emails and add access if waiting
+    for email in added_member_emails:
+        try:
+            official_participant = Participant.objects.get(project=official.project, user=official.user)
+            participant = Participant.objects.get(project=official.project, user__email=email)
+
+            # Add access if found
+            participant.permission = official_participant.permission
+            participant.save()
+
+        except ObjectDoesNotExist:
+            pass
+
+    # Create the response.
+    response = HttpResponse(status=201)
+
+    # Setup the script run.
+    response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
+        "success", "Institutional members updated", "thumbs-up"
+    )
+
+    return response

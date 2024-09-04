@@ -1,9 +1,15 @@
-import os
+
 from django.shortcuts import render
 from django.utils.functional import SimpleLazyObject
+from django.urls import resolve, Resolver404
 
 from hypatio.auth0authenticate import public_user_auth_and_jwt
+from projects.apps import ProjectsConfig
 from projects.models import Group, DataProject
+
+import logging
+logger = logging.getLogger(__name__)
+
 
 @public_user_auth_and_jwt
 def index(request, template_name='index.html'):
@@ -32,11 +38,24 @@ def navigation_context(request):
         # Check for an active project and determine its group
         groups = Group.objects.filter(dataproject__isnull=False, dataproject__visible=True).distinct()
         active_group = None
-        project = DataProject.objects.filter(project_key=os.path.basename(os.path.normpath(request.path))).first()
-        if project:
 
-            # Check for group
-            active_group = next((g for g in groups if project in g.dataproject_set.all()), None)
+        # Attempt to resolve the current URL
+        try:
+            match = resolve(request.path)
+            
+            # Check if projects
+            if match and match.app_name == ProjectsConfig.name and "project_key" in match.kwargs:
+                project = DataProject.objects.filter(project_key=match.kwargs["project_key"]).first()
+                if project:
+
+                    # Check for group
+                    active_group = next((g for g in groups if project in g.dataproject_set.all()), None)
+
+        except Resolver404:
+            logger.debug(f"Path could not be resolved: {request.path}")
+
+        except Exception as e:
+            logger.exception(f"Group context error: {e}", exc_info=True)
 
         # Pull out top-level groups
         parent_groups_keys = groups.filter(parent__isnull=False).values_list('parent', flat=True)

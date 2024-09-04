@@ -28,6 +28,7 @@ from projects.models import HostedFile
 from projects.models import Participant
 from projects.models import SignedAgreementForm
 from projects.models import Group
+from projects.models import InstitutionalOfficial
 from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
 from projects.panels import SIGNUP_STEP_CURRENT_STATUS
 from projects.panels import SIGNUP_STEP_FUTURE_STATUS
@@ -36,6 +37,7 @@ from projects.panels import DataProjectInformationalPanel
 from projects.panels import DataProjectSignupPanel
 from projects.panels import DataProjectActionablePanel
 from projects.panels import DataProjectSharedTeamsPanel
+from projects.panels import DataProjectInstitutionalOfficialPanel
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -328,14 +330,17 @@ class DataProjectView(TemplateView):
 
         else:
 
+            # Set institutional context
+            self.get_institutional_context(context)
+
             # Agreement forms step (if needed).
             self.setup_panel_sign_agreement_forms(context)
 
-            # Show JWT step (if needed).
-            self.setup_panel_show_jwt(context)
-
             # Access request step (if needed).
             self.setup_panel_request_access(context)
+
+            # Show JWT step (if needed).
+            self.setup_panel_show_jwt(context)
 
             # Team setup step (if needed).
             self.setup_panel_team(context)
@@ -343,8 +348,22 @@ class DataProjectView(TemplateView):
             # TODO commented out until this is ready.
             # Static page that lets user know to wait.
             # self.step_pending_review(context)
-
         return context
+
+    def get_institutional_context(self, context):
+        """
+        Prepares context for institional signer status, if applicable
+        """
+        # Check if this project/agreement form accepts institutional signers
+        if self.project.institutional_signers:
+            try:
+                # Check for one
+                context["institutional_official"] = InstitutionalOfficial.objects.get(
+                    project=self.project,
+                    member_emails__contains=self.request.user.email,
+                )
+            except ObjectDoesNotExist:
+                pass
 
     def get_participate_context(self, context):
         """
@@ -366,6 +385,9 @@ class DataProjectView(TemplateView):
 
         # Add a panel for a solution submission form (if needed).
         self.panel_submit_task_solutions(context)
+
+        # Add panel for institutional officials
+        self.panel_institutional_official(context)
 
         return context
 
@@ -516,17 +538,17 @@ class DataProjectView(TemplateView):
         agreement_forms = self.project.agreement_forms.order_by('order', '-name')
 
         # Each form will be a separate step.
-        for form in agreement_forms:
-            logger.debug(f"{self.project.project_key}/{form.short_name}: Checking panel signed agreement form")
+        for agreement_form in agreement_forms:
+            logger.debug(f"{self.project.project_key}/{agreement_form.short_name}: Checking panel signed agreement form")
 
             # Only include Pending or Approved forms when searching.
             signed_forms = SignedAgreementForm.objects.filter(
                 user=self.request.user,
                 project=self.project,
-                agreement_form=form,
+                agreement_form=agreement_form,
                 status__in=["P", "A"]
             )
-            logger.debug(f"{self.project.project_key}/{form.short_name}: Found {len(signed_forms)} signed P/A forms")
+            logger.debug(f"{self.project.project_key}/{agreement_form.short_name}: Found {len(signed_forms)} signed P/A forms")
 
             # If this project accepts agreement forms from other projects, check those too
             if not signed_forms and self.project.shares_agreement_forms:
@@ -534,38 +556,52 @@ class DataProjectView(TemplateView):
                 # Fetch without a specific project
                 signed_forms = SignedAgreementForm.objects.filter(
                     user=self.request.user,
-                    agreement_form=form,
+                    agreement_form=agreement_form,
                     status__in=["P", "A"]
                 )
-                logger.debug(f"{self.project.project_key}/{form.short_name}: Found {len(signed_forms)} shared signed P/A forms")
+                logger.debug(f"{self.project.project_key}/{agreement_form.short_name}: Found {len(signed_forms)} shared signed P/A forms")
 
             # If the form has already been signed, then the step should be complete.
             step_complete = signed_forms.count() > 0
-            logger.debug(f"{self.project.project_key}/{form.short_name}: Step is completed: {step_complete}")
+            logger.debug(f"{self.project.project_key}/{agreement_form.short_name}: Step is completed: {step_complete}")
 
             # If the form lives externally, then the step will be marked as permanent because we cannot tell if it was completed.
-            permanent_step = form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK
+            permanent_step = agreement_form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK
 
-            step_status = self.get_step_status(form.short_name, step_complete, permanent_step)
-            logger.debug(f"{self.project.project_key}/{form.short_name}: Step status: {step_status}")
+            step_status = self.get_step_status(agreement_form.short_name, step_complete, permanent_step)
+            logger.debug(f"{self.project.project_key}/{agreement_form.short_name}: Step status: {step_status}")
 
-            title = 'Form: {name}'.format(name=form.name)
+            title = 'Form: {name}'.format(name=agreement_form.name)
 
-            if not form.type or form.type == AGREEMENT_FORM_TYPE_STATIC or form.type == AGREEMENT_FORM_TYPE_MODEL:
+            if not agreement_form.type or agreement_form.type == AGREEMENT_FORM_TYPE_STATIC or agreement_form.type == AGREEMENT_FORM_TYPE_MODEL:
                 template = 'projects/signup/sign-agreement-form.html'
-            elif form.type == AGREEMENT_FORM_TYPE_FILE:
+            elif agreement_form.type == AGREEMENT_FORM_TYPE_FILE:
                 template = 'projects/signup/upload-agreement-form.html'
-            elif form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
+            elif agreement_form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
                 template = 'projects/signup/sign-external-agreement-form.html'
             else:
                 raise Exception("Agreement form type Not implemented")
+            
+            # Check if this agreement form has a specified form class
+            form = None
+            if agreement_form.form_class:
+                try:
+                    # Initialize an instance of the form
+                    form = agreement_form.form(self.request, self.project)
+
+                except Exception as e:
+                    logger.exception(f"Agreement form error: {e}", exc_info=True)
 
             panel = DataProjectSignupPanel(
                 title=title,
                 bootstrap_color='default',
                 template=template,
                 status=step_status,
-                additional_context={'agreement_form': form}
+                additional_context={
+                    "agreement_form": agreement_form,
+                    "form": form,
+                    "institutional_official": context.get("institutional_official"),
+                }
             )
 
             context['setup_panels'].append(panel)
@@ -779,6 +815,29 @@ class DataProjectView(TemplateView):
             )
 
             context['actionable_panels'].append(panel)
+
+    def panel_institutional_official(self, context):
+        """
+        Builds the context needed for the institutional official to manage
+        the members that they provide signing authority for.
+        """
+        try:
+            # Check for an institutional official linked to this user
+            official = InstitutionalOfficial.objects.get(user=self.request.user)
+
+            # Add a panel
+            panel = DataProjectInstitutionalOfficialPanel(
+                title='Institutional Official',
+                bootstrap_color='default',
+                template='projects/participate/institutional-official.html',
+                additional_context={
+                    "official": official,
+                }
+            )
+
+            context['actionable_panels'].append(panel)
+        except ObjectDoesNotExist:
+            pass
 
     def panel_submit_task_solutions(self, context):
         """

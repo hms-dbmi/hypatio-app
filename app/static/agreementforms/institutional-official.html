@@ -1,0 +1,149 @@
+<div class="form-content">
+    <h4>I am a (select one):</h4>
+
+    <div class="radio" id="registrant-is">
+        <label>
+            <input type="radio" name="registrant-is" value="individual" required>
+            an individual, requesting Data under this Agreement on behalf of themself<br>
+        </label>
+        <label>
+            <input type="radio" name="registrant-is" value="member" required>
+            an institutional member, requesting Data under an Agreement signed by a representing institutional official
+        </label>
+        <label>
+            <input type="radio" name="registrant-is" value="official" required>
+            an institutional official, requesting Data under this Agreement on behalf of their institution and its agents and employees
+        </label>
+    </div>
+
+    <div id="individual-questions" style="display: none">
+
+    </div>
+
+    <div id="member-questions" style="display: none">
+        <h4>Institutional Member</h4>
+
+        <div class="form-group">
+            <label for="person-name">Name</label>
+            <input type="text" class="form-control" id="person-name" name="person-name">
+        </div>
+        <div class="form-group">
+            <label for="person-phone">Phone</label>
+            <input type="text" class="form-control" id="person-phone" name="person-phone">
+        </div>
+        <div class="form-group">
+            <label for="person-email">E-mail</label>
+            <input type="email" class="form-control" id="person-email" name="person-email">
+        </div>
+        <div class="form-group">
+            <label for="official-name">Email of representing institutional official</label>
+            <input type="text" class="form-control" id="official-name" name="official-name">
+        </div>
+    </div>
+
+    <div id="official-questions" style="display: none">
+        <h4>Institutional Official</h4>
+
+        <h4>Institution Details</h4>
+        <div class="form-group">
+            <label for="institute-name">Name</label>
+            <input type="text" class="form-control" id="institute-name" name="institute-name">
+        </div>
+        <div class="form-group">
+            <label for="institute-address">Street Address</label>
+            <input type="text" class="form-control" id="institute-address" name="institute-address">
+        </div>
+        <div class="form-group">
+            <label for="institute-city">City</label>
+            <input type="text" class="form-control" id="institute-city" name="institute-city">
+        </div>
+        <div class="form-group">
+            <label for="institute-state">State</label>
+            <input type="text" class="form-control" id="institute-state" name="institute-state">
+        </div>
+        <div class="form-group">
+            <label for="institute-zip">Zip Code</label>
+            <input type="text" class="form-control" id="institute-zip" name="institute-zip">
+        </div>
+
+        <h4>Official Details</h4>
+        <div class="form-group">
+            <label for="official-name">Name/Title</label>
+            <input type="text" class="form-control" id="official-name" name="official-name">
+        </div>
+        <div class="form-group">
+            <label for="official-phone">Phone</label>
+            <input type="text" class="form-control" id="official-phone" name="official-phone">
+        </div>
+        <div class="form-group">
+            <label for="official-email">E-mail</label>
+            <input type="email" class="form-control" id="official-email" name="official-email">
+        </div>
+
+        <h4>Member Details</h4>
+        <div id="member-details">
+          <div class="form-group">
+            <div class="input-group">
+              <input type="email" class="form-control" id="member-email-1" name="member-email-1" placeholder="Enter member's email address" required />
+              <div class="input-group-btn">
+                <button class="btn btn-success" type="button"  onclick="addMember();"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+
+        // When someone clicks what kind of registrant they are, hide the opposite form section
+        const registrantInputs = document.querySelectorAll('input[name=registrant-is]');
+        const registrantValues = [...registrantInputs].map(input => input.value)
+
+        $('#registrant-is').change(function() {
+
+            // Set the ID of the element containing form inputs
+            var activeRegistrant = $("input[name='registrant-is']:checked").val();
+            var activeQuestionsId = `#${activeRegistrant}-questions`;
+
+            // Reset other questions forms
+            $("input[name='registrant-is']:not(:checked)").each(function( index) {
+
+              // Reset form
+              var inactiveRegistrant = $( this ).val();
+              console.log(`Disabling: ${inactiveRegistrant}`);
+              var inactiveQuestionsId = `#${inactiveRegistrant}-questions`;
+              $(inactiveQuestionsId).hide();
+              $(inactiveQuestionsId + " :input").prop('required',false);
+              $(inactiveQuestionsId + " :input").val('');
+            });
+
+            // Set fields to required and show the form
+            console.log(`Enabling: ${activeQuestionsId}`);
+            $(activeQuestionsId).show();
+            $(activeQuestionsId +" :input").prop('required',true);
+        });
+    });
+
+    // Start an index for added member inputs
+    var memberIndex = 1;
+    function addMember() {
+
+      // Increment index
+      memberIndex++;
+
+      // Get number of current inputs
+      var objTo = document.getElementById('member-details');
+      var divtest = document.createElement("div");
+      divtest.setAttribute("class", `form-group member-${memberIndex}`);
+      var rdiv = `member-${memberIndex}`;
+      divtest.innerHTML = `<div class="input-group"><input type="email" class="form-control" id="member-email-${memberIndex}" name="member-email-${memberIndex}" placeholder="Enter member\'s email address" required /><div class="input-group-btn"> <button class="btn btn-danger" type="button" onclick="removeMember('${memberIndex}');"> <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> </button></div></div>`;
+      objTo.appendChild(divtest);
+    }
+
+    function removeMember(index) {
+      $(`.member-${index}`).remove();
+    }
+
+</script>

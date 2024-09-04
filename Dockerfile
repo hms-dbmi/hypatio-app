@@ -1,4 +1,9 @@
+# Set arch
+ARG BUILD_ARCH=amd64
+
 FROM hmsdbmitc/dbmisvc:debian12-slim-python3.11-0.6.2 AS builder
+
+ARG BUILD_ARCH
 
 # Install requirements
 RUN apt-get update \
@@ -10,7 +15,11 @@ RUN apt-get update \
         default-libmysqlclient-dev \
         libssl-dev \
         pkg-config \
+        libfontconfig \
     && rm -rf /var/lib/apt/lists/*
+
+# Install requirements for PDF generation
+ADD phantomjs-2.1.1-${BUILD_ARCH}.tar.gz /tmp/
 
 # Add requirements
 ADD requirements.* /
@@ -27,6 +36,7 @@ ARG APP_CODENAME="hypatio"
 ARG VERSION
 ARG COMMIT
 ARG DATE
+ARG BUILD_ARCH
 
 LABEL org.label-schema.schema-version=1.0 \
     org.label-schema.vendor="HMS-DBMI" \
@@ -38,12 +48,16 @@ LABEL org.label-schema.schema-version=1.0 \
     org.label-schema.vcs-url="https://github.com/hms-dbmi/hypatio-app" \
     org.label-schema.vcf-ref=${COMMIT}
 
+# Copy PhantomJS binary
+COPY --from=builder /tmp/phantomjs /usr/local/bin/phantomjs
+
 # Copy Python wheels from builder
 COPY --from=builder /root/wheels /root/wheels
 
 # Install requirements
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        libfontconfig \
         default-libmysqlclient-dev \
         libmagic1 \
     && rm -rf /var/lib/apt/lists/*
