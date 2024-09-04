@@ -1,3 +1,24 @@
+# [1.1.0](https://github.com/hms-dbmi/hypatio-app/compare/v1.0.1...v1.1.0) (2024-09-04)
+
+
+### Bug Fixes
+
+* **hypatio:** Refactored how active project is determined for navigation to prevent error when scanners attempt to load non-existent paths ([f956917](https://github.com/hms-dbmi/hypatio-app/commit/f9569176c7ba7a0232f38b7d5f9d1f4173ad626a))
+* **projects:** Added missing JS library ([f722f7b](https://github.com/hms-dbmi/hypatio-app/commit/f722f7bf0d45a13575e9c91753742daf5dfbe2af))
+* **projects:** Allows automatic access for user covered by an institutional signer that has access ([7f4685c](https://github.com/hms-dbmi/hypatio-app/commit/7f4685c877f07d99cd9a230911cf0da745da6f0e))
+* **projects:** Fixed an issue on DataProject view with un-authenticated user ([c10b074](https://github.com/hms-dbmi/hypatio-app/commit/c10b074888b37b30596703549f34a58b6d2f9e82))
+* **projects:** Refactored how institutional officials/members are stored; reworked agreement form workflow for institutional members ([88fa76e](https://github.com/hms-dbmi/hypatio-app/commit/88fa76ef27e5a8254e18d3e52c63c78d0b2f09d5))
+* **requirements:** Updated Python requirements ([3296c04](https://github.com/hms-dbmi/hypatio-app/commit/3296c042fe2253343d300597dc54d00b005d9a5c))
+* **requirements:** Updated Python requirements ([4cc23e4](https://github.com/hms-dbmi/hypatio-app/commit/4cc23e48e6bd85d8e72b4c0ab296f5e492e7b8c8))
+
+
+### Features
+
+* **pdf:** Added an app for rendering PDFs ([dd98208](https://github.com/hms-dbmi/hypatio-app/commit/dd98208d4717265fdf68f2dc6124de20276d994d))
+* **projects:** Added a model for institutional officials/members for blanket DUAs; fixed older fixture that accessed models through ORM causing issues ([6f6667b](https://github.com/hms-dbmi/hypatio-app/commit/6f6667be9724b4185ef6a6c596b4969ce2c5966f))
+* **projects:** Added view and API support for institutional officials; added 4CE DUA ([9538168](https://github.com/hms-dbmi/hypatio-app/commit/95381687e422e576a2a3f98048daa26dbad75fc8))
+* **projects:** Setup ability to use a Form class to manage rendering/processing of AgreementForms' data ([c60b9e0](https://github.com/hms-dbmi/hypatio-app/commit/c60b9e0208a451f9c0f07c86cec66143c7fe44d4))
+
 # [1.1.0-rc.8](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.0-rc.7...v1.1.0-rc.8) (2024-09-04)
 
 
