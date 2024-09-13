@@ -1,3 +1,10 @@
+## [1.1.1-rc.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.0...v1.1.1-rc.1) (2024-09-13)
+
+
+### Bug Fixes
+
+* **projects:** Made checkbox on 4CE DUA mandatory for all registrant types ([66f43db](https://github.com/hms-dbmi/hypatio-app/commit/66f43dbc58c1175f6fad4b9765018025ed58f303))
+
 # [1.1.0](https://github.com/hms-dbmi/hypatio-app/compare/v1.0.1...v1.1.0) (2024-09-04)
 
 
