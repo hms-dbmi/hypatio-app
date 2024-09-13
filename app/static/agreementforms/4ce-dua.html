@@ -117,12 +117,6 @@
 
         {% if institutional_official %}
         <div id="member-questions" style="display: {% if registrant_is == "member" %}block{% else %}none{% endif %}">
-            <h4>Institutional Member</h4>
-
-            <label class="checkbox-inline">
-                <input type="checkbox" id="i_reviewed" name="i_reviewed" value="Yes" required {% if i_reviewed == "Yes" %}checked{% endif %}> I have reviewed and understand the terms and conditions outlined above.
-                &nbsp;<span class="required">*</span>
-            </label>
 
         </div>
         {% endif %}
@@ -170,7 +164,6 @@
                 {% endfor %}
             </div>
     </div>
-
     <div id="signer-details" class="pbi_avoid" style="display: {% if registrant_is == "official" or registrant_is == "individual" %}block{% else %}none{% endif %}">
       <h4>Contact Details</h4>
       <div class="form-group">
@@ -185,6 +178,13 @@
           <label for="signer-email">E-mail&nbsp;<span class="required">*</span></label>
           <input type="email" class="form-control" id="signer-email" name="signer_email" value="{{ signer_email|default:'' }}" required />
       </div>
+    </div>
+    <label class="checkbox-inline">
+      <input type="checkbox" id="i_reviewed" name="i_reviewed" value="Yes" required {% if i_reviewed == "Yes" %}checked{% endif %}>
+      By checking this box, I acknowledge that I have read and am effectively signing this Data User and Access Agreement and agreeing to its terms and conditions.
+      &nbsp;<span class="required">*</span>
+    </label>
+    <div id="signer-signature" class="pbi_avoid" style="display: {% if registrant_is == "official" or registrant_is == "individual" %}block{% else %}none{% endif %}">
       <h4>Signature</h4>
       <div class="form-group">
           <label for="signer_signature" style="margin-right: 10px; margin-bottom: 15px;">Electronic Signature (Full Name)&nbsp;<span class="required">*</span></label>
@@ -234,10 +234,15 @@
             $("#signer-details").hide();
             $("#signer-details :input").prop('required',false);
             $("#signer-details :input").val('');
+            $("#signer-signature").hide();
+            $("#signer-signature :input").prop('required',false);
+            $("#signer-signature :input").val('');
           } else {
 
             $("#signer-details").show();
             $("#signer-details :input").prop('required',true);
+            $("#signer-signature").show();
+            $("#signer-signature :input").prop('required',true);
           }
       });
   });
