@@ -1,3 +1,10 @@
+## [1.1.1-rc.3](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.1-rc.2...v1.1.1-rc.3) (2024-09-16)
+
+
+### Bug Fixes
+
+* **projects:** Minor changes to 4CE agreement forms ([fab6a0b](https://github.com/hms-dbmi/hypatio-app/commit/fab6a0b6b60d118f88ea3f133b4e120a960e0e0c))
+
 ## [1.1.1-rc.2](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.1-rc.1...v1.1.1-rc.2) (2024-09-16)
 
 
