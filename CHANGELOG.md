@@ -1,3 +1,24 @@
+## [1.1.1-rc.3](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.1-rc.2...v1.1.1-rc.3) (2024-09-16)
+
+
+### Bug Fixes
+
+* **projects:** Minor changes to 4CE agreement forms ([fab6a0b](https://github.com/hms-dbmi/hypatio-app/commit/fab6a0b6b60d118f88ea3f133b4e120a960e0e0c))
+
+## [1.1.1-rc.2](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.1-rc.1...v1.1.1-rc.2) (2024-09-16)
+
+
+### Bug Fixes
+
+* **requirements:** Updated Python requirements ([29ded04](https://github.com/hms-dbmi/hypatio-app/commit/29ded04705a93725fa21b682e976ceda1db2d10f))
+
+## [1.1.1-rc.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.0...v1.1.1-rc.1) (2024-09-13)
+
+
+### Bug Fixes
+
+* **projects:** Made checkbox on 4CE DUA mandatory for all registrant types ([66f43db](https://github.com/hms-dbmi/hypatio-app/commit/66f43dbc58c1175f6fad4b9765018025ed58f303))
+
 # [1.1.0](https://github.com/hms-dbmi/hypatio-app/compare/v1.0.1...v1.1.0) (2024-09-04)
 
 

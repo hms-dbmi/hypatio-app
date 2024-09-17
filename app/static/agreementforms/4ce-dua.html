@@ -24,11 +24,12 @@
           <li>User is not bound by any pre-existing legal obligations or other applicable laws that prevent User from downloading or using the Data;</li>
           <li>User will access and use the Data in compliance with all applicable laws, rules, and regulations, as well as all professional and ethical standards applicable to scientific research and User’s research project, including without limitation, all applicable requirements pertaining to human subjects research and animal research;</li>
           <li>User agrees to establish appropriate administrative, technical, and physical safeguards to prevent unauthorized use of or access to the Data and comply with any other requirements relating to safeguarding of the Data that the 4CE Data Repository may require from time to time;</li>
-          <li>User will only use and download that portion of the Data that is necessary for use in User’s research projects; downloading of the entire 4CE Data Repository or portions beyond what is needed for User’s research projects is strictly prohibited.  User will only share the Data will those authorized employees, fellows, students and agents who have a need to access such Data for purposes of working on User’s research projects, and whose obligations of use are consistent with the terms of this Agreement.</li>
+          <li>User will only use and download that portion of the Data that is necessary for use in User’s research projects; downloading portions beyond what is needed for User’s research projects is strictly prohibited.  User will only share the Data will those authorized employees, fellows, students and agents who have a need to access such Data for purposes of working on User’s research projects, and whose obligations of use are consistent with the terms of this Agreement.</li>
           <li>User will retain control over the Data it accesses and downloads, and shall not disclose, release, sell, rent, lease, loan or otherwise grant access to the Data to any third party, except other users expressly authorized by Harvard to access and use the Data.</li>
           <li>User will use the Data only for scientific research purposes and shall not use the Data for any commercial activities;</li>
-          <li>User will regularly check the 4CE Data Repository for any updates to Data pertinent to User’s research projects, and will only use the updated version of such Data, and will promptly destroy all outdated Data in User’s possession; and</li>
+          <li>User will regularly check the 4CE Data Repository for any updates to Data pertinent to User’s Research Projects, and will only use the updated version of such Data, and will promptly destroy all outdated Data in User’s possession; and</li>
           <li>User shall not use the Data except as authorized under this Agreement.</li>
+          <li>User shall only access and use the Data for the duration of the Research Project. Once the Research Project is complete, the User shall cease use of the Data and destroy it.</li>
         </ol>
       </li>
       <li>User further covenants that User will not:</li>
@@ -62,11 +63,11 @@
 
 <h4>VIII. Integration and Severability</h4>
 
-<p>This Agreement represents the entire agreement between User and Harvard with respect to the downloading and use of the Data, and supersedes all prior or contemporaneous communications and proposals (whether oral, written or electronic) between User and Harvard with respect to downloading or using the Data. If any provision of this Agreement is found to be unenforceable or invalid, that provision will be limited or eliminated to the minimum extent necessary so that the Agreement will otherwise remain in full force and effect and enforceable.</p>
+<p>This Agreement represents the entire agreement between User and Harvard with respect to the downloading and use of the Data, and supersedes all prior or contemporaneous communications and proposals (whether oral, written or electronic) between User and Harvard with respect to downloading or using the Data.</p>
 
 <h4>IX. Reporting Requirement</h4>
 
-<p>Should the User (i) inadvertently receives identifiable information or otherwise identifies a subject, or (ii) becomes aware of any use or disclosure of the Data not provided for or permitted by this Agreement, the User shall immediately notify Harvard via email to cassandra_perry@hms.harvard.edu, and follow Harvard’s reasonable written instructions, which may include return or destruction of Data.</p>
+<p>Should the User (i) inadvertently receive identifiable information or otherwise identifies a subject, or (ii) becomes aware of any use or disclosure of the Data not provided for or permitted by this Agreement, the User shall immediately notify Harvard via email to data_ORA@hms.harvard.edu, and follow Harvard’s reasonable written instructions, which may include return or destruction of Data.</p>
 
 <h4>X. Ownership</h4>
 
@@ -80,13 +81,15 @@
 
 <p>User may use the Data for the duration of their project as allowed under Article III of this Agreement. Either party may terminate this agreement for any reason at any time, however, the User's obligations shall remain in effect even after termination. Upon termination, User shall immediately cease use of the Data and destroy Data in its possession and, if required by Harvard, certify to Harvard as to its destruction.</p>
 
-<p>Harvard may limit, suspend or terminate User’s access to Data at any time if Harvard believes User has violated the terms of this Agreement or that continued use of or access to the Data by User otherwise presents acted negligently with respect to the Data.</p>
+<p>Harvard may limit, suspend or terminate User’s access to Data at any time if, in Harvard’s sole discretion, Harvard believes User has violated the terms of this Agreement or that continued use of or access to the Data by User is inconsistent with Harvard’s stewardship of the Data.</p>
 
 <h4>XIII.  Miscellaneous</h4>
 
 <p>Neither party may assign, transfer or delegate any of its rights and obligations hereunder without consent of the other party. No agency, partnership, joint venture, or employment relationship is created as a result of the Agreement. Neither Party shall have authority to make any statements, representations or commitments of any kind on behalf of the other Party, or to take any action which shall be binding on the other Party.</p>
 
-<p>This Agreement represents the entire agreement between the parties with respect to the subject matter hereof, any any prior or contemporaneous representations or understandings, either oral or written, are hereby superseded. No modification or waiver of any provision of this Agreement shall be valid unless in writing and executed by duly-authorized representatives of both Parties.  A failure by one of the Parties to this Agreement to assert its rights hereunder shall not be deemed a waiver of such rights.  No such failure or waiver in writing by any one of the Parties hereto with respect to any rights shall extend to or affect any subsequent breach or impair any right consequent thereon. If any provision of this Agreement is or becomes invalid or is ruled invalid by any court of competent jurisdiction or is deemed unenforceable, it is the intention of the parties that the remainder of this Agreement shall not be affected.</p>
+<p>This Agreement represents the entire agreement between the parties with respect to the subject matter hereof, any prior or contemporaneous representations or understandings, either oral or written, are hereby superseded. No modification or waiver of any provision of this Agreement shall be valid unless in writing and executed by duly-authorized representatives of both Parties.  A failure by one of the Parties to this Agreement to assert its rights hereunder shall not be deemed a waiver of such rights.  No such failure or waiver in writing by any one of the Parties hereto with respect to any rights shall extend to or affect any subsequent breach or impair any right consequent thereon. If any provision of this Agreement is or becomes invalid or is ruled invalid by any court of competent jurisdiction or is deemed unenforceable, it is the intention of the parties that the remainder of this Agreement shall not be affected.</p>
+
+<p>User Agreement v. 1, September 13, 2024</p>
 </div>
 </div>
 <div class="row">
@@ -117,12 +120,6 @@
 
         {% if institutional_official %}
         <div id="member-questions" style="display: {% if registrant_is == "member" %}block{% else %}none{% endif %}">
-            <h4>Institutional Member</h4>
-
-            <label class="checkbox-inline">
-                <input type="checkbox" id="i_reviewed" name="i_reviewed" value="Yes" required {% if i_reviewed == "Yes" %}checked{% endif %}> I have reviewed and understand the terms and conditions outlined above.
-                &nbsp;<span class="required">*</span>
-            </label>
 
         </div>
         {% endif %}
@@ -170,7 +167,6 @@
                 {% endfor %}
             </div>
     </div>
-
     <div id="signer-details" class="pbi_avoid" style="display: {% if registrant_is == "official" or registrant_is == "individual" %}block{% else %}none{% endif %}">
       <h4>Contact Details</h4>
       <div class="form-group">
@@ -185,6 +181,13 @@
           <label for="signer-email">E-mail&nbsp;<span class="required">*</span></label>
           <input type="email" class="form-control" id="signer-email" name="signer_email" value="{{ signer_email|default:'' }}" required />
       </div>
+    </div>
+    <label id="signer-attestation" class="checkbox-inline" style="display: {% if registrant_is %}block{% else %}none{% endif %}">
+      <input type="checkbox" id="i_reviewed" name="i_reviewed" value="Yes" required {% if i_reviewed == "Yes" %}checked{% endif %}>
+      By checking this box, I acknowledge that I have read and am effectively signing this Data User and Access Agreement and agreeing to its terms and conditions.
+      &nbsp;<span class="required">*</span>
+    </label>
+    <div id="signer-signature" class="pbi_avoid" style="display: {% if registrant_is == "official" or registrant_is == "individual" %}block{% else %}none{% endif %}">
       <h4>Signature</h4>
       <div class="form-group">
           <label for="signer_signature" style="margin-right: 10px; margin-bottom: 15px;">Electronic Signature (Full Name)&nbsp;<span class="required">*</span></label>
@@ -223,6 +226,10 @@
             $(inactiveQuestionsId + " :input").val('');
           });
 
+          // Show the attestation checkbox
+          $("#signer-attestation").show();
+          $("#signer-attestation :input").prop('required',true);
+
           // Set fields to required and show the form
           console.log(`Enabling: ${activeQuestionsId}`);
           $(activeQuestionsId).show();
@@ -234,10 +241,14 @@
             $("#signer-details").hide();
             $("#signer-details :input").prop('required',false);
             $("#signer-details :input").val('');
+            $("#signer-signature").hide();
+            $("#signer-signature :input").prop('required',false);
+            $("#signer-signature :input").val('');
           } else {
-
             $("#signer-details").show();
             $("#signer-details :input").prop('required',true);
+            $("#signer-signature").show();
+            $("#signer-signature :input").prop('required',true);
           }
       });
   });
