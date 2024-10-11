@@ -1,0 +1,74 @@
+<div class="row">
+<div class="col-xs-12">
+<div class="form-content">
+    <div class="form-group">
+      <div class="radio">
+        <label>
+            <input type="radio" name="using_data" value="Yes" required {% if using_data == 'Yes' %}checked{% endif %}>
+            I am still using the Data<br>
+        </label>
+      </div>
+      <div class="radio">
+        <label>
+            <input type="radio" name="using_data" value="No" required {% if using_data == 'No' %}checked{% endif %}>
+            I am no longer using the Data
+        </label>
+      </div>
+    </div>
+
+    <div id="destroy-data-alert" class="bs-callout bs-callout-warning" style="display: {% if using_data == 'No' %}block{% else %}none{% endif %};">
+      <h4><span class="glyphicon glyphicon-warning-sign"></span>&nbsp;&nbsp;Important</h4>
+      Under conditions of the signed Data Use Agreement you are obligated to destroy your copy of the Data when no longer in use
+    </div>
+
+    <div id="using-data-fields" style="display: {% if using_data == 'Yes' %}block{% else %}none{% endif %};">
+      <div class="form-group">
+        <label for="data_use" style="margin-right: 10px; margin-bottom: 15px;">Provide a brief description of how you are currently using the Data:&nbsp;<span class="required">*</span></label>
+        <textarea class="form-control" rows="3" name="data_use" id="data_use" placeholder="Enter description here..." required>{{ data_use }}</textarea>
+      </div>
+    </div>
+
+    <hr />
+
+    <h4>Signature</h4>
+    <div class="form-group">
+        <label for="signer_signature" style="margin-right: 10px; margin-bottom: 15px;">Electronic Signature (Full Name)&nbsp;<span class="required">*</span></label>
+        <input type="text" class="form-control" id="signer-signature" name="signer_signature" placeholder="Type your full name" required value="{{ signer_signature|default:'' }}" />
+    </div>
+    <div class="form-group">
+        <label for="date" style="margin-right: 10px; margin-bottom: 15px;">Date&nbsp;<span class="required">*</span></label>
+        <input type="text" class="form-control" name="date" id="date" placeholder="Date" required value="{{ date|default:'' }}" />
+    </div>
+    <label id="i_confirm_checkbox" class="checkbox-inline">
+      <input type="checkbox" id="i_confirm" name="i_confirm" value="Yes" required {% if i_confirm == "Yes" %}checked{% endif %}>
+      By checking this box I certify that, to the best of my knowledge, the provided information is true and accurate
+      &nbsp;<span class="required">*</span>
+    </label>
+</div>
+</div>
+</div>
+<script type="text/javascript">
+  $(document).ready(function() {
+      // Show the alert if user selects "no longer using data"
+      $("#destroy-data-alert").hide();
+      $("input[name='using_data']").change(function() {
+          var selected_value = $("input[name='using_data']:checked").val();
+
+          if (selected_value == "Yes") {
+              $("#destroy-data-alert").hide();
+
+              // Show additional fields
+              $("#using-data-fields :input").prop("required", true);
+              $('#using-data-fields').show();
+          }
+
+          if (selected_value == "No") {
+            $("#destroy-data-alert").show();
+
+            // Hide additional fields
+            $("#using-data-fields").hide();
+            $("#using-data-fields :input").prop("required", false);
+          }
+      });
+  });
+</script>

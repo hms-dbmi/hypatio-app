@@ -17,6 +17,7 @@ from projects.models import ChallengeTaskSubmission
 from projects.models import ChallengeTaskSubmissionDownload
 from projects.models import Bucket
 from projects.models import InstitutionalOfficial
+from projects.models import DataUseReportRequest
 
 
 class GroupAdmin(admin.ModelAdmin):
@@ -91,6 +92,9 @@ class ChallengeTaskSubmissionDownloadAdmin(admin.ModelAdmin):
     list_display = ('user', 'submission', 'download_date')
     search_fields = ('user__email', )
 
+class DataUseReportRequestAdmin(admin.ModelAdmin):
+    list_display = ('participant', 'data_project', 'created', 'modified')
+    search_fields = ('participant__user__email', )
 
 admin.site.register(Group, GroupAdmin)
 admin.site.register(Bucket, BucketAdmin)
@@ -107,3 +111,4 @@ admin.site.register(HostedFileDownload, HostedFileDownloadAdmin)
 admin.site.register(ChallengeTask, ChallengeTaskAdmin)
 admin.site.register(ChallengeTaskSubmission, ChallengeTaskSubmissionAdmin)
 admin.site.register(ChallengeTaskSubmissionDownload, ChallengeTaskSubmissionDownloadAdmin)
+admin.site.register(DataUseReportRequest, DataUseReportRequestAdmin)

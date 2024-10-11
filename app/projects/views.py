@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 import dateutil.parser
+from furl import furl
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -10,6 +11,9 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
+from django.urls import reverse
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.dbmiauthz_services import DBMIAuthz
@@ -26,9 +30,11 @@ from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import HostedFile
 from projects.models import Participant
+from projects.models import AgreementForm
 from projects.models import SignedAgreementForm
 from projects.models import Group
 from projects.models import InstitutionalOfficial
+from projects.models import DataUseReportRequest
 from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
 from projects.panels import SIGNUP_STEP_CURRENT_STATUS
 from projects.panels import SIGNUP_STEP_FUTURE_STATUS
@@ -41,6 +47,29 @@ from projects.panels import DataProjectInstitutionalOfficialPanel
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+
+@user_auth_and_jwt
+def data_use_report(request, request_id):
+
+    # Get the original request
+    data_use_report_request = get_object_or_404(DataUseReportRequest, id=request_id)
+
+    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    sciauthz = SciAuthZ(user_jwt, request.user.email)
+    is_manager = sciauthz.user_has_manage_permission(data_use_report_request.data_project.project_key)
+    participant = data_use_report_request.participant
+
+    template_name = "projects/participate/data-use-report.html"
+
+    return render(request, template_name, {
+        "user": request.user,
+        "is_manager": is_manager,
+        "agreement_form": data_use_report_request.data_project.data_use_report_agreement_form,
+        "participant": participant,
+        "project": participant.project,
+        "form_context": {},
+    })
 
 
 @user_auth_and_jwt
@@ -581,7 +610,7 @@ class DataProjectView(TemplateView):
                 template = 'projects/signup/sign-external-agreement-form.html'
             else:
                 raise Exception("Agreement form type Not implemented")
-            
+
             # Check if this agreement form has a specified form class
             form = None
             if agreement_form.form_class:
