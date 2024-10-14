@@ -1,0 +1,19 @@
+{% extends "email/email_base.html" %}
+
+{% block title %}DBMI Data Portal - Data Use Report{% endblock %}
+
+{% block content %}
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">Hi,</p>
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">This is a request to complete your annual data use report as a condition of the signed Data Use Agreement for {{ project.name }}</p>
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">Please <a href="{{ data_use_report_url }}">click here</a> or use the following link to complete your data use report</p>
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">{{ data_use_report_url }}</p>
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:bold;margin:0;Margin-bottom:15px;"><span style="font-family:sans-serif;font-size:18px;font-weight:bold;margin:0;Margin-bottom:15px;">Important:</span> If a report is not completed within {{ grace_period_days }} days from the date this email was sent, your access to the Data will be automatically terminated.</p>
+
+<p style="font-family:sans-serif;font-size:14px;font-weight:normal;margin:0;Margin-bottom:15px;">Thank you</p>
+
+{% endblock %}

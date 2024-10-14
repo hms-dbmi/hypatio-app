@@ -1,0 +1,19 @@
+{% extends "email/email_base.html" %}
+
+{% block title %}DBMI Data Portal - Data Use Report{% endblock %}
+
+{% block content %}
+
+Hi,
+
+This is a request to complete your annual data use report as a condition of the signed Data Use Agreement for {{ project.name }}
+
+Please use the following link to complete your data use report:
+
+{{ data_use_report_url }}
+
+Important: If a report is not completed within {{ grace_period_days }} days from the date this email was sent, your access to the Data will be automatically terminated.
+
+Thank you
+
+{% endblock %}
