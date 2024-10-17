@@ -1,6 +1,6 @@
 [project]
 name = "dbmi-data-portal"
-version = "1.1.2"
+version = "1.2.0-rc.1"
 description = "A portal for hosting and managing access to DBMI-provided datasets"
 readme = "README.md"
 requires-python = ">=3.9"
