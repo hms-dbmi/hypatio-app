@@ -340,8 +340,13 @@ class ProjectParticipants(View):
             signed_agreement_forms = []
             signed_accepted_agreement_forms = 0
 
+            # Get all agreement forms
+            agreement_forms = list(project.agreement_forms.all())
+            if project.data_use_report_agreement_form:
+                agreement_forms.append(project.data_use_report_agreement_form)
+
             # For each of the available agreement forms for this project, display only latest version completed by the user
-            for agreement_form in project.agreement_forms.all():
+            for agreement_form in agreement_forms:
 
                 # Check if this project uses shared agreement forms
                 if project.shares_agreement_forms:
@@ -460,6 +465,13 @@ class ProjectPendingParticipants(View):
             # Filter
             participants_waiting_access = participants_waiting_access.filter(agreement_form_query)
 
+        # Do not include users whose access was removed due to data use reporting requirements
+        if project.data_use_report_agreement_form:
+
+            # Ensure there exists no data use reporting request for this user
+            data_use_report_query = Q(datausereportrequest__isnull=True)
+            participants_waiting_access = participants_waiting_access.filter(data_use_report_query)
+
         # Secondly, we want Participants with at least one pending SignedAgreementForm
         participants_awaiting_approval = Participant.objects.filter(Q(project=project, permission__isnull=True)).filter(
             Q(
@@ -565,6 +577,128 @@ class ProjectPendingParticipants(View):
 
         return JsonResponse(data=data)
 
+
+@method_decorator(user_auth_and_jwt, name='dispatch')
+class ProjectDataUseReportParticipants(View):
+
+    def get(self, request, project_key, *args, **kwargs):
+
+        # Pull the project
+        try:
+            project = DataProject.objects.get(project_key=project_key)
+        except DataProject.NotFound:
+            logger.exception('DataProject for key "{}" not found'.format(project_key))
+            return HttpResponse(status=404)
+
+        # Get needed params
+        draw = int(request.GET['draw'])
+        start = int(request.GET['start'])
+        length = int(request.GET['length'])
+        order_column = int(request.GET['order[0][column]'])
+        order_direction = request.GET['order[0][dir]']
+
+        # Check for a search value
+        search = request.GET['search[value]']
+
+        # Check what we're sorting by and in what direction
+        if order_column == 0:
+            sort_order = ['email'] if order_direction == 'asc' else ['-email']
+        elif order_column == 3 and not project.has_teams or order_column == 4 and project.has_teams:
+            sort_order = ['modified', '-email'] if order_direction == 'asc' else ['-modified', 'email']
+        else:
+            sort_order = ['modified', '-email'] if order_direction == 'asc' else ['-modified', 'email']
+
+        # Build the query
+
+        # Find users with all access but pending data use report agreement forms
+        participants_waiting_access = Participant.objects.filter(
+            Q(
+                project=project,
+                user__signedagreementform__agreement_form=project.data_use_report_agreement_form,
+                user__signedagreementform__status="P",
+            )
+        )
+
+        # Add search if necessary
+        if search:
+            participants_waiting_access = participants_waiting_access.filter(user__email__icontains=search)
+
+        # We only want distinct Participants belonging to the users query
+        # Django won't sort on a related field after this union so we annotate each queryset with the user's email to sort on
+        query_set = participants_waiting_access.annotate(email=F("user__email")) \
+            .order_by(*sort_order)
+
+        # Setup paginator
+        paginator = Paginator(
+            query_set,
+            length,
+        )
+
+        # Determine page index (1-index) from DT parameters
+        page = start / length + 1
+        participant_page = paginator.page(page)
+
+        participants = []
+        for participant in participant_page:
+
+            signed_agreement_forms = []
+            signed_accepted_agreement_forms = 0
+
+            # Get all agreement forms
+            agreement_forms = list(project.agreement_forms.all()) + [project.data_use_report_agreement_form]
+
+            # Fetch only for this project
+            signed_forms = SignedAgreementForm.objects.filter(
+                user__email=participant.user.email,
+                project=project,
+                agreement_form__in=agreement_forms,
+            )
+            for signed_form in signed_forms:
+                if signed_form is not None:
+                    signed_agreement_forms.append(signed_form)
+
+                # Collect how many forms are approved to craft language for status
+                if signed_form.status == 'A':
+                    signed_accepted_agreement_forms += 1
+
+            # Build the row of the table for this participant
+            participant_row = [
+                participant.user.email.lower(),
+                'Access granted' if participant.permission == 'VIEW' else 'No access',
+                [
+                    {
+                        'status': f.status,
+                        'id': f.id,
+                        'name': f.agreement_form.short_name,
+                        'project': f.project.project_key,
+                    } for f in signed_agreement_forms
+                ],
+                {
+                    'access': True if participant.permission == 'VIEW' else False,
+                    'email': participant.user.email.lower(),
+                    'signed': signed_accepted_agreement_forms,
+                    'team': True if project.has_teams else False,
+                    'required': project.agreement_forms.count()
+                },
+                participant.modified,
+            ]
+
+            # If project has teams, add that
+            if project.has_teams:
+                participant_row.insert(1, participant.team.team_leader.email.lower() if participant.team and participant.team.team_leader else '')
+
+            participants.append(participant_row)
+
+        # Build DataTables response data
+        data = {
+            'draw': draw,
+            'recordsTotal': query_set.count(),
+            'recordsFiltered': paginator.count,
+            'data': participants,
+            'error': None,
+        }
+
+        return JsonResponse(data=data)
 
 @user_auth_and_jwt
 def team_notification(request, project_key=None):

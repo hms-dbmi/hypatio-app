@@ -1,0 +1,98 @@
+{% extends 'sub-base.html' %}
+{% load projects_extras %}
+{% load bootstrap3 %}
+
+{% block headscripts %}
+{% endblock %}
+
+{% block tab_name %}{{ project.name }}{% endblock %}
+{% block title %}{{ project.name }}{% endblock %}
+{% block subtitle %}{{ project.short_description }}{% endblock %}
+
+{% block subcontent %}
+
+{% if messages %}
+    {% include 'messages.html' %}
+{% endif %}
+
+<div class="col-md-offset-2 col-md-8 col-sm-12">
+  <div class="panel panel-default">
+    <div class="panel-heading" role="tab" id="heading-description">
+        <h2 class="panel-title">{{ agreement_form.name }}</h2>
+    </div>
+    <div id="data-use-report-container" class="panel-body">
+          <form id="sign-agreement-form" name="agreement-form-container" action="{% url 'projects:save_signed_agreement_form' %}" method="post">
+              {% if agreement_form.description is not None and agreement_form.description != "" %}
+                  <div class="alert alert-warning" role="alert">
+                      {{ agreement_form.description }}
+                  </div>
+              {% endif %}
+
+              <div id="agreement-form-container" class="agreement_form_contents">
+                  {# Check source of agreement form content #}
+                  {% if agreement_form.type == 'MODEL' %}
+                  {{ agreement_form.content | safe }}
+                  {% else %}
+                  {% get_agreement_form_template agreement_form.form_file_path form_context %}
+                  {% endif %}
+              </div>
+
+              <input type="hidden" class="project_key" name="project_key" value="{{ project.project_key }}" />
+              <input type="hidden" class="agreement_form_id" name="agreement_form_id" value="{{ agreement_form.id }}" />
+              <input type="hidden" class="agreement_text" name="agreement_text" value="" />
+              <hr>
+
+              <div class="row">
+                <div class="col-xs-12 col-sm-6 submit_form">
+                  <button id="agreement-form-submit" type="submit" class="btn btn-primary" data-loading-text="Processing <i class='fa fa-spinner fa-spin'></i>">Submit</button>
+                </div>
+              </div>
+
+              {% csrf_token %}
+          </form>
+          <div id="data-use-report-submitted" style="display: none;">
+
+          </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footerscripts %}
+<script type="application/javascript">
+$( document ).ready(function() {
+
+    $('form[name=agreement-form-container]').submit(function(e){
+        e.preventDefault();
+
+        // Get the submit button
+        var submit_button = $("#agreement-form-submit");
+
+        // Set button to loading
+        submit_button.button("loading");
+
+        // Serialize form fields
+        var formFields = $(this).serialize();
+
+        $.post($(this).attr('action'), formFields, function(res){
+            // $("#loading").hide();
+        }).done(function() {
+            notify('success', "Agreement form submitted!", 'thumbs-up');
+            $(submit_button).html("Form Saved &nbsp;<i class='fa fa-check'></i>").prop("disabled", "disabled").toggleClass("btn-primary btn-success");
+            setTimeout(function() {
+              // Replace form content with a thank you message.
+              $("#data-use-report-container").html("<p>Thank you for your input!</p>");
+            }, 1000);
+
+        }).fail(function() {
+          // Add error message
+          notify('danger', "Agreement form failed to submit. Please try again or contact support.", 'exclamation-sign');
+          console.log("An error occurred, the form couldn't be sent!");
+
+          // Set button to loading
+          submit_button.button("reset");
+        });
+    });
+  });
+</script>
+{% endblock %}
