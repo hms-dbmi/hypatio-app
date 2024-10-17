@@ -369,6 +369,43 @@
   </div>
 </div>
 
+{% if project.data_use_report_agreement_form %}
+<div class="row">
+  <div class="col-lg-12">
+      <div class="panel panel-default">
+        <div class="panel-heading panel-heading-toggle heading-description" role="tab" data-toggle="collapse" data-target="#data-use-reporting-participants-collapse">
+              <h2 class="panel-title">
+                  Data use reporting participant list
+              </h2>
+          </div>
+          <div id="data-use-reporting-participants-collapse" class="panel-collapse collapse in">
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table id="data-use-reporting-participant-table" class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                {% if project.has_teams %}
+                                    <th>Team</th>
+                                {% endif %}
+                                <th>Access</th>
+                                <th>Forms</th>
+                                <th>Actions</th>
+                                <th>Request Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                          {# Loaded via DataTables.js #}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+          </div>
+      </div>
+  </div>
+</div>
+{% endif %}
+
 <div class="row">
     <div class="col-lg-12">
         <div class="panel panel-default">
@@ -675,6 +712,7 @@
             "dom": 'Blfrtip',
             "processing": true,
             "serverSide": true,
+            "bAutoWidth": false,
             "ajax": "{% url 'manage:get-project-pending-participants' project_key=project_key %}",
             "initComplete": function(settings, json) {
               var textBox = $('#pending-participant-table_filter label input');
@@ -750,7 +788,7 @@
 
                             // Return the button to revoke
                             return '<button type="button" class="btn btn-default btn-xs" ic-post-to="' + buttonUrl +
-                                '" ic-on-success="$(\'#pending-participant-table\').DataTable().draw(false);$(\'#participant-table\').DataTable().draw(false);">Revoke access  ' +
+                                '" ic-on-success="$(\'#pending-participant-table\').DataTable().draw(false);$(\'#data-use-reporting-participant-table\').DataTable().draw(false);$(\'#participant-table\').DataTable().draw(false);">Revoke access  ' +
                                 '<span class="glyphicon glyphicon-ban-circle" ' +
                                 'aria-hidden="true"></span></button>';
 
@@ -762,7 +800,7 @@
                             // Return button to approve user
                             return '<button type="button" class="btn btn-default btn-xs btn-success" ' +
                                 'ic-post-to="' + buttonUrl +
-                                '" ic-on-success="$(\'#pending-participant-table\').DataTable().draw(false);$(\'#participant-table\').DataTable().draw(false);">Grant access  ' +
+                                '" ic-on-success="$(\'#pending-participant-table\').DataTable().draw(false);$(\'#data-use-reporting-participant-table\').DataTable().draw(false);$(\'#participant-table\').DataTable().draw(false);">Grant access  ' +
                                 '<span class="glyphicon glyphicon-alert" aria-hidden="true"></span>' +
                                 '</button>';
 
@@ -817,6 +855,7 @@
             // Order by the Access column to prioritize pending access.
             "dom": 'Blfrtip',
             "searching": true,
+            "bAutoWidth": false,
             "search": {
               "return": true
             },
@@ -904,11 +943,11 @@
 
                             // Return the button to revoke
                             return '<button type="button" class="btn btn-default btn-xs" ic-post-to="' + buttonUrl +
-                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);$(\'#pending-participant-table\').DataTable().draw(false);">Revoke access  ' +
+                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);$(\'#pending-participant-table\').DataTable().draw(false);$(\'#data-use-reporting-participant-table\').DataTable().draw(false);">Revoke access  ' +
                                 '<span class="glyphicon glyphicon-ban-circle" ' +
                                 'aria-hidden="true"></span></button>';
 
-                        } else if(data['signed'] == data['required'] && !data['team']) {
+                        } else if(data['signed'] >= data['required'] && !data['team']) {
 
                             // Set the URL for approving access
                             var buttonUrl = '{% url "manage:grant-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
@@ -916,11 +955,11 @@
                             // Return button to approve user
                             return '<button type="button" class="btn btn-default btn-xs btn-success" ' +
                                 'ic-post-to="' + buttonUrl +
-                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);$(\'#pending-participant-table\').DataTable().draw(false);">Grant access  ' +
+                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);$(\'#pending-participant-table\').DataTable().draw(false);$(\'#data-use-reporting-participant-table\').DataTable().draw(false);">Grant access  ' +
                                 '<span class="glyphicon glyphicon-alert" aria-hidden="true"></span>' +
                                 '</button>';
 
-                        } else if(data['signed'] == data['required'] && data['team']) {
+                        } else if(data['signed'] >= data['required'] && data['team']) {
 
                             return 'Grant approval via team management.';
 
@@ -998,6 +1037,150 @@
                 }
             }]
         });
+
+        var dataUseReportingParticipantTable = $('#data-use-reporting-participant-table').DataTable({
+          // Order by the Access column to prioritize pending access.
+          "dom": 'Blfrtip',
+          "processing": true,
+          "serverSide": true,
+          "bAutoWidth": false,
+          "ajax": "{% url 'manage:get-project-data-use-reporting-participants' project_key=project_key %}",
+          "initComplete": function(settings, json) {
+            var textBox = $('#data-use-reporting-participant-table_filter label input');
+            textBox.unbind();
+            textBox.bind('keyup input', function(e) {
+                if(e.keyCode == 8 && !textBox.val() || e.keyCode == 46 && !textBox.val()) {
+                    // do nothing ¯\_(ツ)_/¯
+                } else if(e.keyCode == 13 || !textBox.val()) {
+                  pendingParticipantTable.search(this.value).draw();
+                }
+            });
+          },
+          "order": [[{% if project.has_teams %}5{% else %}4{% endif %}, "desc"]],
+          "columnDefs": [
+              {
+                  "targets": [{% if project.has_teams %}1, 2, 3{% else %}1, 2{% endif %}],
+                  "orderable": false
+              },
+              {
+                  "targets": {% if project.has_teams %}3{% else %}2{% endif %},
+                  "render":  function(data, type, full, meta) {
+
+                      // Build HTML render
+                      var html = '';
+
+                      // Data is an array of forms
+                      for (index = 0; index < data.length; index++) {
+
+                          // Get the form
+                          var form = data[index];
+
+                          // Set the base URL for the forms
+                          var formUrl = '{% url "projects:signed_agreement_form" %}?project_key=' + form['project'] + '&signed_form_id=' + form['id'];
+
+                          // Set form type and icon classes
+                          var formClasses = (function(formStatus) {
+                            switch(formStatus) {
+                              case 'P':
+                                return ['btn-warning', 'glyphicon-alert'];
+                              case 'A':
+                                return ['btn-default', 'glyphicon-ok'];
+                              case 'R':
+                                return ['btn-danger', 'glyphicon-ban-circle'];
+                              default:
+                                return ['btn-warning', 'glyphicon-alert'];
+                            }
+                          })(form['status']);
+
+                          // Set link HTML with placeholders for button classes
+                          var link = '<a style="display: block; margin: 2px;" ' +
+                              'class="btn btn-default btn-xs ' + formClasses[0] +
+                              ' download-signed-form" href="' + formUrl +
+                              '" target="_blank" role="button">' + form['name'] +
+                              '  <span class="glyphicon ' + formClasses[1] +
+                              '" aria-hidden="true"></span></a>';
+
+                          // Append it to the other elements
+                          html += link
+                      }
+
+                      return html;
+                  }
+              },
+              {
+                  "targets": {% if project.has_teams %}4{% else %}3{% endif %},
+                  "render":  function(data, type, full, meta) {
+
+                      // Determine output based on access, forms signed, etc.
+                      if(data['access']) {
+
+                          // Set the URL for revoking access
+                          var buttonUrl = '{% url "manage:remove-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
+
+                          // Return the button to revoke
+                          return '<button type="button" class="btn btn-default btn-xs" ic-post-to="' + buttonUrl +
+                              '" ic-on-success="$(\'#pending-participant-table\').DataTable().draw(false);$(\'#data-use-reporting-participant-table\').DataTable().draw(false);$(\'#participant-table\').DataTable().draw(false);">Revoke access  ' +
+                              '<span class="glyphicon glyphicon-ban-circle" ' +
+                              'aria-hidden="true"></span></button>';
+
+                      } else if(data['signed'] + 1 == data['required'] && !data['team']) {
+
+                          // Set the URL for approving access
+                          var buttonUrl = '{% url "manage:grant-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
+
+                          // Return button to approve user
+                          return '<button type="button" class="btn btn-default btn-xs btn-success" ' +
+                              'ic-post-to="' + buttonUrl +
+                              '" ic-on-success="$(\'#pending-participant-table\').DataTable().draw(false);$(\'#data-use-reporting-participant-table\').DataTable().draw(false);$(\'#participant-table\').DataTable().draw(false);">Grant access  ' +
+                              '<span class="glyphicon glyphicon-alert" aria-hidden="true"></span>' +
+                              '</button>';
+
+                      } else if(data['signed'] >= data['required'] && data['team']) {
+
+                          return 'Grant approval via team management.';
+
+                      } else {
+
+                          return 'Forms incomplete or awaiting your approval';
+                      }
+                  }
+              },
+              {
+                  "targets": [{% if project.has_teams %}5{% else %}4{% endif %}],
+                  "render": function (data, type, full, meta) {
+
+                      // Return raw dates for sorting
+                      if (type === 'sort' || type === 'type')
+                          return data;
+
+                      // Parse date and get components
+                      var date = new Date(data);
+                      var y = date.getFullYear();
+                      var m = date.getMonth() + 1;
+                      var d = date.getDate();
+                      var h = date.getHours();
+                      var min = ("0" + date.getMinutes()).slice(-2);
+
+                      return m + '-' + d + '-' + y + ' ' + h + ':' + min;
+                  }
+              }
+          ],
+          "drawCallback": function( settings ) {
+
+              // Collect all Intercooler links
+              $('#data-use-reporting-participant-table [ic-get-from], #data-use-reporting-participant-table [ic-post-to], ' +
+                '#data-use-reporting-participant-table [ic-put-to], #data-use-reporting-participant-table [ic-patch-to], ' +
+                '#data-use-reporting-participant-table [ic-delete-from]').each(function() {
+
+                  // Check attribute
+                  if( !$(this).attr('ic-id') ) {
+
+                      // Process it
+                      Intercooler.processNodes($(this));
+                  }
+              });
+          },
+      });
     });
 </script>
 

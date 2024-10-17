@@ -2,6 +2,7 @@ from django.urls import re_path
 
 from projects.apps import ProjectsConfig
 from projects.views import list_data_projects
+from projects.views import data_use_report
 from projects.views import signed_agreement_form
 from projects.views import DataProjectView
 
@@ -36,6 +37,7 @@ urlpatterns = [
     re_path(r'^reject_team_join/$', reject_team_join, name='reject_team_join'),
     re_path(r'^create_team/$', create_team, name='create_team'),
     re_path(r'^finalize_team/$', finalize_team, name='finalize_team'),
+    re_path(r'^data_use_report/(?P<request_id>[^/]+)/?$', data_use_report, name='data_use_report'),
     re_path(r'^signed_agreement_form/$', signed_agreement_form, name='signed_agreement_form'),
     re_path(r'^download_dataset/$', download_dataset, name='download_dataset'),
     re_path(r'^upload_challengetasksubmission_file/$', upload_challengetasksubmission_file, name="upload_challengetasksubmission_file"),

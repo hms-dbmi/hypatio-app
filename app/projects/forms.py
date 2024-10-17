@@ -6,7 +6,10 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from hypatio.scireg_services import get_current_user_profile
-from projects.models import DataProject, AgreementForm
+from projects.models import DataProject
+from projects.models import AgreementForm
+from projects.models import SignedAgreementForm
+from projects.models import Participant
 
 
 class MultiValueValidationError(ValidationError):
@@ -200,3 +203,27 @@ class AgreementForm4CEDUAForm(AgreementFormForm):
         }
         '''
         return initial
+
+
+def data_use_report_handler(signed_agreement_form: SignedAgreementForm):
+    """
+    Handler the result of the data use report. This will be determining
+    whether the user's access is ended or paused.
+
+    :param signed_agreement_form: The saved data use report agreement form
+    :type signed_agreement_form: SignedAgreementForm
+    """
+    # The name of the field we are interesed in
+    USING_DATA = "using_data"
+
+    # Check value
+    if signed_agreement_form.fields.get(USING_DATA) in ["No", "no"]:
+
+        # End this user's access immediately
+        participant = Participant.objects.get(project=signed_agreement_form.project, user=signed_agreement_form.user)
+        participant.permission = None
+        participant.save()
+
+        # Auto-approve this signed agreement form since no review is necessary
+        signed_agreement_form.status = "A"
+        signed_agreement_form.save()

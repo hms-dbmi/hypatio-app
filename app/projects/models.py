@@ -266,6 +266,8 @@ class AgreementForm(models.Model):
     institutional_signers = models.BooleanField(default=False, help_text="Allows institutional signers to sign for their members. This will auto-approve this agreement form for members whose institutional official has had their agreement form approved.")
     form_class = models.CharField(max_length=300, null=True, blank=True)
 
+    handler = models.CharField(max_length=512, null=True, blank=True, help_text="Set an absolute function's path to be called after the SignedAgreementForm has successfully saved")
+
     # Meta
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -392,6 +394,17 @@ class DataProject(models.Model):
     # Automate approval of members covered by an already-approved institutional signer
     institutional_signers = models.BooleanField(default=False, help_text="Allows institutional signers to sign for their members. This will auto-approve agreement forms for members whose institutional official has had their agreement forms approved.")
 
+    # Set period for automated check-ins for users with access
+    data_use_report_period = models.IntegerField(blank=True, null=True, help_text="The number of days after access being granted in which emails will be sent prompting users to report on the status of their access and use of data")
+    data_use_report_agreement_form = models.ForeignKey(
+        to=AgreementForm,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        help_text="The agreement form that will be filled out by a user with access during periodic access and data use reporting",
+    )
+    data_use_report_grace_period = models.IntegerField(blank=True, null=True, help_text="The number of days in which a user is allotted to complete their access and data use reporting before their access is revoked")
+
 
     # Meta
     created = models.DateTimeField(auto_now_add=True)
@@ -474,6 +487,23 @@ class SignedAgreementForm(models.Model):
     class Meta:
         verbose_name = 'Signed Agreement Form'
         verbose_name_plural = 'Signed Agreement Forms'
+
+
+class DataUseReportRequest(models.Model):
+    """
+    This model describes a request for a participant to report on data use.
+    """
+
+    participant = models.ForeignKey("Participant", on_delete=models.PROTECT)
+    data_project = models.ForeignKey(DataProject, on_delete=models.CASCADE)
+    signed_agreement_form = models.ForeignKey("SignedAgreementForm", null=True, blank=True, on_delete=models.PROTECT)
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    class Meta:
+        verbose_name = 'Data Use Report Request'
+        verbose_name_plural = 'Data Use Report Requests'
 
 
 class Team(models.Model):

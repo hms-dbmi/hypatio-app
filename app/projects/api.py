@@ -1,6 +1,7 @@
 from copy import copy
 from datetime import datetime
 import json
+import importlib
 import logging
 
 from django.conf import settings
@@ -663,7 +664,7 @@ def save_signed_agreement_form(request):
                     "warning", f"The agreement form contained errors, please review", "warning-sign"
                 )
                 return response
-            
+
             # Use the data from the form
             fields = form.cleaned_data
 
@@ -761,6 +762,20 @@ def save_signed_agreement_form(request):
 
     # Save the agreement form
     signed_agreement_form.save()
+
+    # Check for a handler
+    if agreement_form.handler:
+        try:
+            # Build function components
+            module_name, handler_name = agreement_form.handler.rsplit('.', 1)
+            module = importlib.import_module(module_name)
+
+            # Call handler
+            getattr(module, handler_name)(signed_agreement_form)
+            logger.debug(f"Handler '{agreement_form.handler}' called for SignedAgreementForm")
+
+        except Exception as e:
+            logger.exception(f"Error calling handler: {e}", exc_info=True)
 
     return HttpResponse(status=200)
 
