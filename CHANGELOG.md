@@ -1,3 +1,16 @@
+# [1.2.0](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.2...v1.2.0) (2024-10-17)
+
+
+### Bug Fixes
+
+* **requirements:** Updated Python requirements ([8c4e22f](https://github.com/hms-dbmi/hypatio-app/commit/8c4e22ff591fafbd5b13910069cea32355a2de68))
+
+
+### Features
+
+* **projects:** Data Use Report templates ([23f41c5](https://github.com/hms-dbmi/hypatio-app/commit/23f41c54749cb359da9cc56672b250f5f6f21a5f))
+* **projects:** Data Use Reporting implementation ([060f04f](https://github.com/hms-dbmi/hypatio-app/commit/060f04f8209f7ee7cfb96a7b1b4efd47edf36954))
+
 # [1.2.0-rc.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.1.2...v1.2.0-rc.1) (2024-10-17)
 
 
