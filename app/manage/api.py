@@ -41,6 +41,7 @@ from projects.models import Team
 from projects.models import TeamComment
 from projects.serializers import HostedFileSerializer, HostedFileDownloadSerializer
 from projects.models import AGREEMENT_FORM_TYPE_MODEL, AGREEMENT_FORM_TYPE_FILE
+from projects.models import InstitutionalOfficial
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -1157,6 +1158,54 @@ def grant_view_permission(request, project_key, user_email):
         participant = project.participant_set.get(user__email=user_email)
         participant.permission = 'VIEW'
         participant.save()
+
+        # Check if this project allows institutional signers
+        if project.institutional_signers:
+
+            # Check if this is a signing official
+            try:
+                official = InstitutionalOfficial.objects.get(
+                    project=project,
+                    user=participant.user,
+                )
+
+                # Iterate linked members
+                for member_email in official.member_emails:
+
+                    logger.debug(f"Institutional signer/{participant.user.email}: Checking for existing linked member '{member_email}'")
+
+                    # Check if a participant exists for this email with no VIEW permission
+                    if Participant.objects.filter(project=project, user__email=member_email).exclude(permission="VIEW").exists():
+
+                        # Fetch them
+                        member_participant = Participant.objects.get(project=project, user__email=member_email)
+
+                        # Approve signed agreement forms
+                        for signed_agreement_form in SignedAgreementForm.objects.filter(project=project, user=member_participant.user):
+
+                            # If allows institutional signers, auto-approve
+                            if signed_agreement_form.agreement_form.institutional_signers:
+
+                                signed_agreement_form.status = "A"
+                                signed_agreement_form.save()
+
+                        # Grant this user access immediately if all agreement forms are accepted
+                        for agreement_form in project.agreement_forms.all():
+                            if not SignedAgreementForm.objects.filter(
+                                agreement_form=agreement_form,
+                                project=project,
+                                user=member_participant.user,
+                                status="A"
+                                ):
+                                break
+                        else:
+
+                            # Call this method to process the access
+                            grant_view_permission(request, project_key, member_email)
+
+            except ObjectDoesNotExist:
+                pass
+
     except Exception as e:
         logger.exception(
             '[HYPATIO][DEBUG][grant_view_permission] User {user} could not have permission added to project {project_key}: {e}'.format(
@@ -1226,6 +1275,26 @@ def remove_view_permission(request, project_key, user_email):
         participant = project.participant_set.get(user__email=user_email)
         participant.permission = None
         participant.save()
+
+        # Check if this project allows institutional signers
+        if project.institutional_signers:
+
+            # Check if this is a signing official
+            try:
+                official = InstitutionalOfficial.objects.get(
+                    project=project,
+                    user=participant.user,
+                )
+
+                # Iterate linked members
+                for member_email in official.member_emails:
+
+                    # Remove their access
+                    remove_view_permission(request, project_key, member_email)
+
+            except ObjectDoesNotExist:
+                pass
+
     except Exception as e:
         logger.exception(
             '[HYPATIO][ERROR][grant_view_permission] User {user} could not have permission remove from project {project_key}: {e}'.format(
