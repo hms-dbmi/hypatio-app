@@ -1,3 +1,13 @@
+## [1.2.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.2.0...v1.2.1) (2025-01-07)
+
+
+### Bug Fixes
+
+* **manage:** Checks for existing pending applications that might be linked to an agreement form from an institutional signer when granting access ([e096de7](https://github.com/hms-dbmi/hypatio-app/commit/e096de7870aff3667d029a899656fcffe1e913d4))
+* **projects:** Added a method to SignedAgreementForm to determine whether it's for an institutional signer or not ([ecf5f01](https://github.com/hms-dbmi/hypatio-app/commit/ecf5f017c7d6fcdea5f15229dc0924246e60e1b0))
+* **projects:** Set to use method on SignedAgreementForm to determine when to handle SignedAgreementForms from institutional signers ([48b4802](https://github.com/hms-dbmi/hypatio-app/commit/48b4802abb5b04c3834a94ab784ee8dfa93a8067))
+* **requirements:** Updated Python requirements ([b04f0ec](https://github.com/hms-dbmi/hypatio-app/commit/b04f0ecd0174558dcba327e473fe0887fcafa18b))
+
 ## [1.2.1-rc.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.2.0...v1.2.1-rc.1) (2025-01-07)
 
 
