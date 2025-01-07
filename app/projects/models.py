@@ -2,6 +2,7 @@ import uuid
 import re
 import importlib
 from datetime import datetime
+from typing import Optional, Tuple
 
 import boto3
 from botocore.exceptions import ClientError
@@ -487,6 +488,37 @@ class SignedAgreementForm(models.Model):
     class Meta:
         verbose_name = 'Signed Agreement Form'
         verbose_name_plural = 'Signed Agreement Forms'
+
+
+    def get_institutional_signer_details(self) -> Optional[Tuple[str, str, list[str]]]:
+        """
+        Checks the SignedAgreementForm to see if it has been signed by an institutional official.
+        If so, it returns the name of the institution and email of the institutional official along with a list of
+        emails for the members they are representing.
+
+        :returns: A tuple containing the institution name, official email, and a list of member emails if this is an
+                  institutional signer; otherwise tuple of None, None, None
+        :rtype: Optional[Tuple[str, str, list[str]]], defaults to Tuple[None, None, None]
+        """
+        if self.agreement_form.institutional_signers:
+
+            # Fields should contain whether this is an institutional official or not
+            if self.fields and self.fields.get("registrant_is", "").lower() == "official":
+
+                # Ensure member emails is a list
+                member_emails = self.fields.get("member_emails", [])
+                if isinstance(member_emails, str):
+                    member_emails = [member_emails]
+                elif not isinstance(member_emails, list):
+                    raise ValidationError(f"Unhandled state of 'member_emails' field: {type(member_emails)}/{member_emails}")
+
+                # Cleanup emails to remove whitespace, if any
+                member_emails = [email.strip() for email in member_emails]
+
+                # Return values
+                return self.fields["institute_name"], self.user.email, member_emails
+
+        return None, None, None
 
 
 class DataUseReportRequest(models.Model):
