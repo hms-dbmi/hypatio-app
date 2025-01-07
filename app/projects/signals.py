@@ -133,16 +133,22 @@ def signed_agreement_form_pre_save_handler(sender, **kwargs):
     logger.debug(f"Pre-save: {instance}")
 
     # Check for specific types of forms that require additional handling
-    if instance.status == "A" and instance.agreement_form.short_name == "4ce-dua" \
-        and instance.fields.get("registrant-is") == "official":
-        logger.debug(f"Pre-save institutional official: {instance}")
+    institute_name, official_email, member_emails = instance.get_institutional_signer_details()
+    if instance.status == "A" and institute_name and official_email and member_emails:
+        logger.debug(f"Pre-save institutional official AgreementForm: {instance}")
 
-        # Create official and member objects
-        official = InstitutionalOfficial.objects.create(
-            user=instance.user,
-            institution=instance.fields["institute-name"],
-            project=instance.project,
-            signed_agreement_form=instance,
-            member_emails=instance.fields["member-emails"],
-        )
-        official.save()
+        # Ensure they don't already exist
+        if InstitutionalOfficial.objects.filter(user=instance.user, project=instance.project).exists():
+            logger.debug(f"InstitutionalOfficial already exists for {instance.user}/{instance.project}")
+
+        else:
+
+            # Create official and member objects
+            official = InstitutionalOfficial.objects.create(
+                user=instance.user,
+                institution=institute_name,
+                project=instance.project,
+                signed_agreement_form=instance,
+                member_emails=member_emails,
+            )
+            official.save()
