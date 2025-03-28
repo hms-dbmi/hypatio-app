@@ -54,3 +54,6 @@ exclude = '''
   | dist
 )/
 '''
+
+[coverage.run]
+relative_files = true

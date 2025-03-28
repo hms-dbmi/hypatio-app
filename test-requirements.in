@@ -1,2 +1,2 @@
-pytest
-pytest-django
+dbmisvc-test
+coverage
