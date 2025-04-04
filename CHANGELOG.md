@@ -1,3 +1,10 @@
+## [1.2.2-rc.2](https://github.com/hms-dbmi/hypatio-app/compare/v1.2.2-rc.1...v1.2.2-rc.2) (2025-04-04)
+
+
+### Bug Fixes
+
+* **Dockerfile:** Update base image ([7146022](https://github.com/hms-dbmi/hypatio-app/commit/714602271152e7dbc46d88c48d7f8fe58e13faff))
+
 ## [1.2.2-rc.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.2.1...v1.2.2-rc.1) (2025-04-04)
 
 
