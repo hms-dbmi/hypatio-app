@@ -1,7 +1,8 @@
 # Set arch
 ARG BUILD_ARCH=amd64
+ARG DBMISVC_IMAGE=hmsdbmitc/dbmisvc:debian12-slim-python3.11-0.7.1
 
-FROM hmsdbmitc/dbmisvc:debian12-slim-python3.11-0.6.2 AS builder
+FROM ${DBMISVC_IMAGE} AS builder
 
 ARG BUILD_ARCH
 
@@ -29,7 +30,7 @@ RUN pip install -U wheel \
     && pip wheel -r /requirements.txt \
         --wheel-dir=/root/wheels
 
-FROM hmsdbmitc/dbmisvc:debian12-slim-python3.11-0.6.2
+FROM ${DBMISVC_IMAGE}
 
 ARG APP_NAME="dbmi-data-portal"
 ARG APP_CODENAME="hypatio"
