@@ -1059,11 +1059,11 @@ def qualtrics(request):
 
     # Get the project
     project = get_object_or_404(DataProject, project_key=project_key)
+    agreement_form = get_object_or_404(AgreementForm, id=agreement_form_id)
 
     # Get the participant
     try:
         participant = Participant.objects.get(user=request.user, project=project)
-        agreement_form = AgreementForm.objects.get(id=agreement_form_id)
     except ObjectDoesNotExist:
         participant = Participant(user=request.user, project=project)
         participant.save()
