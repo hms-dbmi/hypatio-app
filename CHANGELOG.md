@@ -1,3 +1,10 @@
+# [1.3.0-rc.2](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.1...v1.3.0-rc.2) (2025-05-22)
+
+
+### Bug Fixes
+
+* **projects:** Fixed fetch of AgreementForm in Qualtrics view ([2372bb9](https://github.com/hms-dbmi/hypatio-app/commit/2372bb92569d041a42e3548b0fc9cb3b094fd638))
+
 # [1.3.0-rc.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.2.2...v1.3.0-rc.1) (2025-05-22)
 
 
