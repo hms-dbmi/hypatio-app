@@ -1,3 +1,10 @@
+# [1.3.0-rc.3](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.2...v1.3.0-rc.3) (2025-05-22)
+
+
+### Bug Fixes
+
+* **projects:** Fixed how automatic authorizations work ([8db0244](https://github.com/hms-dbmi/hypatio-app/commit/8db02440044abc8fca7e90aaa0718f659c9bf0fc))
+
 # [1.3.0-rc.2](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.1...v1.3.0-rc.2) (2025-05-22)
 
 
