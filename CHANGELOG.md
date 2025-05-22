@@ -1,3 +1,10 @@
+# [1.3.0-rc.4](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.3...v1.3.0-rc.4) (2025-05-22)
+
+
+### Bug Fixes
+
+* **projects:** Fixed premature creation of Participant for Qualtrics surveys ([8f932be](https://github.com/hms-dbmi/hypatio-app/commit/8f932be21499d7c05af0531ca7a7cda47a2e489d))
+
 # [1.3.0-rc.3](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.2...v1.3.0-rc.3) (2025-05-22)
 
 
