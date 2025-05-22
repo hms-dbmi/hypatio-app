@@ -1,3 +1,10 @@
+# [1.3.0-rc.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.2.2...v1.3.0-rc.1) (2025-05-22)
+
+
+### Features
+
+* **projects:** Added support for a Qualtrics survey registration step; added improved file upload functionality ([b34e261](https://github.com/hms-dbmi/hypatio-app/commit/b34e26197cc539ab23c774c31db5bd7208c40f5b))
+
 ## [1.2.2](https://github.com/hms-dbmi/hypatio-app/compare/v1.2.1...v1.2.2) (2025-04-04)
 
 
