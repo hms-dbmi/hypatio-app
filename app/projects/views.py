@@ -11,9 +11,7 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
-from django.urls import reverse
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
+from django.shortcuts import redirect
 
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.dbmiauthz_services import DBMIAuthz
@@ -26,6 +24,7 @@ from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK, TEAM_ACTIVE, TEAM
 from projects.models import AGREEMENT_FORM_TYPE_STATIC
 from projects.models import AGREEMENT_FORM_TYPE_MODEL
 from projects.models import AGREEMENT_FORM_TYPE_FILE
+from projects.models import AGREEMENT_FORM_TYPE_BLANK
 from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import HostedFile
@@ -35,6 +34,7 @@ from projects.models import SignedAgreementForm
 from projects.models import Group
 from projects.models import InstitutionalOfficial
 from projects.models import DataUseReportRequest
+from projects.models import SIGNED_FORM_APPROVED
 from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
 from projects.panels import SIGNUP_STEP_CURRENT_STATUS
 from projects.panels import SIGNUP_STEP_FUTURE_STATUS
@@ -302,6 +302,7 @@ class DataProjectView(TemplateView):
 
         # Otherwise, prompt the user to sign up.
         self.get_signup_context(context)
+
         return context
 
     def get_informational_only_context(self, context):
@@ -608,6 +609,8 @@ class DataProjectView(TemplateView):
                 template = 'projects/signup/upload-agreement-form.html'
             elif agreement_form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
                 template = 'projects/signup/sign-external-agreement-form.html'
+            elif agreement_form.type == AGREEMENT_FORM_TYPE_BLANK:
+                template = 'projects/signup/blank-agreement-form.html'
             else:
                 raise Exception("Agreement form type Not implemented")
 
@@ -621,16 +624,22 @@ class DataProjectView(TemplateView):
                 except Exception as e:
                     logger.exception(f"Agreement form error: {e}", exc_info=True)
 
+            # Get additional context if required by specific AgreementForm
+            additional_context = self.get_agreement_form_additional_context(agreement_form, context)
+
+            # Update it with general context
+            additional_context.update({
+                "agreement_form": agreement_form,
+                "form": form,
+                "institutional_official": context.get("institutional_official"),
+            })
+
             panel = DataProjectSignupPanel(
                 title=title,
                 bootstrap_color='default',
                 template=template,
                 status=step_status,
-                additional_context={
-                    "agreement_form": agreement_form,
-                    "form": form,
-                    "institutional_official": context.get("institutional_official"),
-                }
+                additional_context=additional_context,
             )
 
             context['setup_panels'].append(panel)
@@ -979,3 +988,97 @@ class DataProjectView(TemplateView):
         # ...
 
         return False
+
+    def get_agreement_form_additional_context(self, agreement_form, context):
+        """
+        Adds to the AgreementForm's context
+        """
+        # Default to empty object
+        additional_context = {}
+
+        # Set the method name using the project key.
+        method_name = agreement_form.short_name.replace("-", "_") + '_additional_context'
+
+        # Check if this method is implemented.
+        if hasattr(self, method_name):
+            # Call the method dynamically.
+            method = getattr(self, method_name)
+            if callable(method):
+                logger.debug(f"Calling {method_name}()")
+                additional_context = method(agreement_form, context)
+            else:
+                logger.warning(f"{method_name} is not callable.")
+        else:
+            logger.warning(f"{method_name} does not exist.")
+
+        return additional_context
+
+    def maida_question_additional_context(self, agreement_form, context):
+        """
+        Adds to the view's context anything needed for users to sign up for the MAIDA upload project.
+        """
+        # Set new object for additional context
+        additional_context = {}
+
+        # Set the the questionnaire URL.
+        questionnaire_url = furl(settings.MAIDA_UPLOAD_QUESTIONNAIRE_URL)
+        questionnaire_url.args['email'] = self.request.user.email
+        questionnaire_url.args['project_key'] = self.project.project_key
+        questionnaire_url.args['agreement_form_id'] = agreement_form.id
+        additional_context['maida_questionnaire_url'] = questionnaire_url.url
+
+        return additional_context
+
+
+@public_user_auth_and_jwt
+def qualtrics(request):
+    """
+    An HTTP GET endpoint that handles Qualtrics redirects when a user finishes a survey
+    """
+    logger.debug(f"[qualtrics]: GET -> {request.GET}")
+
+    # Get the AgreementForm ID
+    agreement_form_id = request.GET.get("agreement_form_id", None)
+    if not agreement_form_id:
+        return HttpResponse("Error: 'agreement_form_id' is a required parameter.", status=400)
+
+    # Get the survey ID
+    survey_id = request.GET.get("survey_id", None)
+    if not survey_id:
+        return HttpResponse("Error: 'survey_id' is a required parameter.", status=400)
+
+    # Get the project key
+    project_key = request.GET.get("project_key", None)
+    if not project_key:
+        return HttpResponse("Error: 'project_key' is a required parameter.", status=400)
+
+    # Get the project key
+    response_id = request.GET.get("response_id", None)
+    if not project_key:
+        return HttpResponse("Error: 'response_id' is a required parameter.", status=400)
+
+    # Get the project
+    project = get_object_or_404(DataProject, project_key=project_key)
+
+    # Get the participant
+    try:
+        participant = Participant.objects.get(user=request.user, project=project)
+        agreement_form = AgreementForm.objects.get(id=agreement_form_id)
+    except ObjectDoesNotExist:
+        participant = Participant(user=request.user, project=project)
+        participant.save()
+
+    # Create a SignedAgreementForm object
+    SignedAgreementForm.objects.create(
+        user=request.user,
+        agreement_form=agreement_form,
+        project=project,
+        date_signed=datetime.now(),
+        fields={
+            "survey_id": survey_id,
+            "response_id": response_id,
+        },
+        status=SIGNED_FORM_APPROVED,
+    )
+
+    return redirect(f"/projects/{project_key}/")  # Redirect to the project page

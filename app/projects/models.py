@@ -46,12 +46,14 @@ AGREEMENT_FORM_TYPE_STATIC = 'STATIC'
 AGREEMENT_FORM_TYPE_EXTERNAL_LINK = 'EXTERNAL_LINK'
 AGREEMENT_FORM_TYPE_MODEL = 'MODEL'
 AGREEMENT_FORM_TYPE_FILE = 'FILE'
+AGREEMENT_FORM_TYPE_BLANK = 'BLANK'
 
 AGREEMENT_FORM_TYPE = (
     (AGREEMENT_FORM_TYPE_STATIC, 'STATIC'),
     (AGREEMENT_FORM_TYPE_EXTERNAL_LINK, 'EXTERNAL LINK'),
     (AGREEMENT_FORM_TYPE_MODEL, 'MODEL'),
     (AGREEMENT_FORM_TYPE_FILE, 'FILE'),
+    (AGREEMENT_FORM_TYPE_BLANK, 'BLANK'),
 )
 
 FILE_TYPE_ZIP = "zip"
@@ -337,6 +339,7 @@ class DataProject(models.Model):
     informational_only = models.BooleanField(default=False, blank=False, null=False, help_text="Set this to true if this project has no registration or participation steps and should only render the description panel. The Registration Open value will be ignored. The Requires Authorization flag should be set to false.")
     registration_open = models.BooleanField(default=False, blank=False, null=False, help_text="Set this to true if you want to allow users without existing permissions on this item to be able to sign up for access.")
     requires_authorization = models.BooleanField(default=True, blank=False, null=False, help_text="Set this to true if you want to explicitly require a user to have VIEW permissions on this project before they can access the project's downloads, uploads, etc.")
+    automatic_authorization = models.BooleanField(default=False, blank=False, null=False, help_text="Set this to true if you want users to automatically be granted VIEW permissions on this project when they complete signup steps and request access. This is only applicable if the project is set to require authorization.")
 
     # Which forms users need to sign before accessing any data.
     agreement_forms = models.ManyToManyField(AgreementForm, blank=True, related_name='data_project_agreement_forms')

@@ -41,7 +41,7 @@ from projects.models import HostedFileDownload
 from projects.models import Participant
 from projects.models import SignedAgreementForm
 from projects.models import Team
-from projects.models import SIGNED_FORM_REJECTED
+from projects.models import SIGNED_FORM_REJECTED, SIGNED_FORM_APPROVED
 from projects.models import HostedFileSet
 from projects.models import InstitutionalOfficial
 
@@ -850,10 +850,15 @@ def submit_user_permission_request(request):
         return response
 
     # Create a new participant record if one does not exist already.
-    participant, created = Participant.objects.get_or_create(
+    participant, _ = Participant.objects.get_or_create(
         user=request.user,
         project=project
     )
+
+    # Check for auto-approvals
+    if project.automatic_authorization and not SignedAgreementForm.objects.filter(project=project, user=request.user).exclude(status="A"):
+        participant.permission = "VIEW"
+        participant.save()
 
     # Check if this project allows institutional signers
     if project.institutional_signers:
