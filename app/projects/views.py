@@ -689,7 +689,8 @@ class DataProjectView(TemplateView):
             template='projects/signup/request-access.html',
             status=step_status,
             additional_context={
-                'requested_access': requested_access
+                'requested_access': requested_access,
+                'automatic_authorization': self.project.automatic_authorization,
             }
         )
 
