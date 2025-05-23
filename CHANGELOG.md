@@ -1,3 +1,10 @@
+# [1.3.0-rc.5](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.4...v1.3.0-rc.5) (2025-05-23)
+
+
+### Bug Fixes
+
+* **projects:** Altered wording on requesting access when automated authorization is enabled for a project ([568395d](https://github.com/hms-dbmi/hypatio-app/commit/568395d6ddfc3ed56299574edaef1634fc8a0ad9))
+
 # [1.3.0-rc.4](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.3...v1.3.0-rc.4) (2025-05-22)
 
 
