@@ -20,5 +20,6 @@ urlpatterns = [
     re_path(r'^software-projects/$', list_software_projects, name='software-projects'),
     re_path(r'^healthcheck/?', include('health_check.urls')),
     re_path(r'^groups/(?P<group_key>[^/]+)/?$', GroupView.as_view(), name="group"),
+    re_path(r'^workflows/', include('workflows.urls', namespace='workflows')),
     re_path(r'^/?$', index, name='index'),
 ]

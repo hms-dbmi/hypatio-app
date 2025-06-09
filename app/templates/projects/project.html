@@ -1,8 +1,12 @@
 {% extends 'sub-base.html' %}
 {% load projects_extras %}
 {% load bootstrap3 %}
+{% load static %}
 
 {% block headscripts %}
+<link href="https://vjs.zencdn.net/8.20.0/video-js.css" rel="stylesheet" />
+<script src="https://vjs.zencdn.net/8.20.0/video.min.js"></script>
+<script src="{% static 'js/videojs-event-tracking.min.js' %}"></script>
 {% endblock %}
 
 {% block tab_name %}{{ project.name }}{% endblock %}
@@ -51,6 +55,10 @@
     </div>
 
     <div class="col-md-7">
+
+        {% for workflow in workflows %}
+          <div ic-get-from="{% url 'workflows:workflow-state' workflow_state_id=workflow.id %}" ic-trigger-on="scrolled-into-view"></div>
+        {% endfor %}
 
         {% for panel in setup_panels %}
         <div class="panel panel-{{ panel.bootstrap_color }}">

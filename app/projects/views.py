@@ -20,7 +20,7 @@ from hypatio.scireg_services import get_user_email_confirmation_status
 from profile.forms import RegistrationForm
 from hypatio.auth0authenticate import public_user_auth_and_jwt
 from hypatio.auth0authenticate import user_auth_and_jwt
-from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK, TEAM_ACTIVE, TEAM_READY
+from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK, TEAM_ACTIVE, TEAM_READY, DataProjectWorkflow
 from projects.models import AGREEMENT_FORM_TYPE_STATIC
 from projects.models import AGREEMENT_FORM_TYPE_MODEL
 from projects.models import AGREEMENT_FORM_TYPE_FILE
@@ -44,6 +44,7 @@ from projects.panels import DataProjectSignupPanel
 from projects.panels import DataProjectActionablePanel
 from projects.panels import DataProjectSharedTeamsPanel
 from projects.panels import DataProjectInstitutionalOfficialPanel
+from workflows.models import Workflow, WorkflowState
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -418,6 +419,9 @@ class DataProjectView(TemplateView):
 
         # Add panel for institutional officials
         self.panel_institutional_official(context)
+
+        # Add panel for workflows
+        self.panel_workflows(context)
 
         return context
 
@@ -877,6 +881,35 @@ class DataProjectView(TemplateView):
             context['actionable_panels'].append(panel)
         except ObjectDoesNotExist:
             pass
+
+    def panel_workflows(self, context):
+        """
+        Builds the context needed for a user to view workflows related to this DataProject.
+        """
+        # Fetch data project workflows
+        data_project_workflows = DataProjectWorkflow.objects.filter(data_project=self.project)
+
+        # Fetch states
+        workflow_states = WorkflowState.objects.filter(
+            workflow__in=[d.workflow for d in data_project_workflows],
+            user=self.request.user,
+        )
+
+        for data_project_workflow in data_project_workflows:
+
+            # Check for a workflow state for each workflow.
+            workflow_state = next((w for w in workflow_states if w.workflow == data_project_workflow.workflow), None)
+
+            # If none, create one
+            if not workflow_state:
+                workflow_state = WorkflowState.objects.create(
+                    workflow=data_project_workflow.workflow,
+                    user=self.request.user,
+                    status=WorkflowState.Status.Pending.value
+                )
+
+            # Add it to the context
+            context.setdefault("workflows", []).append(workflow_state)
 
     def panel_submit_task_solutions(self, context):
         """

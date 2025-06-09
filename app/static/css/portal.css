@@ -363,3 +363,10 @@ table.dataTable.table-hover > tbody > tr:hover > * {
     max-height: 600px;
     overflow: auto;
 }
+
+/* Workflows */
+
+.likert-end-label, .likert-label {
+    font-weight: 400;
+    font-size: 1.3rem;
+}

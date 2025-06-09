@@ -1,0 +1,24 @@
+<div id="{{ step.step.slug }}-container" class="workflow-step-container" style="margin-bottom: 10px;">
+      <div id="{{ step.step.slug }}-panel" class="panel panel-default">
+        <div id="{{ step.step.slug }}-panel-heading" class="panel-heading" role="tab" id="heading-description">
+          <a class="workflow-step-panel-heading-link" data-toggle="collapse" data-parent="#{{ step.workflow.slug }}-accordian" href="#{{ step.step.slug }}-collapse" aria-expanded="false" aria-controls="{{ step.step.slug }}-collapse">
+            {% block header %}
+              <h2 id="{{ step.step.slug }}-panel-title" class="panel-title">{{ step.step.name }}</h2>
+            {% endblock %}
+          </a>
+        </div>
+        <div id="{{ step.step.slug }}-collapse" class="panel-collapse collapse{% if step.status == 'current' %} in{% endif %}" role="tabpanel" aria-labelledby="{{ step.step.slug }}-panel-heading">
+          <div id="{{ step.step.slug }}-panel-body" class="panel-body">
+            {% block body %}
+            {% endblock %}
+          </div>
+          <div id="{{ step.step.slug }}-panel-footer" class="panel-footer">
+          {% block footer %}
+          {% endblock %}
+          </div>
+        </div>
+      </div>
+</div>
+
+{% block scripts %}
+{% endblock %}
