@@ -1,3 +1,10 @@
+# [1.3.0-rc.6](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.5...v1.3.0-rc.6) (2025-06-10)
+
+
+### Features
+
+* **workflows:** Added workflows app with an implementation for the MAIDA workflow ([ccf3440](https://github.com/hms-dbmi/hypatio-app/commit/ccf3440df84b3f3f53d4ee5d2dfebb1b434c31c7))
+
 # [1.3.0-rc.5](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.4...v1.3.0-rc.5) (2025-05-23)
 
 
