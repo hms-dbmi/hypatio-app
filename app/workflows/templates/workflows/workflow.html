@@ -1,0 +1,19 @@
+<div id="{{ workflow.workflow.slug }}-container" class="workflow-container">
+  <div class="panel panel-primary workflow-panel">
+    <div class="panel-heading">
+      <h2 class="panel-title">{{ workflow.workflow.name }}</h2>
+    </div>
+    <div class="panel-body">
+      <div class="workflow-description">
+        <p>{{ workflow.workflow.description }}</p>
+      </div>
+      <div class="workflow-steps-container">
+        <div class="panel-group" id="{{ workflow.workflow.slug }}-accordion" role="tablist" aria-multiselectable="true">
+        {% for step in steps %}
+          <div id="workflow-step-{{ step.step.slug }}-container" class="workflow-step-container" ic-get-from={% url 'workflows:step-state' step_state_id=step.id %} ic-trigger-on="scrolled-into-view" ic-deps="{% for dependency in step.dependencies %}{% url 'workflows:step-state' step_state_id=dependency.id %},{% endfor %}"></div>
+        {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

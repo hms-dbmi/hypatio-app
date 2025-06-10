@@ -59,7 +59,11 @@ INSTALLED_APPS = [
     'django_jsonfield_backport',
     'django_q',
     'django_ses',
+    'crispy_forms',
+    'crispy_bootstrap3',
+    'polymorphic',
     'pdf',
+    'workflows',
 ]
 
 MIDDLEWARE = [
@@ -205,6 +209,15 @@ COUNTRIES_FIRST = ['']
 # MEDIA FILE CONFIGURATION
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+##########
+
+#####################################################################################
+# Crispy Forms Configurations
+#####################################################################################
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = ("bootstrap3", "maida-forms", )
+CRISPY_TEMPLATE_PACK = "bootstrap3"
 
 ##########
 

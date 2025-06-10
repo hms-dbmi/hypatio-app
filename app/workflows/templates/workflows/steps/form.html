@@ -1,0 +1,52 @@
+{% extends "workflows/step.html" %}
+
+{% load bootstrap3 %}
+{% load crispy_forms_tags %}
+
+{% block body %}
+ {% if step.status == "current" %}
+  <form id="{{ step.step.slug }}-form" name="{{ step.step.slug }}-form"
+        ic-post-to="{% url 'workflows:step-state' step_state_id=step.id %}"
+        ic-on-error="handleFormError(status, str, xhr, '#{{ step.step.slug }}-form')"
+        ic-target="#{{ step.step.slug }}-container"
+        ic-replace-target="true"
+        ic-transition-duration="2s"
+        ic-on-beforeSend="toggleFormButtons('#{{ step.step.slug }}-form');"
+        ic-on-complete="toggleFormButtons('#{{ step.step.slug }}-form');"
+        ic-on-success="$('#{{ step.step.slug }}-submit').html('Submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success')">
+    {% crispy form %}
+  </form>
+  {% elif status == "completed" %}
+    <p>This step has been completed</p>
+  {% endif %}
+{% endblock %}
+
+{% block footer %}
+ {% if step.status == "current" %}
+  <button id="{{ step.step.slug }}-submit" type="submit" form="{{ step.step.slug }}-form" class="btn btn-primary">
+    Submit
+    <i class="ic-indicator fa fa-spinner fa-spin" style="display:none; margin-left: 5px;"></i>
+  </button>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+
+function handleFormError(status, str, xhr, formId) {
+  console.log("Form submission error:", status, str, xhr);
+
+  $(formId + ' .ic-indicator').hide();
+  $(formId + ' button[type="submit"]').prop('disabled', false);
+  $(formId + ' .form-group').removeClass('has-error');
+  $(formId + ' .error-message').remove();
+
+  // Handle specific error messages
+  const errors = JSON.parse(xhr.responseText);
+  for (let field in errors) {
+    const fieldElement = $(formId + ' [name="' + field + '"]');
+    fieldElement.closest('.form-group').addClass('has-error');
+  }
+}
+</script>
+{% endblock %}

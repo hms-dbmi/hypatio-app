@@ -18,6 +18,7 @@ from projects.models import ChallengeTaskSubmissionDownload
 from projects.models import Bucket
 from projects.models import InstitutionalOfficial
 from projects.models import DataUseReportRequest
+from projects.models import DataProjectWorkflow
 
 
 class GroupAdmin(admin.ModelAdmin):
@@ -96,6 +97,10 @@ class DataUseReportRequestAdmin(admin.ModelAdmin):
     list_display = ('participant', 'data_project', 'created', 'modified')
     search_fields = ('participant__user__email', )
 
+class DataProjectWorkflowAdmin(admin.ModelAdmin):
+    list_display = ('data_project', 'workflow', 'created', 'modified')
+    search_fields = ('workflow', )
+
 admin.site.register(Group, GroupAdmin)
 admin.site.register(Bucket, BucketAdmin)
 admin.site.register(DataProject, DataProjectAdmin)
@@ -112,3 +117,4 @@ admin.site.register(ChallengeTask, ChallengeTaskAdmin)
 admin.site.register(ChallengeTaskSubmission, ChallengeTaskSubmissionAdmin)
 admin.site.register(ChallengeTaskSubmissionDownload, ChallengeTaskSubmissionDownloadAdmin)
 admin.site.register(DataUseReportRequest, DataUseReportRequestAdmin)
+admin.site.register(DataProjectWorkflow, DataProjectWorkflowAdmin)

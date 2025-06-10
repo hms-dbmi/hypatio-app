@@ -1,0 +1,26 @@
+{% load crispy_forms_filters %}
+{% load l10n %}
+
+<div class="controls {{ field_class }}"{% if flat_attrs %} {{ flat_attrs }}{% endif %}>
+    {% include 'maida-forms/layout/field_errors_block.html' %}
+    {% spaceless %}
+    <div style="display:table; width: 100%; table-layout:fixed;">
+    {% for group, options, index in field|optgroups %}
+    {% if group %}<strong>{{ group }}</strong>{% endif %}
+    {% for option in options %}
+      {% if not inline_class %}<div class="radio-option" style="display: table-cell; text-align: center; vertical-align: bottom;">{% endif %}
+        {% if forloop.parentloop.first %}
+        <label style="display: block;" for="{{ option.attrs.id }}" class="control-label likert-end-label">{{ left_label }}</label>
+        {% endif %}
+        {% if forloop.parentloop.last %}
+        <label style="display: block;" for="{{ option.attrs.id }}" class="control-label likert-end-label">{{ right_label }}</label>
+        {% endif %}
+        <label style="display: block;" for="{{ option.attrs.id }}" class="control-label likert-label {% if inline_class %}radio-{{ inline_class }}{% endif %}">{{ option.label|unlocalize }}</label>
+        <input type="radio" name="{{ field.html_name }}" value="{{ option.value|unlocalize }}" {% include "maida-forms/layout/attrs.html" with widget=option %}>
+      {% if not inline_class %}</div>{% endif %}
+    {% endfor %}
+    {% endfor %}
+    </div>
+    {% endspaceless %}
+    {% include 'maida-forms/layout/help_text.html' %}
+</div>

@@ -437,6 +437,24 @@ class DataProject(models.Model):
             raise ValidationError('A Project cannot share teams if it is using shared teams from another project')
 
 
+class DataProjectWorkflow(models.Model):
+    """
+    This represents a workflow that is associated with a DataProject.
+    """
+
+    data_project = models.ForeignKey(DataProject, on_delete=models.CASCADE, related_name='workflows')
+    workflow = models.ForeignKey("workflows.Workflow", on_delete=models.CASCADE, related_name='data_project_workflows')
+    requires_approval = models.BooleanField(default=False, help_text="Set this to true if this workflow requires approval before it can be marked as completed. This is used to determine if the workflow should be shown to users who have not yet been authorized for the project.")
+    post_authorization = models.BooleanField(default=False, help_text="Set this to true if this workflow is intended for post-authorization dashboards. This will be used to determine if the workflow should be shown to users who have not yet been authorized for the project.")
+    is_repeatable = models.BooleanField(default=False, help_text="Set this to true if this workflow can be repeated by users. This is used to determine if the workflow should be shown to users who have already completed it.")
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('data_project', 'workflow',)
+
 
 class InstitutionalOfficial(models.Model):
     """
