@@ -23,13 +23,14 @@
       ic-target="#workflow-step-{{ step.step.slug }}-container"
       ic-replace-target="true" ic-include='{"refresh": true}'>
     </div>
-    {% elif step.status == "completed" %}
-    <p>This step has been completed</p>
+    {% elif step.status == StepStateStatus.Completed.value %}
+      <p>This step has been completed</p>
     {% endif %}
   </div>
 {% endblock %}
 
 {% block footer %}
+  {{ block.super }}
  {% if step.status == "current" %}
     <div id="file-upload-progress-container" class="collapse">
       <div class="progress">
@@ -45,8 +46,6 @@
       <button id="file-upload-abort-button" type="button" class="btn btn-danger file-upload-abort" style="display: none;"
         data-loading-text="<i class='fa fa-spinner fa-spin'></i>&nbsp;&nbsp;Aborting file upload...">Abort</button>
     </div>
-  {% elif step.status == "completed" %}
-  <button type="button" class="btn btn-default" role="button" data-toggle="collapse" data-parent="#{{ step.workflow.slug }}-accordian" href="#{{ step.step.slug }}-collapse" aria-expanded="false" aria-controls="{{ step.step.slug }}-collapse">Hide</button>
   {% endif %}
 {% endblock %}
 

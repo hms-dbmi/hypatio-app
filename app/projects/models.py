@@ -3,6 +3,7 @@ import re
 import importlib
 from datetime import datetime
 from typing import Optional, Tuple
+from collections import defaultdict, deque
 
 import boto3
 from botocore.exceptions import ClientError
@@ -15,6 +16,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.utils.translation import gettext_lazy as _
 
 import projects
+from workflows.models import WorkflowDependency
 
 import logging
 logger = logging.getLogger(__name__)
@@ -435,6 +437,38 @@ class DataProject(models.Model):
 
         if self.teams_source and self.shares_teams:
             raise ValidationError('A Project cannot share teams if it is using shared teams from another project')
+
+    def get_ordered_workflows(self) -> list["Workflow"]:
+
+        # Fetch all workflows and their dependencies for the data project
+        workflows = [data_project_workflow.workflow for data_project_workflow in DataProjectWorkflow.objects.filter(data_project=self)]
+        dependencies = WorkflowDependency.objects.filter(workflow__in=workflows)
+
+        # Build graph
+        graph = defaultdict(list)
+        in_degree = {workflow.id: 0 for workflow in workflows}
+
+        for dep in dependencies:
+            graph[dep.depends_on_id].append(dep.workflow_id)
+            in_degree[dep.workflow_id] += 1
+
+        # Kahn's algorithm (topological sort)
+        queue = deque([workflow_id for workflow_id, deg in in_degree.items() if deg == 0])
+        step_map = {workflow.id: workflow for workflow in workflows}
+        ordered = []
+
+        while queue:
+            current = queue.popleft()
+            ordered.append(step_map[current])
+            for neighbor in graph[current]:
+                in_degree[neighbor] -= 1
+                if in_degree[neighbor] == 0:
+                    queue.append(neighbor)
+
+        if len(ordered) != len(workflows):
+            raise Exception("Cycle detected in workflow dependencies.")
+
+        return ordered
 
 
 class DataProjectWorkflow(models.Model):

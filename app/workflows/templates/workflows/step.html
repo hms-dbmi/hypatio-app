@@ -1,7 +1,7 @@
-<div id="{{ step.step.slug }}-container" class="workflow-step-container" style="margin-bottom: 10px;">
+<div id="{{ step.step.slug }}-content" class="step-content step-status-{{ step.status }}" style="margin-bottom: 10px;" data-step-state-status="{{ step.status }}">
       <div id="{{ step.step.slug }}-panel" class="panel panel-default">
         <div id="{{ step.step.slug }}-panel-heading" class="panel-heading" role="tab" id="heading-description">
-          <a class="workflow-step-panel-heading-link" data-toggle="collapse" data-parent="#{{ step.workflow.slug }}-accordian" href="#{{ step.step.slug }}-collapse" aria-expanded="false" aria-controls="{{ step.step.slug }}-collapse">
+          <a class="workflow-step-panel-heading-link {{ step.status }}{% if step.status != StepStateStatus.Current.value %} collapsed{% endif %}" data-toggle="collapse" data-parent="#{{ step.workflow.slug }}-accordian" href="#{{ step.step.slug }}-collapse" aria-expanded="false" aria-controls="{{ step.step.slug }}-collapse">
             {% block header %}
               <h2 id="{{ step.step.slug }}-panel-title" class="panel-title">{{ step.step.name }}</h2>
             {% endblock %}
@@ -14,11 +14,26 @@
           </div>
           <div id="{{ step.step.slug }}-panel-footer" class="panel-footer">
           {% block footer %}
+            {% if step.status == StepStateStatus.Completed.value %}
+            <button type="button" class="btn btn-default" role="button" data-toggle="collapse" data-parent="#{{ step.workflow.slug }}-accordian" href="#{{ step.step.slug }}-collapse" aria-expanded="false" aria-controls="{{ step.step.slug }}-collapse">Hide</button>
+            {% endif %}
           {% endblock %}
           </div>
         </div>
       </div>
 </div>
+
+{% if step.status == StepStateStatus.Completed.value %}
+<script type="application/javascript">
+$(function(){
+
+  // Get step and workflow container elements
+  var workflowContainer = $("#workflow-{{ step.step.workflow.slug }}-container");
+  var stepContainer = $("#workflow-step-{{ step.step.slug }}-container");
+  checkWorkflowStateStatus(workflowContainer, stepContainer, "{{ WorkflowStateStatus.Completed.value }}");
+});
+</script>
+{% endif %}
 
 {% block scripts %}
 {% endblock %}

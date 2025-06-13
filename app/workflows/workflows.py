@@ -1,4 +1,6 @@
 from copy import copy
+from typing import Any
+from datetime import datetime
 
 from django.views import View
 from django.http import HttpResponse
@@ -7,9 +9,11 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.http import QueryDict
 from django.core import exceptions
+from django.urls import reverse
 from dbmi_client import fileservice as dbmi_fileservice
 
 from hypatio import file_services as fileservice
+from workflows.models import WorkflowState
 from workflows.models import StepState
 
 import logging
@@ -25,14 +29,42 @@ class WorkflowController:
     def __init__(self, workflow_state):
         self.workflow_state = workflow_state
 
+    def set_response_headers(self, response):
+        """
+        Sets any needed headers in the response for UI updates, etc.
+        """
+        pass
+
+    def return_response(self, request, template = None, context = None) -> HttpResponse:
+        """
+        Builds and returns the response given the template and context.
+        """
+        if not template:
+            template = self.template
+
+        if not context:
+            context = {}
+
+        # Add some constants to the context
+        if not context.get("WorkflowStateStatus"):
+            context["WorkflowStateStatus"] = WorkflowState.Status.__members__
+        if not context.get("StepStateStatus"):
+            context["StepStateStatus"] = StepState.Status.__members__
+
+        # Make the response
+        response = render(request, template, context)
+
+        # Set any headers needed
+        self.set_response_headers(response)
+
+        return response
+
     def get(self, request, *args, **kwargs):
         """
         Build the context for rendering the workflow.
         """
         # Retrieve step states
         step_states = self.workflow_state.get_ordered_step_states()
-
-        print(step_states)
 
         # Build the context.
         context = {
@@ -41,7 +73,38 @@ class WorkflowController:
         }
 
         # Render it.
-        return render(request, self.template, context)
+        return self.return_response(request, self.template, context)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Build the context for rendering the workflow.
+        """
+        logger.debug(f"[StepController][post] {request.POST}")
+
+        # Check data for status
+        status = request.POST.get("workflow-state-status")
+        try:
+            WorkflowState.Status(status)
+
+            # Set it and save it
+            self.workflow_state.status = status
+            self.workflow_state.save()
+
+        except Exception:
+            logger.error(f"[WorkflowController][post] Invalid status: {status}")
+            return HttpResponse(status=400)
+
+        # Retrieve step states
+        step_states = self.workflow_state.get_ordered_step_states()
+
+        # Build the context.
+        context = {
+            "workflow": self.workflow_state,
+            "steps": step_states,
+        }
+
+        # Render it.
+        return self.return_response(request, self.template, context)
 
 
 class StepController:
@@ -50,43 +113,98 @@ class StepController:
     """
     template = "workflows/step.html"
 
-    request_data_fields = [
-        "ic-id", "_method", "ic-request", "ic-target-id",
-        "ic-element-id", "ic-current-url", "ic-trigger-id", "ic-trigger-name",
-        "csrfmiddlewaretoken"
-    ]
-
     def __init__(self, step_state):
         self.step_state = step_state
+
+    def request_data_fields(self) -> list[str]:
+        """
+        Returns a list of key names for data fields to remove from data objects
+        before saving them.
+        """
+        return [
+            "ic-id", "_method", "ic-request", "ic-target-id",
+            "ic-element-id", "ic-current-url", "ic-trigger-id", "ic-trigger-name",
+            "csrfmiddlewaretoken"
+        ]
+
+    def persist_data(self, data: dict[str, Any]):
+        """
+        Accepts the data from the step and persists it accordingly.
+        """
+        # Remove request fields
+        cleaned_data = {k:v for k, v in data.items() if k not in self.request_data_fields()}
+        self.step_state.data = cleaned_data
+        self.step_state.save()
+
+    def set_completed(self, completed_at: datetime = timezone.now()):
+        """
+        Sets the StepState as completed and saves the data.
+        """
+        # Set is as completed, if not indefinite
+        if not self.step_state.step.indefinite:
+            self.step_state.status = StepState.Status.Completed.value
+            self.step_state.completed_at = completed_at
+            self.step_state.save()
+
+    def set_response_headers(self, response):
+        """
+        Sets any needed headers in the response for UI updates, etc.
+        """
+        pass
+
+    def return_response(self, request, template = None, context = None) -> HttpResponse:
+        """
+        Builds and returns the response given the template and context.
+        """
+        if not template:
+            template = self.template
+
+        if not context:
+            context = {}
+
+        # Add some constants to the context
+        if not context.get("WorkflowStateStatus"):
+            context["WorkflowStateStatus"] = WorkflowState.Status.__members__
+        if not context.get("StepStateStatus"):
+            context["StepStateStatus"] = StepState.Status.__members__
+
+        # Make the response
+        response = render(request, template, context)
+
+        # Set any headers needed
+        self.set_response_headers(response)
+
+        return response
 
     def get(self, request, *args, **kwargs):
         """
         Build the context for rendering the step.
         """
+        logger.debug("[StepController][get]")
         context = {
             "step": self.step_state,
         }
 
-        return render(request, self.template, context)
+        return self.return_response(request, self.template, context)
 
     def post(self, request, *args, **kwargs):
-
-        # Strip request related data
-        data = {k:v for k, v in request.POST.items() if k not in self.request_data_fields}
+        """
+        Handle input from the step.
+        """
+        logger.debug("[StepController][post]")
 
         # Save the data
-        self.step_state.data = data
-        self.step_state.status = StepState.Status.Completed.value
-        self.step_state.completed_at = timezone.now()
-        self.step_state.save()
+        self.persist_data(request.POST)
+
+        # Update the state
+        self.set_completed(completed_at=timezone.now())
 
         # Set new context
         context = {
             "step": self.step_state,
         }
 
-        # Render it.
-        return render(request, self.template, context)
+        return self.return_response(request, self.template, context)
 
     @classmethod
     def controller_classes(cls) -> list[(str, str)]:
@@ -107,7 +225,7 @@ class FormStepController(StepController):
         Build the context for rendering the step with a form.
         """
         logger.debug("[FormStepController][get]")
-        print(self.controller_classes())
+
         # Initialize the form class
         form = self.step_state.step.form()
 
@@ -117,31 +235,32 @@ class FormStepController(StepController):
             "form": form,
         }
 
-        return render(request, self.template, context)
+        return self.return_response(request, self.template, context)
 
     def post(self, request, *args, **kwargs):
+        """
+        Handle input from the form on the step.
+        """
         logger.debug("[FormStepController][post]")
 
         # Initialize the form class
         form = self.step_state.step.form(request.POST)
         if not form.is_valid():
             logger.debug(f"[FormStepController][post] - Form is not valid: {form.errors.as_json()}")
-
             return HttpResponse(form.errors.as_json(), status=400)
 
         # Save the data
-        self.step_state.data = form.cleaned_data
-        self.step_state.status = StepState.Status.Completed.value
-        self.step_state.completed_at = timezone.now()
-        self.step_state.save()
+        self.persist_data(request.POST)
+
+        # Update the state
+        self.set_completed(completed_at=timezone.now())
 
         # Set new context
         context = {
             "step": self.step_state,
         }
 
-        # Render it.
-        return render(request, self.template, context)
+        return self.return_response(request, self.template, context)
 
 
 class FileUploadStepController(StepController):
@@ -149,6 +268,9 @@ class FileUploadStepController(StepController):
     template = "workflows/steps/upload-file.html"
 
     def get(self, request, *args, **kwargs):
+        """
+        Handle input from the form on the step.
+        """
         logger.debug("[FileUploadStepController][get]")
 
         # Initialize the form class
@@ -162,7 +284,7 @@ class FileUploadStepController(StepController):
             "file_content_types": [m.value for m in self.step_state.step.allowed_media_types.all()],
         }
 
-        return render(request, self.template, context)
+        return self.return_response(request, self.template, context)
 
     def post(self, request, *args, **kwargs):
         logger.debug("[FileUploadStepController][post]")
@@ -176,8 +298,7 @@ class FileUploadStepController(StepController):
                 "step": self.step_state,
             }
 
-            # Return the current state of the step
-            return render(request, self.template, context)
+            return self.return_response(request, self.template, context)
 
         # Assembles the form and runs validation.
         filename = request.POST.get('filename')
@@ -235,10 +356,10 @@ class FileUploadStepController(StepController):
                 logger.debug('[FileUploadStepController][patch] Fileservice uploadCompleted succeeded')
 
                 # Save the data
-                self.step_state.data = upload_data
-                self.step_state.status = StepState.Status.Completed.value
-                self.step_state.completed_at = timezone.now()
-                self.step_state.save()
+                self.persist_data(request.POST)
+
+                # Update the state
+                self.set_completed(completed_at=timezone.now())
 
             return HttpResponse(status=200)
 
@@ -257,26 +378,28 @@ class VideoStepController(StepController):
         """
         Build the context for rendering the step.
         """
+        logger.debug("[VideoStepController][get]")
+
         context = {
             "step": self.step_state,
             "thumbnail": self.step_state.step.thumbnail_url,
             "video": self.step_state.step.video_url,
         }
 
-        return render(request, self.template, context)
+        return self.return_response(request, self.template, context)
 
     def post(self, request, *args, **kwargs):
+        logger.debug("[VideoStepController][post]")
 
         # Save the data
-        self.step_state.data = request.POST
-        self.step_state.status = StepState.Status.Completed.value
-        self.step_state.completed_at = timezone.now()
-        self.step_state.save()
+        self.persist_data(request.POST)
+
+        # Update the state
+        self.set_completed(completed_at=timezone.now())
 
         # Set new context
         context = {
             "step": self.step_state,
         }
 
-        # Render it.
-        return render(request, self.template, context)
+        return self.return_response(request, self.template, context)

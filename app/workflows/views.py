@@ -22,6 +22,19 @@ class WorkflowStateView(View):
         # Render it.
         return controller.get(request)
 
+    def post(self, request, workflow_state_id):
+        """
+        Handle input from a workflow view.
+        """
+        # Get the workflow.
+        workflow_state = get_object_or_404(WorkflowState, id=workflow_state_id)
+
+        # Initialize the controller class.
+        controller = workflow_state.workflow.controller(workflow_state)
+
+        # Render it.
+        return controller.post(request)
+
 
 class StepStateView(View):
     """

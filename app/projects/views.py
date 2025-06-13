@@ -12,6 +12,7 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.shortcuts import redirect
+from django.utils import timezone
 
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.dbmiauthz_services import DBMIAuthz
@@ -886,26 +887,27 @@ class DataProjectView(TemplateView):
         """
         Builds the context needed for a user to view workflows related to this DataProject.
         """
-        # Fetch data project workflows
-        data_project_workflows = DataProjectWorkflow.objects.filter(data_project=self.project)
+        # Get ordered workflows
+        data_project_workflows = self.project.get_ordered_workflows()
 
         # Fetch states
         workflow_states = WorkflowState.objects.filter(
-            workflow__in=[d.workflow for d in data_project_workflows],
+            workflow__in=data_project_workflows,
             user=self.request.user,
         )
 
         for data_project_workflow in data_project_workflows:
 
             # Check for a workflow state for each workflow.
-            workflow_state = next((w for w in workflow_states if w.workflow == data_project_workflow.workflow), None)
+            workflow_state = next((w for w in workflow_states if w.workflow == data_project_workflow), None)
 
             # If none, create one
             if not workflow_state:
                 workflow_state = WorkflowState.objects.create(
-                    workflow=data_project_workflow.workflow,
+                    workflow=data_project_workflow,
                     user=self.request.user,
-                    status=WorkflowState.Status.Pending.value
+                    status=WorkflowState.Status.Pending.value,
+                    started_at=timezone.now(),
                 )
 
             # Add it to the context

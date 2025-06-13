@@ -14,6 +14,9 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from polymorphic.models import PolymorphicModel
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Workflow(models.Model):
     """
@@ -131,6 +134,7 @@ class Step(PolymorphicModel):
         default='workflows.workflows.StepController',
         help_text="The fully-qualified class name for the step. This is used to determine how the step should be rendered and processed."
     )
+    indefinite = models.BooleanField(default=False, help_text="If true, this step will stay 'current' when set as such.")
 
     # Relationships
     workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE, related_name='steps')
@@ -198,6 +202,27 @@ class Step(PolymorphicModel):
         """
         return re.sub(r'[^a-z0-9]+', '-', self.name.lower())
 
+
+class WorkflowDependency(models.Model):
+    """
+    This links workflows as dependencies. Each record says:
+    'workflow' depends on 'depends_on'.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Relationships
+    workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE, related_name='dependencies')
+    depends_on = models.ForeignKey(Workflow, on_delete=models.CASCADE, related_name='dependents')
+
+    # Meta
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('workflow', 'depends_on')
+
+    def __str__(self):
+        return f"{self.workflow.name} depends on {self.depends_on.name}"
 
 class StepDependency(models.Model):
     """
@@ -267,23 +292,28 @@ class WorkflowState(models.Model):
             # Fetch steps
             steps = self.workflow.get_ordered_steps()
 
+            # Nothing to do if no steps
+            if not steps:
+                return
+
+            # Create the first step with relevant properties.
+            StepState.objects.create(
+                step=steps[0],
+                user=self.user,
+                workflow_state=self,
+                status=StepState.Status.Current.value,
+                started_at=self.started_at,
+            )
+
             # Create step states for each
-            for step in steps:
+            for step in steps[1:]:
 
-                # Set kwargs for creating the step state
-                kwargs = {
-                    'step': step,
-                    'user': self.user,
-                    'workflow_state': self,
-                    'status': StepState.Status.Pending.value,
-                }
-
-                # Only start the first step
-                if step == steps[0]:
-                    kwargs['status'] = StepState.Status.Current.value
-                    kwargs['started_at'] = self.started_at
-
-                StepState.objects.create(**kwargs)
+                StepState.objects.create(
+                    step=step,
+                    user=self.user,
+                    workflow_state=self,
+                    status=StepState.Status.Pending.value,
+                )
 
     def get_ordered_step_states(self) -> list[Self]:
         """
@@ -305,27 +335,51 @@ class WorkflowState(models.Model):
         """
         Iterates this workflows step states and calculates their status.
         """
+        # Track if the workflow is completed or not
+        workflow_completed = True
         for step_state in self.get_ordered_step_states():
 
-            # Nothing to do it complete
-            if step_state.status != StepState.Status.Pending.value:
+            # Nothing to do if first step
+            if not step_state.dependencies():
+                logger.debug(f"[WorkflowState/{self.id}][set_step_statuses] StepState/{step_state.id} has no dependencies, continuing")
+                continue
+            elif step_state.status == StepState.Status.Completed.value:
+                logger.debug(f"[WorkflowState/{self.id}][set_step_statuses] StepState/{step_state.id} is completed, continuing")
                 continue
 
-            # Get its dependencies
+            # Get its dependencies and check their statuses
             dependencies = step_state.dependencies()
-            for dependency in dependencies:
+            dependency_statuses = [dependency.status for dependency in dependencies]
 
-                # If all dependencies are completed, set this step to current
-                if dependency.status != StepState.Status.Completed.value:
-                    break
+            # If all are completed, set this one to current
+            if all(status == StepState.Status.Completed.value for status in dependency_statuses):
+                status = StepState.Status.Current.value
+                started_at = timezone.now() if not step_state.started_at else step_state.started_at
 
-                else:
-                    # Set it to current
-                    step_state.status = StepState.Status.Current.value
-                    step_state.started_at = self.started_at or self.created_at
+            else:
+                # Set it to pending
+                status = StepState.Status.Pending.value
+                started_at = None
 
-                    # Save the updated state
-                    step_state.save()
+            # Compare the properties to set with the existing values
+            if step_state.status != status or step_state.started_at != started_at:
+                logger.debug(f"[WorkflowState/{self.id}][set_step_statuses] StepState/{step_state.id} is {status}")
+
+                # Save updated values
+                step_state.status = status
+                step_state.started_at = started_at
+                step_state.save()
+
+            # If status is anything but completed, the workflow is not completed
+            workflow_completed = step_state.status == StepState.Status.Completed.value
+
+        # If workflow is completed, save it.
+        if workflow_completed and self.status != WorkflowState.Status.Completed.value:
+            logger.debug(f"[WorkflowState/{self.id}][set_step_statuses] Workflow state is completed")
+
+            self.status = WorkflowState.Status.Completed.value
+            self.completed_at = timezone.now()
+            self.save()
 
 class StepState(models.Model):
     """

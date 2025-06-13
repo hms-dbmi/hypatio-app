@@ -1,12 +1,18 @@
 from django.contrib import admin
 from polymorphic.admin import PolymorphicParentModelAdmin, PolymorphicChildModelAdmin
 
-from workflows.models import Workflow, Step, StepDependency, WorkflowState, StepState, MediaType, FormStep, VideoStep, FileUploadStep
+from workflows.models import Workflow, WorkflowDependency, Step, StepDependency, WorkflowState, StepState, MediaType, FormStep, VideoStep, FileUploadStep
 
 
 @admin.register(Workflow)
 class WorkflowAdmin(admin.ModelAdmin):
     list_display = ('name', 'class_name', 'priority', 'created_at', 'modified_at', )
+    readonly_fields = ('created_at', 'modified_at', )
+
+
+@admin.register(WorkflowDependency)
+class WorkflowDependencyAdmin(admin.ModelAdmin):
+    list_display = ('workflow', 'depends_on', 'created_at', 'modified_at', )
     readonly_fields = ('created_at', 'modified_at', )
 
 
