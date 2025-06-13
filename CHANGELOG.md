@@ -1,3 +1,10 @@
+# [1.3.0-rc.7](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.6...v1.3.0-rc.7) (2025-06-13)
+
+
+### Features
+
+* **workflows:** Added workflow dependencies; fixed some of the initialization of a workflow state; updated UI elements in a workflow ([7a04b00](https://github.com/hms-dbmi/hypatio-app/commit/7a04b00312d2c97915e7932605bb911bb1911ea8))
+
 # [1.3.0-rc.6](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.5...v1.3.0-rc.6) (2025-06-10)
 
 
