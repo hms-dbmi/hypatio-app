@@ -1,0 +1,30 @@
+a.workflow-step-panel-heading-link,
+a.workflow-step-panel-heading-link:hover,
+a.workflow-step-panel-heading-link:active,
+a.workflow-step-panel-heading-link:visited,
+a.workflow-step-panel-heading-link:focus {
+    text-decoration:none;
+}
+
+.workflow-step-panel-heading-link:hover {
+    color: #123553;
+}
+
+.workflow-step-panel-heading-link .panel-title:after {
+    font-family:'Glyphicons Halflings';
+    content:"\e113";
+    float: right;
+}
+
+.workflow-step-panel-heading-link.collapsed .panel-title:after {
+    content:"\e114";
+}
+
+.workflow-step-panel-heading-link.completed.collapsed .panel-title:after {
+    content:"\E067";
+    color: #5cb85c;
+}
+
+.workflow-step-panel-heading-link.completed .panel-title:after {
+    content:"\e113";
+}
