@@ -5,7 +5,6 @@
 {% load bootstrap3 %}
 
 {% block body %}
-  <div id="step-{{ step.step.slug }}-content" class="step-content">
   {% if step.status == "current" %}
     <form id="file-upload-form" name="file-upload-form">
       {% csrf_token %}
@@ -26,7 +25,6 @@
     {% elif step.status == StepStateStatus.Completed.value %}
       <p>This step has been completed</p>
     {% endif %}
-  </div>
 {% endblock %}
 
 {% block footer %}

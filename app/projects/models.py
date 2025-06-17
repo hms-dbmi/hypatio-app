@@ -14,9 +14,12 @@ from django.core.exceptions import ValidationError
 from django.db.models import JSONField
 from django.core.files.uploadedfile import UploadedFile
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 import projects
+from workflows.models import Workflow
 from workflows.models import WorkflowDependency
+from workflows.models import WorkflowState
 
 import logging
 logger = logging.getLogger(__name__)
@@ -438,7 +441,7 @@ class DataProject(models.Model):
         if self.teams_source and self.shares_teams:
             raise ValidationError('A Project cannot share teams if it is using shared teams from another project')
 
-    def get_ordered_workflows(self) -> list["Workflow"]:
+    def get_ordered_workflows(self) -> list[Workflow]:
 
         # Fetch all workflows and their dependencies for the data project
         workflows = [data_project_workflow.workflow for data_project_workflow in DataProjectWorkflow.objects.filter(data_project=self)]
@@ -470,6 +473,82 @@ class DataProject(models.Model):
 
         return ordered
 
+    def get_ordered_workflow_states(self, user) -> list[WorkflowState]:
+        """
+        Returns an ordered list of all WorkflowState objects that map to the
+        Workflow objects returned in `get_ordered_workflows`.
+        """
+        # Get workflows
+        workflows = self.get_ordered_workflows()
+
+        # Get workflow states
+        workflow_states = WorkflowState.objects.filter(workflow__in=workflows, user=user)
+
+        # Order them and return them
+        ordered_workflow_states = []
+        for workflow in workflows:
+
+            # Get matching workflow state
+            ordered_workflow_states.append(next((w for w in workflow_states if w.workflow == workflow), None))
+
+        return ordered_workflow_states
+
+    def get_or_create_workflow_state(self, workflow, user) -> tuple[WorkflowState, bool]:
+        """
+        Fetches or creates a WorkflowState object for the given Workflow and User.
+        Returns the WorkflowState object and a bool indicating whether it was
+        created or not.
+        """
+        # Attempt to fetch it.
+        workflow_state = next((w for w in self.get_ordered_workflow_states(user) if w is not None and w.workflow == workflow), None)
+        if not workflow_state:
+            
+            # Create it.
+            workflow_state = WorkflowState.objects.create(
+                workflow=workflow,
+                user=user,
+            )
+
+        return workflow_state
+    
+    def set_workflow_states(self, user) -> list[WorkflowState]:
+        """
+        Iterates Workflows assigned to this DataProject and fetches or creates
+        each of the WorkflowState objects for the current user.
+        """
+        # Get ordered workflows
+        workflows = self.project.get_ordered_workflows()
+        if not workflows:
+            return []
+
+        # Keep a list
+        workflow_states = []
+
+        # Iterate Workflows
+        for index, workflow in enumerate(workflows):
+
+            # Check for a workflow state for each workflow.
+            workflow_state, created = self.project.get_or_create_workflow_state(workflow, user)
+            if created:
+
+                # Determine status by checking the dependent workflows
+                status = WorkflowState.Status.Current.value
+                for workflow in workflow.get_dependencies():
+
+                    # Get the matching WorkflowState
+                    workflow_state_dependency = next((w for w in workflow_states if w.workflow == workflow), None)
+                    if workflow_state_dependency.status != WorkflowState.Status.Completed.value:
+                        status = WorkflowState.Status.Pending.value
+
+                # Update it
+                workflow_state.status = status
+                workflow_state.started_at = timezone.now() if status == WorkflowState.Status.Current.value else None
+                workflow_state.save()
+
+            # Add it
+            workflow_states.append(workflow_state)
+            
+        return workflow_states
 
 class DataProjectWorkflow(models.Model):
     """

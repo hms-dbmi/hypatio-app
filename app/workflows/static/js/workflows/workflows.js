@@ -1,37 +1,65 @@
+// This function checks to ensure all of a workflows steps have been loaded
+// and rendered fully.
+function checkWorkflowStateStepsLoaded(workflowContainer) {
+
+    // For each step-container, ensure there is a step-content element.
+    const workflowId = $(workflowContainer).attr("id");
+    var isLoaded = true;
+    $(workflowContainer).find(".workflow-step-container").each(function() {
+
+        // Ensure a step-content element exists and check the status.
+        var stepContent = $(this).find(".step-content").first();
+        isLoaded = stepContent !== undefined && stepContent.data("step-state-status") !== undefined;
+    });
+
+    if ( isLoaded )
+        console.log(`[checkWorkflowStateStepsLoaded][${workflowId}] Is loaded`);
+
+    return isLoaded;
+}
+
+
 // This function checks a workflows steps to see if they're all recently completed
 // and updates the workflow accordingly.
 function checkWorkflowStateStatus(workflowContainer, stepContainer, completedStatus = "completed") {
-    console.log(`[checkWorkflowStatus] ${completedStatus}`);
+
+    // Ensure workflow is fully loaded and rendered.
+    if ( !checkWorkflowStateStepsLoaded(workflowContainer) )
+        return;
+
+    // Get statuses
+    const workflowId = $(workflowContainer).attr("id");
+    const workflowStatus = $(workflowContainer).find(".workflow-content").first().data("workflow-state-status");
+    const stepId = $(stepContainer).attr("id");
+    const stepStatus = $(stepContainer).find(".step-content").first().data("step-state-status");
 
     // Only perform check when workflow is not completed.
-    if ( $(workflowContainer).find(".workflow-content").first().data("workflow-state-status") === completedStatus ) {
-        console.log("Skipping " + $(workflowContainer).attr("id") + " -> " + $(workflowContainer).find(".workflow-content").first().data("workflow-state-status"));
+    if ( workflowStatus === completedStatus ) {
+        console.log(`[checkWorkflowStateStatus][${workflowId}] Status: ${workflowStatus}, skipping`);
         return;
     }
 
     // Only perform check when the current step is complete.
-    if ( $(stepContainer).find(".step-content").first().data("step-state-status") !== completedStatus ) {
-        console.log("Skipping " + $(stepContainer).attr("id") + " -> " + $(stepContainer).find(".step-content").first().data("step-state-status"));
+    if ( stepStatus !== completedStatus ) {
+        console.log(`[checkWorkflowStateStatus][${stepId}] Status: ${stepStatus}, skipping`);
         return;
     }
 
     // Check status of steps.
     var workflowCompleted = true;
     $(workflowContainer).find(".step-content").each(function() {
-        console.log($(this).attr("id") + ' -> ' + $(this).data("step-state-status"));
+
         // Check status
         workflowCompleted = $(this).data("step-state-status") === completedStatus;
     });
 
     // Update the workflow if completed
+    console.log(`[checkWorkflowStateStatus][${workflowId}] Completed: ${workflowCompleted}`);
     if ( workflowCompleted ) {
-        console.log("Workflow is completed!");
 
         // Update the workflow state
+        console.log(`[checkWorkflowStateStatus][${workflowId}] Updating`);
         updateWorkflowStateStatus(workflowContainer, completedStatus);
-
-    } else {
-        console.log("Workflow is incomplete");
     }
 }
 

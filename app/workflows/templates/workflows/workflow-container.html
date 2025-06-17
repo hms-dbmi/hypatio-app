@@ -1,0 +1,12 @@
+<div id="workflow-{{ workflow.workflow.slug }}-container"
+  class="workflow-container"
+  data-workflow-id="{{ workflow.workflow.id }}"
+  data-workflow-name="{{ workflow.workflow.slug }}"
+  data-workflow-state-id="{{ workflow.id }}"
+  data-workflow-original-status="{{ workflow.status }}"
+  ic-get-from="{% url 'workflows:workflow-state' workflow_state_id=workflow.id %}"
+  ic-trigger-on="scrolled-into-view"
+  {% if workflow.get_dependencies %}
+  ic-deps="{% for dep in workflow.get_dependencies %}{% url 'workflows:workflow-state' workflow_state_id=dep.id %}{% if not loop.last %},{% endif %}{% endfor %}"
+  {% endif %}>
+</div>

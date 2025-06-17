@@ -120,6 +120,13 @@ class Workflow(models.Model):
 
         return ordered
 
+    def get_dependencies(self) -> list[Self]:
+        """
+        Returns a list of Workflows this Workflow depends on.
+        """
+        dependencies = WorkflowDependency.objects.filter(workflow=self)
+        return [d.depends_on for d in dependencies]
+
 
 class Step(PolymorphicModel):
     """
@@ -202,6 +209,13 @@ class Step(PolymorphicModel):
         """
         return re.sub(r'[^a-z0-9]+', '-', self.name.lower())
 
+    def get_dependencies(self) -> list[Self]:
+        """
+        Returns a list of Steps this Step depends on.
+        """
+        dependencies = StepDependency.objects.filter(step=self)
+        return [d.depends_on for d in dependencies]
+
 
 class WorkflowDependency(models.Model):
     """
@@ -253,6 +267,7 @@ class WorkflowState(models.Model):
     """
     class Status(Enum):
         Pending = 'pending'
+        Current = 'current'
         Completed = 'completed'
 
         @classmethod
@@ -272,12 +287,25 @@ class WorkflowState(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__original_status = self.status
+
     def save(self, *args, **kwargs):
         """
         Save handler. Ensures that the started_at time is set when the workflow is first created.
+        Also updates the status of depending WorkflowStates and contained StepStates whenever
+        a status is updated.
         """
         # Check if creating
         is_creating = self._state.adding
+        
+        # Check if status changed
+        is_status_change = self.status != self.__original_status
+            
+        # Ensure date is set if completed
+        if is_status_change and self.status == WorkflowState.Status.Completed.value and not self.completed_at:
+            self.completed_at = timezone.now()
 
         # If this is a new workflow state, set the started_at time to now.
         if not self.started_at and self.status == self.Status.Pending.value:
@@ -288,48 +316,147 @@ class WorkflowState(models.Model):
 
         # This this workflow is being created, create all step states.
         if is_creating:
+            logger.debug(f"[Workflows][{self.workflow.slug()}][WorkflowState] Is creating new instance")
+            
+            # Set StepStates
+            self.set_step_states()
+            
+        # Handle status change
+        if is_status_change:
+            logger.debug(f"[Workflows][{self.workflow.slug()}][WorkflowState] Is changing status: {self.status}")
+            
+            # Set WorkflowState statuses
+            self.set_workflow_statuses()
 
-            # Fetch steps
-            steps = self.workflow.get_ordered_steps()
-
-            # Nothing to do if no steps
-            if not steps:
-                return
-
-            # Create the first step with relevant properties.
-            StepState.objects.create(
-                step=steps[0],
-                user=self.user,
-                workflow_state=self,
-                status=StepState.Status.Current.value,
-                started_at=self.started_at,
-            )
-
-            # Create step states for each
-            for step in steps[1:]:
-
-                StepState.objects.create(
-                    step=step,
-                    user=self.user,
-                    workflow_state=self,
-                    status=StepState.Status.Pending.value,
-                )
-
-    def get_ordered_step_states(self) -> list[Self]:
+    def get_dependencies(self) -> list[Self]:
         """
-        Returns the step states in the order of the workflow steps.
+        Returns a list of WorkflowStates this WorkflowState depends on.
         """
-        # Get all step and states
+        dependencies = [w.depends_on for w in WorkflowDependency.objects.filter(workflow=self.workflow)]
+        dependency_workflow_states = WorkflowState.objects.filter(user=self.user, workflow__in=dependencies)
+        return dependency_workflow_states
+    
+    def get_dependents(self) -> list[Self]:
+        """
+        Returns a list of WorkflowStates that depend on this WorkflowState.
+        """
+        dependents = [w.workflow for w in WorkflowDependency.objects.filter(depends_on=self.workflow)]
+        dependent_workflow_states = WorkflowState.objects.filter(user=self.user, workflow__in=dependents)
+        return dependent_workflow_states
+
+    def get_ordered_step_states(self) -> list["StepState"]:
+        """
+        Returns an ordered list of all StepState objects that map to the
+        Step objects returned in `Workflow.get_ordered_steps`. If a StepState
+        does not exist for a Step, then None is placed in the list in that
+        position.
+        """
+        # Get steps
         steps = self.workflow.get_ordered_steps()
-        step_states = StepState.objects.filter(workflow_state=self).select_related('step')
 
-        # Build an ordered list for the states
+        # Order them and return them
         ordered_step_states = []
         for step in steps:
-            step_state = next((state for state in step_states if state.step.id == step.id), None)
-            ordered_step_states.append(step_state)
+
+            # Get matching step state
+            ordered_step_states.append(
+                next((s for s in self.step_states.all() if s.step == step), None)
+            )
 
         return ordered_step_states
+
+    def get_status_for_step_state(self, index) -> "StepState.Status":
+        """
+        Checks the existing StepStates and determines what the status will
+        be for the StepState at the given index based on dependencies.
+        """
+        # Get Step dependencies
+        step_dependencies = self.workflow.get_ordered_steps()[index].get_dependencies()
+        
+        # Get existing StepStates.
+        step_state_dependencies = [s for s in self.step_states.all() if s.step in step_dependencies]
+        
+        # If the Step has dependencies but no StepStates exist, return Pending
+        if step_dependencies and not step_state_dependencies:
+            return StepState.Status.Pending
+        
+        # Set the state and update accordingly.
+        status = StepState.Status.Current
+        for step_state_dependency in step_state_dependencies:
+            
+            # Check status
+            if step_state_dependency.status != StepState.Status.Completed.value:
+                status = StepState.Status.Pending
+                break
+            
+        return status
+
+    def set_step_states(self):
+        """
+        Checks the current list of Steps in the corresponding Workflow to the
+        existing StepState objects and ensures a StepState exists for each
+        step.
+        """
+        logger.debug(f"[Workflows][{self.workflow.slug()}][WorkflowState] Setting StepStates")
+        
+        # Get existing Steps and StepStates
+        steps = self.workflow.get_ordered_steps()
+        step_states = self.get_ordered_step_states()
+
+        # Check for None
+        is_complete = True
+        for index, step_state in enumerate(step_states):
+            if step_state is None:
+
+                # Determine status
+                status = self.get_status_for_step_state(index)
+
+                # Create it.
+                step_state = StepState.objects.create(
+                    step=steps[index],
+                    user=self.user,
+                    workflow_state=self,
+                    status=status.value,
+                    started_at=timezone.now() if status == StepState.Status.Current else None,
+                )
+                
+            # Check if step is complete or not
+            if step_state.status != StepState.Status.Completed.value:
+                is_complete = False
+                
+        # If this WorkflowState is not complete, update it as such.
+        if self.status == WorkflowState.Status.Completed.value and not is_complete:
+            self.status = WorkflowState.Status.Current.value
+            self.completed_at = None
+            self.save()
+                
+    def set_workflow_statuses(self):
+        """
+        When this WorkflowState is saved with a new status, this method will
+        find depending WorkflowStates and update their status accordingly.
+        """
+        # Determine new status for dependent WorkflowStates
+        status = WorkflowState.Status.Current if self.status == WorkflowState.Status.Completed.value else WorkflowState.Status.Pending
+        
+        # Fetch Workflows that depend on this Workflow
+        for workflow_state in self.get_dependents():
+            
+            # Get other dependencies, if any.
+            update = True
+            for dependency in workflow_state.get_dependencies():
+                
+                # If their status differs from this new status, nothing to do.
+                if dependency.status != self.status:
+                    update = False
+                    break
+
+            # Update status
+            if update:
+                logger.debug(f"[Workflows][{workflow_state.workflow.slug()}][WorkflowState] Is changing status: {status.value}")
+                workflow_state.status = status.value
+                workflow_state.started_at = timezone.now() if status is WorkflowState.Status.Current else None
+                workflow_state.save()
+            
 
     def set_step_statuses(self):
         """
@@ -340,7 +467,7 @@ class WorkflowState(models.Model):
         for step_state in self.get_ordered_step_states():
 
             # Nothing to do if first step
-            if not step_state.dependencies():
+            if not step_state.get_dependencies():
                 logger.debug(f"[WorkflowState/{self.id}][set_step_statuses] StepState/{step_state.id} has no dependencies, continuing")
                 continue
             elif step_state.status == StepState.Status.Completed.value:
@@ -348,7 +475,7 @@ class WorkflowState(models.Model):
                 continue
 
             # Get its dependencies and check their statuses
-            dependencies = step_state.dependencies()
+            dependencies = step_state.get_dependencies()
             dependency_statuses = [dependency.status for dependency in dependencies]
 
             # If all are completed, set this one to current
@@ -415,7 +542,7 @@ class StepState(models.Model):
         super().__init__(*args, **kwargs)
         self.__original_status = self.status
 
-    def dependencies(self) -> list[Self]:
+    def get_dependencies(self) -> list[Self]:
         """
         Returns a list of StepStates this step depends on.
         """

@@ -887,31 +887,19 @@ class DataProjectView(TemplateView):
         """
         Builds the context needed for a user to view workflows related to this DataProject.
         """
-        # Get ordered workflows
-        data_project_workflows = self.project.get_ordered_workflows()
+        # Get workflow states
+        workflow_states = self.project.get_ordered_workflow_states(user=self.request.user)
+        
+        # Check for any that are missing and rebuild if necessary.
+        if None in workflow_states:
+            workflow_states = self.project.set_workflow_states(user=self.request.user)
+            
+        # Have each WorkflowState check its StepStates
+        for workflow_state in workflow_states:
+            workflow_state.set_step_states()
 
-        # Fetch states
-        workflow_states = WorkflowState.objects.filter(
-            workflow__in=data_project_workflows,
-            user=self.request.user,
-        )
-
-        for data_project_workflow in data_project_workflows:
-
-            # Check for a workflow state for each workflow.
-            workflow_state = next((w for w in workflow_states if w.workflow == data_project_workflow), None)
-
-            # If none, create one
-            if not workflow_state:
-                workflow_state = WorkflowState.objects.create(
-                    workflow=data_project_workflow,
-                    user=self.request.user,
-                    status=WorkflowState.Status.Pending.value,
-                    started_at=timezone.now(),
-                )
-
-            # Add it to the context
-            context.setdefault("workflows", []).append(workflow_state)
+        # Add it to the context
+        context["workflows"] = workflow_states
 
     def panel_submit_task_solutions(self, context):
         """

@@ -2,6 +2,7 @@
 {% load projects_extras %}
 {% load bootstrap3 %}
 {% load static %}
+{% load workflows %}
 
 {% block headscripts %}
 <link href="https://vjs.zencdn.net/8.20.0/video-js.css" rel="stylesheet" />
@@ -58,8 +59,9 @@
 
     <div class="col-md-7">
 
+        {# Render any workflows #}
         {% for workflow in workflows %}
-          <div id="workflow-{{ workflow.workflow.slug }}-container" class="workflow-container" ic-get-from="{% url 'workflows:workflow-state' workflow_state_id=workflow.id %}" ic-trigger-on="scrolled-into-view"></div>
+          {{ workflow|workflow }}
         {% endfor %}
 
         {% for panel in setup_panels %}
