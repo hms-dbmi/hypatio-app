@@ -499,6 +499,9 @@ class DataProject(models.Model):
         Returns the WorkflowState object and a bool indicating whether it was
         created or not.
         """
+        # Track creation
+        created = False
+
         # Attempt to fetch it.
         workflow_state = next((w for w in self.get_ordered_workflow_states(user) if w is not None and w.workflow == workflow), None)
         if not workflow_state:
@@ -508,8 +511,11 @@ class DataProject(models.Model):
                 workflow=workflow,
                 user=user,
             )
+            
+            # Track it
+            created = True
 
-        return workflow_state
+        return workflow_state, created
     
     def set_workflow_states(self, user) -> list[WorkflowState]:
         """
@@ -517,7 +523,7 @@ class DataProject(models.Model):
         each of the WorkflowState objects for the current user.
         """
         # Get ordered workflows
-        workflows = self.project.get_ordered_workflows()
+        workflows = self.get_ordered_workflows()
         if not workflows:
             return []
 
@@ -528,7 +534,7 @@ class DataProject(models.Model):
         for index, workflow in enumerate(workflows):
 
             # Check for a workflow state for each workflow.
-            workflow_state, created = self.project.get_or_create_workflow_state(workflow, user)
+            workflow_state, created = self.get_or_create_workflow_state(workflow, user)
             if created:
 
                 # Determine status by checking the dependent workflows
