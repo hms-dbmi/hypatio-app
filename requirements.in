@@ -8,6 +8,7 @@ django-bootstrap-datepicker-plus<6.0
 django-countries<8.0
 django-crispy-forms<3.0
 django-dbmi-client<3.0
+django-extensions<5.0
 django-health-check<4.0
 django-jquery<4.0
 django-jsonfield-backport<2.0

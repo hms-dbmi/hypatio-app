@@ -64,7 +64,14 @@ INSTALLED_APPS = [
     'polymorphic',
     'pdf',
     'workflows',
+    'rest_framework',
 ]
+
+# Enable development apps if running in development mode
+if DEBUG:
+    INSTALLED_APPS += [
+        'django_extensions',
+    ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -256,6 +263,16 @@ DBMI_CLIENT_CONFIG = {
 
     # Misc
     'DRF_OBJECT_OWNER_KEY': 'email',
+}
+
+#####################################################################################
+
+#####################################################################################
+# Django Rest Framework Configurations
+#####################################################################################
+
+REST_FRAMEWORK = {
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning'
 }
 
 #####################################################################################
