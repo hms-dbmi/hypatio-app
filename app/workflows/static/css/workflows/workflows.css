@@ -21,7 +21,7 @@ a.workflow-step-panel-heading-link:focus {
 }
 
 .workflow-step-panel-heading-link.completed.collapsed .panel-title:after {
-    content:"\E067";
+    content:"\e067";
     color: #5cb85c;
 }
 

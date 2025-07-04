@@ -334,6 +334,7 @@
     </div>
 </div>
 
+{% if not project.automatic_authorization %}
 <div class="row">
   <div class="col-lg-12">
       <div class="panel panel-default">
@@ -368,6 +369,7 @@
       </div>
   </div>
 </div>
+{% endif %}
 
 {% if project.data_use_report_agreement_form %}
 <div class="row">
@@ -449,6 +451,226 @@
         </div>
     </div>
 </div>
+
+{# Display a table containing all users with workflows #}
+{% if workflows %}
+
+<div class="row">
+    <div class="col-md-12" style="margin-bottom: 15px;">
+        <hr>
+        <h3>Workflow management</h3>
+    </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-12">
+    <div class="panel panel-default">
+      <div class="panel-heading panel-heading-toggle heading-description" role="tab" data-toggle="collapse" data-target="#workflows-collapse">
+            <h2 class="panel-title">Workflows</h2>
+      </div>
+      <div id="workflows-collapse" class="panel-collapse collapse in">
+        <div class="panel-body">
+          <ul id="workflows-tab-list" class="nav nav-tabs" role="tablist" style="margin-bottom: 10px;">
+            <li role="presentation" class="active">
+              <a href="#workflows-initializations-tab" aria-controls="workflows-initializations-tab" role="tab" data-toggle="tab">
+                Initialization Required&nbsp;&nbsp;&nbsp;<span id="workflows-initializations-tab-badge" class="badge"></span>
+              </a>
+            </li>
+            <li role="presentation">
+              <a href="#workflows-approvals-tab" aria-controls="workflows-approvals-tab" role="tab" data-toggle="tab">
+                Approval Required&nbsp;&nbsp;&nbsp;<span id="workflows-approvals-tab-badge" class="badge"></span>
+              </a>
+            </li>
+            <li role="presentation">
+              <a href="#workflows-workflows-tab" aria-controls="workflows-workflows-tab" role="tab" data-toggle="tab">
+                Workflows&nbsp;&nbsp;&nbsp;<span id="workflows-workflows-tab-badge" class="badge"></span>
+              </a>
+            </li>
+          </ul>
+          <div class="tab-content">
+            <div id="workflows-initializations-tab" role="tabpanel" class="tab-pane fade in active">
+              <table id="workflows-initializations-table" class="table table-bordered table-hover table-responsive" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Workflow</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+            <div id="workflows-approvals-tab" role="tabpanel" class="tab-pane fade">
+              <table id="workflows-approvals-table" class="table table-bordered table-hover table-responsive" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Workflow</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+            <div id="workflows-workflows-tab" role="tabpanel" class="tab-pane fade" id="two">
+              <table id="workflows-workflows-table" class="table table-bordered table-hover table-responsive" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Workflow</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="application/javascript">
+$(function() {
+    $('#workflows-approvals-table,#workflows-initializations-table,#workflows-workflows-table').on('click', 'tbody tr', function() {
+
+       let workflowState = {
+        id: $(this).data('workflow-id')
+       }
+       window.location = getWorkflowUrl(workflowState);
+    });
+
+    function getWorkflowUrl(workflowState) {
+        return "{% url 'manage:workflow-state' workflow_state_id='00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", workflowState.id);
+    }
+
+    // Initialize DataTable for workflows
+    var workflowsApprovalsTable = $('#workflows-approvals-table').DataTable({
+        "ajax": {
+            "url": "{% url 'manage:dataproject-workflow-state-list' data_project_key=project.project_key %}?review_required=true",
+            "dataSrc": ""
+        },
+        "columns": [
+            { "data": "user.email" },
+            { "data": "workflow.name" },
+            { "data": "status" }
+        ],
+        "order": [[0, 'asc']],
+        "language": {
+            "emptyTable": "No users with workflows found."
+        },
+        "createdRow": function (row, data, dataIndex) {
+            $(row).attr('data-workflow-id', data.id);
+            $(row).attr('style', 'cursor: pointer;');
+        },
+        "initComplete": function(settings, json) {
+
+          // Update the tab's badge
+          if ( json.length ) {
+            $('#workflows-approvals-tab-badge').text(json.length);
+          } else {
+            $('#workflows-approvals-tab-badge').text("");
+          }
+        }
+    });
+
+    // Initialize DataTable for workflows
+    var workflowsInitializationsTable = $('#workflows-initializations-table').DataTable({
+        "ajax": {
+            "url": "{% url 'manage:dataproject-workflow-state-list' data_project_key=project.project_key %}?initialization_required=true",
+            "dataSrc": ""
+        },
+        "columns": [
+            { "data": "user.email" },
+            { "data": "workflow.name" },
+            { "data": null, "render": function(data, type, row) {
+                // Generate URL
+                var workflowUrl = getWorkflowUrl(data);
+                return `<a type="button" class="btn btn-primary btn-xs" href="${workflowUrl}">Initialize</a>`;
+            } },
+        ],
+        "order": [[0, 'asc']],
+        "language": {
+            "emptyTable": "No users with workflows found."
+        },
+        "createdRow": function (row, data, dataIndex) {
+            $(row).attr('data-workflow-id', data.id);
+            $(row).attr('style', 'cursor: pointer;');
+        },
+        "initComplete": function(settings, json) {
+
+          // Update the tab's badge
+          if ( json.length ) {
+            $('#workflows-initializations-tab-badge').text(json.length);
+          } else {
+            $('#workflows-initializations-tab-badge').text("");
+          }
+        }
+    });
+
+    // Initialize DataTable for workflows
+    var workflowsWorkflowsTable = $('#workflows-workflows-table').DataTable({
+        "ajax": {
+            "url": "{% url 'manage:dataproject-workflow-state-list' data_project_key=project.project_key %}",
+            "dataSrc": ""
+        },
+        "columns": [
+            { "data": "user.email" },
+            { "data": "workflow.name" },
+            { "data": "status" }
+        ],
+        "order": [[0, 'asc']],
+        "language": {
+            "emptyTable": "No users with workflows found."
+        },
+        "createdRow": function (row, data, dataIndex) {
+            $(row).attr('data-workflow-id', data.id);
+            $(row).attr('style', 'cursor: pointer;');
+        },
+        "initComplete": function(settings, json) {
+
+          // Update the tab's badge
+          if ( json.length ) {
+            $('#workflows-workflows-tab-badge').text(json.length);
+          } else {
+            $('#workflows-workflows-tab-badge').text("");
+          }
+        }
+    });
+
+    // Ensure tables fit their width when being shown when initially hidden.
+    $('#workflows-tab-list a[data-toggle="tab"]').on('shown.bs.tab', function (event) {
+      DataTable.tables({ visible: true, api: true }).columns.adjust();
+    } );
+
+    // Detect when this page is shown when using the browser's back button.
+    window.addEventListener("pageshow", function (event) {
+      var historyTraversal = event.persisted,
+        perf = window.performance,
+        perfEntries =
+          perf && perf.getEntriesByType && perf.getEntriesByType("navigation"),
+        perfEntryType = perfEntries && perfEntries[0] && perfEntries[0].type,
+        navigationType = perf && perf.navigation && perf.navigation.type;
+      if (
+        historyTraversal ||
+        perfEntryType === "back_forward" ||
+        navigationType === 2
+      ) {
+        // Handle page restore.
+        //workflowsApprovalsTable.ajax.reload();
+        //workflowsInitializationsTable.ajax.reload();
+        //workflowsWorkflowsTable.ajax.reload();
+      }
+    });
+});
+</script>
+{% endif %}
+
+{% if project.challengetask_set.count %}
 
 <div class="row">
     <div class="col-md-12" style="margin-bottom: 15px;">
@@ -563,6 +785,8 @@
         </div>
     </div>
 </div>
+
+{% endif %}
 
 <div id="modal-submission-info" class="modal fade">
     <div class="modal-dialog" role="document">

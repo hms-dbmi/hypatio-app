@@ -1,12 +1,24 @@
 from django.contrib import admin
 from polymorphic.admin import PolymorphicParentModelAdmin, PolymorphicChildModelAdmin
 
-from workflows.models import Workflow, WorkflowDependency, Step, StepDependency, WorkflowState, StepState, MediaType, FormStep, VideoStep, FileUploadStep
+from workflows.models import Workflow
+from workflows.models import WorkflowDependency
+from workflows.models import Step
+from workflows.models import StepDependency
+from workflows.models import WorkflowState
+from workflows.models import StepState
+from workflows.models import MediaType
+from workflows.models import FormStep
+from workflows.models import VideoStep
+from workflows.models import FileUploadStep
+from workflows.models import StepStateInitialization
+from workflows.models import StepStateReview
+from workflows.models import StepStateVersion
 
 
 @admin.register(Workflow)
 class WorkflowAdmin(admin.ModelAdmin):
-    list_display = ('name', 'class_name', 'priority', 'created_at', 'modified_at', )
+    list_display = ('name', 'controller', 'priority', 'created_at', 'modified_at', )
     readonly_fields = ('created_at', 'modified_at', )
 
 
@@ -18,7 +30,7 @@ class WorkflowDependencyAdmin(admin.ModelAdmin):
 
 @admin.register(Step)
 class StepAdmin(PolymorphicParentModelAdmin):
-    list_display = ('name', 'class_name', 'workflow', 'created_at', 'modified_at', )
+    list_display = ('name', 'controller', 'workflow', 'created_at', 'modified_at', )
     readonly_fields = ('created_at', 'modified_at', )
 
     # Set parent model
@@ -44,6 +56,24 @@ class WorkflowStateAdmin(admin.ModelAdmin):
 class StepStateAdmin(admin.ModelAdmin):
     list_display = ('user', 'status', 'started_at', 'completed_at', 'created_at', 'modified_at', )
     readonly_fields = ('started_at', 'completed_at', 'created_at', 'modified_at', )
+
+
+@admin.register(StepStateReview)
+class StepStateReviewAdmin(admin.ModelAdmin):
+    list_display = ('step_state', 'created_at', 'modified_at', )
+    readonly_fields = ('created_at', 'modified_at', )
+
+
+@admin.register(StepStateInitialization)
+class StepStateInitializationAdmin(admin.ModelAdmin):
+    list_display = ('step_state', 'created_at', 'modified_at', )
+    readonly_fields = ('created_at', 'modified_at', )
+
+
+@admin.register(StepStateVersion)
+class StepStateVersionAdmin(admin.ModelAdmin):
+    list_display = ('step_state', 'created_at', 'modified_at', )
+    readonly_fields = ('created_at', 'modified_at', )
 
 
 @admin.register(MediaType)

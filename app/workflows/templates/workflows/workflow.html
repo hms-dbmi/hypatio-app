@@ -15,9 +15,9 @@
           {% for step in steps %}
           <div id="workflow-step-{{ step.step.slug }}-container"
           class="workflow-step-container"
-          ic-get-from={% url 'workflows:step-state' step_state_id=step.id %}
+          ic-get-from="{% if admin %}{% url 'workflows:step-state-admin' step_state_id=step.id %}{% else %}{% url 'workflows:step-state' step_state_id=step.id %}{% endif %}"
           ic-trigger-on="scrolled-into-view"
-          ic-deps="{% for dependency in step.get_dependencies %}{% url 'workflows:step-state' step_state_id=dependency.id %}{% if not loop.last %},{% endif %}{% endfor %}"
+          ic-deps="{% for dependency in step.get_dependencies %}{% if admin %}{% url 'workflows:step-state-admin' step_state_id=dependency.id %}{% else %}{% url 'workflows:step-state' step_state_id=dependency.id %}{% endif %}{% if not forloop.last %},{% endif %}{% endfor %}"
           ></div>
           {% endfor %}
         {% endif %}

@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Field, HTML
 
+from workflows.models import StepStateReview
 from workflows.widgets import HorizontalRadioSelect
 
 
@@ -52,6 +53,33 @@ class WorkflowTestForm(forms.Form):
 
         return data
 
+class StepReviewForm(forms.Form):
+    """
+    A form for reviewing a step in a workflow.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+
+    status = forms.ChoiceField(
+        label=_("Decision"),
+        help_text=_("Please select the outcome of this review"),
+        choices=StepStateReview.Status.choices(),
+    )
+    message = forms.CharField(
+        label="Message",
+        required=False,
+        widget=forms.Textarea,
+        help_text="Optional message to the user to provide context or feedback on your decision (leaving blank will only send notifications if one is configured by default)"
+    )
+    step_state = forms.CharField(
+        widget=forms.HiddenInput,
+    )
+    decided_by = forms.CharField(
+        widget=forms.HiddenInput,
+    )
+
 class FileUploadForm(forms.Form):
     """
     A form for uploading files.
@@ -68,6 +96,29 @@ class FileUploadForm(forms.Form):
         if not file:
             raise ValidationError("No file uploaded.")
         return file
+
+
+class RexplainVideoUploadForm(forms.Form):
+    """
+    A form for uploading a video file.
+    This form is used for admins to upload videos for users in the Rexplain project.
+    """
+    file = forms.FileField(
+        label="Upload a video for the user",
+        help_text="Please upload a file.",
+        widget=forms.ClearableFileInput(attrs={'data-content-type': "video/mp4"}),
+    )
+    filename = forms.CharField(
+        label="The name of the file to be uploaded",
+        widget=forms.HiddenInput(),
+    )
+
+    def clean_file(self):
+        file = self.cleaned_data.get('file')
+        if not file:
+            raise ValidationError("No file uploaded.")
+        return file
+
 
 class LikertField(forms.ChoiceField):
     """

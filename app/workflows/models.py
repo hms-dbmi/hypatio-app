@@ -3,8 +3,9 @@ import re
 import importlib
 import inspect
 from enum import Enum
-from collections import defaultdict, deque
-from typing import Self
+from collections import defaultdict
+from collections import deque
+from typing import Optional, Self
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -14,8 +15,60 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from polymorphic.models import PolymorphicModel
 
+from workflows.controllers.initializations import get_step_initialization_controller_choices
+from workflows.controllers.review import get_step_review_controller_choices
+
 import logging
 logger = logging.getLogger(__name__)
+
+
+def check_controller_class(controller_class_name) -> bool:
+    """
+    Utility method for ensuring a class is a valid controller class.
+    """
+    try:
+        # Split module and class
+        module_path, class_name = controller_class_name.rsplit(".", 1)
+
+        # Import the module
+        module = importlib.import_module(module_path)
+
+        # Get the class
+        cls = getattr(module, class_name)
+
+        # Check it's actually a class
+        if not inspect.isclass(cls):
+            raise ValidationError(f"Invalid class name: {controller_class_name}. Ensure it is a valid Python import path to a class.")
+
+        # Check if class is abstract
+        if inspect.isabstract(cls):
+            raise ValidationError(f"Invalid class name: {controller_class_name}. Specified class is abstract and cannot be used.")
+
+        return True
+
+    except (ImportError, AttributeError, ValueError) as e:
+        logger.exception(e, exc_info=True)
+        raise ValidationError(f"Invalid class name: {controller_class_name}. Ensure it is a valid Python import path to a class.")
+
+def get_controller_instance(controller_class_name, *args, **kwargs) -> object:
+    """
+    Utility method for instaniating and returning an instance of a controller
+    class via its name.
+    """
+    try:
+        # Split module and class
+        module_path, class_name = controller_class_name.rsplit(".", 1)
+
+        # Import the module
+        module = importlib.import_module(module_path)
+
+        return getattr(module, class_name)(*args, **kwargs)
+
+    except (ImportError, AttributeError, ValueError) as e:
+        logger.exception(e, exc_info=True)
+        raise ValidationError(f"Invalid class name: {controller_class_name}. Ensure it is a valid Python import path to a class.")
+
+
 
 
 class Workflow(models.Model):
@@ -25,7 +78,7 @@ class Workflow(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True, help_text="A description of the workflow. This is used to provide context to users about what the workflow entails.")
-    class_name = models.CharField(
+    controller = models.CharField(
         max_length=512,
         default='workflows.workflows.WorkflowController',
         help_text="The fully-qualified class name for the workflow. This is used to determine how the workflow should be rendered and processed."
@@ -43,45 +96,17 @@ class Workflow(models.Model):
         """
         Save handler. Checks to ensure FQCN is valid before allowing a save.
         """
-        try:
-            # Split module and class
-            module_path, class_name = self.class_name.rsplit(".", 1)
+        # Check controller
+        check_controller_class(self.controller)
 
-            # Import the module
-            module = importlib.import_module(module_path)
+        # Save if everything is ok
+        super().save(*args, **kwargs)
 
-            # Get the class
-            cls = getattr(module, class_name)
-
-            # Check it's actually a class
-            if not inspect.isclass(cls):
-                raise ValidationError(f"Invalid class name: {self.class_name}. Ensure it is a valid Python import path to a class.")
-
-            # Check if class is abstract
-            if inspect.isabstract(cls):
-                raise ValidationError(f"Invalid class name: {self.class_name}. Specified class is abstract and cannot be used.")
-
-            super().save(*args, **kwargs)
-
-        except (ImportError, AttributeError, ValueError):
-            raise ValidationError(f"Invalid class name: {self.class_name}. Ensure it is a valid Python import path to a class.")
-
-    def controller(self, step_state, *args, **kwargs) -> "WorkflowController":
+    def get_controller(self, workflow_state, *args, **kwargs) -> "WorkflowController":
         """
-        Returns a workflow controller instance for this step
+        Returns a workflow controller instance for this workflow
         """
-        try:
-            # Split module and class
-            module_path, class_name = self.class_name.rsplit(".", 1)
-
-            # Import the module
-            module = importlib.import_module(module_path)
-
-            # Build the form
-            return getattr(module, class_name)(step_state, *args, **kwargs)
-
-        except (ImportError, AttributeError, ValueError):
-            raise ValidationError(f"Invalid class name: {self.class_name}. Ensure it is a valid Python import path to a class.")
+        return get_controller_instance(self.controller, workflow_state, *args, **kwargs)
 
     def slug(self) -> str:
         """
@@ -127,6 +152,17 @@ class Workflow(models.Model):
         dependencies = WorkflowDependency.objects.filter(workflow=self)
         return [d.depends_on for d in dependencies]
 
+    def get_data_project(self) -> Optional["DataProject"]:
+        """
+        Returns the DataProject this Workflow belongs to, if any.
+        """
+        # Assuming a DataProject model exists and has a reverse relation to Workflow
+        from projects.models import DataProjectWorkflow
+        try:
+            return DataProjectWorkflow.objects.get(workflow=self).data_project
+        except DataProjectWorkflow.DoesNotExist:
+            return None
+
 
 class Step(PolymorphicModel):
     """
@@ -136,12 +172,42 @@ class Step(PolymorphicModel):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True, help_text="A description of the step. This is used to provide context to users about what the step entails.")
     position = models.IntegerField(null=True, blank=True)
-    class_name = models.CharField(
+    controller = models.CharField(
         max_length=512,
         default='workflows.workflows.StepController',
         help_text="The fully-qualified class name for the step. This is used to determine how the step should be rendered and processed."
     )
     indefinite = models.BooleanField(default=False, help_text="If true, this step will stay 'current' when set as such.")
+
+    # Initialization
+    initialization_required = models.BooleanField(blank=True, null=True, help_text="Marks this step as needing an administrator initialization before it can be started.")
+    initialization_notifications = models.BooleanField(default=True, help_text="If true, users will be notified when this step is initialized. This can be used to alert users that they can now complete the current step.")
+    initialization_message = models.TextField(
+        default="Your current step on the DBMI Data Portal has been initialized and is ready for you to continue.",
+        help_text="The message that users will receive when the current step has been initialized. The email will also include a link for the user to return to the step.",
+    )
+    initialization_controller = models.CharField(
+        blank=True,
+        null=True,
+        choices=get_step_initialization_controller_choices(),
+        max_length=512,
+        help_text="The fully-qualified class name for the controller that will handle the initialization process. This is used to determine how the initialization should be processed and rendered. All subclasses of 'BaseStepInitializationController' defined in 'workflows.controllers.initializations' will be listed as choices.",
+    )
+
+    # Reviews
+    review_required = models.BooleanField(blank=True, null=True, help_text="Marks this step as needing an administrator review before it can be completed.")
+    review_controller = models.CharField(
+        blank=True,
+        null=True,
+        choices=get_step_review_controller_choices(),
+        max_length=512,
+        help_text="The fully-qualified class name for the controller that will handle the review process. This is used to determine how the approval should be processed and rendered. All subclasses of 'BaseStepReviewController' defined in 'workflows.controllers.review' will be listed as choices.",
+    )
+    review_notifications = models.BooleanField(default=True, help_text="If true, users will be notified when this step is reviewed. This can be used to alert users that they can now proceed to the next step.")
+    review_message = models.TextField(
+        default="Your recently completed step on the DBMI Data Portal has been reviewed. Please return to the dashboard to check the status of the step.",
+        help_text="The default message that users will receive when the current step has been reviewed. The email will also include a link for the user to return to the step.",
+    )
 
     # Relationships
     workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE, related_name='steps')
@@ -157,45 +223,24 @@ class Step(PolymorphicModel):
         """
         Save handler. Checks to ensure FQCN is valid before allowing a save.
         """
-        try:
-            # Split module and class
-            module_path, class_name = self.class_name.rsplit(".", 1)
+        # Check controller
+        check_controller_class(self.controller)
 
-            # Import the module
-            module = importlib.import_module(module_path)
+        # Check review controller
+        if self.review_controller:
+            check_controller_class(self.review_controller)
 
-            # Get the class
-            cls = getattr(module, class_name)
+        # Check initialization controller
+        if self.initialization_controller:
+            check_controller_class(self.initialization_controller)
 
-            # Check it's actually a class
-            if not inspect.isclass(cls):
-                raise ValidationError(f"Invalid class name: {self.class_name}. Ensure it is a valid Python import path to a class.")
+        super().save(*args, **kwargs)
 
-            # Check if class is abstract
-            if inspect.isabstract(cls):
-                raise ValidationError(f"Invalid class name: {self.class_name}. Specified class is abstract and cannot be used.")
-
-            super().save(*args, **kwargs)
-
-        except (ImportError, AttributeError, ValueError):
-            raise ValidationError(f"Invalid class name: {self.class_name}. Ensure it is a valid Python import path to a class.")
-
-    def controller(self, step_state, *args, **kwargs) -> "StepController":
+    def get_controller(self, step_state, *args, **kwargs) -> "StepController":
         """
         Returns a step controller instance for this step
         """
-        try:
-            # Split module and class
-            module_path, class_name = self.class_name.rsplit(".", 1)
-
-            # Import the module
-            module = importlib.import_module(module_path)
-
-            # Build the form
-            return getattr(module, class_name)(step_state, *args, **kwargs)
-
-        except (ImportError, AttributeError, ValueError):
-            raise ValidationError(f"Invalid class name: {self.class_name}. Ensure it is a valid Python import path to a class.")
+        return get_controller_instance(self.controller, step_state, *args, **kwargs)
 
     def is_ready(self) -> bool:
         """
@@ -299,10 +344,10 @@ class WorkflowState(models.Model):
         """
         # Check if creating
         is_creating = self._state.adding
-        
+
         # Check if status changed
         is_status_change = self.status != self.__original_status
-            
+
         # Ensure date is set if completed
         if is_status_change and self.status == WorkflowState.Status.Completed.value and not self.completed_at:
             self.completed_at = timezone.now()
@@ -317,16 +362,22 @@ class WorkflowState(models.Model):
         # This this workflow is being created, create all step states.
         if is_creating:
             logger.debug(f"[Workflows][{self.workflow.slug()}][WorkflowState] Is creating new instance")
-            
+
             # Set StepStates
             self.set_step_states()
-            
+
         # Handle status change
         if is_status_change:
             logger.debug(f"[Workflows][{self.workflow.slug()}][WorkflowState] Is changing status: {self.status}")
-            
+
             # Set WorkflowState statuses
             self.set_workflow_statuses()
+
+    def get_controller(self, *args, **kwargs) -> "WorkflowController":
+        """
+        Returns a step controller instance for this step
+        """
+        return get_controller_instance(self.workflow.controller, self, *args, **kwargs)
 
     def get_dependencies(self) -> list[Self]:
         """
@@ -335,7 +386,7 @@ class WorkflowState(models.Model):
         dependencies = [w.depends_on for w in WorkflowDependency.objects.filter(workflow=self.workflow)]
         dependency_workflow_states = WorkflowState.objects.filter(user=self.user, workflow__in=dependencies)
         return dependency_workflow_states
-    
+
     def get_dependents(self) -> list[Self]:
         """
         Returns a list of WorkflowStates that depend on this WorkflowState.
@@ -372,23 +423,23 @@ class WorkflowState(models.Model):
         """
         # Get Step dependencies
         step_dependencies = self.workflow.get_ordered_steps()[index].get_dependencies()
-        
+
         # Get existing StepStates.
         step_state_dependencies = [s for s in self.step_states.all() if s.step in step_dependencies]
-        
+
         # If the Step has dependencies but no StepStates exist, return Pending
         if step_dependencies and not step_state_dependencies:
             return StepState.Status.Pending
-        
+
         # Set the state and update accordingly.
         status = StepState.Status.Current
         for step_state_dependency in step_state_dependencies:
-            
+
             # Check status
             if step_state_dependency.status != StepState.Status.Completed.value:
                 status = StepState.Status.Pending
                 break
-            
+
         return status
 
     def set_step_states(self):
@@ -398,7 +449,7 @@ class WorkflowState(models.Model):
         step.
         """
         logger.debug(f"[Workflows][{self.workflow.slug()}][WorkflowState] Setting StepStates")
-        
+
         # Get existing Steps and StepStates
         steps = self.workflow.get_ordered_steps()
         step_states = self.get_ordered_step_states()
@@ -419,17 +470,17 @@ class WorkflowState(models.Model):
                     status=status.value,
                     started_at=timezone.now() if status == StepState.Status.Current else None,
                 )
-                
+
             # Check if step is complete or not
             if step_state.status != StepState.Status.Completed.value:
                 is_complete = False
-                
+
         # If this WorkflowState is not complete, update it as such.
         if self.status == WorkflowState.Status.Completed.value and not is_complete:
             self.status = WorkflowState.Status.Current.value
             self.completed_at = None
             self.save()
-                
+
     def set_workflow_statuses(self):
         """
         When this WorkflowState is saved with a new status, this method will
@@ -437,14 +488,14 @@ class WorkflowState(models.Model):
         """
         # Determine new status for dependent WorkflowStates
         status = WorkflowState.Status.Current if self.status == WorkflowState.Status.Completed.value else WorkflowState.Status.Pending
-        
+
         # Fetch Workflows that depend on this Workflow
         for workflow_state in self.get_dependents():
-            
+
             # Get other dependencies, if any.
             update = True
             for dependency in workflow_state.get_dependencies():
-                
+
                 # If their status differs from this new status, nothing to do.
                 if dependency.status != self.status:
                     update = False
@@ -456,7 +507,6 @@ class WorkflowState(models.Model):
                 workflow_state.status = status.value
                 workflow_state.started_at = timezone.now() if status is WorkflowState.Status.Current else None
                 workflow_state.save()
-            
 
     def set_step_statuses(self):
         """
@@ -476,25 +526,22 @@ class WorkflowState(models.Model):
 
             # Get its dependencies and check their statuses
             dependencies = step_state.get_dependencies()
-            dependency_statuses = [dependency.status for dependency in dependencies]
 
-            # If all are completed, set this one to current
-            if all(status == StepState.Status.Completed.value for status in dependency_statuses):
-                status = StepState.Status.Current.value
-                started_at = timezone.now() if not step_state.started_at else step_state.started_at
-
-            else:
-                # Set it to pending
-                status = StepState.Status.Pending.value
-                started_at = None
+            # Calculate the next status
+            status = step_state.get_next_status(dependencies=dependencies)
 
             # Compare the properties to set with the existing values
-            if step_state.status != status or step_state.started_at != started_at:
+            if step_state.status != status:
                 logger.debug(f"[WorkflowState/{self.id}][set_step_statuses] StepState/{step_state.id} is {status}")
 
                 # Save updated values
-                step_state.status = status
-                step_state.started_at = started_at
+                step_state.status = status.value
+
+                # Check if we need to set a started date.
+                if status is StepState.Status.Current and not step_state.started_at:
+                    step_state.started_at = timezone.now()
+
+                # Save
                 step_state.save()
 
             # If status is anything but completed, the workflow is not completed
@@ -508,26 +555,30 @@ class WorkflowState(models.Model):
             self.completed_at = timezone.now()
             self.save()
 
+
 class StepState(models.Model):
     """
     Represents the state of a step for a user. This captures the data that a user has submitted for a step.
     """
     class Status(Enum):
         Pending = 'pending'
+        Uninitialized = 'uninitialized'
         Current = 'current'
+        Unreviewed = 'unreviewed'
         Completed = 'completed'
+        Indefinite = 'indefinite'
 
         @classmethod
         def choices(cls):
             return [(key.value, key.name) for key in cls]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    status = models.CharField(max_length=10, choices=Status.choices(), default=Status.Pending.value, help_text="The current status of the step. This can be 'pending', 'current', or 'completed'.")
-    requires_approval = models.BooleanField(default=False, help_text="Set this to true if this step requires approval before it can be marked as completed.")
     started_at = models.DateTimeField(null=True, blank=True, help_text="The date and time when the step was first current.")
     completed_at = models.DateTimeField(null=True, blank=True, help_text="The date and time when the step was completed.")
-    approved_at = models.DateTimeField(null=True, blank=True, help_text="The date and time when the step was approved, if applicable.")
-    data = models.JSONField(blank=True, null=True, help_text="The data from this Step")
+
+    # Private
+    _status = models.CharField(db_column="status", max_length=128, choices=Status.choices(), default=Status.Pending.value, help_text="The current status of the step.")
+    _data = models.JSONField(db_column="data", blank=True, null=True, help_text="The data from this Step")
 
     # Relationships
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='step_states')
@@ -542,6 +593,25 @@ class StepState(models.Model):
         super().__init__(*args, **kwargs)
         self.__original_status = self.status
 
+    @property
+    def status(self):
+        return self._status
+
+    @status.setter
+    def status(self, value):
+        self._status = value
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        self._data = value
+
+        # Check status
+        self.set_status()
+
     def get_dependencies(self) -> list[Self]:
         """
         Returns a list of StepStates this step depends on.
@@ -550,6 +620,127 @@ class StepState(models.Model):
         step_states = StepState.objects.filter(workflow_state=self.workflow_state, step__in=[dependency.depends_on for dependency in dependencies])
         return step_states
 
+    def get_dependents(self) -> list[Self]:
+        """
+        Returns a list of StepStates that depend on this StepState.
+        """
+        dependents = [s.step for s in StepDependency.objects.filter(depends_on=self.step)]
+        dependent_step_states = StepState.objects.filter(user=self.user, step__in=dependents)
+        return dependent_step_states
+
+    def set_status(self) -> Status:
+        """
+        Given the current state of the StepState, determine and set the next
+        status, if any.
+        """
+        # Get next status
+        status = self.get_next_status()
+
+        # Compare
+        if StepState.Status(self.status) is status:
+            logger.debug(f"[StepState][{self.step.slug()}][{self.id}] Status unchanged: {status}")
+            return status
+
+        # Check if we need to set dates
+        if status is StepState.Status.Current and not self.started_at:
+            self.started_at = timezone.now()
+        elif status is StepState.Status.Completed and not self.completed_at:
+            self.completed_at = timezone.now()
+
+        # Save
+        self.status = status.value
+        logger.debug(f"[StepState][{self.step.slug()}][{self.id}] Next status: {status}")
+
+        return status
+
+    def get_next_status(self, dependencies: list["StepState"] = None) -> Status:
+        """
+        Given the current status, returns what the next status would be.
+        """
+        # Check dependencies, if necessary
+        if dependencies and not all(d.status == StepState.Status.Completed.value for d in dependencies):
+            return StepState.Status.Pending
+
+        match StepState.Status(self.status):
+            case StepState.Status.Pending | StepState.Status.Uninitialized:
+
+                # Check whether initialization is needed or not.
+                if self.step.initialization_required and not self.is_initialized:
+                    return StepState.Status.Uninitialized
+                else:
+                    return StepState.Status.Current
+
+            case StepState.Status.Current | StepState.Status.Unreviewed:
+
+                # Check whether review is needed or not.
+                if self.data and self.step.review_required and not self.is_reviewed:
+                    return StepState.Status.Unreviewed
+
+                # Check for a rejected state, reverting back to current
+                elif self.data and self.step.review_required and self.is_rejected:
+                    return StepState.Status.Current
+
+                # Check for an approved state, continuing to completed
+                elif self.data and self.step.review_required and self.is_approved:
+                    return StepState.Status.Completed
+
+                # Check for an indefinite step
+                elif self.data and self.step.indefinite:
+                    return StepState.Status.Indefinite
+
+                elif self.data:
+                    return StepState.Status.Completed
+
+                else:
+                    return StepState.Status.Current
+
+            case StepState.Status.Completed:
+
+                # Check for an indefinite step
+                if self.step.indefinite:
+                    return StepState.Status.Indefinite
+
+                else:
+                    return StepState.Status.Completed
+
+            case _:
+                raise ValueError(f"Error: Unhandled status '{self.status}'")
+
+    def validate_next_status(self) -> bool:
+        """
+        Accepts a proposed next status and ensures it's a valid transition.
+        """
+        match StepState.Status(self.status):
+
+            case StepState.Status.Uninitialized:
+
+                # Check whether initialization is needed or not.
+                if not self.step.initialization_required or self.is_initialized:
+                    return False
+
+            case StepState.Status.Current:
+
+                # Check whether initialization is needed or not.
+                if self.step.initialization_required and not self.is_initialized:
+                    return False
+
+            case StepState.Status.Unreviewed:
+
+                # Check whether review is needed or not.
+                if not self.data or not self.step.review_required or self.is_reviewed:
+                    return False
+
+            case StepState.Status.Completed:
+
+                # Check whether review is needed or not.
+                if not self.data or (self.step.review_required and not self.is_approved) or self.step.indefinite:
+                    return False
+
+            case _:
+                raise ValueError(f"Error: Unhandled status '{self.status}'")
+
+        return True
+
     def save(self, *args, **kwargs):
         """
         Save handler. If changing states, check workflow for dependent steps and update their status accordingly.
@@ -557,15 +748,146 @@ class StepState(models.Model):
         # Check if we are updating the status
         status_changed = self.status != self.__original_status
 
+        # Check initialization and review requirements
+        if status_changed and not self.validate_next_status():
+            raise ValidationError(f"Error: status '{self.status}' is invalid for the current state of this object")
+
         # Process the save
         super().save(*args, **kwargs)
 
         # If this is a status change, update dependent steps.
         if status_changed:
-
-            # Calculate new step statuses
             self.workflow_state.set_step_statuses()
 
+    @property
+    def is_initialized(self) -> bool:
+        return hasattr(self, 'initialization') and self.initialization is not None
+
+    @property
+    def is_reviewed(self) -> bool:
+        return hasattr(self, 'review') and self.review is not None
+
+    @property
+    def is_approved(self) -> bool:
+        return hasattr(self, 'review') and self.review is not None and self.review.is_approved
+
+    @property
+    def is_rejected(self) -> bool:
+        return hasattr(self, 'review') and self.review is not None and self.review.is_rejected
+
+    def get_controller(self, *args, **kwargs):
+        return get_controller_instance(self.step.controller, self, *args, **kwargs)
+
+    def get_initialization_controller(self, *args, **kwargs):
+        return get_controller_instance(self.step.initialization_controller, self, *args, **kwargs)
+
+    def get_review_controller(self, *args, **kwargs):
+        return get_controller_instance(self.step.review_controller, self, *args, **kwargs)
+
+
+class StepStateInitialization(models.Model):
+    """
+    Represents the initialization of a step. This is used to track when a step was initialized.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    data = models.JSONField(blank=True, null=True, help_text="The data from this Step Initialization. This can be used to store any data that is required to initialize the step.")
+
+    # Relationships
+    step_state = models.OneToOneField(StepState, on_delete=models.CASCADE, related_name='initialization')
+    initialized_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='step_initializations', help_text="The user who initialized the step.")
+    message = models.TextField(blank=True, null=True, help_text="An optional message describing the initialization of the step. This can be used to provide context or feedback on the actions made.")
+
+    # Meta
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        """
+        Save handler. Update the status of the StepState if needed.
+        """
+        super().save(*args, **kwargs)
+
+        # Update StepState
+        self.step_state.set_status()
+        self.step_state.save()
+
+
+class StepStateReview(models.Model):
+    """
+    Represents the review of a step. This is used to track a step's review by an administrator and whether it was approved or rejected.
+    """
+    class Status(Enum):
+        Rejected = "rejected"
+        Approved = "approved"
+
+        @classmethod
+        def choices(cls):
+            return [(key.value, key.name) for key in cls]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    status = models.CharField(choices=Status.choices(), help_text="The outcome status of the review.", max_length=255)
+    message = models.TextField(blank=True, null=True, help_text="An optional message describing the review of the step. This can be used to provide context or feedback on the decision made.")
+
+    # Relationships
+    step_state = models.OneToOneField(StepState, on_delete=models.CASCADE, related_name='review')
+    decided_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='step_reviews', help_text="The user who reviewed the step.")
+
+    # Meta
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def is_approved(self) -> bool:
+        return StepStateReview.Status(self.status) is StepStateReview.Status.Approved
+
+    @property
+    def is_rejected(self) -> bool:
+        return StepStateReview.Status(self.status) is StepStateReview.Status.Rejected
+
+    def save(self, *args, **kwargs):
+        """
+        Save handler. Update the status of the StepState if needed.
+        """
+        super().save(*args, **kwargs)
+
+        # Update StepState
+        self.step_state.set_status()
+        self.step_state.save()
+
+
+class StepStateVersion(models.Model):
+    """
+    Represents a version of a StepState. This is used to track changes to a StepState over time.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    version = models.IntegerField(help_text="The version number of the StepState.", editable=False)
+    data = models.JSONField(blank=True, null=True, help_text="The data from this StepState at the time of this version.", editable=False)
+    message = models.TextField(blank=True, null=True, help_text="An optional message describing the changes made in this version. This can be used to provide context or feedback on the changes made.")
+
+    # Relationships
+    step_state = models.ForeignKey(StepState, on_delete=models.CASCADE, related_name='versions')
+
+    # Meta
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        """
+        Ensures that the version number is incremented each time a StepStateVersion is saved.
+        """
+        # Check if creating
+        if self._state.adding:
+
+            # Get the last version
+            last_version = self.step_state.versions.order_by('-version').first()
+
+            # Set the version
+            self.version = last_version.version + 1 if last_version else 1
+
+            # Set data from existing step state
+            self.data = self.step_state.data
+
+        return super().save(*args, **kwargs)
 
 class MediaType(models.Model):
     """

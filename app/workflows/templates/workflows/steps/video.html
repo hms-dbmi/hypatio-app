@@ -1,10 +1,14 @@
 {% extends "workflows/step.html" %}
 
-{% block body %}
+{% block step_body_uninitialized %}
+  <p>Your video will be generated and posted to this step soon. Please wait until you receive a notification that your video is ready.</p>
+{% endblock %}
+
+{% block step_body_current %}
+{{ block.super }}
 <div class="step-video-container">
- {% if step.status == StepStateStatus.Current.value %}
   <video id="step-{{ step.step.id }}-video" class="video-js">
-    <source src="{{ video }}" type="video/mp4" />
+    <source src="{{ video_url }}" type="video/mp4" />
     <p class="vjs-no-js">
       To view this video please enable JavaScript, and consider upgrading to a
       web browser that
@@ -25,15 +29,11 @@
     {% csrf_token %}
     <input type="hidden" name="video-tracking" id="{{ step.step.slug }}-video-tracking" value="" />
   </form>
-  {% elif step.status == StepStateStatus.Completed.value %}
-    <p>This step has been completed</p>
-  {% endif %}
 </div>
 {% endblock %}
 
-{% block footer %}
-  {{ block.super }}
- {% if step.status == StepStateStatus.Current.value %}
+{% block step_footer_current %}
+{{ block.super }}
   {% if not step.step.indefinite %}
   <button id="{{ step.step.slug }}-submit" type="submit" form="{{ step.step.slug }}-form" class="btn btn-primary">
     Next
@@ -161,5 +161,4 @@
       });
     });
   </script>
-  {% endif %}
 {% endblock %}

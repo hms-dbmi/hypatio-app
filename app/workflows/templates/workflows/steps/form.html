@@ -3,8 +3,8 @@
 {% load bootstrap3 %}
 {% load crispy_forms_tags %}
 
-{% block body %}
- {% if step.status == StepStateStatus.Current.value %}
+{% block step_body_current %}
+{{ block.super }}
   <form id="{{ step.step.slug }}-form" name="{{ step.step.slug }}-form"
         ic-post-to="{% url 'workflows:step-state' step_state_id=step.id %}"
         ic-on-error="handleFormError(status, str, xhr, '#{{ step.step.slug }}-form')"
@@ -16,19 +16,14 @@
         ic-on-success="$('#{{ step.step.slug }}-submit').html('Submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success')">
     {% crispy form %}
   </form>
-  {% elif step.status == StepStateStatus.Completed.value %}
-    <p>This step has been completed</p>
-  {% endif %}
 {% endblock %}
 
-{% block footer %}
-  {{ block.super }}
- {% if step.status == StepStateStatus.Current.value %}
-  <button id="{{ step.step.slug }}-submit" type="submit" form="{{ step.step.slug }}-form" class="btn btn-primary">
-    Submit
-    <i class="ic-indicator fa fa-spinner fa-spin" style="display:none; margin-left: 5px;"></i>
-  </button>
-  {% endif %}
+{% block step_footer_current %}
+{{ block.super }}
+<button id="{{ step.step.slug }}-submit" type="submit" form="{{ step.step.slug }}-form" class="btn btn-primary">
+  Submit
+  <i class="ic-indicator fa fa-spinner fa-spin" style="display:none; margin-left: 5px;"></i>
+</button>
 {% endblock %}
 
 {% block scripts %}

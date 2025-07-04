@@ -1,3 +1,35 @@
+$(function() {
+
+  // Setup parent refreshes
+  setupRefreshParentsElements(document);
+});
+
+// Finds all elements with the custon 'ic-refresh-parents' attribute and sets
+// them up to do just that.
+function setupRefreshParentsElements(element) {
+
+    // If no element passed, use document
+    if ( !element ) element = document;
+
+    // Find all elements with the attribute 'ic-refresh-parents'
+    $(element).find("[ic-refresh-parents]").each(function() {
+        console.log(`Refresh parent: ${$(this)}`);
+
+        // Get the parent's src
+        var parentSrc = $(this).find($(this).attr("ic-refresh-parent")).attr("ic-src");
+        if ( parentSrc ) {
+            console.log(`Parent src: ${parentSrc}`);
+
+            // Add a handler for the element to trigger refreshes.
+            $(this).on("after.success.ic", function(evt, elt, data, textStatus, xhr, requestId) {
+
+                // Refresh parent
+                Intercooler.refresh(parentSrc);
+            });
+        }
+    });
+}
+
 // This function checks to ensure all of a workflows steps have been loaded
 // and rendered fully.
 function checkWorkflowStateStepsLoaded(workflowContainer) {

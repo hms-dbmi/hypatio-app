@@ -1,0 +1,43 @@
+{% load bootstrap3 %}
+{% load crispy_forms_tags %}
+
+<form id="{{ step.step.slug }}-review-form" name="{{ step.step.slug }}-review-form" action="post"
+  ic-refresh-parent=".workflow-step-container"
+  ic-post-to="{% url 'workflows:v1:step-state-review' pk=step.id %}"
+  ic-on-success="$('#{{ step.step.slug }}-review-submit').html('Submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success')">
+  {% crispy review_form %}
+  <button id="{{ step.step.slug }}-review-submit" name="submit" type="submit" class="btn btn-primary">Submit Review</button>
+</form>
+<script type="text/javascript">
+$(function() {
+
+  // Setup parent refreshes
+  setupRefreshParentElements();
+});
+
+// Finds all elements with the custon 'ic-refresh-parents' attribute and sets
+// them up to do just that.
+function setupRefreshParentElements(element) {
+
+    // If no element passed, use document
+    if ( !element ) element = document;
+
+    // Find all elements with the attribute 'ic-refresh-parents'
+    $(element).find("[ic-refresh-parent]").each(function() {
+
+        // Get the parent's src
+        var parentSrc = $(this).closest($(this).attr("ic-refresh-parent")).first().attr("ic-src");
+        if ( parentSrc ) {
+
+            // Add a handler for the element to trigger refreshes.
+            $(this).on("after.success.ic", function(evt, elt, data, textStatus, xhr, requestId) {
+
+                // Refresh parent
+                Intercooler.refresh(parentSrc);
+            });
+        } else {
+          console.log(`[workflows][error]: Could not find parent element with selector '${$(this).attr("ic-refresh-parent")}'`)
+        }
+    });
+}
+</script>

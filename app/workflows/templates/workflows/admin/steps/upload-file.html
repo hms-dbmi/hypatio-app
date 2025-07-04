@@ -1,0 +1,20 @@
+{% extends "workflows/admin/step.html" %}
+{% load workflows %}
+
+{% block step_body_unreviewed %}
+<div class="bs-callout bs-callout-warning">
+  <h4><span class="glyphicon glyphicon-warning-sign"></span>&nbsp;&nbsp;Needs Review</h4>
+  The user has submitted the following data for the step, please review and approve or reject.
+</div>
+{% include "workflows/admin/steps/upload-file/content.html" %}
+{% endblock %}
+{% block step_body_completed %}
+<div class="alert alert-info" role="alert">
+<p>The user has completed the step and the following is the raw data saved from the step.</p>
+</div>
+{% include "workflows/admin/steps/upload-file/content.html" %}
+{% endblock %}
+
+{% block step_footer_unreviewed %}
+{% include "workflows/admin/steps/review.html" %}
+{% endblock %}
