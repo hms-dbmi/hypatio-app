@@ -1,3 +1,19 @@
+# [1.3.0-rc.8](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.7...v1.3.0-rc.8) (2025-07-10)
+
+
+### Bug Fixes
+
+* **manage:** Removed unused API views ([d004eb4](https://github.com/hms-dbmi/hypatio-app/commit/d004eb4da1bcffb32c283e67b7a4778ba3ce58af))
+* **workflows:** Fixed and improved Workflow rendering process; fixed Workflow dependency updates ([e51eb6b](https://github.com/hms-dbmi/hypatio-app/commit/e51eb6b6654c4304016dad94c701a3736a8e246b))
+
+
+### Features
+
+* **projects/manage:** Added preliminary admin dashboard support for workflows ([54630bd](https://github.com/hms-dbmi/hypatio-app/commit/54630bd812cd15cc4656d2f9d71e70dc3173d84d))
+* **settings:** Added django-extensions for debugging ([df35e68](https://github.com/hms-dbmi/hypatio-app/commit/df35e6891ce2f37aceea71c5510b31c474f2aa56))
+* **workflows:** Added administration views; added review/initialization routines ([807aea4](https://github.com/hms-dbmi/hypatio-app/commit/807aea4f27b67173ee6de0083942c4edffe8ec44))
+* **workflows:** Filled out API; improved initialization/review processes; improved administrator views ([718a718](https://github.com/hms-dbmi/hypatio-app/commit/718a718223caf4231637e51567b6258669a04c38))
+
 # [1.3.0-rc.7](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.6...v1.3.0-rc.7) (2025-06-13)
 
 
