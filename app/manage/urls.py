@@ -35,14 +35,12 @@ from manage.api import remove_view_permission
 from manage.api import sync_view_permissions
 from manage.api import export_submissions
 from manage.api import download_submissions_export
-from manage.api import DataProjectWorkflowViewSet
 from manage.api import DataProjectWorkflowStateViewSet
 from manage.api import DataProjectFileViewSet
 
 app_name = ManageConfig.name
 
 router = routers.SimpleRouter()
-router.register(r'(?P<data_project_key>[^/]+)/workflow', DataProjectWorkflowViewSet, basename='dataproject-workflow')
 router.register(r'(?P<data_project_key>[^/]+)/workflow-state', DataProjectWorkflowStateViewSet, basename='dataproject-workflow-state')
 router.register(r'(?P<data_project_key>[^/]+)/file', DataProjectFileViewSet, basename='dataproject-file')
 
