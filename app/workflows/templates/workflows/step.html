@@ -1,23 +1,82 @@
+{% load workflows %}
+{% step_is_expanded step as step_expanded %}
 <div id="{{ step.step.slug }}-content" class="step-content step-status-{{ step.status }}" style="margin-bottom: 10px;" data-step-state-status="{{ step.status }}">
       <div id="{{ step.step.slug }}-panel" class="panel panel-default">
         <div id="{{ step.step.slug }}-panel-heading" class="panel-heading" role="tab" id="heading-description">
-          <a class="workflow-step-panel-heading-link {{ step.status }}{% if step.status != StepStateStatus.Current.value %} collapsed{% endif %}" data-toggle="collapse" data-parent="#{{ step.workflow.slug }}-accordian" href="#{{ step.step.slug }}-collapse" aria-expanded="false" aria-controls="{{ step.step.slug }}-collapse">
+          <a class="workflow-step-panel-heading-link {{ step.status }}{% if not step_expanded %} collapsed{% endif %}" role="button" data-toggle="collapse" data-parent="#workflow-{{ step.workflow_state.id }}-steps-accordian" href="#{{ step.step.slug }}-collapse" aria-expanded="false" aria-controls="{{ step.step.slug }}-collapse">
             {% block header %}
-              <h2 id="{{ step.step.slug }}-panel-title" class="panel-title">{{ step.step.name }}</h2>
+              <h2 id="{{ step.step.slug }}-panel-title" class="panel-title">{{ step.step.name }}
+                {% if step.status == StepStateStatus.Uninitialized.value or step.status == StepStateStatus.Unreviewed.value %}&nbsp;&nbsp;<span style="color: #f0ad4e;" class="glyphicon glyphicon-info-sign"></span>
+                {% elif step.status == StepStateStatus.Completed.value or step.status == StepStateStatus.Indefinite.value %}&nbsp;&nbsp;<span style="color: #5cb85c;" class="glyphicon glyphicon-check"></span>
+                {% endif %}
+              </h2>
             {% endblock %}
           </a>
         </div>
-        <div id="{{ step.step.slug }}-collapse" class="panel-collapse collapse{% if step.status == 'current' %} in{% endif %}" role="tabpanel" aria-labelledby="{{ step.step.slug }}-panel-heading">
+        <div id="{{ step.step.slug }}-collapse" class="panel-collapse collapse{% if step_expanded %} in{% endif %}" role="tabpanel" aria-labelledby="{{ step.step.slug }}-panel-heading">
           <div id="{{ step.step.slug }}-panel-body" class="panel-body">
-            {% block body %}
-            {% endblock %}
+            {% if step.status == StepStateStatus.Pending.value %}
+              {% block step_body_pending %}
+              <p>Please complete prior steps before starting this step.</p>
+              {% endblock %}
+            {% elif step.status == StepStateStatus.Uninitialized.value %}
+              {% block step_body_uninitialized %}
+                <p> This step requires initialization by an administrator before you can complete it.</p>
+                {% if step.step.initialization_notification %}
+                <p>Once an administrator has taken the necessary action, you will be notified via email and can proceed with the step.</p>
+                {% endif %}
+              {% endblock %}
+            {% elif step.status == StepStateStatus.Current.value %}
+              {% block step_body_current %}
+              {% endblock %}
+            {% elif step.status == StepStateStatus.Unreviewed.value %}
+              {% block step_body_unreviewed %}
+                <p> This step requires approval by an administrator before you can continue.</p>
+                {% if step.step.initialization_notification %}
+                <p>Once an administrator has taken the necessary action, you will be notified via email and can proceed with the next step.</p>
+                {% endif %}
+              {% endblock %}
+            {% elif step.status == StepStateStatus.Indefinite.value %}
+              {% block step_body_indefinite %}
+              {% endblock %}
+            {% elif step.status == StepStateStatus.Completed.value %}
+              {% block step_body_completed %}
+              <p>You have already completed this step.</p>
+              {% endblock %}
+            {% endif %}
           </div>
           <div id="{{ step.step.slug }}-panel-footer" class="panel-footer">
-          {% block footer %}
-            {% if step.status == StepStateStatus.Completed.value %}
-            <button type="button" class="btn btn-default" role="button" data-toggle="collapse" data-parent="#{{ step.workflow.slug }}-accordian" href="#{{ step.step.slug }}-collapse" aria-expanded="false" aria-controls="{{ step.step.slug }}-collapse">Hide</button>
+            {% if step.status == StepStateStatus.Pending.value %}
+              {% block step_footer_pending %}
+              <button type="button" class="btn btn-default" role="button"
+              data-toggle="collapse" data-parent="#{{ step.workflow.slug }}-accordian"
+              href="#{{ step.step.slug }}-collapse" aria-expanded="false"
+              aria-controls="{{ step.step.slug }}-collapse">Hide</button>
+              {% endblock %}
+            {% elif step.status == StepStateStatus.Current.value %}
+                {% block step_footer_current %}
+                {% endblock %}
+            {% elif step.status == StepStateStatus.Uninitialized.value %}
+              {% block step_footer_uninitialized %}
+              {% endblock %}
+            {% elif step.status == StepStateStatus.Unreviewed.value %}
+              {% block step_footer_unreviewed %}
+              {% endblock %}
+            {% elif step.status == StepStateStatus.Indefinite.value %}
+              {% block step_footer_indefinite %}
+              <button type="button" class="btn btn-default" role="button"
+              data-toggle="collapse" data-parent="#{{ step.workflow.slug }}-accordian"
+              href="#{{ step.step.slug }}-collapse" aria-expanded="false"
+              aria-controls="{{ step.step.slug }}-collapse">Hide</button>
+              {% endblock %}
+            {% elif step.status == StepStateStatus.Completed.value %}
+              {% block step_footer_completed %}
+              <button type="button" class="btn btn-default" role="button"
+              data-toggle="collapse" data-parent="#{{ step.workflow.slug }}-accordian"
+              href="#{{ step.step.slug }}-collapse" aria-expanded="false"
+              aria-controls="{{ step.step.slug }}-collapse">Hide</button>
+              {% endblock %}
             {% endif %}
-          {% endblock %}
           </div>
         </div>
       </div>
@@ -30,7 +89,7 @@ $(function(){
   // Get step and workflow container elements
   var workflowContainer = $("#workflow-{{ step.step.workflow.slug }}-container");
   var stepContainer = $("#workflow-step-{{ step.step.slug }}-container");
-  checkWorkflowStateStatus(workflowContainer, stepContainer, "{{ WorkflowStateStatus.Completed.value }}");
+  checkWorkflowStateStatus(workflowContainer, stepContainer);
 });
 </script>
 {% endif %}

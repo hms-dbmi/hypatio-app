@@ -1,0 +1,170 @@
+<div id="file-upload-progress-container" class="collapse">
+  <div class="progress">
+      <div id="file-upload-progress" class="progress-bar progress-bar-striped active"
+          style="min-width: 2em; width: 2%; padding-top: 3px;"
+          role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+      </div>
+  </div>
+</div>
+<div class="form-group">
+  <button id="file-upload-submit-button" type="submit" form="file-upload-form" class="btn btn-primary file-upload-submit"
+  data-loading-text="<i class='fa fa-spinner fa-spin'></i>&nbsp;&nbsp;Uploading file...">Submit</button>
+  <button id="file-upload-abort-button" type="button" class="btn btn-danger file-upload-abort" style="display: none;"
+    data-loading-text="<i class='fa fa-spinner fa-spin'></i>&nbsp;&nbsp;Aborting file upload...">Abort</button>
+</div>
+<script type="application/javascript">
+$(document).ready(function() {
+
+  function onProgress(loaded, total) {
+    var percentageProgress = Math.round(loaded / total * 100);
+
+    // Update the progress bar.
+    $('#file-upload-progress').css('width', percentageProgress + '%');
+    $('#file-upload-progress').attr('aria-valuenow', percentageProgress);
+    $('#file-upload-progress').text(Math.round(percentageProgress) + '%');
+  }
+
+  function onError(error) {
+    console.error('Error: ' + error);
+    let message = error.message || 'An error occurred during the file upload.';
+
+    // Get the form
+    var form = $("#file-upload-form");
+
+    // Update the text.
+    $('#file-upload-progress').text('Error');
+    $('#file-upload-progress').removeClass('active');
+    setTimeout(function(){
+      $('#file-upload-progress-container').collapse('hide');
+    }, 1000);
+
+    // Notify the user.
+    notify('danger', message, 'glyphicon glyphicon-remove');
+
+    // Disable the form and the buttons.
+    form.find(".file-upload-submit").button('reset');
+  }
+
+  function onComplete() {
+
+    // Get the form
+    var form = $("#file-upload-form");
+
+    // Update the text.
+    $('#file-upload-progress').text('Completed!');
+    $('#file-upload-progress').removeClass('active');
+
+    // Add a little delay
+    setTimeout(function(){
+        notify('success', 'The upload has completed successfully!', 'glyphicon glyphicon-ok');
+    }, 500);
+
+    // Disable the form and the buttons.
+    form.find(".file-upload-submit").prop("disabled", true);
+    form.find(".file-upload-submit").text('File uploaded successfully');
+
+    // Refresh
+    var workflowStepContainer = form.closest(".workflow-step-container");
+    Intercooler.refresh(workflowStepContainer.attr("ic-src"));
+  }
+
+  function onAbort() {
+
+    // Get the form
+    var form = $("#file-upload-form");
+
+    // Reset the submit button.
+    $("#file-upload-submit").button('reset');
+
+    // Update the text.
+    $('#file-upload-progress').text('Aborted');
+    $('#file-upload-progress').removeClass('active');
+    setTimeout(function(){
+      $('#file-upload-progress-container').collapse('hide');
+    }, 1000);
+
+    notify('warning', 'The upload was cancelled', 'glyphicon glyphicon-warning-sign');
+
+    // Hide the abort button.
+    $("#file-upload-submit-button").button('reset');
+    $('#file-upload-abort-button').hide();
+
+    // Reset the form.
+    form.find(".file-upload-file").val('');
+  }
+
+  // Set the file uploaded API endpoint URL
+  var uploadUrl = "{% url 'workflows:v1:step-state-file-list' %}";
+
+  // Get the form and the file and filename inputs.
+  var form = document.getElementById("file-upload-form");
+  var fileInput = form.querySelector("input[name='file']");
+  var filenameInput = form.querySelector("input[name='filename']");
+  var fileSizeInput = form.querySelector("input[name='size']");
+
+  // Parse allowable media types from the file input
+  let mediaTypes = fileInput.getAttribute("accept").split(",");
+
+  // Create a file uploader object
+  var fileUploader = new FileUploader(
+    uploadUrl,
+    form,
+    fileInput,
+    filenameInput,
+    fileSizeInput,
+    mediaTypes,
+    onProgress,
+    onComplete,
+    onError
+  );
+
+  // Set the handler for the participant submission form.
+  $("#file-upload-form").on('submit', function (event) {
+
+    // Stop event propogation.
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Get the form
+    var form = $(this);
+
+    // Disable the form and the buttons.
+    form.find(".file-upload-submit").button('loading');
+
+    // Show the progress bar.
+    $('#file-upload-progress-container').collapse('show');
+    $('#file-upload-progress').text("");
+    $('#file-upload-progress').show();
+    $('#file-upload-progress').addClass('active');
+
+    // Show the abort button.
+    $('#file-upload-abort-button').show();
+
+    // Add the abort button handler.
+    $('#file-upload-abort-button').on('click', function() {
+        console.log('Upload aborted by user');
+        fileUploader.abortUpload();
+        onAbort(form);
+    });
+
+    // Upload.
+    fileUploader.upload();
+  });
+
+  function handleFormError(status, str, xhr, formId) {
+    console.log("Form submission error:", status, str, xhr);
+
+    $(formId + ' .ic-indicator').hide();
+    $(formId + ' button[type="submit"]').prop('disabled', false);
+    $(formId + ' .form-group').removeClass('has-error');
+    $(formId + ' .error-message').remove();
+
+    // Handle specific error messages
+    const errors = JSON.parse(xhr.responseText);
+    for (let field in errors) {
+      const fieldElement = $(formId + ' [name="' + field + '"]');
+      fieldElement.closest('.form-group').addClass('has-error');
+    }
+  }
+});
+</script>

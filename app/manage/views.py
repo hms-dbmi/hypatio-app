@@ -28,7 +28,7 @@ from manage.forms import NotificationForm
 from manage.models import ChallengeTaskSubmissionExport
 from manage.forms import UploadSignedAgreementFormForm
 from manage.forms import UploadSignedAgreementFormFileForm
-from projects.models import AgreementForm, ChallengeTaskSubmission
+from projects.models import AgreementForm, ChallengeTaskSubmission, DataProjectWorkflow
 from projects.models import DataProject
 from projects.models import Participant
 from projects.models import Team
@@ -37,6 +37,7 @@ from projects.models import SignedAgreementForm
 from projects.models import HostedFile
 from projects.models import HostedFileDownload
 from projects.models import SIGNED_FORM_APPROVED
+from workflows.models import WorkflowState
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -258,6 +259,10 @@ class DataProjectManageView(TemplateView):
                 'group_name': group_name,
                 'files': files_without_a_set.order_by(F('order').asc(nulls_last=True))
             })
+            
+        # Check for workflows
+        if DataProjectWorkflow.objects.filter(data_project=self.project).exists():
+            context['workflows'] = DataProjectWorkflow.objects.filter(data_project=self.project)
 
         return context
 
@@ -1129,3 +1134,27 @@ class UploadSignedAgreementFormFileView(View):
         response['X-IC-Script'] += "$('#page-modal').modal('hide');"
 
         return response
+
+    
+@method_decorator([user_auth_and_jwt], name='dispatch')
+class WorkflowStateView(View):
+    """
+    View to manage workflows for participants.
+
+    * Requires token authentication.
+    * Only admin users are able to access this view.
+    """
+    def get(self, request, workflow_state_id, *args, **kwargs):
+        
+        # Get the workflow
+        workflow_state = get_object_or_404(WorkflowState, id=workflow_state_id)
+
+        # Set context
+        context = {
+            "workflow": workflow_state,
+        }
+
+        # Render html
+        return render(request, "manage/workflow-base.html", context)
+
+    

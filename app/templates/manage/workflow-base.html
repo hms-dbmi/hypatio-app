@@ -1,0 +1,38 @@
+{% extends 'sub-base.html' %}
+{% load tz %}
+{% load workflows %}
+{% load static %}
+
+{% block headscripts %}
+<link href="{% static 'css/workflows/workflows.css' %}" rel="stylesheet" />
+<script src="{% static 'js/workflows/workflows.js' %}"></script>
+<script src="{% static 'js/workflows/file-uploader.js' %}"></script>
+{% endblock %}
+
+{% block tab_name %}Workflow{% endblock %}
+{% block title %}Manage Workflow{% endblock %}
+{% block subtitle %}{{ workflow.workflow.name }}{% endblock %}
+
+{% block subcontent %}
+<div class="row">
+    <div class="col-md-12">
+      {{ workflow|workflow_admin }}
+    </div>
+</div>
+{% endblock %}
+
+{% block footerscripts %}
+<script type="application/javascript">
+$(document).ready(function() {
+
+});
+</script>
+
+{# Add a placeholder for any modal dialogs #}
+<div id='page-modal' class='modal fade' tabindex='-1'>
+  <div class="modal-dialog" role="document">
+      <div id='page-modal-content' class="modal-content">
+      </div>
+  </div>
+</div>
+{% endblock %}

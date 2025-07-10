@@ -1,0 +1,57 @@
+{% load bootstrap3 %}
+{% load crispy_forms_tags %}
+
+<form id="{{ step.step.slug }}-review-form" name="{{ step.step.slug }}-review-form" action="post"
+  ic-refresh-parent=".workflow-step-container"
+  ic-post-to="{% url 'workflows:v1:step-state-review' pk=step.id %}"
+  ic-transform-response="return null;"
+  ic-on-success="onReviewSuccess();">
+  {% crispy review_form %}
+  <button id="{{ step.step.slug }}-review-submit" name="submit" type="submit" class="btn btn-primary">Submit Review</button>
+</form>
+<script type="text/javascript">
+  function onReviewSuccess() {
+
+    // Update the submit button.
+    $('#{{ step.step.slug }}-review-submit').html('Submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success');
+
+    // Add a little delay
+    setTimeout(function(){
+        notify('success', 'The review was submitted successfully!', 'glyphicon glyphicon-ok');
+    }, 500);
+  }
+
+  function updateReviewMessage() {
+
+    // Set a mapping of review decisions to default messages to user, if any.
+    const defaultMessages = {
+      {% for key,value in review_messages.items %}
+      "{{ key }}": "{{ value }}"{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    }
+
+    // Get the selected review decision status
+    const status = $("#{{ step.step.slug }}-review-form").find("select").first().val();
+
+    // Check for the default message, if any.
+    if ( defaultMessages.hasOwnProperty(status) ) {
+
+      // Set it.
+      $("#{{ step.step.slug }}-review-form").find("textarea").val(defaultMessages[status]);
+    } else {
+
+      // Clear it.
+      $("#{{ step.step.slug }}-review-form").find("textarea").val("");
+    }
+  }
+
+  $(function() {
+
+    // Set the initial message
+    updateReviewMessage();
+
+    $("#{{ step.step.slug }}-review-form").find("select").first().on({
+      change: function(event) { updateReviewMessage(); }
+    });
+  });
+</script>

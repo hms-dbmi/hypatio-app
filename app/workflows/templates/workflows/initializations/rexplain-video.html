@@ -1,0 +1,299 @@
+{% load projects_extras %}
+{% load tz %}
+{% load bootstrap3 %}
+
+{% block content %}
+{{ block.super }}
+<form id="file-upload-form" name="file-upload-form">
+  {% csrf_token %}
+  <div class="form-group">
+    <input class="file-upload-file" name="file" type="file"
+      accept=".{{ file_type }}"
+      data-content-type="{{ file_content_types|join:";" }}">
+  </div>
+  <div class="form-group">
+    <input id="file-upload-filename" class="file-upload-filename" name="filename" type="text" hidden="true" />
+  </div>
+</form>
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+<div id="file-upload-progress-container" class="collapse">
+  <div class="progress">
+      <div id="file-upload-progress" class="progress-bar progress-bar-striped active"
+          style="min-width: 2em; width: 2%; padding-top: 3px;"
+          role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+      </div>
+  </div>
+</div>
+<div class="form-group">
+  <button id="file-upload-submit-button" type="submit" form="file-upload-form" class="btn btn-primary file-upload-submit"
+  data-loading-text="<i class='fa fa-spinner fa-spin'></i>&nbsp;&nbsp;Uploading file...">Submit</button>
+  <button id="file-upload-abort-button" type="button" class="btn btn-danger file-upload-abort" style="display: none;"
+    data-loading-text="<i class='fa fa-spinner fa-spin'></i>&nbsp;&nbsp;Aborting file upload...">Abort</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Handle upload and submission of a challenge task -->
+<script type="application/javascript">
+
+    function objectifyForm( formArray ) {
+        var returnArray = {};
+        for (var i = 0; i < formArray.length; i++){
+            returnArray[formArray[i]['name']] = formArray[i]['value'];
+        }
+        return returnArray;
+    }
+
+    $(document).ready(function() {
+
+        // Automatically update the filename field when a file is selected by the user.
+        $(document).on('change', '.file-upload-file', function () {
+            var input = $(this);
+            var fileName = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+
+            $('#file-upload-filename').val(fileName);
+        });
+
+        // Set the handler for the participant submission form.
+        $("#file-upload-form").on('submit', function (event) {
+
+          // Stop event propogation.
+          event.preventDefault();
+          event.stopPropagation();
+
+          // Get the form
+          var form = $(this);
+
+          // Get the file input
+          var fileInput = form.find(".file-upload-file");
+
+          // Get the file.
+          var file = fileInput.prop('files')[0];
+          if (file == null) {
+              error('A file has not been selected, please try again', form);
+              return false;
+          }
+
+          // Validate content type
+          let contentTypes = fileInput.data("content-type").split(";");
+          let contentTypesString = `"${contentTypes.join("\", \"")}"`;
+          console.log(`Checking type "${file.type}" in "${contentTypesString}"`);
+          if( ! contentTypes.includes(file.type) ) {
+            console.log(`Blob type ${file.type} not in "${contentTypesString}"`);
+            error(`Content type "${file.type}" is not accepted. Only files of type "${contentTypesString}" are accepted.`, form);
+            return false;
+          }
+
+          // Get the form data.
+          var formData = objectifyForm($(form).serializeArray());
+
+          // Remove the file from the serialized form as it will not be needed yet.
+          delete formData['file'];
+
+          // Add info about the file.
+          formData['content_type'] = file.content;
+
+          // Disable the form and the buttons.
+          form.find(".file-upload-submit").button('loading');
+
+          // Show the progress bar.
+          $('#file-upload-progress-container').collapse('show');
+          $('#file-upload-progress').text("");
+          $('#file-upload-progress').show();
+          $('#file-upload-progress').addClass('active');
+
+          // Show the abort button.
+          $('#file-upload-abort-button').show();
+
+          $.ajax({
+              method: "POST",
+              data: formData,
+              url: "{% url 'workflows:step-state' step_state_id=step.id %}",
+              success: function (data, textStatus, jqXHR) {
+                  console.log("submit.success: " + textStatus);
+                  upload(data["post"], data["file"], file, formData, form);
+              },
+              error: function (jqXHR, textStatus, errorThrown) {
+                  console.log("submit.error: " + errorThrown);
+                  error('Something happened, please try again', form);
+              }
+          });
+        });
+
+        // Uploads the file to AWS S3.
+        function upload(post, fileRecord, file, formData, form) {
+            console.log('upload: ' + fileRecord["filename"]);
+
+            // Construct the needed data using the policy for AWS
+            var uploadForm = new FormData();
+            var fields = post["fields"];
+            for(var key in fields) {
+              uploadForm.append(key, fields[key]);
+            }
+
+            // Add the file
+            uploadForm.append('file', file);
+
+            // Send the file to S3.
+            $.ajax({
+                    url: post["url"],
+                    datatype: 'xml',
+                    data: uploadForm,
+                    type: 'POST',
+                    contentType: false,
+                    processData: false,
+                    xhr: function () {
+
+                        // Add a progress handler
+                        var xhr = $.ajaxSettings.xhr();
+                        xhr.upload.onprogress = progress;
+
+                        // Allow aborting the upload.
+                        $('#file-upload-abort-button').click(function() {
+                            xhr.abort();
+                        });
+                        return xhr;
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        console.log('upload.success: ' + textStatus);
+
+                        // Do not allow the upload to be cancelled at this point.
+                        // $("#file-upload-form :input").prop("disabled", true);
+
+                        // Inform the server that the upload completed.
+                        complete(fileRecord, formData, form);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+
+                        // Check if aborted.
+                        if( !jqXHR.getAllResponseHeaders() ) {
+                          // Cancelled notification.
+                          console.log('upload.aborted');
+                          aborted(form);
+                        } else {
+                          console.log('upload.error: ' + errorThrown + ', ' + textStatus);
+                          error('Something happened, please try again', form);
+                        }
+                    }
+                });
+        }
+
+        function complete(fileRecord, formData, form) {
+            console.log('complete: ' + fileRecord["filename"]);
+
+            // Combine information about the fileservice metadata on the file with the
+            // original form submission.
+            $.extend(fileRecord, formData)
+
+            // Inform the server that the upload completed.
+            $.ajax({
+                method: "PATCH",
+                data: fileRecord,
+                url: "{% url 'workflows:step-state' step_state_id=step.id %}",
+                success: function (data, textStatus, jqXHR) {
+                    console.log("complete.success: " + textStatus);
+
+                    // Notify.
+                    success(form);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log("complete.error: " + errorThrown);
+
+                    // Error with message.
+                    error('Something happened, please try again', form);
+                }
+            });
+        }
+
+        function progress(event) {
+
+            // Ensure it can be used
+            if (event.lengthComputable) {
+
+                // Calculate progress.
+                var progress = event.loaded / event.total * 100;
+                console.log('upload.progress: ' + progress);
+
+                // Update the progress bar.
+                $('#file-upload-progress').css('width', progress + '%');
+                $('#file-upload-progress').attr('aria-valuenow', progress);
+                $('#file-upload-progress').text(Math.round(progress) + '%');
+            }
+        }
+
+        function error(message, form) {
+          console.log("Error");
+
+          // Update the text.
+          $('#file-upload-progress').text('Error');
+          $('#file-upload-progress').removeClass('active');
+          setTimeout(function(){
+            $('#file-upload-progress-container').collapse('hide');
+          }, 1000);
+
+          // Notify the user.
+          notify('danger', message, 'glyphicon glyphicon-remove');
+
+          // Disable the form and the buttons.
+          form.find(".file-upload-submit").button('reset');
+        }
+
+        function aborted(form, event) {
+
+          // Reset the submit button.
+          $("#file-upload-submit").button('reset');
+
+          // Update the text.
+          $('#file-upload-progress').text('Aborted');
+          $('#file-upload-progress').removeClass('active');
+          setTimeout(function(){
+            $('#file-upload-progress-container').collapse('hide');
+          }, 1000);
+
+          notify('warning', 'The upload was cancelled', 'glyphicon glyphicon-warning-sign');
+
+          // Hide the abort button.
+          $("#file-upload-submit-button").button('reset');
+          $('#file-upload-abort-button').hide();
+
+          // Reset the form.
+          form.find(".file-upload-file").val('');
+        }
+
+        function success(form) {
+
+          // Update the text.
+          $('#file-upload-progress').text('Completed!');
+          $('#file-upload-progress').removeClass('active');
+
+          // Add a little delay
+          setTimeout(function(){
+              notify('success', 'The upload has completed successfully!', 'glyphicon glyphicon-ok');
+          }, 500);
+
+          // Disable the form and the buttons.
+          form.find(".file-upload-submit").prop("disabled", true);
+          form.find(".file-upload-submit").text('File uploaded successfully');
+        }
+    });
+
+  function handleFormError(status, str, xhr, formId) {
+    console.log("Form submission error:", status, str, xhr);
+
+    $(formId + ' .ic-indicator').hide();
+    $(formId + ' button[type="submit"]').prop('disabled', false);
+    $(formId + ' .form-group').removeClass('has-error');
+    $(formId + ' .error-message').remove();
+
+    // Handle specific error messages
+    const errors = JSON.parse(xhr.responseText);
+    for (let field in errors) {
+      const fieldElement = $(formId + ' [name="' + field + '"]');
+      fieldElement.closest('.form-group').addClass('has-error');
+    }
+  }
+</script>
+{% endblock %}

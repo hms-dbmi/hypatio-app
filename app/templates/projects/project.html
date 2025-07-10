@@ -2,6 +2,7 @@
 {% load projects_extras %}
 {% load bootstrap3 %}
 {% load static %}
+{% load workflows %}
 
 {% block headscripts %}
 <link href="https://vjs.zencdn.net/8.20.0/video-js.css" rel="stylesheet" />
@@ -9,6 +10,7 @@
 <script src="https://vjs.zencdn.net/8.20.0/video.min.js"></script>
 <script src="{% static 'js/videojs-event-tracking.min.js' %}"></script>
 <script src="{% static 'js/workflows/workflows.js' %}"></script>
+<script src="{% static 'js/workflows/file-uploader.js' %}"></script>
 {% endblock %}
 
 {% block tab_name %}{{ project.name }}{% endblock %}
@@ -58,9 +60,8 @@
 
     <div class="col-md-7">
 
-        {% for workflow in workflows %}
-          <div id="workflow-{{ workflow.workflow.slug }}-container" class="workflow-container" ic-get-from="{% url 'workflows:workflow-state' workflow_state_id=workflow.id %}" ic-trigger-on="scrolled-into-view"></div>
-        {% endfor %}
+        {# Render any workflows #}
+        {{ workflows|workflows }}
 
         {% for panel in setup_panels %}
         <div class="panel panel-{{ panel.bootstrap_color }}">

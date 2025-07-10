@@ -1,36 +1,35 @@
 <div id="workflow-{{ workflow.workflow.slug }}-content" class="workflow-content workflow-status-{{ workflow.status }}" data-workflow-state-status="{{ workflow.status }}">
   <div class="panel panel-primary workflow-panel">
     <div class="panel-heading">
-      <h2 class="panel-title">{{ workflow.workflow.name }}</h2>
+      <a class="workflow-panel-heading-link {{ workflow.status }}" role="button" data-toggle="collapse" data-parent="#workflows-accordian" href="#workflow-{{ workflow.id }}-collapse" aria-expanded="false" aria-controls="workflow-{{ workflow.id }}-collapse">
+        <h2 id="workflow-{{ workflow.id }}-panel-title" class="panel-title">
+          {{ workflow.workflow.name }}
+          {% if workflow.status == WorkflowStateStatus.Completed.value %}&nbsp;&nbsp;<span style="color: #5cb85c;" class="glyphicon glyphicon-check"></span>{% endif %}
+        </h2>
+      </a>
     </div>
-    <div class="panel-body">
-      <div class="workflow-description">
-        <p>{{ workflow.workflow.description }}</p>
-      </div>
-      <div class="workflow-steps-container">
-        <div class="panel-group" id="{{ workflow.workflow.slug }}-accordion" role="tablist" aria-multiselectable="true">
-        {% for step in steps %}
-          <div id="workflow-step-{{ step.step.slug }}-container"
-          class="workflow-step-container"
-          ic-get-from={% url 'workflows:step-state' step_state_id=step.id %}
-          ic-trigger-on="scrolled-into-view"
-          ic-deps="{% for dependency in step.dependencies %}{% url 'workflows:step-state' step_state_id=dependency.id %},{% endfor %}"
-          ></div>
-        {% endfor %}
+    <div id="workflow-{{ workflow.id }}-collapse" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="workflow-{{ workflow.id }}-panel-heading">
+      <div class="panel-body">
+        <div class="workflow-description">
+          <p>{{ workflow.workflow.description }}</p>
+        </div>
+        <div class="workflow-steps-container">
+          <div class="panel-group" id="workflow-{{ workflow.id }}-steps-accordion" role="tablist" aria-multiselectable="true">
+          {% if workflow.status == WorkflowStateStatus.Pending.value %}
+            <p>Please finish dependent workflows.</p>
+          {% else %}
+            {% for step in steps %}
+            <div id="workflow-step-{{ step.step.slug }}-container"
+            class="workflow-step-container"
+            ic-get-from="{% if admin %}{% url 'workflows:v1:admin-step-state-detail' pk=step.id %}{% else %}{% url 'workflows:v1:step-state-detail' pk=step.id %}{% endif %}"
+            ic-trigger-on="scrolled-into-view"
+            ic-deps="{% for dependency in step.get_dependencies %}{% if admin %}{% url 'workflows:v1:admin-step-state-detail' pk=dependency.id %}{% else %}{% url 'workflows:v1:step-state-detail' pk=dependency.id %}{% endif %}{% if not forloop.last %},{% endif %}{% endfor %}"
+            ></div>
+            {% endfor %}
+          {% endif %}
+          </div>
         </div>
       </div>
     </div>
   </div>
-  {% if workflow.status != WorkflowStateStatus.Completed.value %}
-  <form id="workflow-state-{{ workflow.id }}-form" class="workflow-state-form"
-    ic-post-to="{% url 'workflows:workflow-state' workflow_state_id=workflow.id %}"
-    ic-target="#workflow-{{ workflow.workflow.slug }}-content"
-    ic-replace-target="true">
-    <input id="workflow-state-{{ workflow.id }}-status-input"
-      name="workflow-state-status"
-      class="workflow-state-form-status-input"
-      type="hidden"
-      value="{{ workflow.status }}" \>
-  </form>
-  {% endif %}
 </div>

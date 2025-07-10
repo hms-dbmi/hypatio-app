@@ -1,0 +1,76 @@
+{% extends "workflows/step.html" %}
+{% load workflows %}
+
+{% block header %}
+{{ block.super }}
+{% endblock %}
+
+{% block step_body_pending %}
+<p>The user has not yet reached this step in the workflow.</p>
+{% endblock %}
+
+{% block step_body_uninitialized %}
+<div class="bs-callout bs-callout-danger">
+  <h4><span class="glyphicon glyphicon-warning-sign"></span>&nbsp;&nbsp;Needs Review</h4>
+  This step needs initialization before the user may proceed but this view should be managed by a controller. Please inform support if you see this message.
+</div>
+{% endblock %}
+
+{% block step_body_current %}
+{% if step.step.initialization_required and step.is_initialized %}
+<p>This step has been successfully initialized and the user may now proceed with it.</p>
+{% else %}
+<p>This step is currently active and the user can proceed with it.</p>
+{% endif %}
+{% endblock %}
+
+{% block step_body_unreviewed %}
+<div class="bs-callout bs-callout-danger">
+  <h4><span class="glyphicon glyphicon-warning-sign"></span>&nbsp;&nbsp;Needs Review</h4>
+  The user's submission for this step needs review but this view should be managed by a controller. Please inform support if you see this message.
+</div>
+{% endblock %}
+
+{% block step_body_rejected %}
+<p>This step has been rejected by an administrator and is awaiting the user to complete it again.</p>
+{% endblock %}
+
+{% block step_body_completed %}
+<div class="alert alert-info" role="alert">
+<p>The user has completed the step and the following is the raw data saved from the step.</p>
+</div>
+<pre>
+{{ step.data|pretty_json }}
+</pre>
+{% endblock %}
+
+{% block step_body_indefinite %}
+<div class="alert alert-info" role="alert">
+<p>The user has completed the step and the following is the raw data saved from the step.</p>
+</div>
+<pre>
+{{ step.data|pretty_json }}
+</pre>
+{% endblock %}
+
+{% block step_footer_pending %}
+{% endblock %}
+
+{% block step_footer_uninitialized %}
+{% endblock %}
+
+{% block step_footer_current %}
+{% endblock %}
+
+{% block step_footer_unapproved %}
+{% endblock %}
+
+{% block step_footer_rejected %}
+{% endblock %}
+
+{% block step_footer_completed %}
+{% endblock %}
+
+{% block scripts %}
+{{ super.scripts }}
+{% endblock %}

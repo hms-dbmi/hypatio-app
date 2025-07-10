@@ -1,0 +1,82 @@
+{% extends "workflows/admin/step.html" %}
+
+{% load workflows %}
+{% load bootstrap3 %}
+{% load crispy_forms_tags %}
+
+{% block step_body_unreviewed %}
+<div class="bs-callout bs-callout-warning">
+  <h4><span class="glyphicon glyphicon-warning-sign"></span>&nbsp;&nbsp;Needs Review</h4>
+  The user has submitted the following data for the step, please review and approve or reject.
+</div>
+<div class="row">
+  <div class="col-xs-12" style="margin-bottom: 10px;">
+    <ul class="nav nav-tabs">
+      <li class="active"><a data-toggle="tab" href="#{{ step.step.slug }}-form-tab">Form</a></li>
+      <li><a data-toggle="tab" href="#{{ step.step.slug }}-data-tab">Data</a></li>
+    </ul>
+  </div>
+  <div class="col-xs-12">
+    <div class="tab-content">
+      <div id="{{ step.step.slug }}-form-tab" class="tab-pane fade in active">
+        <form id="{{ step.step.slug }}-form" name="{{ step.step.slug }}-form">
+          {% crispy form %}
+        </form>
+        <script type="application/javascript">
+          $(document).ready(function() {
+            // Initialize the form with Bootstrap's validation styles.
+            $('#{{ step.step.slug }}-form').find('input, select, textarea').each(function() {
+              $(this).prop("disabled", true);
+            });
+          });
+        </script>
+      </div>
+      <div id="{{ step.step.slug }}-data-tab" class="tab-pane fade">
+        <pre>
+        {{ step.data|pretty_json }}
+        </pre>
+      </div>
+    </div>
+  </div>
+</div>
+<form id="{{ step.step.slug }}-review-form" name="{{ step.step.slug }}-review-form"
+      method="post" action="{% url 'workflows:step-review' step_state_id=step.id %}">
+  {% crispy review_form %}
+</form>
+{% endblock %}
+
+{% block step_body_completed %}
+<div class="alert alert-info" role="alert">
+<p>The user has completed the step and the following is the form values that they submitted</p>
+</div>
+<div class="row">
+  <div class="col-xs-12" style="margin-bottom: 10px;">
+    <ul class="nav nav-tabs">
+      <li class="active"><a data-toggle="tab" href="#{{ step.step.slug }}-form-tab">Form</a></li>
+      <li><a data-toggle="tab" href="#{{ step.step.slug }}-data-tab">Data</a></li>
+    </ul>
+  </div>
+  <div class="col-xs-12">
+    <div class="tab-content">
+      <div id="{{ step.step.slug }}-form-tab" class="tab-pane fade in active">
+        <form id="{{ step.step.slug }}-form" name="{{ step.step.slug }}-form">
+          {% crispy form %}
+        </form>
+        <script type="application/javascript">
+          $(document).ready(function() {
+            // Initialize the form with Bootstrap's validation styles.
+            $('#{{ step.step.slug }}-form').find('input, select, textarea').each(function() {
+              $(this).prop("disabled", true);
+            });
+          });
+        </script>
+      </div>
+      <div id="{{ step.step.slug }}-data-tab" class="tab-pane fade">
+        <pre>
+        {{ step.data|pretty_json }}
+        </pre>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

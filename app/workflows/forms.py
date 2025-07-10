@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Field, HTML
 
+from workflows.models import StepStateReview
 from workflows.widgets import HorizontalRadioSelect
 
 
@@ -52,15 +53,86 @@ class WorkflowTestForm(forms.Form):
 
         return data
 
-class FileUploadForm(forms.Form):
+class StepReviewForm(forms.Form):
+    """
+    A form for reviewing a step in a workflow.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+
+    status = forms.ChoiceField(
+        label=_("Decision"),
+        help_text=_("Please select the outcome of this review"),
+        choices=StepStateReview.Status.choices(),
+    )
+    message = forms.CharField(
+        label="Message",
+        required=False,
+        widget=forms.Textarea,
+        help_text="Optional message to the user to provide context or feedback on your decision (leaving blank will only send notifications if one is configured by default)"
+    )
+    step_state = forms.CharField(
+        widget=forms.HiddenInput,
+    )
+    decided_by = forms.CharField(
+        widget=forms.HiddenInput,
+    )
+
+class StepStateFileForm(forms.Form):
     """
     A form for uploading files.
     This form is used to test file upload functionality in workflows.
     """
+    def __init__(self, *args, allowed_media_types=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+
+        # Set allowed media types
+        if not allowed_media_types:
+            allowed_media_types = []
+        self.fields['file'].widget.attrs.update({
+            "accept": ",".join(allowed_media_types)
+        })
+
+    user = forms.CharField(
+        widget=forms.HiddenInput,
+    )
+    step_state = forms.CharField(
+        widget=forms.HiddenInput,
+    )
     file = forms.FileField(
         label="Upload a file",
+        help_text="Select the file to be uploaded",
+        widget=forms.ClearableFileInput(),
+        required=False,
+    )
+    filename = forms.CharField(
+        widget=forms.HiddenInput,
+    )
+    size = forms.CharField(
+        widget=forms.HiddenInput,
+    )
+    type = forms.CharField(
+        widget=forms.HiddenInput,
+    )
+
+
+class RexplainVideoUploadForm(forms.Form):
+    """
+    A form for uploading a video file.
+    This form is used for admins to upload videos for users in the Rexplain project.
+    """
+    file = forms.FileField(
+        label="Upload a video for the user",
         help_text="Please upload a file.",
-        widget=forms.ClearableFileInput(attrs={'data-content-type': "application/zip"}),
+        widget=forms.ClearableFileInput(attrs={'data-content-type': "video/mp4"}),
+    )
+    filename = forms.CharField(
+        label="The name of the file to be uploaded",
+        widget=forms.HiddenInput(),
     )
 
     def clean_file(self):
@@ -68,6 +140,7 @@ class FileUploadForm(forms.Form):
         if not file:
             raise ValidationError("No file uploaded.")
         return file
+
 
 class LikertField(forms.ChoiceField):
     """
