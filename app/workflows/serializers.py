@@ -10,6 +10,7 @@ from workflows.models import StepState
 from workflows.models import StepStateReview
 from workflows.models import StepStateInitialization
 from workflows.models import StepStateVersion
+from workflows.models import StepStateFile
 
 
 class WorkflowSerializer(serializers.ModelSerializer):
@@ -133,3 +134,15 @@ class StepStateVersionSerializer(serializers.ModelSerializer):
         model = StepStateVersion
         fields = '__all__'
         read_only_fields = ['created_at', 'modified_at', 'version', 'data', ]
+
+
+class StepStateFileSerializer(serializers.ModelSerializer):
+    step_state = serializers.HyperlinkedRelatedField(
+        read_only=True,
+        view_name='workflows:v1:step-state-detail',
+    )
+
+    class Meta:
+        model = StepStateFile
+        fields = '__all__'
+        read_only_fields = ['created_at', 'modified_at', ]

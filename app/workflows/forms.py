@@ -80,22 +80,44 @@ class StepReviewForm(forms.Form):
         widget=forms.HiddenInput,
     )
 
-class FileUploadForm(forms.Form):
+class StepStateFileForm(forms.Form):
     """
     A form for uploading files.
     This form is used to test file upload functionality in workflows.
     """
+    def __init__(self, *args, allowed_media_types=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.form_tag = False
+
+        # Set allowed media types
+        if not allowed_media_types:
+            allowed_media_types = []
+        self.fields['file'].widget.attrs.update({
+            "accept": ",".join(allowed_media_types)
+        })
+
+    user = forms.CharField(
+        widget=forms.HiddenInput,
+    )
+    step_state = forms.CharField(
+        widget=forms.HiddenInput,
+    )
     file = forms.FileField(
         label="Upload a file",
-        help_text="Please upload a file.",
-        widget=forms.ClearableFileInput(attrs={'data-content-type': "application/zip"}),
+        help_text="Select the file to be uploaded",
+        widget=forms.ClearableFileInput(),
+        required=False,
     )
-
-    def clean_file(self):
-        file = self.cleaned_data.get('file')
-        if not file:
-            raise ValidationError("No file uploaded.")
-        return file
+    filename = forms.CharField(
+        widget=forms.HiddenInput,
+    )
+    size = forms.CharField(
+        widget=forms.HiddenInput,
+    )
+    type = forms.CharField(
+        widget=forms.HiddenInput,
+    )
 
 
 class RexplainVideoUploadForm(forms.Form):

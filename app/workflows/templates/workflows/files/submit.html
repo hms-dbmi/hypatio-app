@@ -1,20 +1,17 @@
-{% extends "workflows/admin/step.html" %}
-
-{% block step_body_uninitialized %}
-<div class="alert alert-info" role="alert">
-  <p>This step needs to be initialized by uploading a video for the user. Use the form below to upload the video file.</p>
+<div id="file-upload-progress-container" class="collapse">
+  <div class="progress">
+      <div id="file-upload-progress" class="progress-bar progress-bar-striped active"
+          style="min-width: 2em; width: 2%; padding-top: 3px;"
+          role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+      </div>
+  </div>
 </div>
-<form id="file-upload-form" name="file-upload-form">
-  {% csrf_token %}
-  <div class="form-group">
-    <input id="file-upload-file" class="file-upload-file" name="file" type="file"
-      data-content-type="{{ allowed_media_types|join:";" }}">
-  </div>
-  <div class="form-group">
-    <input id="file-upload-filename" class="file-upload-filename" name="filename" type="text" hidden="true" />
-  </div>
-</form>
-
+<div class="form-group">
+  <button id="file-upload-submit-button" type="submit" form="file-upload-form" class="btn btn-primary file-upload-submit"
+  data-loading-text="<i class='fa fa-spinner fa-spin'></i>&nbsp;&nbsp;Uploading file...">Submit</button>
+  <button id="file-upload-abort-button" type="button" class="btn btn-danger file-upload-abort" style="display: none;"
+    data-loading-text="<i class='fa fa-spinner fa-spin'></i>&nbsp;&nbsp;Aborting file upload...">Abort</button>
+</div>
 <script type="application/javascript">
 $(document).ready(function() {
 
@@ -97,15 +94,16 @@ $(document).ready(function() {
   }
 
   // Set the file uploaded API endpoint URL
-  var uploadUrl = "{% url 'workflows:step-state-admin' step_state_id=step.id %}";
+  var uploadUrl = "{% url 'workflows:v1:step-state-file-list' %}";
 
   // Get the form and the file and filename inputs.
   var form = document.getElementById("file-upload-form");
   var fileInput = form.querySelector("input[name='file']");
   var filenameInput = form.querySelector("input[name='filename']");
+  var fileSizeInput = form.querySelector("input[name='size']");
 
   // Parse allowable media types from the file input
-  let mediaTypes = fileInput.getAttribute("data-content-type").split(";");
+  let mediaTypes = fileInput.getAttribute("accept").split(",");
 
   // Create a file uploader object
   var fileUploader = new FileUploader(
@@ -113,6 +111,7 @@ $(document).ready(function() {
     form,
     fileInput,
     filenameInput,
+    fileSizeInput,
     mediaTypes,
     onProgress,
     onComplete,
@@ -169,22 +168,3 @@ $(document).ready(function() {
   }
 });
 </script>
-{% endblock %}
-
-{% block step_footer_uninitialized %}
-{{ block.super }}
-<div id="file-upload-progress-container" class="collapse">
-  <div class="progress">
-      <div id="file-upload-progress" class="progress-bar progress-bar-striped active"
-          style="min-width: 2em; width: 2%; padding-top: 3px;"
-          role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-      </div>
-  </div>
-</div>
-<div class="form-group">
-  <button id="file-upload-submit-button" type="submit" form="file-upload-form" class="btn btn-primary file-upload-submit"
-  data-loading-text="<i class='fa fa-spinner fa-spin'></i>&nbsp;&nbsp;Uploading file...">Submit</button>
-  <button id="file-upload-abort-button" type="button" class="btn btn-danger file-upload-abort" style="display: none;"
-    data-loading-text="<i class='fa fa-spinner fa-spin'></i>&nbsp;&nbsp;Aborting file upload...">Abort</button>
-</div>
-{% endblock %}

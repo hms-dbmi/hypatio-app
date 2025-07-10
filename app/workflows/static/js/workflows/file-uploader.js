@@ -6,13 +6,15 @@ class FileUploader {
      * @param {HTMLFormElement} form - The form element containing the file input.
      * @param {HTMLInputElement} fileInput - The file input element from which the file will be uploaded.
      * @param {HTMLInputElement} filenameInput - The text input element for the filename.
+     * @param {HTMLInputElement} fileSizeInput - The text input element for the file size.
+     * @param {HTMLInputElement} fileTypeInput - The text input element for the file type.
      * @param {Array} allowedMediaTypes - An array of allowed media types for the file upload.
      * @param {function} onProgress - Callback function to handle upload progress. Accepts two parameters: `loaded` and `total`.
      * @param {function} onComplete - Callback function to handle upload completion.
      * @param {function} onError - Callback function to handle errors during the upload process. Accepts an `Error` object as a parameter.
      * @throws {Error} Throws an error if the provided elements are not valid HTML elements or if the file input is invalid.
      */
-    constructor(uploadUrl, form, fileInput, filenameInput, allowedMediaTypes, onProgress, onComplete, onError) {
+    constructor(uploadUrl, form, fileInput, filenameInput, fileSizeInput, fileTypeInput, allowedMediaTypes, onProgress, onComplete, onError) {
         this.uploadUrl = uploadUrl;
 
         // Validate HTML elements
@@ -22,12 +24,21 @@ class FileUploader {
         if (!(fileInput instanceof HTMLInputElement) || fileInput.type !== 'file') {
             throw new Error("Invalid file input element provided");
         }
-        if (!(filenameInput instanceof HTMLInputElement) || filenameInput.type !== 'text') {
+        if (!(filenameInput instanceof HTMLInputElement)) {
             throw new Error("Invalid filename input element provided");
         }
+        if (!(fileSizeInput instanceof HTMLInputElement)) {
+            throw new Error("Invalid file size input element provided");
+        }
+        if (!(fileTypeInput instanceof HTMLInputElement)) {
+            throw new Error("Invalid file type input element provided");
+        }
+
         this.form = form;
         this.fileInput = fileInput;
         this.filenameInput = filenameInput;
+        this.fileSizeInput = fileSizeInput;
+        this.fileTypeInput = fileTypeInput;
         this.allowedMediaTypes = allowedMediaTypes || [];
         this.onProgress = onProgress || function() {};
         this.onComplete = onComplete || function() {};
@@ -38,8 +49,12 @@ class FileUploader {
             const file = this.getFile();
             if (file) {
                 this.filenameInput.value = file.name.replace(/\\/g, '/').replace(/.*\//, '');
+                this.fileSizeInput.value = file.size;
+                this.fileTypeInput.value = file.type;
             } else {
                 this.filenameInput.value = '';
+                this.fileSizeInput.value = '';
+                this.fileTypeInput.value = '';
             }
         });
     }
@@ -246,7 +261,7 @@ class FileUploader {
 
         xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
-                this.completeUpload(fileData);
+                this.completeUpload(fileData, formData);
             } else {
                 this.onError(new Error(`Upload failed with status ${xhr.status}`));
             }
@@ -272,9 +287,16 @@ class FileUploader {
      * This method informs the server that the file upload is complete and
      * makes the necessary updates to the workflow.
      * @param {FormData} fileData - The data about the file that was uploaded
+     * @param {FormData} formData - The original form data
      * @return {void}
      */
-    completeUpload(fileData) {
+    completeUpload(fileData, formData) {
+
+        // Merge form data objects
+        for (const [key, value] of formData.entries()) {
+            if ( !fileData.hasOwnProperty(key) )
+                fileData.append(key, value);
+        }
 
         // Convert FormData to URL-encoded string
         const fileDataString = this.formDataToUrlEncoded(fileData);

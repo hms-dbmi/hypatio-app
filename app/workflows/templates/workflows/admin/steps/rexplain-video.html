@@ -1,12 +1,13 @@
-{% extends "workflows/step.html" %}
-
+{% extends "workflows/admin/step.html" %}
 {% load projects_extras %}
 {% load tz %}
 {% load bootstrap3 %}
 {% load crispy_forms_tags %}
 
-{% block step_body_current %}
-{{ block.super }}
+{% block step_body_uninitialized %}
+<div class="alert alert-info" role="alert">
+  <p>This step needs to be initialized by uploading a video for the user. Use the form below to upload the video file.</p>
+</div>
 <form id="file-upload-form" name="file-upload-form">
   {% crispy form %}
 </form>
@@ -93,7 +94,7 @@ $(document).ready(function() {
   }
 
   // Set the file uploaded API endpoint URL
-  var uploadUrl = "{% url 'workflows:v1:step-state-file' pk=step.id %}";
+  var uploadUrl = "{% url 'workflows:v1:admin-step-state-file' pk=step.id %}";
 
   // Get the form and the file and filename inputs.
   var form = document.getElementById("file-upload-form");
@@ -171,7 +172,7 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block step_footer_current %}
+{% block step_footer_uninitialized %}
 {{ block.super }}
 <div id="file-upload-progress-container" class="collapse">
   <div class="progress">

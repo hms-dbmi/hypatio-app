@@ -6,16 +6,28 @@
 {% block step_body_current %}
 {{ block.super }}
   <form id="{{ step.step.slug }}-form" name="{{ step.step.slug }}-form"
-        ic-post-to="{% url 'workflows:step-state' step_state_id=step.id %}"
+        ic-post-to="{% url 'workflows:v1:step-state-data' pk=step.id %}"
         ic-on-error="handleFormError(status, str, xhr, '#{{ step.step.slug }}-form')"
         ic-target="#{{ step.step.slug }}-content"
         ic-replace-target="true"
         ic-transition-duration="2s"
         ic-on-beforeSend="toggleFormButtons('#{{ step.step.slug }}-form');"
-        ic-on-complete="toggleFormButtons('#{{ step.step.slug }}-form');"
-        ic-on-success="$('#{{ step.step.slug }}-submit').html('Submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success')">
+        ic-on-complete="toggleFormButtons('#{{ step.step.slug }}-form');Intercooler.refresh('{% url 'workflows:v1:step-state-data' pk=step.id %}');"
+        ic-on-success="onSuccess();">
     {% crispy form %}
   </form>
+<script type="text/javascript">
+function onSuccess() {
+
+  // Update the submit button.
+  $('#{{ step.step.slug }}-submit').html('Submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success');
+
+  // Add a little delay
+  setTimeout(function(){
+      notify('success', 'The form was submitted successfully!', 'glyphicon glyphicon-ok');
+  }, 500);
+}
+</script>
 {% endblock %}
 
 {% block step_footer_current %}

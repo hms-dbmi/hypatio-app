@@ -30,6 +30,9 @@ class BaseController(ABC):
     This class can be extended to create specific controllers for workflows.
     """
 
+    def __init__(self, administration=False):
+        self.administration = administration
+
     @abstractmethod
     def name(cls) -> str:
         """

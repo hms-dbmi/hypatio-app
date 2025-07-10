@@ -10,8 +10,9 @@
 {% endblock %}
 
 {% block step_body_uninitialized %}
-<div class="alert alert-danger" role="alert">
-<p>This step needs to be initialized before the user can proceed. This should be handled by a controller and you should not see this message, please notify technical support.</p>
+<div class="bs-callout bs-callout-danger">
+  <h4><span class="glyphicon glyphicon-warning-sign"></span>&nbsp;&nbsp;Needs Review</h4>
+  This step needs initialization before the user may proceed but this view should be managed by a controller. Please inform support if you see this message.
 </div>
 {% endblock %}
 
@@ -23,9 +24,10 @@
 {% endif %}
 {% endblock %}
 
-{% block step_body_unapproved %}
-<div class="alert alert-danger" role="alert">
-<p>This step needs to be approved before the user can proceed. This should be handled by a controller and you should not see this message, please notify technical support.</p>
+{% block step_body_unreviewed %}
+<div class="bs-callout bs-callout-danger">
+  <h4><span class="glyphicon glyphicon-warning-sign"></span>&nbsp;&nbsp;Needs Review</h4>
+  The user's submission for this step needs review but this view should be managed by a controller. Please inform support if you see this message.
 </div>
 {% endblock %}
 
@@ -34,6 +36,15 @@
 {% endblock %}
 
 {% block step_body_completed %}
+<div class="alert alert-info" role="alert">
+<p>The user has completed the step and the following is the raw data saved from the step.</p>
+</div>
+<pre>
+{{ step.data|pretty_json }}
+</pre>
+{% endblock %}
+
+{% block step_body_indefinite %}
 <div class="alert alert-info" role="alert">
 <p>The user has completed the step and the following is the raw data saved from the step.</p>
 </div>

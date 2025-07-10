@@ -1,0 +1,16 @@
+{% extends "email/email_base.html" %}
+
+{% block title %}{{ subject }}{% endblock %}
+
+{% block content %}
+Hello,
+
+The following is a notification from an administrator concerning your participation in the DBMI Data Portal project {{ data_project.name }}:
+
+{{ message }}
+
+Dashboard URL: {{ data_project_url }}
+
+Thank you.
+
+{% endblock %}

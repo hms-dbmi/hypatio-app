@@ -54,8 +54,13 @@ class WorkflowStateAdmin(admin.ModelAdmin):
 
 @admin.register(StepState)
 class StepStateAdmin(admin.ModelAdmin):
-    list_display = ('user', 'status', 'started_at', 'completed_at', 'created_at', 'modified_at', )
+    list_display = ('step_slug', 'user', 'status', 'started_at', 'completed_at', 'created_at', 'modified_at', )
     readonly_fields = ('started_at', 'completed_at', 'created_at', 'modified_at', )
+
+    def step_slug(self, obj):
+        return obj.step.slug()
+    step_slug.admin_order_field = 'step__slug'  # optional: enable ordering
+    step_slug.short_description = 'Step Slug'   # optional: column label
 
 
 @admin.register(StepStateReview)

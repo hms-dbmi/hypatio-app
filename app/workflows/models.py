@@ -6,6 +6,7 @@ from enum import Enum
 from collections import defaultdict
 from collections import deque
 from typing import Optional, Self
+from copy import deepcopy
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -14,6 +15,7 @@ from django.forms import Form
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from polymorphic.models import PolymorphicModel
+from dbmi_client import fileservice
 
 from workflows.controllers.initializations import get_step_initialization_controller_choices
 from workflows.controllers.review import get_step_review_controller_choices
@@ -62,13 +64,138 @@ def get_controller_instance(controller_class_name, *args, **kwargs) -> object:
         # Import the module
         module = importlib.import_module(module_path)
 
-        return getattr(module, class_name)(*args, **kwargs)
+        controller = getattr(module, class_name)(*args, **kwargs)
+
+        return controller
 
     except (ImportError, AttributeError, ValueError) as e:
         logger.exception(e, exc_info=True)
         raise ValidationError(f"Invalid class name: {controller_class_name}. Ensure it is a valid Python import path to a class.")
 
 
+# class Project(models.Model):
+#     """
+#     Represents a Project that is composed of Workflows.
+#     """
+#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+#     name = models.CharField(max_length=255)
+#     description = models.TextField(blank=True, null=True, help_text="A description of the project. This is used to provide context to users about what the project entails.")
+
+#     # Meta
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     modified_at = models.DateTimeField(auto_now=True)
+
+#     def __str__(self):
+#         return self.name
+
+#     def get_ordered_workflows(self) -> list["Workflow"]:
+
+#         # Fetch all workflows and their dependencies for the data project
+#         workflows = self.workflows.all()
+#         dependencies = WorkflowDependency.objects.filter(workflow__in=workflows)
+
+#         # Build graph
+#         graph = defaultdict(list)
+#         in_degree = {workflow.id: 0 for workflow in workflows}
+
+#         for dep in dependencies:
+#             graph[dep.depends_on_id].append(dep.workflow_id)
+#             in_degree[dep.workflow_id] += 1
+
+#         # Kahn's algorithm (topological sort)
+#         queue = deque([workflow_id for workflow_id, deg in in_degree.items() if deg == 0])
+#         step_map = {workflow.id: workflow for workflow in workflows}
+#         ordered = []
+
+#         while queue:
+#             current = queue.popleft()
+#             ordered.append(step_map[current])
+#             for neighbor in graph[current]:
+#                 in_degree[neighbor] -= 1
+#                 if in_degree[neighbor] == 0:
+#                     queue.append(neighbor)
+
+#         if len(ordered) != len(workflows):
+#             raise Exception("Cycle detected in workflow dependencies.")
+
+#         return ordered
+
+#     def get_ordered_workflow_states(self, user) -> list["WorkflowState"]:
+#         """
+#         Returns an ordered list of all WorkflowState objects that map to the
+#         Workflow objects returned in `get_ordered_workflows`.
+#         """
+#         # Get workflows
+#         workflows = self.get_ordered_workflows()
+
+#         # Get workflow states
+#         workflow_states = WorkflowState.objects.filter(workflow__in=workflows, user=user)
+
+#         # Order them and return them
+#         ordered_workflow_states = []
+#         for workflow in workflows:
+
+#             # Get matching workflow state
+#             ordered_workflow_states.append(next((w for w in workflow_states if w.workflow == workflow), None))
+
+#         return ordered_workflow_states
+
+#     def get_or_create_workflow_state(self, workflow, user) -> tuple["WorkflowState", bool]:
+#         """
+#         Fetches or creates a WorkflowState object for the given Workflow and User.
+#         Returns the WorkflowState object and a bool indicating whether it was
+#         created or not.
+#         """
+#         # Attempt to fetch it.
+#         workflow_state = next((w for w in self.get_ordered_workflow_states(user) if w is not None and w.workflow == workflow), None)
+#         if not workflow_state:
+
+#             # Create it.
+#             workflow_state = WorkflowState.objects.create(
+#                 workflow=workflow,
+#                 user=user,
+#             )
+
+#         return workflow_state
+
+#     def set_workflow_states(self, user) -> list["WorkflowState"]:
+#         """
+#         Iterates Workflows assigned to this DataProject and fetches or creates
+#         each of the WorkflowState objects for the current user.
+#         """
+#         # Get ordered workflows
+#         workflows = self.project.get_ordered_workflows()
+#         if not workflows:
+#             return []
+
+#         # Keep a list
+#         workflow_states = []
+
+#         # Iterate Workflows
+#         for index, workflow in enumerate(workflows):
+
+#             # Check for a workflow state for each workflow.
+#             workflow_state, created = self.project.get_or_create_workflow_state(workflow, user)
+#             if created:
+
+#                 # Determine status by checking the dependent workflows
+#                 status = WorkflowState.Status.Current.value
+#                 for workflow in workflow.get_dependencies():
+
+#                     # Get the matching WorkflowState
+#                     workflow_state_dependency = next((w for w in workflow_states if w.workflow == workflow), None)
+#                     if workflow_state_dependency.status != WorkflowState.Status.Completed.value:
+#                         status = WorkflowState.Status.Pending.value
+
+#                 # Update it
+#                 workflow_state.status = status
+#                 workflow_state.started_at = timezone.now() if status == WorkflowState.Status.Current.value else None
+#                 workflow_state.save()
+
+#             # Add it
+#             workflow_states.append(workflow_state)
+
+#         return workflow_states
 
 
 class Workflow(models.Model):
@@ -84,6 +211,9 @@ class Workflow(models.Model):
         help_text="The fully-qualified class name for the workflow. This is used to determine how the workflow should be rendered and processed."
     )
     priority = models.IntegerField(default=0, help_text="Indicates the priority of this workflow. Lower numbers indicate higher priority. This is used to determine the order in which workflows are presented to users.")
+
+    # Relationships
+    #project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='workflows')
 
     # Meta
     created_at = models.DateTimeField(auto_now_add=True)
@@ -416,71 +546,6 @@ class WorkflowState(models.Model):
 
         return ordered_step_states
 
-    def get_status_for_step_state(self, index) -> "StepState.Status":
-        """
-        Checks the existing StepStates and determines what the status will
-        be for the StepState at the given index based on dependencies.
-        """
-        # Get Step dependencies
-        step_dependencies = self.workflow.get_ordered_steps()[index].get_dependencies()
-
-        # Get existing StepStates.
-        step_state_dependencies = [s for s in self.step_states.all() if s.step in step_dependencies]
-
-        # If the Step has dependencies but no StepStates exist, return Pending
-        if step_dependencies and not step_state_dependencies:
-            return StepState.Status.Pending
-
-        # Set the state and update accordingly.
-        status = StepState.Status.Current
-        for step_state_dependency in step_state_dependencies:
-
-            # Check status
-            if step_state_dependency.status != StepState.Status.Completed.value:
-                status = StepState.Status.Pending
-                break
-
-        return status
-
-    def set_step_states(self):
-        """
-        Checks the current list of Steps in the corresponding Workflow to the
-        existing StepState objects and ensures a StepState exists for each
-        step.
-        """
-        logger.debug(f"[Workflows][{self.workflow.slug()}][WorkflowState] Setting StepStates")
-
-        # Get existing Steps and StepStates
-        steps = self.workflow.get_ordered_steps()
-        step_states = self.get_ordered_step_states()
-
-        # Check for None
-        is_complete = True
-        for index, step_state in enumerate(step_states):
-            if step_state is None:
-
-                # Determine status
-                status = self.get_status_for_step_state(index)
-
-                # Create it.
-                step_state = StepState.objects.create(
-                    step=steps[index],
-                    user=self.user,
-                    workflow_state=self,
-                    status=status.value,
-                    started_at=timezone.now() if status == StepState.Status.Current else None,
-                )
-
-            # Check if step is complete or not
-            if step_state.status != StepState.Status.Completed.value:
-                is_complete = False
-
-        # If this WorkflowState is not complete, update it as such.
-        if self.status == WorkflowState.Status.Completed.value and not is_complete:
-            self.status = WorkflowState.Status.Current.value
-            self.completed_at = None
-            self.save()
-
     def set_workflow_statuses(self):
         """
         When this WorkflowState is saved with a new status, this method will
@@ -508,6 +573,54 @@ class WorkflowState(models.Model):
                 workflow_state.started_at = timezone.now() if status is WorkflowState.Status.Current else None
                 workflow_state.save()
 
+    def set_step_states(self):
+        """
+        Checks the current list of Steps in the corresponding Workflow to the
+        existing StepState objects and ensures a StepState exists for each
+        step.
+        """
+        logger.debug(f"[Workflows][{self.workflow.slug()}][WorkflowState] Setting StepStates")
+
+        # Get existing Steps and StepStates
+        steps = self.workflow.get_ordered_steps()
+        step_states = self.get_ordered_step_states()
+
+        # Save them
+        current_step_states = deepcopy(step_states)
+
+        # Check for None
+        is_complete = True
+        for index, step_state in enumerate(step_states):
+            if step_state is None:
+
+                # Create it.
+                step_state = StepState.objects.create(
+                    step=steps[index],
+                    user=self.user,
+                    workflow_state=self,
+                )
+
+                # Add it to the updated list
+                current_step_states[index] = step_state
+
+        # Determine statuses for each step state
+        for step_state in current_step_states:
+
+            # Determine status
+            step_state.set_status()
+            step_state.save()
+            logger.debug(f"[WorkflowState/{self.id}][set_step_states] StepState/{step_state.step.slug()}/{step_state.id}: '{step_state.status}'")
+
+            # Check if step is complete or not
+            if not StepState.Status.is_final(step_state.status):
+                is_complete = False
+
+        # If this WorkflowState is not complete, update it as such.
+        if self.status == WorkflowState.Status.Completed.value and not is_complete:
+            self.status = WorkflowState.Status.Current.value
+            self.completed_at = None
+            self.save()
+
     def set_step_statuses(self):
         """
         Iterates this workflows step states and calculates their status.
@@ -516,14 +629,6 @@ class WorkflowState(models.Model):
         workflow_completed = True
         for step_state in self.get_ordered_step_states():
 
-            # Nothing to do if first step
-            if not step_state.get_dependencies():
-                logger.debug(f"[WorkflowState/{self.id}][set_step_statuses] StepState/{step_state.id} has no dependencies, continuing")
-                continue
-            elif step_state.status == StepState.Status.Completed.value:
-                logger.debug(f"[WorkflowState/{self.id}][set_step_statuses] StepState/{step_state.id} is completed, continuing")
-                continue
-
             # Get its dependencies and check their statuses
             dependencies = step_state.get_dependencies()
 
@@ -531,8 +636,8 @@ class WorkflowState(models.Model):
             status = step_state.get_next_status(dependencies=dependencies)
 
             # Compare the properties to set with the existing values
-            if step_state.status != status:
-                logger.debug(f"[WorkflowState/{self.id}][set_step_statuses] StepState/{step_state.id} is {status}")
+            if step_state.status != status.value:
+                logger.debug(f"[WorkflowState/{self.id}][set_step_statuses] StepState/{step_state.step.slug()}/{step_state.id}: '{step_state.status}' -> '{status.value}'")
 
                 # Save updated values
                 step_state.status = status.value
@@ -544,8 +649,11 @@ class WorkflowState(models.Model):
                 # Save
                 step_state.save()
 
-            # If status is anything but completed, the workflow is not completed
-            workflow_completed = step_state.status == StepState.Status.Completed.value
+            else:
+                logger.debug(f"[WorkflowState/{self.id}][set_step_statuses] StepState/{step_state.step.slug()}/{step_state.id}: '{step_state.status}'")
+
+            # If status is anything but completed or indefinite, the workflow is not completed
+            workflow_completed = StepState.Status.is_final(step_state.status)
 
         # If workflow is completed, save it.
         if workflow_completed and self.status != WorkflowState.Status.Completed.value:
@@ -572,6 +680,13 @@ class StepState(models.Model):
         def choices(cls):
             return [(key.value, key.name) for key in cls]
 
+        @classmethod
+        def is_final(cls, status) -> bool:
+            """
+            Returns whether the passed status represents a final status or not.
+            """
+            return cls(status) in [StepState.Status.Completed, StepState.Status.Indefinite]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     started_at = models.DateTimeField(null=True, blank=True, help_text="The date and time when the step was first current.")
     completed_at = models.DateTimeField(null=True, blank=True, help_text="The date and time when the step was completed.")
@@ -579,6 +694,7 @@ class StepState(models.Model):
     # Private
     _status = models.CharField(db_column="status", max_length=128, choices=Status.choices(), default=Status.Pending.value, help_text="The current status of the step.")
     _data = models.JSONField(db_column="data", blank=True, null=True, help_text="The data from this Step")
+    _file = models.OneToOneField(db_column="file", to="StepStateFile", blank=True, null=True, on_delete=models.CASCADE, related_name="step_state")
 
     # Relationships
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='step_states')
@@ -608,6 +724,17 @@ class StepState(models.Model):
     @data.setter
     def data(self, value):
         self._data = value
+
+        # Check status
+        self.set_status()
+
+    @property
+    def file(self) -> "StepStateFile":
+        return self._file
+
+    @file.setter
+    def file(self, value):
+        self._file = value
 
         # Check status
         self.set_status()
@@ -644,7 +771,7 @@ class StepState(models.Model):
         # Check if we need to set dates
         if status is StepState.Status.Current and not self.started_at:
             self.started_at = timezone.now()
-        elif status is StepState.Status.Completed and not self.completed_at:
+        elif StepState.Status.is_final(status) and not self.completed_at:
             self.completed_at = timezone.now()
 
         # Save
@@ -658,7 +785,7 @@ class StepState(models.Model):
         Given the current status, returns what the next status would be.
         """
         # Check dependencies, if necessary
-        if dependencies and not all(d.status == StepState.Status.Completed.value for d in dependencies):
+        if dependencies and not all(StepState.Status.is_final(d.status) for d in dependencies):
             return StepState.Status.Pending
 
         match StepState.Status(self.status):
@@ -672,32 +799,43 @@ class StepState(models.Model):
 
             case StepState.Status.Current | StepState.Status.Unreviewed:
 
-                # Check whether review is needed or not.
-                if self.data and self.step.review_required and not self.is_reviewed:
-                    return StepState.Status.Unreviewed
+                # First check for data or a file
+                if self.data or self.file:
 
-                # Check for a rejected state, reverting back to current
-                elif self.data and self.step.review_required and self.is_rejected:
-                    return StepState.Status.Current
+                    # Check whether review is needed or not.
+                    if self.step.review_required and not self.is_reviewed:
+                        return StepState.Status.Unreviewed
 
-                # Check for an approved state, continuing to completed
-                elif self.data and self.step.review_required and self.is_approved:
-                    return StepState.Status.Completed
+                    # Check for a rejected state, reverting back to current
+                    elif self.step.review_required and self.is_rejected:
+                        return StepState.Status.Current
 
-                # Check for an indefinite step
-                elif self.data and self.step.indefinite:
-                    return StepState.Status.Indefinite
+                    # Check for an approved state, continuing to completed
+                    elif self.step.review_required and self.is_approved:
+                        return StepState.Status.Completed
 
-                elif self.data:
-                    return StepState.Status.Completed
+                    # Check for an indefinite step
+                    elif self.step.indefinite:
+                        return StepState.Status.Indefinite
+
+                    else:
+                        return StepState.Status.Completed
 
                 else:
                     return StepState.Status.Current
 
-            case StepState.Status.Completed:
+            case StepState.Status.Completed | StepState.Status.Indefinite:
+
+                # Ensure it is initialized if needed
+                if self.step.initialization_required and not self.is_initialized:
+                    return StepState.Status.Uninitialized
+
+                # Ensure it has review if needed
+                elif self.step.review_required and not self.is_reviewed:
+                    return StepState.Status.Unreviewed
 
                 # Check for an indefinite step
-                if self.step.indefinite:
+                elif self.step.indefinite:
                     return StepState.Status.Indefinite
 
                 else:
@@ -711,6 +849,11 @@ class StepState(models.Model):
         Accepts a proposed next status and ensures it's a valid transition.
         """
         match StepState.Status(self.status):
+
+            case StepState.Status.Pending:
+
+                # This should be allowed.
+                return True
 
             case StepState.Status.Uninitialized:
 
@@ -736,6 +879,12 @@ class StepState(models.Model):
                 if not self.data or (self.step.review_required and not self.is_approved) or self.step.indefinite:
                     return False
 
+            case StepState.Status.Indefinite:
+
+                # Check whether review is needed or not.
+                if not self.data or (self.step.review_required and not self.is_approved) or not self.step.indefinite:
+                    return False
+
             case _:
                 raise ValueError(f"Error: Unhandled status '{self.status}'")
 
@@ -746,7 +895,7 @@ class StepState(models.Model):
         Save handler. If changing states, check workflow for dependent steps and update their status accordingly.
         """
         # Check if we are updating the status
-        status_changed = self.status != self.__original_status
+        status_changed = self.status != self.__original_status and not self._state.adding
 
         # Check initialization and review requirements
         if status_changed and not self.validate_next_status():
@@ -791,11 +940,12 @@ class StepStateInitialization(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     data = models.JSONField(blank=True, null=True, help_text="The data from this Step Initialization. This can be used to store any data that is required to initialize the step.")
+    message = models.TextField(blank=True, null=True, help_text="An optional message describing the initialization of the step. This can be used to provide context or feedback on the actions made.")
 
     # Relationships
     step_state = models.OneToOneField(StepState, on_delete=models.CASCADE, related_name='initialization')
     initialized_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='step_initializations', help_text="The user who initialized the step.")
-    message = models.TextField(blank=True, null=True, help_text="An optional message describing the initialization of the step. This can be used to provide context or feedback on the actions made.")
+    file = models.OneToOneField("StepStateFile", blank=True, null=True, on_delete=models.CASCADE, related_name='initialization')
 
     # Meta
     created_at = models.DateTimeField(auto_now_add=True)
@@ -817,8 +967,8 @@ class StepStateReview(models.Model):
     Represents the review of a step. This is used to track a step's review by an administrator and whether it was approved or rejected.
     """
     class Status(Enum):
-        Rejected = "rejected"
         Approved = "approved"
+        Rejected = "rejected"
 
         @classmethod
         def choices(cls):
@@ -866,6 +1016,8 @@ class StepStateVersion(models.Model):
 
     # Relationships
     step_state = models.ForeignKey(StepState, on_delete=models.CASCADE, related_name='versions')
+    file = models.OneToOneField(to="StepStateFile", blank=True, null=True, on_delete=models.CASCADE, related_name="step_state_version")
+    review = models.ForeignKey(StepStateReview, blank=True, null=True, on_delete=models.CASCADE, related_name='versions')
 
     # Meta
     created_at = models.DateTimeField(auto_now_add=True)
@@ -966,3 +1118,49 @@ class VideoStep(Step):
     thumbnail_url = models.TextField(blank=True, null=True, help_text="An optional thumbnail URL for the video. This can be used to show a preview of the video before it is played.")
     autoplay = models.BooleanField(default=False, help_text="If true, the video will automatically start playing when the step is displayed.")
     loop = models.BooleanField(default=False, help_text="If true, the video will loop when it reaches the end.")
+
+
+class StepStateFile(models.Model):
+    """
+    Represents a file for a step.
+    """
+    class Provider(Enum):
+        Fileservice = "fileservice"
+        S3 = "s3"
+
+        @classmethod
+        def choices(cls):
+            return [(key.value, key.name) for key in cls]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    provider = models.CharField(choices=Provider.choices(), max_length=128, help_text="The provider that is storing the file and determines how it is accessed.")
+    filename = models.CharField(max_length=512, help_text="The name of the file")
+    size = models.BigIntegerField(help_text="The size of the file in bytes")
+    url = models.CharField(max_length=512, help_text="The URL of the file")
+    data = models.JSONField(blank=True, null=True, help_text="The data from the file upload.")
+    media_type = models.CharField(max_length=512, help_text="The media type of the uploaded file.")
+
+    # Relationships
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='step_state_files', help_text="The user who owns the file.")
+    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='uploaded_step_state_files', help_text="The user who uploaded the file for the step.")
+
+    # Meta
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    def get_download_url(self) -> str:
+        """
+        Returns a signed download URL from whatever provider is hosting the file.
+        """
+        match StepStateFile.Provider(self.provider):
+
+            case StepStateFile.Provider.Fileservice:
+
+                # Request a signed URL from Fileservice
+                return fileservice.get_archivefile_download_url(self.data["uuid"])
+
+            case StepStateFile.Provider.S3:
+                pass
+
+            case _:
+                raise ValueError(f"Unhandled StepStateFile.Provider '{self.provider}'")

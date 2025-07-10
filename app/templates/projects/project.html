@@ -61,9 +61,7 @@
     <div class="col-md-7">
 
         {# Render any workflows #}
-        {% for workflow in workflows %}
-          {{ workflow|workflow }}
-        {% endfor %}
+        {{ workflows|workflows }}
 
         {% for panel in setup_panels %}
         <div class="panel panel-{{ panel.bootstrap_color }}">

@@ -98,7 +98,7 @@ class Migration(migrations.Migration):
             name='StepStateReview',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('status', models.CharField(choices=[('rejected', 'Rejected'), ('approved', 'Approved')], help_text='The outcome status of the review.', max_length=255)),
+                ('status', models.CharField(choices=[('approved', 'Approved'), ('rejected', 'Rejected')], help_text='The outcome status of the review.', max_length=255)),
                 ('message', models.TextField(blank=True, help_text='An optional message describing the review of the step. This can be used to provide context or feedback on the decision made.', null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('modified_at', models.DateTimeField(auto_now=True)),

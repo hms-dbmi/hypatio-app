@@ -3,10 +3,12 @@
 <div id="{{ step.step.slug }}-content" class="step-content step-status-{{ step.status }}" style="margin-bottom: 10px;" data-step-state-status="{{ step.status }}">
       <div id="{{ step.step.slug }}-panel" class="panel panel-default">
         <div id="{{ step.step.slug }}-panel-heading" class="panel-heading" role="tab" id="heading-description">
-          <a class="workflow-step-panel-heading-link {{ step.status }}{% if not step_expanded %} collapsed{% endif %}" data-toggle="collapse" data-parent="#{{ step.workflow.slug }}-accordian" href="#{{ step.step.slug }}-collapse" aria-expanded="false" aria-controls="{{ step.step.slug }}-collapse">
+          <a class="workflow-step-panel-heading-link {{ step.status }}{% if not step_expanded %} collapsed{% endif %}" role="button" data-toggle="collapse" data-parent="#workflow-{{ step.workflow_state.id }}-steps-accordian" href="#{{ step.step.slug }}-collapse" aria-expanded="false" aria-controls="{{ step.step.slug }}-collapse">
             {% block header %}
               <h2 id="{{ step.step.slug }}-panel-title" class="panel-title">{{ step.step.name }}
-                {% if step.status == StepStateStatus.Uninitialized.value or step.status == StepStateStatus.Unreviewed.value %}&nbsp;&nbsp;<span style="color: #f0ad4e;" class="glyphicon glyphicon-info-sign"></span>{% endif %}
+                {% if step.status == StepStateStatus.Uninitialized.value or step.status == StepStateStatus.Unreviewed.value %}&nbsp;&nbsp;<span style="color: #f0ad4e;" class="glyphicon glyphicon-info-sign"></span>
+                {% elif step.status == StepStateStatus.Completed.value or step.status == StepStateStatus.Indefinite.value %}&nbsp;&nbsp;<span style="color: #5cb85c;" class="glyphicon glyphicon-check"></span>
+                {% endif %}
               </h2>
             {% endblock %}
           </a>
@@ -39,6 +41,7 @@
               {% endblock %}
             {% elif step.status == StepStateStatus.Completed.value %}
               {% block step_body_completed %}
+              <p>You have already completed this step.</p>
               {% endblock %}
             {% endif %}
           </div>
@@ -61,6 +64,10 @@
               {% endblock %}
             {% elif step.status == StepStateStatus.Indefinite.value %}
               {% block step_footer_indefinite %}
+              <button type="button" class="btn btn-default" role="button"
+              data-toggle="collapse" data-parent="#{{ step.workflow.slug }}-accordian"
+              href="#{{ step.step.slug }}-collapse" aria-expanded="false"
+              aria-controls="{{ step.step.slug }}-collapse">Hide</button>
               {% endblock %}
             {% elif step.status == StepStateStatus.Completed.value %}
               {% block step_footer_completed %}
@@ -82,7 +89,7 @@ $(function(){
   // Get step and workflow container elements
   var workflowContainer = $("#workflow-{{ step.step.workflow.slug }}-container");
   var stepContainer = $("#workflow-step-{{ step.step.slug }}-container");
-  checkWorkflowStateStatus(workflowContainer, stepContainer, "{{ WorkflowStateStatus.Completed.value }}");
+  checkWorkflowStateStatus(workflowContainer, stepContainer);
 });
 </script>
 {% endif %}
