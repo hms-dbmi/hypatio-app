@@ -1,3 +1,10 @@
+# [1.3.0-rc.9](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.8...v1.3.0-rc.9) (2025-07-10)
+
+
+### Bug Fixes
+
+* **hypatio:** Added auth module ([597627e](https://github.com/hms-dbmi/hypatio-app/commit/597627e13e8f361cb4affbce01e2e73dc7b0283a))
+
 # [1.3.0-rc.8](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.7...v1.3.0-rc.8) (2025-07-10)
 
 
