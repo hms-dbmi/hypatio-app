@@ -5,6 +5,12 @@ from rest_framework import request
 from dbmi_client import authz
 
 from projects.models import DataProjectWorkflow
+from workflows.models import WorkflowState
+from workflows.models import StepState
+from workflows.models import StepStateInitialization
+from workflows.models import StepStateReview
+from workflows.models import StepStateVersion
+from workflows.models import StepStateFile
 
 
 class BaseWorkflowsPermission(metaclass=permissions.BasePermissionMetaclass):
@@ -85,13 +91,26 @@ class IsAdministrator(BaseWorkflowsPermission):
         Return `True` if permission is granted, `False` otherwise.
         """
         # Check if staff
-        if request.user.is_staff:
-            return True
+        #if request.user.is_staff:
+        #    return True
 
         # Check if linked to a DataProject
         try:
+            # Check type of object to find the Workflow
+            match type(obj):
+                case _ if isinstance(obj, WorkflowState):
+                    workflow = obj.workflow
+                case _ if isinstance(obj, StepState):
+                    workflow = obj.workflow_state.workflow
+                case _ if isinstance(obj, StepStateInitialization):
+                    workflow = obj.step_state.workflow_state.workflow
+                case _ if isinstance(obj, StepStateReview):
+                    workflow = obj.step_state.workflow_state.workflow
+                case _ if isinstance(obj, StepStateVersion):
+                    workflow = obj.step_state.workflow_state.workflow
+
             # Check if admin
-            data_project = DataProjectWorkflow.objects.get(workflow=obj.workflow).data_project
+            data_project = DataProjectWorkflow.objects.get(workflow=workflow).data_project
             if authz.has_permission(
                 request=request,
                 email=request.user.email,
