@@ -91,8 +91,8 @@ class IsAdministrator(BaseWorkflowsPermission):
         Return `True` if permission is granted, `False` otherwise.
         """
         # Check if staff
-        #if request.user.is_staff:
-        #    return True
+        if request.user.is_staff:
+            return True
 
         # Check if linked to a DataProject
         try:
