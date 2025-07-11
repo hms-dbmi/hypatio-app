@@ -1,3 +1,10 @@
+# [1.3.0-rc.10](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.9...v1.3.0-rc.10) (2025-07-11)
+
+
+### Bug Fixes
+
+* **workflows:** Fixed permission check for administrators ([1eef4ea](https://github.com/hms-dbmi/hypatio-app/commit/1eef4eabaf49f06430faa042ab6032455f8028d6))
+
 # [1.3.0-rc.9](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.8...v1.3.0-rc.9) (2025-07-10)
 
 
