@@ -1,3 +1,10 @@
+# [1.3.0-rc.12](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.11...v1.3.0-rc.12) (2025-07-22)
+
+
+### Features
+
+* **workflows:** Implemented process for step rejections ([b59059f](https://github.com/hms-dbmi/hypatio-app/commit/b59059f651c7bd53cc22a5ba70284ae4e6e400d7))
+
 # [1.3.0-rc.11](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.10...v1.3.0-rc.11) (2025-07-11)
 
 
