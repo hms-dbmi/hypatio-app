@@ -466,7 +466,12 @@
   <div class="col-lg-12">
     <div class="panel panel-default">
       <div class="panel-heading panel-heading-toggle heading-description" role="tab" data-toggle="collapse" data-target="#workflows-collapse">
-            <h2 class="panel-title">Workflows</h2>
+            <h2 class="panel-title">
+              Workflows
+                <button id="workflows-refresh-button" type="button" class="btn btn-primary btn-xs pull-right" style="margin-left: 10px;">
+                  <i class="glyphicon glyphicon-refresh"></i>
+                </button>
+            </h2>
       </div>
       <div id="workflows-collapse" class="panel-collapse collapse in">
         <div class="panel-body">
@@ -570,11 +575,7 @@ $(function() {
         "initComplete": function(settings, json) {
 
           // Update the tab's badge
-          if ( json.length ) {
-            $('#workflows-approvals-tab-badge').text(json.length);
-          } else {
-            $('#workflows-approvals-tab-badge').text("");
-          }
+          $('#workflows-approvals-tab-badge').text(json.length ? json.length : '');
         }
     });
 
@@ -604,11 +605,7 @@ $(function() {
         "initComplete": function(settings, json) {
 
           // Update the tab's badge
-          if ( json.length ) {
-            $('#workflows-initializations-tab-badge').text(json.length);
-          } else {
-            $('#workflows-initializations-tab-badge').text("");
-          }
+          $('#workflows-initializations-tab-badge').text(json.length ? json.length : '');
         }
     });
 
@@ -634,13 +631,78 @@ $(function() {
         "initComplete": function(settings, json) {
 
           // Update the tab's badge
-          if ( json.length ) {
-            $('#workflows-workflows-tab-badge').text(json.length);
-          } else {
-            $('#workflows-workflows-tab-badge').text("");
-          }
+          $('#workflows-workflows-tab-badge').text(json.length ? json.length : '');
         }
     });
+
+    // Update the badge count for a table
+    function updateWorkflowTableBadgeCount(badge, json) {
+
+      // Update the tab's badge
+      if ( json.length ) {
+        $(badge).text(json.length);
+      } else {
+        $(badge).text("");
+      }
+    }
+
+    // Track completions
+    var completions = {
+      workflowsApprovalsTable: false,
+      workflowsInitializationsTable: false,
+      workflowsWorkflowsTable: false
+    };
+
+    $('#workflows-refresh-button').on('click', function(e) {
+      e.preventDefault();
+
+      // Animate it
+      $(this).find("i").first().addClass("fa-spin");
+
+      // Reset completions.
+      Object.keys(completions).forEach(key => {
+        completions[key] = false;
+      });
+
+      // Refresh the tables.
+      workflowsApprovalsTable.ajax.reload(function(json) {
+
+          // Update the tab's badge
+          $('#workflows-approvals-tab-badge').text(json.length ? json.length : '');
+
+          // Set completed
+          completions.workflowsApprovalsTable = true;
+          updateWorkflowsRefreshButton();
+      });
+      workflowsInitializationsTable.ajax.reload(function(json) {
+
+          // Update the tab's badge
+          $('#workflows-initializations-tab-badge').text(json.length ? json.length : '');
+
+          // Set completed
+          completions.workflowsInitializationsTable = true;
+          updateWorkflowsRefreshButton();
+      });
+      workflowsWorkflowsTable.ajax.reload(function(json) {
+
+          // Update the tab's badge
+          $('#workflows-workflows-tab-badge').text(json.length ? json.length : '');
+
+          // Set completed
+          completions.workflowsWorkflowsTable = true;
+          updateWorkflowsRefreshButton();
+      });
+
+      return false;
+    });
+
+    function updateWorkflowsRefreshButton() {
+
+      // If all are done, stop animating.
+      if (Object.values(completions).every(value => value === true)) {
+        $('#workflows-refresh-button').find("i").first().removeClass("fa-spin");
+      }
+    }
 
     // Ensure tables fit their width when being shown when initially hidden.
     $('#workflows-tab-list a[data-toggle="tab"]').on('shown.bs.tab', function (event) {
