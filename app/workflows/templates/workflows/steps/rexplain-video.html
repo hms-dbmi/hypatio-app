@@ -26,7 +26,7 @@
 {{ block.super }}
   <button id="{{ step.step.slug }}-submit" class="btn btn-primary" onclick="Intercooler.refresh('{% url 'workflows:v1:step-state-detail' pk=step.id %}')">
     Next
-    <i class="ic-indicator fa fa-spinner fa-spin" style="display:none; margin-left: 5px;"></i>
+    <i class="ic-indicator fa fa-spinner fa-spin workflows-submit-indicator"></i>
   </button>
 {% endblock %}
 

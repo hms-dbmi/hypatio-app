@@ -134,7 +134,7 @@
 {% endif %}
 
 {% block footerscripts %}
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     $('.finalize-team').click(function(){
         var project_key = $(this).data("project");
         var team = $(this).data("team");
@@ -157,7 +157,7 @@
     });
 </script>
 
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     $('.accept-participant').click(function(){
         var project_key = $(this).data("project");
         var participant = $(this).data("participant");
@@ -180,7 +180,7 @@
     });
 </script>
 
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     $('.reject-participant').click(function(){
         var project_key = $(this).data("project");
         var participant = $(this).data("participant");

@@ -539,7 +539,7 @@
   </div>
 </div>
 
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
 $(function() {
     $('#workflows-approvals-table,#workflows-initializations-table,#workflows-workflows-table').on('click', 'tbody tr', function() {
 
@@ -976,7 +976,7 @@ $(function() {
 {% endblock %}
 
 {% block footerscripts %}
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     function initDownloadLogs() {
 
         // Ensure content is remove and loading is hown
@@ -1471,7 +1471,7 @@ $(function() {
 </script>
 
 <!-- When clicking a team row, open a new window for team managment -->
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     $(document).ready(function() {
         $('#team-table').on("click", ".team-row", function() {
             var team = $(this).data('team');
@@ -1486,7 +1486,7 @@ $(function() {
 </script>
 
 <!-- Populate the submission info modal with data about the selected submission -->
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     $('.view-submission-info').on('click', function() {
         var submission_uuid = $(this).data('submission-uuid');
 
@@ -1502,7 +1502,7 @@ $(function() {
 </script>
 
 <!-- Populate the edit agreement form modal with the values present in the link -->
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     // $('.edit-agreement-form-button').on('click', function() {
 
     //     var form_name = $(this).data('form-name');

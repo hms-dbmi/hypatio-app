@@ -15,7 +15,7 @@
 </form>
 
 {% block javascript %}
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     $('form[name=profile-update]').submit(function(e){
         e.preventDefault();
 
@@ -23,7 +23,7 @@
             // $("#loading").hide();
         }).done(function() {
             notify('success', "Registration updated!", 'thumbs-up');
-            
+
             // Refresh the page, especially important for the project page to refresh
             setTimeout(function(){
                 window.location = window.location.pathname

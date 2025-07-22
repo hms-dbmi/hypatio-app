@@ -125,7 +125,7 @@
 
 
 <!-- Handle upload and submission of a challenge task -->
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
 
     function objectifyForm( formArray ) {
         var returnArray = {};
@@ -375,7 +375,7 @@
 </script>
 
 <!-- Populate the submission info modal with data about the selected submission -->
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     $('.view-submission-info').on('click', function() {
         var submission_uuid = $(this).data('submission-uuid');
 
@@ -395,7 +395,7 @@
 </script>
 
 <!-- When someone clicks the delete button, display the confirm button -->
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     $('#delete-submission').on('click', function() {
         $('#delete-submission').hide();
         $('#delete-submission-confirm').show();

@@ -35,7 +35,7 @@
 <p>You're a member of the the institution '{{ panel.additional_context.member.official.institution }}'. The official that represents you and your institution is <a href="emailto:{{ panel.additional_context.member.official.user.email }}">{{ panel.additional_context.member.official.user.email }}</a>.</p>
 {% endif %}
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
 
   // Start an index for added member inputs
   var memberIndex = {{ panel.additional_context.official.institutionalmember_set.all|length }};

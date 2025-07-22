@@ -1,13 +1,13 @@
 {% load workflows %}
 {% step_is_expanded step as step_expanded %}
-<div id="{{ step.step.slug }}-content" class="step-content step-status-{{ step.status }}" style="margin-bottom: 10px;" data-step-state-status="{{ step.status }}">
+<div id="{{ step.step.slug }}-content" class="step-content step-status-{{ step.status }}" data-step-state-status="{{ step.status }}">
       <div id="{{ step.step.slug }}-panel" class="panel panel-default">
         <div id="{{ step.step.slug }}-panel-heading" class="panel-heading" role="tab" id="heading-description">
           <a class="workflow-step-panel-heading-link {{ step.status }}{% if not step_expanded %} collapsed{% endif %}" role="button" data-toggle="collapse" data-parent="#workflow-{{ step.workflow_state.id }}-steps-accordian" href="#{{ step.step.slug }}-collapse" aria-expanded="false" aria-controls="{{ step.step.slug }}-collapse">
             {% block header %}
               <h2 id="{{ step.step.slug }}-panel-title" class="panel-title">{{ step.step.name }}
-                {% if step.status == StepStateStatus.Uninitialized.value or step.status == StepStateStatus.Unreviewed.value %}&nbsp;&nbsp;<span style="color: #f0ad4e;" class="glyphicon glyphicon-info-sign"></span>
-                {% elif step.status == StepStateStatus.Completed.value or step.status == StepStateStatus.Indefinite.value %}&nbsp;&nbsp;<span style="color: #5cb85c;" class="glyphicon glyphicon-check"></span>
+                {% if step.status == StepStateStatus.Uninitialized.value or step.status == StepStateStatus.Unreviewed.value %}&nbsp;&nbsp;<span class="glyphicon glyphicon-info-sign workflow-step-panel-title-icon-alert"></span>
+                {% elif step.status == StepStateStatus.Completed.value or step.status == StepStateStatus.Indefinite.value %}&nbsp;&nbsp;<span class="glyphicon glyphicon-check workflow-step-panel-title-icon-checked"></span>
                 {% endif %}
               </h2>
             {% endblock %}
@@ -94,7 +94,7 @@
 </div>
 
 {% if step.status == StepStateStatus.Completed.value %}
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
 $(function(){
 
   // Get step and workflow container elements

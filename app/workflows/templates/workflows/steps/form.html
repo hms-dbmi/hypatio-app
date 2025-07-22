@@ -16,7 +16,7 @@
         ic-on-success="onSuccess();">
     {% crispy form %}
   </form>
-<script type="text/javascript">
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
 function onSuccess() {
 
   // Update the submit button.
@@ -34,12 +34,12 @@ function onSuccess() {
 {{ block.super }}
 <button id="{{ step.step.slug }}-submit" type="submit" form="{{ step.step.slug }}-form" class="btn btn-primary">
   Submit
-  <i class="ic-indicator fa fa-spinner fa-spin" style="display:none; margin-left: 5px;"></i>
+  <i class="ic-indicator fa fa-spinner fa-spin workflows-submit-indicator"></i>
 </button>
 {% endblock %}
 
 {% block scripts %}
-<script type="text/javascript">
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
 
 function handleFormError(status, str, xhr, formId) {
   console.log("Form submission error:", status, str, xhr);

@@ -52,7 +52,7 @@
 
         <title>{% block tab_name %}DBMI Portal{% endblock %}</title>
 
-        <script type="application/javascript">
+        <script type="application/javascript" nonce="{{request.csp_nonce}}">
 
             function notify(type, message, icon) {
                 $.notify({
@@ -275,7 +275,7 @@
     {% block javascript %}{% endblock %}
 
     <script type="text/javascript" src="{% static 'js/clipboard.min.js' %}"></script>
-    <script type="application/javascript">
+    <script type="application/javascript" nonce="{{request.csp_nonce}}">
       $(document).ready(function(){
 
         // Initialize tooltips

@@ -4,7 +4,7 @@
       <a class="workflow-panel-heading-link {{ workflow.status }}" role="button" data-toggle="collapse" data-parent="#workflows-accordian" href="#workflow-{{ workflow.id }}-collapse" aria-expanded="false" aria-controls="workflow-{{ workflow.id }}-collapse">
         <h2 id="workflow-{{ workflow.id }}-panel-title" class="panel-title">
           {{ workflow.workflow.name }}
-          {% if workflow.status == WorkflowStateStatus.Completed.value %}&nbsp;&nbsp;<span style="color: #5cb85c;" class="glyphicon glyphicon-check"></span>{% endif %}
+          {% if workflow.status == WorkflowStateStatus.Completed.value %}&nbsp;&nbsp;<span class="glyphicon glyphicon-check workflow-step-panel-title-icon-checked"></span>{% endif %}
         </h2>
       </a>
     </div>

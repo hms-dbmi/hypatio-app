@@ -18,6 +18,7 @@ from os.path import normpath, join, dirname, abspath
 from dbmi_client import environment
 from dbmi_client import reporting
 from dbmi_client.logging import config
+from csp.constants import NONCE, SELF
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -65,6 +66,7 @@ INSTALLED_APPS = [
     'pdf',
     'workflows',
     'rest_framework',
+    'csp',
 ]
 
 # Enable development apps if running in development mode
@@ -74,6 +76,7 @@ if DEBUG:
     ]
 
 MIDDLEWARE = [
+    'csp.middleware.CSPMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -364,5 +367,59 @@ LOGGING = config('HYPATIO', root_level=logging.DEBUG, logger_levels={
     "s3transfer": "INFO",
     "urllib3": "INFO",
 })
+
+#####################################################################################
+
+#####################################################################################
+# CSP settings
+#####################################################################################
+
+CONTENT_SECURITY_POLICY = {
+    "EXCLUDE_URL_PREFIXES": ["/excluded-path/"],
+    "DIRECTIVES": {
+        "default-src": [
+            SELF,
+        ],
+        "font-src": [
+            SELF,
+            "pro.fontawesome.com",
+            "fonts.gstatic.com",
+            "stackpath.bootstrapcdn.com",
+        ],
+        "script-src": [
+            SELF,
+            NONCE,
+            "stackpath.bootstrapcdn.com",
+            "www.googletagmanager.com",
+            "www.gstatic.com",
+            "vjs.zencdn.net",
+            "www.google.com",
+        ],
+        "style-src": [
+            SELF,
+            NONCE,
+            "pro.fontawesome.com",
+            "stackpath.bootstrapcdn.com",
+            "fonts.googleapis.com",
+            "vjs.zencdn.net",
+            "www.google.com",
+        ],
+        "frame-src": [
+            SELF,
+            "www.google.com",
+        ],
+        "img-src": [
+            SELF,
+            "www.googletagmanager.com",
+        ],
+        "connect-src": [
+            SELF,
+            "www.google.com",
+        ],
+        "frame-ancestors": [SELF],
+        "form-action": [SELF],
+        "report-uri": "/csp-report/",
+    },
+}
 
 #####################################################################################

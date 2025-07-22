@@ -10,7 +10,7 @@
   The user has submitted the following data for the step, please review and approve or reject.
 </div>
 <div class="row">
-  <div class="col-xs-12" style="margin-bottom: 10px;">
+  <div class="col-xs-12 workflows-admin-step-column">
     <ul class="nav nav-tabs">
       <li class="active"><a data-toggle="tab" href="#{{ step.step.slug }}-form-tab">Form</a></li>
       <li><a data-toggle="tab" href="#{{ step.step.slug }}-data-tab">Data</a></li>
@@ -22,7 +22,7 @@
         <form id="{{ step.step.slug }}-form" name="{{ step.step.slug }}-form">
           {% crispy form %}
         </form>
-        <script type="application/javascript">
+        <script type="application/javascript" nonce="{{request.csp_nonce}}">
           $(document).ready(function() {
             // Initialize the form with Bootstrap's validation styles.
             $('#{{ step.step.slug }}-form').find('input, select, textarea').each(function() {
@@ -50,7 +50,7 @@
 <p>The user has completed the step and the following is the form values that they submitted</p>
 </div>
 <div class="row">
-  <div class="col-xs-12" style="margin-bottom: 10px;">
+  <div class="col-xs-12 workflows-admin-step-column">
     <ul class="nav nav-tabs">
       <li class="active"><a data-toggle="tab" href="#{{ step.step.slug }}-form-tab">Form</a></li>
       <li><a data-toggle="tab" href="#{{ step.step.slug }}-data-tab">Data</a></li>
@@ -62,7 +62,7 @@
         <form id="{{ step.step.slug }}-form" name="{{ step.step.slug }}-form">
           {% crispy form %}
         </form>
-        <script type="application/javascript">
+        <script type="application/javascript" nonce="{{request.csp_nonce}}">
           $(document).ready(function() {
             // Initialize the form with Bootstrap's validation styles.
             $('#{{ step.step.slug }}-form').find('input, select, textarea').each(function() {

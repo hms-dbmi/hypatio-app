@@ -120,7 +120,7 @@
     </div>
 </form>
 
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     // Change display of the open/close times depending on file being enabled or that status being toggled.
     $(document).ready(function() {
         if ($("#edit-hosted-file-form input[name=enabled]").prop('checked')) {
@@ -138,7 +138,7 @@
     });
 </script>
 
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     // Display the upload form if a user clicks on the replace button.
     $('#hosted-file-replace-button').on('click', function() {
         $('#hosted-file-replace-button-row').hide();
@@ -146,7 +146,7 @@
     });
 </script>
 
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     function displayErrorMessage(xhr) {
         $('#form-response-row').show();
 

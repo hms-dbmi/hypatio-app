@@ -21,7 +21,7 @@
 </form>
 
 {% block javascript %}
-<script type="text/javascript">
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
     function recaptchaCallback() {
         $('#submit_verification_email').removeAttr('disabled');
     };

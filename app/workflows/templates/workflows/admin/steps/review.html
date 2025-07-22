@@ -9,7 +9,7 @@
   {% crispy review_form %}
   <button id="{{ step.step.slug }}-review-submit" name="submit" type="submit" class="btn btn-primary">Submit Review</button>
 </form>
-<script type="text/javascript">
+<script type="text/javascript" nonce="{{request.csp_nonce}}">
   function onReviewSuccess() {
 
     // Update the submit button.

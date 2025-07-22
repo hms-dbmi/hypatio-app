@@ -12,12 +12,12 @@
     <a class="btn btn-primary" href="{{ panel.additional_context.agreement_form.external_link }}" target="_blank" role="button" id="form_link" data-form-id="{{ panel.additional_context.agreement_form.id }}">Go to {{ panel.additional_context.agreement_form.name }}</a>
 </p>
 
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     $('#form_link').on('click', function(e) {
 
         var agreement_form_id = $(this).data('form-id');
         var project_key = "{{ project.project_key }}";
-        
+
         var data = {
             "agreement_form_id": agreement_form_id,
             "project_key": project_key

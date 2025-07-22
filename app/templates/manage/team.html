@@ -340,14 +340,14 @@
 
 {% block footerscripts %}
 <!-- Initialize Tooltips -->
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     $(function () {
         $('[data-toggle="tooltip"]').tooltip();
     });
 </script>
 
 <!-- Initialize DataTables -->
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     $(document).ready(function() {
         $('#team-members-table').DataTable({
             "paging": false,
@@ -373,7 +373,7 @@
 </script>
 
 <!-- Handle submission delete -->
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     $('.submission-delete').on('click', function() {
         // Swap the delete button for the confirm button
         $(this).hide();
@@ -411,7 +411,7 @@
 </script>
 
 <!-- Handle team status change or delete -->
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     var team = "{{ team.team_leader.email }}";
     var project = "{{ project.project_key }}";
     var status = "";
@@ -511,7 +511,7 @@ $('#notification-form-modal').on('submit', '#notification-form', function() {
 </script>
 
 <!-- Handle team comment saving -->
-<script type="application/javascript">
+<script type="application/javascript" nonce="{{request.csp_nonce}}">
     $('#team-comment-save').click(function() {
 
         var project = "{{ project.project_key }}";
