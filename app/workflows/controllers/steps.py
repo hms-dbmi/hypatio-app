@@ -18,6 +18,7 @@ from workflows.models import StepState
 from workflows.forms import StepStateFileForm
 from workflows.models import StepStateInitialization
 from workflows.models import StepStateReview
+from workflows.models import StepStateVersion
 
 import logging
 logger = logging.getLogger(__name__)
@@ -178,8 +179,22 @@ class BaseStepController(BaseController):
         """
         # Check for a rejection and handle accordingly.
         if review.status == StepStateReview.Status.Rejected.value:
-            # TODO: Implement this
-            pass
+
+            # Create a version from the existing step state
+            version = StepStateVersion.objects.create(
+                step_state=self.step_state,
+                data=self.step_state.data,
+                file=self.step_state.file,
+                message=review.message,
+            )
+
+            # Detach the review and add the version to it
+            review.step_state = None
+            review.version = version
+            review.save()
+
+            # Reset this step state
+            self.step_state.reset()
 
         # Check for a message
         if review.message:

@@ -28,6 +28,17 @@
               {% endblock %}
             {% elif step.status == StepStateStatus.Current.value %}
               {% block step_body_current %}
+                {% if step.was_rejected %}
+                <div class="bs-callout bs-callout-warning">
+                  <h4><span class="glyphicon glyphicon-warning-sign"></span>&nbsp;&nbsp;Previous Submission Rejected</h4>
+                  {% if step.get_last_version and step.get_last_version.review.message %}
+                  <p>Your previous submission to this step was rejected by an administrator with the following message:</p>
+                  <blockquote>{{ step.get_last_version.review.message }}</blockquote>
+                  {% else %}
+                  <p>Your previous submission to this step was rejected by an administrator.</p>
+                  {% endif %}
+                </div>
+                {% endif %}
               {% endblock %}
             {% elif step.status == StepStateStatus.Unreviewed.value %}
               {% block step_body_unreviewed %}

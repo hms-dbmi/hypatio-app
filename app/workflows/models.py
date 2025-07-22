@@ -207,7 +207,7 @@ class Workflow(models.Model):
     description = models.TextField(blank=True, null=True, help_text="A description of the workflow. This is used to provide context to users about what the workflow entails.")
     controller = models.CharField(
         max_length=512,
-        default='workflows.workflows.WorkflowController',
+        default='workflows.controllers.workflows.BaseWorkflowController',
         help_text="The fully-qualified class name for the workflow. This is used to determine how the workflow should be rendered and processed."
     )
     priority = models.IntegerField(default=0, help_text="Indicates the priority of this workflow. Lower numbers indicate higher priority. This is used to determine the order in which workflows are presented to users.")
@@ -304,13 +304,13 @@ class Step(PolymorphicModel):
     position = models.IntegerField(null=True, blank=True)
     controller = models.CharField(
         max_length=512,
-        default='workflows.workflows.StepController',
+        default='workflows.controllers.steps.BaseStepController',
         help_text="The fully-qualified class name for the step. This is used to determine how the step should be rendered and processed."
     )
     indefinite = models.BooleanField(default=False, help_text="If true, this step will stay 'current' when set as such.")
 
     # Initialization
-    initialization_required = models.BooleanField(blank=True, null=True, help_text="Marks this step as needing an administrator initialization before it can be started.")
+    initialization_required = models.BooleanField(default=False, help_text="Marks this step as needing an administrator initialization before it can be started.")
     initialization_notifications = models.BooleanField(default=True, help_text="If true, users will be notified when this step is initialized. This can be used to alert users that they can now complete the current step.")
     initialization_message = models.TextField(
         default="Your current step on the DBMI Data Portal has been initialized and is ready for you to continue.",
@@ -325,7 +325,7 @@ class Step(PolymorphicModel):
     )
 
     # Reviews
-    review_required = models.BooleanField(blank=True, null=True, help_text="Marks this step as needing an administrator review before it can be completed.")
+    review_required = models.BooleanField(default=False, help_text="Marks this step as needing an administrator review before it can be completed.")
     review_controller = models.CharField(
         blank=True,
         null=True,
@@ -739,6 +739,36 @@ class StepState(models.Model):
         # Check status
         self.set_status()
 
+    def reset(self):
+        """
+        Returns this Step State to a Current state.
+        """
+        self._data = None
+        self._file = None
+        self.completed_at = None
+        self.save()
+
+        # Set status
+        self.set_status()
+
+    def get_last_version(self) -> Optional["StepStateVersion"]:
+        """
+        Returns the most recent Version, if any.
+        """
+        return StepStateVersion.objects.filter(step_state=self).order_by("-version").first()
+
+    def was_rejected(self) -> bool:
+        """
+        Returns whether this step state has been rejected previously.
+        """
+        if not self.step.review_required:
+            return False
+
+        # Get last version
+        last_version = self.get_last_version()
+        return last_version and last_version.review.status == StepStateReview.Status.Rejected.value
+
+
     def get_dependencies(self) -> list[Self]:
         """
         Returns a list of StepStates this step depends on.
@@ -979,8 +1009,9 @@ class StepStateReview(models.Model):
     message = models.TextField(blank=True, null=True, help_text="An optional message describing the review of the step. This can be used to provide context or feedback on the decision made.")
 
     # Relationships
-    step_state = models.OneToOneField(StepState, on_delete=models.CASCADE, related_name='review')
+    step_state = models.OneToOneField(StepState, blank=True, null=True, on_delete=models.CASCADE, related_name='review')
     decided_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='step_reviews', help_text="The user who reviewed the step.")
+    version = models.OneToOneField("StepStateVersion", blank=True, null=True, on_delete=models.CASCADE, related_name='review')
 
     # Meta
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1000,9 +1031,10 @@ class StepStateReview(models.Model):
         """
         super().save(*args, **kwargs)
 
-        # Update StepState
-        self.step_state.set_status()
-        self.step_state.save()
+        # Update StepState if attached
+        if self.step_state:
+            self.step_state.set_status()
+            self.step_state.save()
 
 
 class StepStateVersion(models.Model):
@@ -1017,7 +1049,6 @@ class StepStateVersion(models.Model):
     # Relationships
     step_state = models.ForeignKey(StepState, on_delete=models.CASCADE, related_name='versions')
     file = models.OneToOneField(to="StepStateFile", blank=True, null=True, on_delete=models.CASCADE, related_name="step_state_version")
-    review = models.ForeignKey(StepStateReview, blank=True, null=True, on_delete=models.CASCADE, related_name='versions')
 
     # Meta
     created_at = models.DateTimeField(auto_now_add=True)
