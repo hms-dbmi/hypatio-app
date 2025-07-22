@@ -364,6 +364,11 @@ table.dataTable.table-hover > tbody > tr:hover > * {
     overflow: auto;
 }
 
+#request-access-form-submit i.fa-spinner {
+    display: none;
+    margin-left: 5px;
+}
+
 /* Workflows */
 
 .likert-end-label, .likert-label {
