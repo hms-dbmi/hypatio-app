@@ -4,54 +4,10 @@ from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Field, HTML
 
+from hypatio.forms import SanitizedCharField
 from workflows.models import StepStateReview
 from workflows.widgets import HorizontalRadioSelect
 
-
-class WorkflowTestForm(forms.Form):
-    """
-    A test form for workflows.
-    This form is used to test the workflow functionality.
-    """
-    yes_no = forms.ChoiceField(
-        choices=[('yes', 'Yes'), ('no', 'No')],
-        widget=forms.RadioSelect,
-        label="Are you finished?",
-        help_text="Please select 'Yes' or 'No'."
-    )
-
-    number = forms.IntegerField(
-        min_value=1,
-        max_value=100,
-        label="Enter a number",
-        help_text="Please enter a number between 1 and 100."
-    )
-
-    range = forms.ChoiceField(
-        widget=HorizontalRadioSelect,
-        label="How comfortable are you with the thing?",
-        choices=[
-            (1, "1"),
-            (2, "2"),
-            (3, "3"),
-            (4, "4"),
-            (5, "5")
-        ]
-    )
-
-    def clean_yes_no(self):
-        data = self.cleaned_data["yes_no"]
-        if data != 'yes':
-            raise ValidationError("You must use 'Yes'")
-
-        return data
-
-    def clean_number(self):
-        data = self.cleaned_data["number"]
-        if data != 1:
-            raise ValidationError("You must use 1")
-
-        return data
 
 class StepReviewForm(forms.Form):
     """
@@ -67,16 +23,16 @@ class StepReviewForm(forms.Form):
         help_text=_("Please select the outcome of this review"),
         choices=StepStateReview.Status.choices(),
     )
-    message = forms.CharField(
+    message = SanitizedCharField(
         label="Message",
         required=False,
         widget=forms.Textarea,
         help_text="Optional message to the user to provide context or feedback on your decision (leaving blank will only send notifications if one is configured by default)"
     )
-    step_state = forms.CharField(
+    step_state = SanitizedCharField(
         widget=forms.HiddenInput,
     )
-    decided_by = forms.CharField(
+    decided_by = SanitizedCharField(
         widget=forms.HiddenInput,
     )
 
@@ -97,10 +53,10 @@ class StepStateFileForm(forms.Form):
             "accept": ",".join(allowed_media_types)
         })
 
-    user = forms.CharField(
+    user = SanitizedCharField(
         widget=forms.HiddenInput,
     )
-    step_state = forms.CharField(
+    step_state = SanitizedCharField(
         widget=forms.HiddenInput,
     )
     file = forms.FileField(
@@ -109,13 +65,13 @@ class StepStateFileForm(forms.Form):
         widget=forms.ClearableFileInput(),
         required=False,
     )
-    filename = forms.CharField(
+    filename = SanitizedCharField(
         widget=forms.HiddenInput,
     )
-    size = forms.CharField(
+    size = SanitizedCharField(
         widget=forms.HiddenInput,
     )
-    type = forms.CharField(
+    type = SanitizedCharField(
         widget=forms.HiddenInput,
     )
 
@@ -130,7 +86,7 @@ class RexplainVideoUploadForm(forms.Form):
         help_text="Please upload a file.",
         widget=forms.ClearableFileInput(attrs={'data-content-type': "video/mp4"}),
     )
-    filename = forms.CharField(
+    filename = SanitizedCharField(
         label="The name of the file to be uploaded",
         widget=forms.HiddenInput(),
     )
@@ -195,6 +151,7 @@ class CrispyLikertField(Field):
         kwargs.setdefault("extra_context", {})["left_label"] = left_label
         kwargs.setdefault("extra_context", {})["right_label"] = right_label
         return super().render(*args, **kwargs)
+
 
 class MAIDAPreSurveyForm(forms.Form):
     """
@@ -359,12 +316,12 @@ class MAIDAPreSurveyForm(forms.Form):
         left_label=_("Strongly disagree"),
         right_label=_("Strongly agree"),
     )
-    confusing_aspects_of_findings = forms.CharField(
+    confusing_aspects_of_findings = SanitizedCharField(
         label=_("What aspects of your radiology report do you find most confusing or unclear?"),
         widget=forms.Textarea,
         required=False,
     )
-    concerns_about_using_ai = forms.CharField(
+    concerns_about_using_ai = SanitizedCharField(
         label=_("Do you have any concerns about using AI or videos to explain medical findings?"),
         widget=forms.Textarea,
         required=False,
@@ -532,12 +489,12 @@ class MAIDAPostSurveyForm(forms.Form):
         left_label=_("Strongly disagree"),
         right_label=_("Strongly agree"),
     )
-    still_confusing_aspects_of_findings = forms.CharField(
+    still_confusing_aspects_of_findings = SanitizedCharField(
         label=_("What aspects of your radiology report do you still find confusing or unclear?"),
         widget=forms.Textarea,
         required=False,
     )
-    comments_or_feedback = forms.CharField(
+    comments_or_feedback = SanitizedCharField(
         label=_("Please enter any additional comments or feedback about the video report."),
         widget=forms.Textarea,
         required=False,

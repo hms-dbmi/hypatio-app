@@ -9,14 +9,11 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
-from furl import furl
-from dbmi_client.settings import dbmi_settings
 from dbmi_client.authn import logout_redirect_url
+from dbmi_client import reg
 
 from hypatio import scireg_services
 from hypatio.auth0authenticate import user_auth_and_jwt
-from hypatio.auth0authenticate import validate_request as validate_jwt
-from hypatio.auth0authenticate import logout_redirect
 from profile.forms import RegistrationForm
 
 # Get an instance of a logger
@@ -33,71 +30,54 @@ def signout(request):
 @user_auth_and_jwt
 def update_profile(request):
 
-    user = request.user
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
-
-    # If the JWT has expired or the user doesn't have one, force the user to login again
-    if user_jwt is None or validate_jwt(request) is None:
-        logout_redirect(request)
-
-    # The JWT token that will get passed in API calls
-    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
-
     # If there was a POST request, a form was submitted
     if request.method == 'POST':
 
         # Process the form
-        registration_form = RegistrationForm(request.POST)
+        registration_form = RegistrationForm(request.POST, initial={"email": request.user.email})
         if registration_form.is_valid():
-            logger.debug('[HYPATIO][DEBUG] Profile form fields submitted: ' + json.dumps(registration_form.cleaned_data))
 
-            # Create a new registration with a POST
-            url = furl(dbmi_settings.REG_URL) / "api" / "register"
-            if registration_form.cleaned_data['id'] == "":
-                requests.post((url / "/").url, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data))
-            # Update an existing registration with a PUT to the specific ID
-            else:
-                url.path.segments.extend([registration_form.cleaned_data['id'], ""])
-                requests.put(url.url, headers=jwt_headers, data=json.dumps(registration_form.cleaned_data))
+            # Update it
+            reg.update_dbmi_user(request, **registration_form.cleaned_data)
 
             return HttpResponse(200)
         else:
-            # logger.debug('[HYPATIO][DEBUG] Profile form errors: ' + form.errors.as_json())
-            # TODO Not implemented
-            return HttpResponse(status=500)
+            logger.debug(f'Update profile errors: {registration_form.errors.as_json()}')
+            return HttpResponse(registration_form.errors.as_json(), status=400)
+
+    else:
+        return HttpResponse(405)
 
 @user_auth_and_jwt
 def profile(request, template_name='profile/profile.html'):
 
-    user = request.user
-    user_jwt = request.COOKIES.get("DBMI_JWT", None)
+    # Set defaults
+    initial = {
+        "email": request.user.email,
+    }
+    email_confirmed = False
+    new_registration = True
 
-    # The JWT token that will get passed in API calls
-    jwt_headers = {"Authorization": "JWT " + user_jwt, 'Content-Type': 'application/json'}
+    # Get a profile if it exists
+    reg_profile = reg.get_dbmi_user(request, request.user.email)
+    if reg_profile:
 
-    # Query SciReg to get the user's information
-    url = furl(dbmi_settings.REG_URL) / "api" / "register" / "/"
-    registration_info = requests.get(url.url, headers=jwt_headers).json()
+        # Get whether they've confirmed their email or not
+        email_confirmed = reg_profile.get("email_confirmed", False)
 
-    logger.debug('[HYPATIO][DEBUG] Registration info ' + json.dumps(registration_info))
-
-    if registration_info['count'] != 0:
-        registration_info = registration_info["results"][0]
-        registration_form = RegistrationForm(initial=registration_info)
-
-        new_user = False
-    else:
-        # User does not have a registration in scireg, present them with a blank form to complete and prepopulate the email
-        registration_form = RegistrationForm(initial={'email': user.email}, new_registration=True)
-        new_user = True
+        # Use their existing profile
+        initial = reg_profile
+        new_registration = False
 
     # Check for a returning task and set messages accordingly
     get_task_context_data(request)
 
     context = {
-        'registration_form': registration_form,
-        'user': user,
-        'new_user': new_user
+        'registration_form': RegistrationForm(
+            initial=initial,
+            new_registration=new_registration,
+            email_confirmed=email_confirmed,
+        ),
     }
 
     # Generate and render the form.

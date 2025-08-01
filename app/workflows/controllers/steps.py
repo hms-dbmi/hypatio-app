@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from furl import furl
+import nh3
 
 from projects.models import DataProjectWorkflow
 
@@ -108,6 +109,12 @@ class BaseStepController(BaseController):
 
         # Remove request meta fields
         cleaned_data = {k:v for k, v in data.items() if k not in self.request_meta_fields()}
+
+        # Sanitize strings
+        for key, value in cleaned_data.items():
+            if type(value) is str and nh3.is_html(value):
+                cleaned_data[key] = nh3.clean(value)
+
 
         return cleaned_data
 

@@ -17,6 +17,7 @@ from django.utils import timezone
 from polymorphic.models import PolymorphicModel
 from dbmi_client import fileservice
 
+from hypatio.models import SanitizedTextField
 from workflows.controllers.initializations import get_step_initialization_controller_choices
 from workflows.controllers.review import get_step_review_controller_choices
 
@@ -79,7 +80,7 @@ def get_controller_instance(controller_class_name, *args, **kwargs) -> object:
 #     """
 #     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 #     name = models.CharField(max_length=255)
-#     description = models.TextField(blank=True, null=True, help_text="A description of the project. This is used to provide context to users about what the project entails.")
+#     description = SanitizedTextField(blank=True, null=True, help_text="A description of the project. This is used to provide context to users about what the project entails.")
 
 #     # Meta
 #     created_at = models.DateTimeField(auto_now_add=True)
@@ -204,7 +205,7 @@ class Workflow(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True, help_text="A description of the workflow. This is used to provide context to users about what the workflow entails.")
+    description = SanitizedTextField(blank=True, null=True, help_text="A description of the workflow. This is used to provide context to users about what the workflow entails.")
     controller = models.CharField(
         max_length=512,
         default='workflows.controllers.workflows.BaseWorkflowController',
@@ -300,7 +301,7 @@ class Step(PolymorphicModel):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True, help_text="A description of the step. This is used to provide context to users about what the step entails.")
+    description = SanitizedTextField(blank=True, null=True, help_text="A description of the step. This is used to provide context to users about what the step entails.")
     position = models.IntegerField(null=True, blank=True)
     controller = models.CharField(
         max_length=512,
@@ -312,7 +313,7 @@ class Step(PolymorphicModel):
     # Initialization
     initialization_required = models.BooleanField(default=False, help_text="Marks this step as needing an administrator initialization before it can be started.")
     initialization_notifications = models.BooleanField(default=True, help_text="If true, users will be notified when this step is initialized. This can be used to alert users that they can now complete the current step.")
-    initialization_message = models.TextField(
+    initialization_message = SanitizedTextField(
         default="Your current step on the DBMI Data Portal has been initialized and is ready for you to continue.",
         help_text="The message that users will receive when the current step has been initialized. The email will also include a link for the user to return to the step.",
     )
@@ -334,7 +335,7 @@ class Step(PolymorphicModel):
         help_text="The fully-qualified class name for the controller that will handle the review process. This is used to determine how the approval should be processed and rendered. All subclasses of 'BaseStepReviewController' defined in 'workflows.controllers.review' will be listed as choices.",
     )
     review_notifications = models.BooleanField(default=True, help_text="If true, users will be notified when this step is reviewed. This can be used to alert users that they can now proceed to the next step.")
-    review_message = models.TextField(
+    review_message = SanitizedTextField(
         default="Your recently completed step on the DBMI Data Portal has been reviewed. Please return to the dashboard to check the status of the step.",
         help_text="The default message that users will receive when the current step has been reviewed. The email will also include a link for the user to return to the step.",
     )
@@ -970,7 +971,7 @@ class StepStateInitialization(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     data = models.JSONField(blank=True, null=True, help_text="The data from this Step Initialization. This can be used to store any data that is required to initialize the step.")
-    message = models.TextField(blank=True, null=True, help_text="An optional message describing the initialization of the step. This can be used to provide context or feedback on the actions made.")
+    message = SanitizedTextField(blank=True, null=True, help_text="An optional message describing the initialization of the step. This can be used to provide context or feedback on the actions made.")
 
     # Relationships
     step_state = models.OneToOneField(StepState, on_delete=models.CASCADE, related_name='initialization')
@@ -1006,7 +1007,7 @@ class StepStateReview(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     status = models.CharField(choices=Status.choices(), help_text="The outcome status of the review.", max_length=255)
-    message = models.TextField(blank=True, null=True, help_text="An optional message describing the review of the step. This can be used to provide context or feedback on the decision made.")
+    message = SanitizedTextField(blank=True, null=True, help_text="An optional message describing the review of the step. This can be used to provide context or feedback on the decision made.")
 
     # Relationships
     step_state = models.OneToOneField(StepState, blank=True, null=True, on_delete=models.CASCADE, related_name='review')
@@ -1044,7 +1045,7 @@ class StepStateVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     version = models.IntegerField(help_text="The version number of the StepState.", editable=False)
     data = models.JSONField(blank=True, null=True, help_text="The data from this StepState at the time of this version.", editable=False)
-    message = models.TextField(blank=True, null=True, help_text="An optional message describing the changes made in this version. This can be used to provide context or feedback on the changes made.")
+    message = SanitizedTextField(blank=True, null=True, help_text="An optional message describing the changes made in this version. This can be used to provide context or feedback on the changes made.")
 
     # Relationships
     step_state = models.ForeignKey(StepState, on_delete=models.CASCADE, related_name='versions')
@@ -1145,8 +1146,8 @@ class VideoStep(Step):
     """
     A specialized step for showing a video.
     """
-    video_url = models.TextField(help_text="The URL of the video to show in this step.")
-    thumbnail_url = models.TextField(blank=True, null=True, help_text="An optional thumbnail URL for the video. This can be used to show a preview of the video before it is played.")
+    video_url = SanitizedTextField(help_text="The URL of the video to show in this step.")
+    thumbnail_url = SanitizedTextField(blank=True, null=True, help_text="An optional thumbnail URL for the video. This can be used to show a preview of the video before it is played.")
     autoplay = models.BooleanField(default=False, help_text="If true, the video will automatically start playing when the step is displayed.")
     loop = models.BooleanField(default=False, help_text="If true, the video will loop when it reaches the end.")
 
