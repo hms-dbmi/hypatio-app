@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load contact_extras %}
 {% load projects_extras %}
 
 {% block content %}
@@ -10,7 +9,7 @@
             <div id="hero-heading">
                 <h1>DBMI Data Portal</h1>
                 <h2>Data and computing resources from the <br />
-                    <strong style="font-weight: 800; letter-spacing: .5px;">Department of Biomedical Informatics (DBMI)</strong><br />
+                    <strong>Department of Biomedical Informatics (DBMI)</strong><br />
                     in the Blavatnik Institute<br />
                     at Harvard Medical School</h2>
             </div>
@@ -31,7 +30,7 @@
         <div class="col-lg-4 col-md-4">
                <h3>Data Challenges</h3>
             <p>The n2c2 challenge series now continues under the stewardship of DBMI, with data access and challenge participation administered through this data portal and additional information provided through the public <a href="https://n2c2.dbmi.hms.harvard.edu"><strong>n2c2 website</strong></a>.</p>
-            <p>Our 2022 n2c2 challenge culminated with a <a href="https://s4.goeshow.com/amia/annual/2022/schedule_at_a_glance.cfm?session_key=194F1BB1-A7DB-5E7D-5EDE-00AB55F4E51F&session_date=Saturday,%20Nov%2005,%202022" target="_blank">workshop <span class="fal fa-sm fa-external-link"></span></a> at the <a href="https://amia.org/education-events/amia-2022-annual-symposium" target="_blank">2022 AMIA Annual Symposium <span class="fal fa-sm fa-external-link"></span></a>. Thanks to all who participated! Results of Track 2 on Social Determinants of Health will also be published in a December 2023 <a href="https://academic.oup.com/jamia/pages/cfp-social-determinants" target="_blank">special issue of <em>JAMIA <span class="fal fa-sm fa-external-link"></span>.</em></a></p>    
+            <p>Our 2022 n2c2 challenge culminated with a <a href="https://s4.goeshow.com/amia/annual/2022/schedule_at_a_glance.cfm?session_key=194F1BB1-A7DB-5E7D-5EDE-00AB55F4E51F&session_date=Saturday,%20Nov%2005,%202022" target="_blank">workshop <span class="fal fa-sm fa-external-link"></span></a> at the <a href="https://amia.org/education-events/amia-2022-annual-symposium" target="_blank">2022 AMIA Annual Symposium <span class="fal fa-sm fa-external-link"></span></a>. Thanks to all who participated! Results of Track 2 on Social Determinants of Health will also be published in a December 2023 <a href="https://academic.oup.com/jamia/pages/cfp-social-determinants" target="_blank">special issue of <em>JAMIA <span class="fal fa-sm fa-external-link"></span>.</em></a></p>
         </div>
         <div class="col-lg-4 col-md-4">
             <h3>About Us</h3>
@@ -52,16 +51,16 @@
         </div>
     </div>
 </div>
-<footer class="row container-fluid" style="margin-top: 3em;">
+<footer class="row container-fluid">
     <div class="container">
-        <div class="col-lg-4 col-md-4 col-sm-5" style="padding-left: 0; padding-top: 1em;"> <img src="{% static 'images/Blavatnikbioinformatics-nomargin.png' %}" style="margin-top: .8rem; "class="img-fluid" width="350" alt="Logo for Department of Biomedical Informatics | Blavatnik Institute | Harvard Medical School"></div>
-        <div class="col-lg-4 col-md-4 col-sm-4" style="padding-left: 6em; font-size: 1.2rem; font-weight: 300;">
+        <div id="footer-logo-container" class="col-lg-4 col-md-4 col-sm-5"> <img src="{% static 'images/Blavatnikbioinformatics-nomargin.png' %}" class="img-fluid" width="350" alt="Logo for Department of Biomedical Informatics | Blavatnik Institute | Harvard Medical School"></div>
+        <div id="footer-location-container" class="col-lg-4 col-md-4 col-sm-4">
             <p><br />
                 Department of Biomedical Informatics<br />
                 Harvard Medical School<br />
                 10 Shattuck Street, Boston, MA    02115</p>
         </div>
-        <div class="col-lg-4 col-md-4 col-sm-3" style="padding-left: 2em; font-size: 1rem; font-weight: 300;">
+        <div id="footer-copyright-container" class="col-lg-4 col-md-4 col-sm-3">
             <p><br />
                 &copy;2023 by the President and Fellows of Harvard College</p>
         </div>

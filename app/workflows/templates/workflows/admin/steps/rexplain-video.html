@@ -12,7 +12,7 @@
   {% crispy form %}
 </form>
 
-<script type="application/javascript" nonce="{{request.csp_nonce}}">
+<script>
 $(document).ready(function() {
 
   function onProgress(loaded, total) {
@@ -64,8 +64,7 @@ $(document).ready(function() {
     form.find(".file-upload-submit").text('File uploaded successfully');
 
     // Refresh
-    var workflowStepContainer = form.closest(".workflow-step-container");
-    Intercooler.refresh(workflowStepContainer.attr("ic-src"));
+    workflowsRefreshParent(form[0], ".workflow-step-container");
   }
 
   function onAbort() {
@@ -156,7 +155,7 @@ $(document).ready(function() {
   function handleFormError(status, str, xhr, formId) {
     console.log("Form submission error:", status, str, xhr);
 
-    $(formId + ' .ic-indicator').hide();
+    $(formId + ' .hx-indicator').hide();
     $(formId + ' button[type="submit"]').prop('disabled', false);
     $(formId + ' .form-group').removeClass('has-error');
     $(formId + ' .error-message').remove();

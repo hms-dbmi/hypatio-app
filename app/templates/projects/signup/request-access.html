@@ -3,12 +3,9 @@
 {% if panel.additional_context.requested_access %}
     Your request is being reviewed. Please use the 'Contact Us' link for any further questions.
 {% else %}
-    <form name="access_request_form"
-      ic-post-to="{% url 'projects:submit_user_permission_request' %}"
-      ic-target="this" ic-replace-target="true" ic-transition-duration="2s"
-      ic-on-beforeSend="toggleFormButtons('#access_request_form');"
-      ic-on-complete="toggleFormButtons('#access_request_form');"
-      ic-on-success="$('#request-access-form-submit').html('Request submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success')">
+    <form id="access-request-form" name="access_request_form"
+      hx-post="{% url 'projects:submit_user_permission_request' %}"
+      hx-target="this" hx-swap="OuterHTML" hx-indicator="#request-access-form-indicator">
         <fieldset>
             <div class="row">
                 <div class="col-md-12">
@@ -31,7 +28,7 @@
                             {% else %}
                             Request Access
                             {% endif %}
-                            <i class="ic-indicator fa fa-spinner fa-spin"></i>
+                            <i id="request-access-form-indicator" class="hx-indicator fa fa-spinner fa-spin"></i>
                         </button>
                     </div>
                 </div>
@@ -39,4 +36,20 @@
         </fieldset>
         {% csrf_token %}
     </form>
+{% block javascript %}
+<script nonce="{{ request.csp_nonce }}">
+  // Handle updates
+  document.getElementById('access-request-form').addEventListener("htmx:afterOnLoad", function(event) {
+    notify('success', "Access request submitted!", 'thumbs-up');
+
+    {# If automatic access is granted, reload page for updated dashboard #}
+    {% if panel.additional_context.automatic_authorization %}
+    // Reload
+    setTimeout(function() {
+      location.reload();
+    }, 1000);
+    {% endif %}
+  });
+</script>
+{% endblock %}
 {% endif %}

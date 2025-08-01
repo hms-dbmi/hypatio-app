@@ -1,9 +1,7 @@
 {% load bootstrap3 %}
 
 <form id="upload-signed-agreement-form-file-form" class="file-upload-form" method="post" enctype="multipart/form-data"
-      ic-post-to="{% url 'manage:upload-signed-agreement-form-file' signed_agreement_form_id %}"
-      ic-on-beforeSend="toggleFormButtons('#upload-signed-agreement-form-file-form')"
-      ic-on-complete="toggleFormButtons('#upload-signed-agreement-form-file-form')">
+      hx-post="{% url 'manage:upload-signed-agreement-form-file' signed_agreement_form_id %}">
     <div class="modal-header modal-header-primary">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h3 class="modal-title">Signed Agreement Form File Upload</h3>
@@ -16,8 +14,17 @@
         {% buttons %}
             <button id="file-upload-close-button" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             <button id="file-upload-submit-button" type="submit" class="btn btn-primary">Submit
-                <span id="file-upload-form-indicator" style="display: none; margin-left: 5px;" class="ic-indicator fa fa-spinner fa-spin"></span>
+                <span id="file-upload-form-indicator" style="display: none; margin-left: 5px;" class="hx-indicator fa fa-spinner fa-spin"></span>
             </button>
         {% endbuttons %}
     </div>
 </form>
+<script>
+  // Add HTMX event listeners.
+  document.getElementById("upload-signed-agreement-form-file-form").addEventListener("htmx:beforeSend", function(event) {
+    toggleFormButtons('#upload-signed-agreement-form-file-form');
+  });
+  document.getElementById("upload-signed-agreement-form-file-form").addEventListener("htmx:afterRequest", function(event) {
+    toggleFormButtons('#upload-signed-agreement-form-file-form');
+  });
+</script>

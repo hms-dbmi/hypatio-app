@@ -200,7 +200,7 @@
                                         <span class="glyphicon {% if form.status == 'P' %}glyphicon-alert{% elif form.status == 'A' %}glyphicon-ok{% elif form.status == 'R' %}glyphicon-ban-circle{% endif %}" aria-hidden="true"></span> {{ form.agreement_form.short_name }}
                                     </a>
                                 {% endfor %}
-                                <button type="button" class="btn btn-default btn-xs btn-primary" ic-get-from="{% url 'manage:upload-signed-agreement-form' project.project_key member.email %}" data-toggle="modal" data-target="#page-modal" data-backdrop="static" data-keyboard="false" ic-target="#page-modal-content">
+                                <button type="button" class="btn btn-default btn-xs btn-primary" hx-get="{% url 'manage:upload-signed-agreement-form' project.project_key member.email %}" data-toggle="modal" data-target="#page-modal" data-backdrop="static" data-keyboard="false" hx-target="#page-modal-content">
                                     Upload Form <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
                                 </button>
 
@@ -214,14 +214,14 @@
                             </td>
                             <td>
                                 {% if member.access_granted %}
-                                    <button type="button" class="btn btn-default btn-xs" ic-post-to="{% url 'manage:remove-view-permission' project.project_key member.email %}" ic-replace-target="true">
+                                    <button type="button" class="btn btn-default btn-xs" hx-post="{% url 'manage:remove-view-permission' project.project_key member.email %}" hx-swap="OuterHTML">
                                         Revoke access <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
                                     </button>
                                 {% else %}
                                     {% if member.signed_accepted_agreement_forms == num_required_forms %}
                                         {# Only allow approval of individuals if the team itself is approved #}
                                         {% if team.status == 'Active' %}
-                                            <button type="button" class="btn btn-default btn-xs btn-success" ic-post-to="{% url 'manage:grant-view-permission' project.project_key member.email %}" ic-replace-target="true">
+                                            <button type="button" class="btn btn-default btn-xs btn-success" hx-post="{% url 'manage:grant-view-permission' project.project_key member.email %}" hx-swap="OuterHTML">
                                                 Grant access <span class="glyphicon glyphicon-alert" aria-hidden="true"></span>
                                             </button>
                                         {% else %}
@@ -340,14 +340,14 @@
 
 {% block footerscripts %}
 <!-- Initialize Tooltips -->
-<script type="application/javascript" nonce="{{request.csp_nonce}}">
+<script nonce="{{request.csp_nonce}}">
     $(function () {
         $('[data-toggle="tooltip"]').tooltip();
     });
 </script>
 
 <!-- Initialize DataTables -->
-<script type="application/javascript" nonce="{{request.csp_nonce}}">
+<script nonce="{{request.csp_nonce}}">
     $(document).ready(function() {
         $('#team-members-table').DataTable({
             "paging": false,
@@ -373,7 +373,7 @@
 </script>
 
 <!-- Handle submission delete -->
-<script type="application/javascript" nonce="{{request.csp_nonce}}">
+<script nonce="{{request.csp_nonce}}">
     $('.submission-delete').on('click', function() {
         // Swap the delete button for the confirm button
         $(this).hide();
@@ -411,7 +411,7 @@
 </script>
 
 <!-- Handle team status change or delete -->
-<script type="application/javascript" nonce="{{request.csp_nonce}}">
+<script nonce="{{request.csp_nonce}}">
     var team = "{{ team.team_leader.email }}";
     var project = "{{ project.project_key }}";
     var status = "";
@@ -511,7 +511,7 @@ $('#notification-form-modal').on('submit', '#notification-form', function() {
 </script>
 
 <!-- Handle team comment saving -->
-<script type="application/javascript" nonce="{{request.csp_nonce}}">
+<script nonce="{{request.csp_nonce}}">
     $('#team-comment-save').click(function() {
 
         var project = "{{ project.project_key }}";

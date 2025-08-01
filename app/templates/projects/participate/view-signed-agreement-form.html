@@ -17,9 +17,9 @@
                 <h2 class="panel-title">Signed Form Content
                 {% if is_manager %}
                   <button type="button" class="btn btn-default btn-xs btn-primary pull-right"
-                          ic-get-from="{% url 'manage:upload-signed-agreement-form-file' signed_form.id %}"
+                          hx-get="{% url 'manage:upload-signed-agreement-form-file' signed_form.id %}"
                           data-toggle="modal" data-target="#page-modal" data-backdrop="static" data-keyboard="false"
-                          ic-target="#page-modal-content">
+                          hx-target="#page-modal-content">
                     Upload File&nbsp;&nbsp;<span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span>
                   </button>
                   {% endif %}
@@ -121,7 +121,7 @@
 {% endblock %}
 
 {% block footerscripts %}
-<script type="application/javascript" nonce="{{request.csp_nonce}}">
+<script nonce="{{request.csp_nonce}}">
 
 $(document).ready(function() {
 

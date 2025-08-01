@@ -94,7 +94,7 @@
 </div>
 
 {% if step.status == StepStateStatus.Completed.value %}
-<script type="application/javascript" nonce="{{request.csp_nonce}}">
+<script nonce="{{request.csp_nonce}}">
 $(function(){
 
   // Get step and workflow container elements

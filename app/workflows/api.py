@@ -42,8 +42,8 @@ WORKFLOW_READONLY_PERMISSION_SET = (workflow_permissions.ReadOnly & workflow_per
 WORKFLOW_READANDWRITEONLY_PERMISSION_SET = (workflow_permissions.ReadAndWriteOnly & workflow_permissions.IsOwner) | workflow_permissions.IsAdministrator
 
 class PartialTemplateHTMLRenderer(renderers.TemplateHTMLRenderer):
-    media_type = 'text/html-partial'
-    format = 'html-partial'
+    media_type = 'text/html'
+    format = 'html'
 
 
 class WorkflowUserViewSet(viewsets.ReadOnlyModelViewSet):

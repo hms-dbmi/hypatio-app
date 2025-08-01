@@ -2,9 +2,9 @@
 <div class="btn-group btn-group-justified" role="group" aria-label="...">
     {% if project.registration_open %}
     <a class="btn btn-primary" href="" role="button" disabled>Open <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
-    <a class="btn btn-default" href="" role="button" ic-target="#registration-status" ic-post-to="{% url 'manage:set-dataproject-registration-status' %}" ic-include='{"project_key": "{{ project.project_key }}", "registration_status": "close"}'>Close</a>
+    <a class="btn btn-default" href="" role="button" hx-target="#registration-status" hx-post="{% url 'manage:set-dataproject-registration-status' %}" hx-include='{"project_key": "{{ project.project_key }}", "registration_status": "close"}'>Close</a>
     {% else %}
-    <a class="btn btn-default" href="" role="button" ic-target="#registration-status" ic-post-to="{% url 'manage:set-dataproject-registration-status' %}" ic-include='{"project_key": "{{ project.project_key }}", "registration_status": "open"}'>Open</a>
+    <a class="btn btn-default" href="" role="button" hx-target="#registration-status" hx-post="{% url 'manage:set-dataproject-registration-status' %}" hx-include='{"project_key": "{{ project.project_key }}", "registration_status": "open"}'>Open</a>
     <a class="btn btn-danger" href="" role="button" disabled>Close <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
     {% endif %}
 </div>

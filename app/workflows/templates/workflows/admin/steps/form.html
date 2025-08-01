@@ -22,7 +22,7 @@
         <form id="{{ step.step.slug }}-form" name="{{ step.step.slug }}-form">
           {% crispy form %}
         </form>
-        <script type="application/javascript" nonce="{{request.csp_nonce}}">
+        <script nonce="{{request.csp_nonce}}">
           $(document).ready(function() {
             // Initialize the form with Bootstrap's validation styles.
             $('#{{ step.step.slug }}-form').find('input, select, textarea').each(function() {
@@ -62,7 +62,7 @@
         <form id="{{ step.step.slug }}-form" name="{{ step.step.slug }}-form">
           {% crispy form %}
         </form>
-        <script type="application/javascript" nonce="{{request.csp_nonce}}">
+        <script nonce="{{request.csp_nonce}}">
           $(document).ready(function() {
             // Initialize the form with Bootstrap's validation styles.
             $('#{{ step.step.slug }}-form').find('input, select, textarea').each(function() {

@@ -28,7 +28,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-6">
         {% if project.registration_open %}
             {% if project.is_challenge %}
@@ -39,7 +39,7 @@
                     <div class="panel-body">
                         <p>To participate in {{ project.short_description }} please first login or register.</p>
 
-                        <p style="margin-top: 15px;"><a class="btn btn-success" href="{{ request.build_absolute_uri|get_login_url }}" role="button">Login or register now to participate</a></p>
+                        <p class="login-or-register-link-paragraph"><a class="btn btn-success" href="{{ request.build_absolute_uri|get_login_url }}" role="button">Login or register now to participate</a></p>
                     </div>
                 </div>
             {% else %}

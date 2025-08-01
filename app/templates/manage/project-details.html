@@ -1,4 +1,4 @@
-<form name="project-details" method="POST" ic-target="#project-details" ic-post-to="{% url 'manage:set-dataproject-details' %}" ic-include='{"project_key": "{{ project.project_key }}"}'>
+<form name="project-details" method="POST" hx-target="#project-details" hx-post="{% url 'manage:set-dataproject-details' %}" hx-include='{"project_key": "{{ project.project_key }}"}'>
     <div class="form-group">
         <label for="project-name">Project full name</label>
         <input type="text" name="name" id="project-name" value="{{ project.name }}" class="form-control" required>

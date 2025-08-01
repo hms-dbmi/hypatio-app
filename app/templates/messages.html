@@ -1,7 +1,7 @@
 {% load bootstrap3 %}
 
 {% if messages %}
-<script type="application/javascript" nonce="{{request.csp_nonce}}">
+<script nonce="{{request.csp_nonce}}">
     $(document).ready(function() {
         {% for message in messages %}
             // Get the type

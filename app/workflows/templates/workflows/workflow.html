@@ -21,9 +21,9 @@
             {% for step in steps %}
             <div id="workflow-step-{{ step.step.slug }}-container"
             class="workflow-step-container"
-            ic-get-from="{% if admin %}{% url 'workflows:v1:admin-step-state-detail' pk=step.id %}{% else %}{% url 'workflows:v1:step-state-detail' pk=step.id %}{% endif %}"
-            ic-trigger-on="scrolled-into-view"
-            ic-deps="{% for dependency in step.get_dependencies %}{% if admin %}{% url 'workflows:v1:admin-step-state-detail' pk=dependency.id %}{% else %}{% url 'workflows:v1:step-state-detail' pk=dependency.id %}{% endif %}{% if not forloop.last %},{% endif %}{% endfor %}"
+            hx-get="{% if admin %}{% url 'workflows:v1:admin-step-state-detail' pk=step.id %}{% else %}{% url 'workflows:v1:step-state-detail' pk=step.id %}{% endif %}"
+            hx-trigger="load,path-deps"
+            path-deps="{% for dependency in step.get_dependencies %}{% if admin %}{% url 'workflows:v1:admin-step-state-detail' pk=dependency.id %}{% else %}{% url 'workflows:v1:step-state-detail' pk=dependency.id %}{% endif %}{% if not forloop.last %},{% endif %}{% endfor %}"
             ></div>
             {% endfor %}
           {% endif %}
