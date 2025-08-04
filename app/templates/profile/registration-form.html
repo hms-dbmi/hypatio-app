@@ -14,7 +14,6 @@
     {% buttons submit='Update' %}{% endbuttons %}
 </form>
 
-{% block javascript %}
 <script nonce="{{ request.csp_nonce }}">
   // Handle updates
   document.getElementById('profile-form').addEventListener("htmx:afterOnLoad", function(event) {
@@ -33,4 +32,3 @@
     }
   });
 </script>
-{% endblock %}

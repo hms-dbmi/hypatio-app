@@ -383,7 +383,6 @@ CONTENT_SECURITY_POLICY = {
         "font-src": [
             SELF,
             "data:",
-            "pro.fontawesome.com",
             "fonts.gstatic.com",
             "cdn.jsdelivr.net",
         ],
@@ -402,8 +401,6 @@ CONTENT_SECURITY_POLICY = {
         "style-src": [
             SELF,
             NONCE,
-            "pro.fontawesome.com",
-            #"stackpath.bootstrapcdn.com",
             "fonts.googleapis.com",
             "vjs.zencdn.net",
             "www.google.com",

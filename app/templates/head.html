@@ -1,0 +1,43 @@
+{% load static %}
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/vnd.microsoft.icon"/>
+<meta name="google-site-verification" content="OdYYzhkJpqgioUekvMbDvbyW6spxovdO_jmqVkiKVDE" />
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-70908320-25"></script>
+<script nonce="{{ request.csp_nonce }}">
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-70908320-25');
+</script>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+<!-- Bootstrap -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<!-- Text Font -->
+<link href="https://fonts.googleapis.com/css?family=Libre+Franklin:300,400,500,600,700&amp;subset=latin-ext" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
+
+<!-- Bootstrap notify -->
+<link rel="stylesheet" href="{% static 'plugins/bootstrap-notify/bootstrap-notify.css' %}">
+
+<!-- HTMX -->
+<link rel="stylesheet" href="{% static 'css/htmx.css' %}">
+
+<!-- DBMI Portal Styles -->
+<link rel="stylesheet" href="{% static 'css/portal.css' %}">
+<link rel="stylesheet" href="{% static 'animate.css' %}" />
+<link rel="stylesheet" href="{% static 'custom.css' %}" />
+
+<!-- DBMI Portal Javascript -->
+<script src="{% static 'js/portal.js' %}"></script>
