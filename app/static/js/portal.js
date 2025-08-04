@@ -1,3 +1,19 @@
+/**
+ * Notification event handler. Listens for notification events passed via
+ * response headers and displays the notification accordingly.
+ * Note: This is only valid from HTMX requests. Vanilla responses from the
+ * server will not trigger this event.
+ */
+window.addEventListener("showNotification", function(event) {
+
+    // Get notification details
+    const level = event.detail.level;
+    const icon = event.detail.icon;
+    const message = event.detail.message;
+
+    // Show the notification.
+    notify(level, message, icon);
+});
 
 /**
  * Finds all 'button' elements contained in a form and toggles their 'disabled' proeprty.

@@ -660,9 +660,14 @@ def save_signed_agreement_form(request):
 
                 # Setup the script run.
                 response = HttpResponse(content=form.errors.as_json(), status=400)
-                response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-                    "warning", f"The agreement form contained errors, please review", "warning-sign"
-                )
+
+                # Setup the notification.
+                response["HX-Trigger"] = json.dumps({"showNotification": {
+                    "level" : "warning",
+                    "icon": "warning-sign",
+                    "message" : "The agreement form contained errors, please review",
+                }})
+
                 return response
 
             # Use the data from the form
@@ -827,25 +832,19 @@ def submit_user_permission_request(request):
         project_key = request.POST.get('project_key', None)
         project = DataProject.objects.get(project_key=project_key)
     except ObjectDoesNotExist:
-        # Create the response.
-        response = HttpResponse(status=404)
-
-        # Setup the script run.
-        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-            "danger", "The requested project could not be found", "warning-sign"
-        )
-
-        return response
+        return HttpResponse(status=404)
 
     if project.has_teams or not project.requires_authorization:
 
         # Create the response.
         response = HttpResponse(status=400)
 
-        # Setup the script run.
-        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-            "danger", "The action could not be completed", "warning-sign"
-        )
+        # Setup the notification.
+        response["HX-Trigger"] = json.dumps({"showNotification": {
+            "level" : "danger",
+            "icon": "exclamation-sign",
+            "message" : "The action could not be completed",
+        }})
 
         return response
 
@@ -955,14 +954,12 @@ def submit_user_permission_request(request):
     # Create the response.
     response = HttpResponse(content, status=201)
 
-    # Setup the script run.
-    response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-        "success", "Your request for access has been submitted", "thumbs-up"
-    )
-
-    # Reload page if approved
-    if participant.permission == "VIEW":
-        response['X-IC-Script'] += "setTimeout(function() { location.reload(); }, 2000);"
+    # Setup the notification.
+    response["HX-Trigger"] = json.dumps({"showNotification": {
+        "level" : "success",
+        "icon": "thumbs-up",
+        "message" : "Your request for access has been submitted",
+    }})
 
     return response
 
@@ -1026,10 +1023,12 @@ def update_institutional_members(request):
         # Create the response.
         response = HttpResponse(status=404)
 
-        # Setup the script run.
-        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-            "danger", "An error occurred during the update. Please try again or contact support", "exclamation-sign"
-        )
+        # Setup the notification.
+        response["HX-Trigger"] = json.dumps({"showNotification": {
+            "level" : "danger",
+            "icon": "exclamation-sign",
+            "message" : "An error occurred during the update. Please try again or contact support",
+        }})
 
         return response
 
@@ -1046,10 +1045,12 @@ def update_institutional_members(request):
         # Create the response.
         response = HttpResponse(status=400)
 
-        # Setup the script run.
-        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-            "warning", "Duplicate email addresses are not allowed", "exclamation-sign"
-        )
+        # Setup the notification.
+        response["HX-Trigger"] = json.dumps({"showNotification": {
+            "level" : "warning",
+            "icon": "exclamation-sign",
+            "message" : "Duplicate email addresses are not allowed",
+        }})
 
         return response
 
@@ -1083,11 +1084,5 @@ def update_institutional_members(request):
             pass
 
     # Create the response.
-    response = HttpResponse(status=201)
-
-    # Setup the script run.
-    response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-        "success", "Institutional members updated", "thumbs-up"
-    )
-
-    return response
+    # TODO: Ensure a notification is shown
+    return HttpResponse(status=201)

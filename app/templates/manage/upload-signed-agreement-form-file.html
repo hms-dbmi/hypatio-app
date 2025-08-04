@@ -26,5 +26,10 @@
   });
   document.getElementById("upload-signed-agreement-form-file-form").addEventListener("htmx:afterRequest", function(event) {
     toggleFormButtons('#upload-signed-agreement-form-file-form');
+
+    // Check for success
+    if(event.detail.successful) {
+      notify("success", "Signed agreement form successfully uploaded", "thumbs-up");
+    }
   });
 </script>
