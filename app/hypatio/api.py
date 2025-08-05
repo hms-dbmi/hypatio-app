@@ -39,10 +39,10 @@ class CSPReportView(APIView):
     def post(self, request, *args, **kwargs):
         # CSP reports usually come in the form: {"csp-report": { ... }}
         report = request.data.get("csp-report", None)
-        # if report:
-        #     logger.warning("CSP Violation Reported: %s", report)
-        # else:
-        #     logger.warning("Invalid CSP Report Received: %s", request.data)
+        if report:
+            logger.warning("[CSP] Violation Reported: %s", report)
+        else:
+            logger.warning("[CSP] Invalid Report Received: %s", request.data)
 
         # Respond with 204 No Content as per best practice
         return Response(status=status.HTTP_204_NO_CONTENT)
