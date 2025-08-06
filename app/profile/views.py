@@ -40,17 +40,7 @@ def update_profile(request):
             # Update it
             reg.update_dbmi_user(request, **registration_form.cleaned_data)
 
-            response = HttpResponse(200)
-
-            # Setup the script run.
-            response["HX-Trigger"] = json.dumps({"showNotification": {
-                "level" : "success",
-                "icon": "thumbs-up",
-                "message" : "Institutional members updated",
-            }})
-
-            return response
-
+            return HttpResponse(200)
         else:
             logger.debug(f'Update profile errors: {registration_form.errors.as_json()}')
             return HttpResponse(registration_form.errors.as_json(), status=400)
