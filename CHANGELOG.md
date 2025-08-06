@@ -1,3 +1,10 @@
+# [1.3.0-rc.14](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.13...v1.3.0-rc.14) (2025-08-06)
+
+
+### Bug Fixes
+
+* **workflows:** Fixed event name ([9c4a188](https://github.com/hms-dbmi/hypatio-app/commit/9c4a188682a05570e21ac1d8a29ba49aa4ed1ced))
+
 # [1.3.0-rc.13](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.12...v1.3.0-rc.13) (2025-08-06)
 
 
