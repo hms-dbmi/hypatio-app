@@ -29,7 +29,7 @@
     <i class="hx-indicator fa fa-spinner fa-spin workflows-submit-indicator"></i>
   </button>
   <script>
-    document.getElementById("{{ step.step.slug }}-submit").addEventListener("onclick", function(event) {
+    document.getElementById("{{ step.step.slug }}-submit").addEventListener("click", function(event) {
       PathDeps.refresh('{% url 'workflows:v1:step-state-detail' pk=step.id %}')
     });
   </script>
