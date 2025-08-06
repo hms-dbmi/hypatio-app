@@ -1,3 +1,20 @@
+# [1.3.0-rc.13](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.12...v1.3.0-rc.13) (2025-08-06)
+
+
+### Bug Fixes
+
+* **all:** Setup subclasses of form/model inputs that use NH3 to sanitize user input and remove dangerous entities ([d70a0ee](https://github.com/hms-dbmi/hypatio-app/commit/d70a0ee07dc64b4679537bb9a174fecccd340fe2))
+* **all:** Tightened CSP by removing all inline scripts/styles; migrated Intercooler to HTMX 2 ([3666d4d](https://github.com/hms-dbmi/hypatio-app/commit/3666d4d460da2eda3578194a9c2697b52f18d1b3))
+* **hypatio:** Enabled logging of CSP violations ([6b4c7bb](https://github.com/hms-dbmi/hypatio-app/commit/6b4c7bb0951ef41698a4d1341fcd4fed0a63ee81))
+* **profile:** Refactored profile workflow to protect uneditable properties of a user's profile ([bdc8ff6](https://github.com/hms-dbmi/hypatio-app/commit/bdc8ff6f4156e35c8076624d2a9272edb6fdbe89))
+* **projects/manage:** Migrated server-side initiated notifications from Intercooler response headers to HTMX event triggers ([55bb298](https://github.com/hms-dbmi/hypatio-app/commit/55bb29897e8dbc1041d5b7b462bdaf20e83ffed3))
+* **templates:** Refactored base template to simplify; updated FontAwesome ([6dc6f9e](https://github.com/hms-dbmi/hypatio-app/commit/6dc6f9ecd8d0fd02c9024888d4dddd103f8ba3b1))
+
+
+### Features
+
+* **csp:** Adding packages for sanitization of user inputs and CSP policy ([a1e9d02](https://github.com/hms-dbmi/hypatio-app/commit/a1e9d02608f3d9440ed8e8e9bc839f3497a458f4))
+
 # [1.3.0-rc.12](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.11...v1.3.0-rc.12) (2025-07-22)
 
 
