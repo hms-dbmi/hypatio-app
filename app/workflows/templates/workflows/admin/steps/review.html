@@ -2,24 +2,27 @@
 {% load crispy_forms_tags %}
 
 <form id="{{ step.step.slug }}-review-form" name="{{ step.step.slug }}-review-form" action="post"
-  ic-refresh-parent=".workflow-step-container"
-  ic-post-to="{% url 'workflows:v1:step-state-review' pk=step.id %}"
-  ic-transform-response="return null;"
-  ic-on-success="onReviewSuccess();">
+  hx-post="{% url 'workflows:v1:step-state-review' pk=step.id %}">
   {% crispy review_form %}
   <button id="{{ step.step.slug }}-review-submit" name="submit" type="submit" class="btn btn-primary">Submit Review</button>
 </form>
-<script type="text/javascript">
-  function onReviewSuccess() {
+<script nonce="{{request.csp_nonce}}">
+  document.getElementById("{{ step.step.slug }}-review-form").addEventListener("htmx:afterRequest", function(event) {
 
-    // Update the submit button.
-    $('#{{ step.step.slug }}-review-submit').html('Submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success');
+    // Check if successful
+    if(event.detail.successful) {
+      // Update the submit button.
+      $('#{{ step.step.slug }}-review-submit').html('Submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success');
 
-    // Add a little delay
-    setTimeout(function(){
-        notify('success', 'The review was submitted successfully!', 'glyphicon glyphicon-ok');
-    }, 500);
-  }
+      // Add a little delay
+      setTimeout(function(){
+          notify('success', 'The review was submitted successfully!', 'glyphicon glyphicon-ok');
+
+          // Refresh parent
+          workflowsRefreshParent(event.target, ".workflow-step-container");
+      }, 500);
+    }
+  });
 
   function updateReviewMessage() {
 

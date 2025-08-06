@@ -59,7 +59,7 @@
 {% endblock %}
 
 {% block footerscripts %}
-<script type="application/javascript">
+<script nonce="{{request.csp_nonce}}">
 $( document ).ready(function() {
 
     $('form[name=agreement-form-container]').submit(function(e){

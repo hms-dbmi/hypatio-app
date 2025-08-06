@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load contact_extras %}
 {% load projects_extras %}
 
 {% block content %}
@@ -22,10 +21,16 @@
                     </div>
                 </div>
             </div>
-                
+
             <div class="row">
                 <div class="col-md-6">
-                    <div style="font-size: 20px;">{% modal_contact_form_link 'Need help? Contact us!' %}</div>
+                    <div class="contact-link-container">
+                      <a href=# class="contact-form-link" data-toggle="modal" data-target="#contact-form-modal"
+                        hx-trigger="click" hx-target="#contact-form-modal"
+                        hx-get="{% url 'contact:contact_form' project_key=project_key %}">
+                        Need help? Contact us!
+                      </a>
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <div class="pull-right">{% block extrainfo %}{% endblock %}</div>

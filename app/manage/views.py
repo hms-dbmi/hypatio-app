@@ -259,7 +259,7 @@ class DataProjectManageView(TemplateView):
                 'group_name': group_name,
                 'files': files_without_a_set.order_by(F('order').asc(nulls_last=True))
             })
-            
+
         # Check for workflows
         if DataProjectWorkflow.objects.filter(data_project=self.project).exists():
             context['workflows'] = DataProjectWorkflow.objects.filter(data_project=self.project)
@@ -1039,17 +1039,8 @@ class UploadSignedAgreementFormView(View):
         signed_agreement_form.save()
 
         # Create the response.
-        response = HttpResponse(status=201)
-
-        # Setup the script run.
-        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-            "success", "Signed agreement form successfully uploaded", "thumbs-up"
-        )
-
-        # Close the modal
-        response['X-IC-Script'] += "$('#page-modal').modal('hide');"
-
-        return response
+        # TODO: Ensure a notification is shown
+        return HttpResponse(status=201)
 
 
 @method_decorator([user_auth_and_jwt], name='dispatch')
@@ -1123,19 +1114,11 @@ class UploadSignedAgreementFormFileView(View):
         signed_agreement_form.save()
 
         # Create the response.
-        response = HttpResponse(status=201)
+        # TODO: Ensure a notification is shown
+        # TODO: Ensure modal is closed
+        return HttpResponse(status=201)
 
-        # Setup the script run.
-        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-            "success", "Signed agreement form file successfully uploaded", "thumbs-up"
-        )
 
-        # Close the modal
-        response['X-IC-Script'] += "$('#page-modal').modal('hide');"
-
-        return response
-
-    
 @method_decorator([user_auth_and_jwt], name='dispatch')
 class WorkflowStateView(View):
     """
@@ -1145,7 +1128,7 @@ class WorkflowStateView(View):
     * Only admin users are able to access this view.
     """
     def get(self, request, workflow_state_id, *args, **kwargs):
-        
+
         # Get the workflow
         workflow_state = get_object_or_404(WorkflowState, id=workflow_state_id)
 
@@ -1156,5 +1139,3 @@ class WorkflowStateView(View):
 
         # Render html
         return render(request, "manage/workflow-base.html", context)
-
-    

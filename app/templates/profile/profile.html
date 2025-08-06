@@ -3,7 +3,7 @@
 {% block page_title %}Profile{% endblock %}
 
 {% block title %}
-{% if new_user %}
+{% if registration_form.new_registration %}
     New User
 {% else %}
     {{ form.first_name.value }} {{ form.last_name.value }}
@@ -23,12 +23,12 @@
             <div class="panel panel-default">
                 <div class="panel-heading">User Profile</div>
                 <div class="panel-body">
-                    {% if new_user %}
+                    {% if registration_form.new_registration %}
                     <div class="alert alert-warning" role="alert">
                         Welcome to the Harvard Medical School DBMI Portal! Please complete your registration form below to get started.
                     </div>
                     {% endif %}
-                    {% if not registration_form.email_confirmed.value %}
+                    {% if not registration_form.email_confirmed %}
                     <div id="email_confirm" class="alert alert-warning" role="alert">
                         Please click the button below to send a verification e-mail. Google's anti-spam measures might ask you to perform a small task before sending the verification e-mail. <br /><br />
 

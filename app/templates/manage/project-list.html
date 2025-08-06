@@ -69,7 +69,7 @@ Manage Projects
 {% endblock %}
 
 {% block footerscripts %}
-<script type="application/javascript">
+<script nonce="{{request.csp_nonce}}">
     // Initialize DataTables
     $(document).ready(function() {
         $('#projects-table').DataTable({

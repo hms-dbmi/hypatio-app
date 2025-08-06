@@ -1,4 +1,4 @@
-<form id="edit-hosted-file-form" method="post" ic-on-success="window.location.reload();" ic-on-error="displayErrorMessage(xhr);" ic-post-to="{% url 'manage:process-hosted-file-edit-form-submission' %}">
+<form id="edit-hosted-file-form" method="post" hx-post="{% url 'manage:process-hosted-file-edit-form-submission' %}">
     {% csrf_token %}
 
     <input type="hidden" name="file-uuid" value="{{ file.uuid }}" required>
@@ -120,7 +120,16 @@
     </div>
 </form>
 
-<script type="application/javascript">
+<script nonce="{{request.csp_nonce}}">
+  // Add Htmx Event listeners
+  document.getElementById("edit-hosted-file-form").addEventListener("htmx:afterRequest", function(event) {
+    // Check if successful
+    if(event.detail.successful) {
+      window.location.reload();
+    } else if(event.detail.failed) {
+      displayErrorMessage(event.detail.xhr);
+    }
+  });
     // Change display of the open/close times depending on file being enabled or that status being toggled.
     $(document).ready(function() {
         if ($("#edit-hosted-file-form input[name=enabled]").prop('checked')) {
@@ -136,17 +145,13 @@
             $('#hosted-file-open-close-row').hide();
         }
     });
-</script>
 
-<script type="application/javascript">
     // Display the upload form if a user clicks on the replace button.
     $('#hosted-file-replace-button').on('click', function() {
         $('#hosted-file-replace-button-row').hide();
         $('#hosted-file-upload-row').show();
     });
-</script>
 
-<script type="application/javascript">
     function displayErrorMessage(xhr) {
         $('#form-response-row').show();
 

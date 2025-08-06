@@ -58,10 +58,12 @@
         </div>
     </div>
 
-    <div class="col-md-7">
+    <div class="col-md-7" hx-ext='path-deps'>
 
         {# Render any workflows #}
+        {% if workflows %}
         {{ workflows|workflows }}
+        {% endif %}
 
         {% for panel in setup_panels %}
         <div class="panel panel-{{ panel.bootstrap_color }}">
@@ -90,7 +92,7 @@
 
         <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
             {% for panel in actionable_panels %}
-            <div class="panel panel-default" style="margin-bottom: 15px;">
+            <div class="panel panel-default project-actionable-panel">
                 <div class="panel-heading heading-description" role="tab">
                     <a class="{% if actionable_panels|length > 3 %}collapsed{% endif %}"
                         role="button"
@@ -147,7 +149,7 @@
 {% endblock %}
 
 {% block footerscripts %}
-<script type="application/javascript">
+<script nonce="{{request.csp_nonce}}">
 $( document ).ready(function() {
 
     $('#sign-agreement-form').on('input', function() {

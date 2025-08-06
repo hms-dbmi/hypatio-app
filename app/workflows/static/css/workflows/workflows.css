@@ -35,3 +35,34 @@ a.workflow-step-panel-heading-link:focus {
 .workflow-step-panel-heading-link.collapsed .panel-title:after {
     content:"\e114";
 }
+
+.step-content {
+    margin-bottom: 10px;
+}
+
+.workflow-step-panel-title-icon-alert {
+    color: #f0ad4e;
+}
+
+.workflow-step-panel-title-icon-checked {
+    color: #5cb85c;
+}
+
+.workflows-admin-step-column {
+    margin-bottom: 10px;
+}
+
+#file-upload-progress {
+    min-width: 2em;
+    width: 2%;
+    padding-top: 3px;
+}
+
+#file-upload-abort-button {
+    display: none;
+}
+
+.workflows-submit-indicator {
+    display: none;
+    margin-left: 5px;
+}

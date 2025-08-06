@@ -5,6 +5,7 @@ import django.forms.widgets as widgets
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from hypatio.forms import SanitizedCharField
 from hypatio.scireg_services import get_current_user_profile
 from projects.models import DataProject
 from projects.models import AgreementForm
@@ -120,16 +121,16 @@ class AgreementForm4CEDUAForm(AgreementFormForm):
         (REGISTRANT_OFFICIAL, "an institutional official, requesting Data under this Agreement on behalf of their institution and its agents and employees"),
     )
     registrant_is = forms.ChoiceField(label="I am a", choices=REGISTRANT_CHOICES)
-    signer_name = forms.CharField(label="Name/Title", max_length=300, required=False)
-    signer_phone = forms.CharField(label="Phone", max_length=300, required=False)
-    signer_email = forms.CharField(label="E-mail", max_length=300, required=False)
-    signer_signature = forms.CharField(label="Electronic Signature (Full Name)", max_length=300, required=False)
-    date = forms.CharField(label="Date", max_length=50, required=False)
-    institute_name = forms.CharField(label="Institution Name", max_length=300, required=False)
-    institute_address = forms.CharField(label="Institution Address", max_length=300, required=False)
-    institute_city = forms.CharField(label="Institution City", max_length=300, required=False)
-    institute_state = forms.CharField(label="Institution State", max_length=300, required=False)
-    institute_zip = forms.CharField(label="Institution Zip", max_length=300, required=False)
+    signer_name = SanitizedCharField(label="Name/Title", max_length=300, required=False)
+    signer_phone = SanitizedCharField(label="Phone", max_length=300, required=False)
+    signer_email = SanitizedCharField(label="E-mail", max_length=300, required=False)
+    signer_signature = SanitizedCharField(label="Electronic Signature (Full Name)", max_length=300, required=False)
+    date = SanitizedCharField(label="Date", max_length=50, required=False)
+    institute_name = SanitizedCharField(label="Institution Name", max_length=300, required=False)
+    institute_address = SanitizedCharField(label="Institution Address", max_length=300, required=False)
+    institute_city = SanitizedCharField(label="Institution City", max_length=300, required=False)
+    institute_state = SanitizedCharField(label="Institution State", max_length=300, required=False)
+    institute_zip = SanitizedCharField(label="Institution Zip", max_length=300, required=False)
     member_emails = MultiValueField(forms.EmailField(), "member_emails", required=False)
 
     def clean(self):
@@ -207,7 +208,7 @@ class AgreementForm4CEDUAForm(AgreementFormForm):
 
 def data_use_report_handler(signed_agreement_form: SignedAgreementForm):
     """
-    Handler the result of the data use report. This will be determining
+    Handle the result of the data use report. This will be determining
     whether the user's access is ended or paused.
 
     :param signed_agreement_form: The saved data use report agreement form

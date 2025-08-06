@@ -1,5 +1,6 @@
 from django import forms
 
+from hypatio.forms import SanitizedCharField
 from projects.models import DataProject
 
 class ProjectModelChoiceField(forms.ModelChoiceField):
@@ -16,7 +17,7 @@ class ContactForm(forms.Form):
     Determines the fields that will appear.
     """
 
-    name = forms.CharField(label='Name', max_length=255, required=True)
+    name = SanitizedCharField(label='Name', max_length=255, required=True)
 
     email = forms.EmailField(label='Your email', max_length=255, required=True)
 
@@ -32,4 +33,4 @@ class ContactForm(forms.Form):
         required=False
     )
 
-    message = forms.CharField(label='Question or comment', required=True, widget=forms.Textarea)
+    message = SanitizedCharField(label='Question or comment', required=True, widget=forms.Textarea)

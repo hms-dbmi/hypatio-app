@@ -1,6 +1,6 @@
 {% load bootstrap3 %}
 
-<form role="form" name='profile-update' method="post" action="/profile/update/">
+<form id="profile-form" role="form" name='profile-update' method="post" hx-post="/profile/update/" hx-swap="none"{% if collapse %} data-collapse=true {% endif%}>
     {% csrf_token %}
 
     {% for field in registration_form %}
@@ -11,24 +11,24 @@
 
     <p class="required-field-tip"><small>* indicates a required field, any other field is optional</small></p>
 
-    {% buttons submit='Update' reset="Cancel" %}{% endbuttons %}
+    {% buttons submit='Update' %}{% endbuttons %}
 </form>
 
-{% block javascript %}
-<script type="application/javascript">
-    $('form[name=profile-update]').submit(function(e){
-        e.preventDefault();
+<script nonce="{{ request.csp_nonce }}">
+  // Handle updates
+  document.getElementById('profile-form').addEventListener("htmx:afterOnLoad", function(event) {
+    notify('success', "Registration updated!", 'thumbs-up');
 
-        $.post($(this).attr('action'), $(this).serialize(), function(res){
-            // $("#loading").hide();
-        }).done(function() {
-            notify('success', "Registration updated!", 'thumbs-up');
-            
-            // Refresh the page, especially important for the project page to refresh
-            setTimeout(function(){
-                window.location = window.location.pathname
-            },1000);
-        });
-    });
+    // Check if this is in a panel
+    if (event.target.dataset.collapse) {
+      // Change the class of the header
+      event.target.closest('.panel').querySelector('div.current-step-header').classList.replace('current-step-header', 'completed-step-header');
+      // Delete the panel
+      event.target.closest('.panel-body').remove();
+      // Reload
+      setTimeout(function() {
+        location.reload();
+      }, 1000);
+    }
+  });
 </script>
-{% endblock %}

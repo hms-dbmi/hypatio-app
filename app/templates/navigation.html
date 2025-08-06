@@ -1,0 +1,74 @@
+{% load static %}
+{% load projects_extras %}
+
+<div class="navbar navbar-default navbar-fixed-top navbar-custom" role="navigation" id="topnavbar">
+    <div class="container">
+        <div class="navbar-header"><a href="/" class="navbar-brand">DBMI Data Portal</a>
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        </div>
+
+        <div class="navbar-collapse collapse" id="navbar-main">
+            <ul class="nav navbar-nav">
+
+                {% url 'index' as index_url %}
+                <li class="nav-item{% if request.path == index_url %} active{% endif %}"><a class="nav-link" href="{{ index_url }}">Home</a></li>
+
+                {% for group in navigation.parent_groups %}
+                {% url 'group' group.key as group_url %}
+                <li class="dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{ group.navigation_title|default:group.title }} <span class="caret"></span></a>
+                  <ul class="dropdown-menu" aria-labelledby="{{ group.navigation_title|default:group.title }}">
+                    {% for child in group.active_project_child_groups %}
+                    {% url 'group' child.key as group_url %}
+                    <li class="nav-item{% if request.path == group_url or child.key == navigation.active_group.key %} active{% endif %}"><a class="nav-link" href="{{ group_url }}">{{ child.navigation_title|default:child.title }}</a></li>
+                    {% endfor %}
+                  </ul>
+                </li>
+                {% endfor %}
+
+                {% for group in navigation.groups %}
+                {% url 'group' group.key as group_url %}
+                <li class="nav-item{% if request.path == group_url or group.key == navigation.active_group.key %} active{% endif %}">
+                  <a class="nav-link" href="{% if group.group_url %}{{ group.group_url }}{% else %}{{ group_url }}{% endif %}">{{ group.navigation_title|default:group.title }}</a>
+                </li>
+                {% endfor %}
+
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="download">Contact <span class="caret"></span></a>
+                    <ul class="dropdown-menu" aria-labelledby="download">
+                        <li><a class="nav-link" href="https://n2c2.dbmi.hms.harvard.edu/" target="_blank">n2c2 website <span class="fas fa-sm fa-external-link"></span></a></li>
+                        <li><a class="nav-link" href="https://dbmi.hms.harvard.edu/" target="_blank">DBMI website <span class="fas fa-sm fa-external-link"></span></a></li>
+                        <li>
+                          <a href=# class="contact-form-link" data-toggle="modal" data-target="#contact-form-modal"
+                            hx-trigger="click" hx-target="#contact-form-modal"
+                            hx-get="{% url 'contact:contact_form' %}">
+                            Email us <span class="fas fa-sm fa-envelope"></span>
+                          </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                {% if request.user.is_authenticated %}
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="download">{{ request.user.email }}<span class="caret"></span></a>
+                        <ul class="dropdown-menu" aria-labelledby="downloadn">
+                            <li><a class="nav-link" href="{% url 'profile:profile' %}">Profile <span class="fas fa-sm fa-user"></span></a></li>
+                            {% is_project_manager request as is_manager %}
+                            {% if is_manager %}
+                            <li><a class="nav-link" href="{% url 'manage:manage-projects' %}">Manage Projects</a></li>
+                            {% endif %}
+                            {% if dbmiuser and dbmiuser.jwt %}
+                            <li><a id="jwt-copy" class="nav-link clipboard-copy" data-clipboard-text="{{ dbmiuser.jwt|default:"<empty>" }}" data-toggle="tooltip" title="Copy API Key" data-tooltip-title="Copy API Key">API Key <i class="fa fa-wrench" aria-hidden="true"></i>
+                            {% endif %}
+                            </a></li>
+                            <li><a class="nav-link" href="{% url 'profile:signout' %}">Sign Out</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li><a href="{{ request.build_absolute_uri|get_login_url }}"><span class="fas fa-sm fa-user"></span> <strong>Login / Register</strong></a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>

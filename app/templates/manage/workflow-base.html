@@ -22,7 +22,7 @@
 {% endblock %}
 
 {% block footerscripts %}
-<script type="application/javascript">
+<script nonce="{{request.csp_nonce}}">
 $(document).ready(function() {
 
 });

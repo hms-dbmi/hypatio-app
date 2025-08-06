@@ -11,7 +11,7 @@
   {% crispy form %}
 </form>
 
-<script type="application/javascript">
+<script>
 $(document).ready(function() {
 
   function onProgress(loaded, total) {
@@ -64,7 +64,7 @@ $(document).ready(function() {
 
     // Refresh
     var workflowStepContainer = form.closest(".workflow-step-container");
-    Intercooler.refresh(workflowStepContainer.attr("ic-src"));
+    PathDeps.refresh(workflowStepContainer.attr("hx-get"));
   }
 
   function onAbort() {
@@ -155,7 +155,7 @@ $(document).ready(function() {
   function handleFormError(status, str, xhr, formId) {
     console.log("Form submission error:", status, str, xhr);
 
-    $(formId + ' .ic-indicator').hide();
+    $(formId + ' .hx-indicator').hide();
     $(formId + ' button[type="submit"]').prop('disabled', false);
     $(formId + ' .form-group').removeClass('has-error');
     $(formId + ' .error-message').remove();
@@ -168,6 +168,7 @@ $(document).ready(function() {
     }
   }
 });
+//# sourceURL=workflows-step-upload-file
 </script>
 {% endblock %}
 
@@ -176,7 +177,6 @@ $(document).ready(function() {
 <div id="file-upload-progress-container" class="collapse">
   <div class="progress">
       <div id="file-upload-progress" class="progress-bar progress-bar-striped active"
-          style="min-width: 2em; width: 2%; padding-top: 3px;"
           role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
       </div>
   </div>
@@ -184,7 +184,7 @@ $(document).ready(function() {
 <div class="form-group">
   <button id="file-upload-submit-button" type="submit" form="file-upload-form" class="btn btn-primary file-upload-submit"
   data-loading-text="<i class='fa fa-spinner fa-spin'></i>&nbsp;&nbsp;Uploading file...">Submit</button>
-  <button id="file-upload-abort-button" type="button" class="btn btn-danger file-upload-abort" style="display: none;"
+  <button id="file-upload-abort-button" type="button" class="btn btn-danger file-upload-abort"
     data-loading-text="<i class='fa fa-spinner fa-spin'></i>&nbsp;&nbsp;Aborting file upload...">Abort</button>
 </div>
 {% endblock %}

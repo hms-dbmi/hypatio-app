@@ -13,6 +13,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.shortcuts import redirect
 from django.utils import timezone
+from dbmi_client import reg
 
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.dbmiauthz_services import DBMIAuthz
@@ -489,36 +490,22 @@ class DataProjectView(TemplateView):
         Builds the context needed for users to complete or update their SciReg profile.
         This is a required step.
         """
+        # Fetch their profile, if any, from dbmi-reg
+        profile_data = reg.get_dbmi_user(self.request, self.request.user.email)
 
-        scireg_profile_results = get_current_user_profile(self.user_jwt)
+        # Set defaults
+        email_confirmed = profile_data and profile_data.get("email_confirmed", False)
+        new_registration = profile_data is None
 
-        try:
-            profile_data = scireg_profile_results["results"][0]
+        # Check if complete by simulating a form submission with existing data
+        step_complete = RegistrationForm(
+            initial={"email": self.request.user.email},
+            data=profile_data,
+            email_confirmed=email_confirmed,
+            new_registration=new_registration,
+        ).is_valid()
 
-            # Populate our RegistrationForm with SciReg data and check if required fields are completed.
-            registration_form = RegistrationForm(profile_data)
-            profile_complete = registration_form.is_valid()
-
-            # If the profile is incomplete, use the initial parameter to prevent binding the form data
-            # which causes form errors not needed at this time.
-            if not profile_complete:
-                registration_form = RegistrationForm(initial=profile_data)
-
-                # Log errors
-                logger.debug(f"{self.project.project_key}/{self.request.user.email}: Registration form errors: {registration_form.errors.as_json()}")
-
-        except (KeyError, IndexError):
-            profile_data = None
-            profile_complete = False
-
-            # User does not have a registration object in SciReg. Prepare one for them.
-            registration_form = RegistrationForm(
-                initial={'email': self.request.user.email},
-                new_registration=True
-            )
-
-        step_complete = profile_complete
-
+        # Check for a required update of profile data
         if profile_data is not None:
             try:
                 profile_last_updated_date = dateutil.parser.parse(profile_data['last_updated']).date()
@@ -529,6 +516,25 @@ class DataProjectView(TemplateView):
                     step_complete = False
             except KeyError:
                 pass
+
+        # If not complete, make a form
+        if not step_complete:
+
+            # Set initial data
+            if profile_data:
+                initial = profile_data
+            else:
+                initial = {"email": self.request.user.email}
+
+            # Make the form
+            registration_form = RegistrationForm(
+                initial=initial,
+                email_confirmed=email_confirmed,
+                new_registration=new_registration,
+            )
+        else:
+            # Step is complete, nothing to render
+            registration_form = None
 
         step_status = self.get_step_status('complete_profile', step_complete)
 
@@ -889,11 +895,11 @@ class DataProjectView(TemplateView):
         """
         # Get workflow states
         workflow_states = self.project.get_ordered_workflow_states(user=self.request.user)
-        
+
         # Check for any that are missing and rebuild if necessary.
         if None in workflow_states:
             workflow_states = self.project.set_workflow_states(user=self.request.user)
-            
+
         # Have each WorkflowState check its StepStates
         for workflow_state in workflow_states:
             workflow_state.set_step_states()

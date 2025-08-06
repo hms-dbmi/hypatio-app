@@ -5,9 +5,9 @@
   data-workflow-state-id="{{ workflow.id }}"
   data-workflow-original-status="{{ workflow.status }}"
   data-workflow-admin="{{ admin }}"
-  ic-get-from="{% if admin %}{% url 'workflows:v1:admin-workflow-state-detail' pk=workflow.id %}{% else %}{% url 'workflows:v1:workflow-state-detail' pk=workflow.id %}{% endif %}"
-  ic-trigger-on="scrolled-into-view"
+  hx-get="{% if admin %}{% url 'workflows:v1:admin-workflow-state-detail' pk=workflow.id %}{% else %}{% url 'workflows:v1:workflow-state-detail' pk=workflow.id %}{% endif %}"
+  hx-trigger="load,path-deps"
   {% if workflow.get_dependencies %}
-  ic-deps="{% for dep in workflow.get_dependencies %}{% if admin %}{% url 'workflows:v1:admin-workflow-state-detail' pk=dep.id %}{% else %}{% url 'workflows:v1:workflow-state-detail' pk=dep.id %}{% endif %}{% if not forloop.last %},{% endif %}{% endfor %}"
+  path-deps="{% for dep in workflow.get_dependencies %}{% if admin %}{% url 'workflows:v1:admin-workflow-state-detail' pk=dep.id %}{% else %}{% url 'workflows:v1:workflow-state-detail' pk=dep.id %}{% endif %}{% if not forloop.last %},{% endif %}{% endfor %}"
   {% endif %}>
 </div>

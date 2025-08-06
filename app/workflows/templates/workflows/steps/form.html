@@ -6,27 +6,45 @@
 {% block step_body_current %}
 {{ block.super }}
   <form id="{{ step.step.slug }}-form" name="{{ step.step.slug }}-form"
-        ic-post-to="{% url 'workflows:v1:step-state-data' pk=step.id %}"
-        ic-on-error="handleFormError(status, str, xhr, '#{{ step.step.slug }}-form')"
-        ic-target="#{{ step.step.slug }}-content"
-        ic-replace-target="true"
-        ic-transition-duration="2s"
-        ic-on-beforeSend="toggleFormButtons('#{{ step.step.slug }}-form');"
-        ic-on-complete="toggleFormButtons('#{{ step.step.slug }}-form');Intercooler.refresh('{% url 'workflows:v1:step-state-data' pk=step.id %}');"
-        ic-on-success="onSuccess();">
+        hx-post="{% url 'workflows:v1:step-state-data' pk=step.id %}"
+        hx-target="#{{ step.step.slug }}-content"
+        hx-swap="outerHTML">
     {% crispy form %}
   </form>
-<script type="text/javascript">
-function onSuccess() {
+<script nonce="{{request.csp_nonce}}">
+  document.getElementById("{{ step.step.slug }}-form").addEventListener("htmx:beforeSend", function(event) {
+    console.log(`{{ step.step.slug }}-form/htmx:beforeSend`);
 
-  // Update the submit button.
-  $('#{{ step.step.slug }}-submit').html('Submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success');
+    // Toggle buttons
+    toggleFormButtons('#{{ step.step.slug }}-form');
+  });
+  document.getElementById("{{ step.step.slug }}-form").addEventListener("htmx:afterRequest", function(event) {
+    console.log(`{{ step.step.slug }}-form/htmx:afterRequest`);
 
-  // Add a little delay
-  setTimeout(function(){
-      notify('success', 'The form was submitted successfully!', 'glyphicon glyphicon-ok');
-  }, 500);
-}
+    // Toggle buttons
+    toggleFormButtons('#{{ step.step.slug }}-form');
+
+    // Refresh any dependent steps
+    PathDeps.refresh('{% url 'workflows:v1:step-state-data' pk=step.id %}');
+
+    // Check if successful
+    if(event.detail.successful) {
+      console.log(`{{ step.step.slug }}-form/htmx:afterRequest/successful`);
+
+      // Update the submit button.
+      $('#{{ step.step.slug }}-submit').html('Submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success');
+
+      // Add a little delay
+      setTimeout(function(){
+          notify('success', 'The form was submitted successfully!', 'glyphicon glyphicon-ok');
+      }, 500);
+    } else if(event.detail.failed) {
+      console.log(`{{ step.step.slug }}-form/htmx:afterRequest/failed`);
+
+      // Handle form errors
+      handleFormError(status, str, xhr, '#{{ step.step.slug }}-form');
+    }
+  });
 </script>
 {% endblock %}
 
@@ -34,17 +52,17 @@ function onSuccess() {
 {{ block.super }}
 <button id="{{ step.step.slug }}-submit" type="submit" form="{{ step.step.slug }}-form" class="btn btn-primary">
   Submit
-  <i class="ic-indicator fa fa-spinner fa-spin" style="display:none; margin-left: 5px;"></i>
+  <i class="hx-indicator fa fa-spinner fa-spin workflows-submit-indicator"></i>
 </button>
 {% endblock %}
 
 {% block scripts %}
-<script type="text/javascript">
+<script nonce="{{request.csp_nonce}}">
 
 function handleFormError(status, str, xhr, formId) {
   console.log("Form submission error:", status, str, xhr);
 
-  $(formId + ' .ic-indicator').hide();
+  $(formId + ' .hx-indicator').hide();
   $(formId + ' button[type="submit"]').prop('disabled', false);
   $(formId + ' .form-group').removeClass('has-error');
   $(formId + ' .error-message').remove();

@@ -1,40 +1,78 @@
 $(function() {
 
   // Setup listener for IC-enabled content added to DOM dynamically
-  $(document).on("elementAdded.ic", function(evt) {
+  $(document).on("htmx:load", function(evt) {
 
     // Setup parent refreshes
     setupRefreshParentElements(evt.target);
   });
 });
 
-// Finds all elements with the custon 'ic-refresh-parent' attribute and sets
+// Finds all elements with the custon 'data-workflows-refresh-parent' attribute and sets
 // them up to do just that.
 function setupRefreshParentElements(element) {
 
     // If no element passed, use document
     if ( !element ) element = document;
 
-    // Find all elements with the attribute 'ic-refresh-parent'
-    $(element).find("[ic-refresh-parent]").addBack("[ic-refresh-parent]").each(function() {
-        console.log(`[setupRefreshParentElements][${$(this).attr('id')}] Found element that will trigger parent refresh`);
+    // Find all elements with the attribute 'data-workflows-refresh-parent'
+    document.querySelectorAll('[data-workflows-refresh-parent]').forEach(function(element) {
+        console.log(`[setupRefreshParentElements][${element.id}] Found element that will trigger parent refresh`);
 
-        // Get the parent element
-        var parent = $(this).closest(`${$(this).attr("ic-refresh-parent")}[ic-src]`).first();
-        if ( parent ) {
-            console.log(`[setupRefreshParentElements][${$(this).attr('id')}] Found parent element: ${$(parent).attr('id')}`);
+        const selector = element.getAttribute('data-workflows-refresh-parent') + '[hx-get]';
+        const parent = element.closest(selector);
 
-            // Add a handler for the element to trigger refreshes.
-            $(this).on("after.success.ic", function(evt, elt, data, textStatus, xhr, requestId) {
-                console.log(`[setupRefreshParentElements][${$(this).attr('id')}] Refreshing parent element: ${$(parent).attr('id')}`);
+        if (parent) {
+            console.log(`[setupRefreshParentElements][${element.id}] Found parent element: ${parent.id}`);
+
+            // Custom event listener equivalent to jQuery's "after.success.ic"
+            element.addEventListener('htmx:afterRequest', function(evt) {
+
+                // Check if it was a success or not
+                if (!evt.detail.success) {
+                    return;
+                }
 
                 // Refresh parent
-                Intercooler.refresh($(parent).attr("ic-src"));
+                console.log(`[setupRefreshParentElements][${element.id}] Refreshing parent element: ${parent.id}`);
+                PathDeps.refresh(parent.getAttribute('hx-get'));
             });
         } else {
-          console.error(`[setupRefreshParentElements][${$(this).attr('id')}]: Could not find parent element with selector '${$(this).attr("ic-refresh-parent")}' and 'ic-src' attribute`);
+            console.error(`[setupRefreshParentElements][${element.id}]: Could not find parent element with selector '${selector}' and 'hx-get' attribute`);
         }
     });
+}
+
+/**
+ * Finds the closest parent element that matches the specified CSS selector and has the 'hx-get' attribute
+ * and issues a refresh for its path dependencies using 'PathDeps.refresh()'.
+ *
+ * @param {Element} element - The DOM element from which to start searching upward.
+ * @param {string} selector - A CSS selector used to identify the desired parent element.
+ *
+ * @throws {Error} If the provided element is not a valid DOM Element.
+ *
+ * @example
+ * workflowsRefreshParent(document.getElementById("child"), "[data-parent]");
+ */
+function workflowsRefreshParent(element, selector) {
+    if (!(element instanceof Element)) {
+        throw new Error("Provided element is not a valid DOM Element");
+    }
+
+    // Find the nearest parent element with the passed selector and 'hx-get' attribute
+    let current = element;
+    while (current) {
+        current = current.parentElement;
+        if (current && current.matches(selector) && current.hasAttribute('hx-get')) {
+
+            // Found the parent element to refresh, trigger the refresh.
+            PathDeps.refresh(current.getAttribute('hx-get'));
+            return;
+        }
+    }
+
+    console.error(`[workflowsRefreshParent][${element.id}]: Could not find parent element with selector '${selector}' and 'hx-get' attribute`);
 }
 
 // Returns 'true' when the passed workflow state status is a final one
@@ -110,7 +148,7 @@ function checkWorkflowStateStatus(workflowContainer, stepContainer) {
 
         // Update the workflow state
         console.log(`[checkWorkflowStateStatus][${workflowId}] Updating`);
-        Intercooler.refresh(workflowContainer);
+        PathDeps.refresh($(workflowContainer).attr("hx-get"));
     }
 }
 
