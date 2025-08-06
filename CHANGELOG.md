@@ -1,3 +1,10 @@
+# [1.3.0-rc.15](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.14...v1.3.0-rc.15) (2025-08-06)
+
+
+### Bug Fixes
+
+* **profile:** Removed test code ([2211821](https://github.com/hms-dbmi/hypatio-app/commit/22118214d4daa2eaa69233a8cd08407401f78a8a))
+
 # [1.3.0-rc.14](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.13...v1.3.0-rc.14) (2025-08-06)
 
 
