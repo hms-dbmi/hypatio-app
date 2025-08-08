@@ -1,3 +1,16 @@
+# [1.3.0-rc.16](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.15...v1.3.0-rc.16) (2025-08-08)
+
+
+### Bug Fixes
+
+* **workflows:** Fixed bug where all steps would refresh when only needing one to refresh ([0199e0b](https://github.com/hms-dbmi/hypatio-app/commit/0199e0bce16496f47a0f32f2931462b5e44df36e))
+* **workflows:** Fixed some bugs in how workflows and their steps are refreshed ([6740d0e](https://github.com/hms-dbmi/hypatio-app/commit/6740d0e198f95bc073457840daddc95212f157ef))
+
+
+### Features
+
+* **manage:** Set to open Workflows in modal view ([11c87c0](https://github.com/hms-dbmi/hypatio-app/commit/11c87c0facd185db9dd678b77af3a72506611534))
+
 # [1.3.0-rc.15](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.14...v1.3.0-rc.15) (2025-08-06)
 
 
