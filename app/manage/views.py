@@ -1117,25 +1117,3 @@ class UploadSignedAgreementFormFileView(View):
         # TODO: Ensure a notification is shown
         # TODO: Ensure modal is closed
         return HttpResponse(status=201)
-
-
-@method_decorator([user_auth_and_jwt], name='dispatch')
-class WorkflowStateView(View):
-    """
-    View to manage workflows for participants.
-
-    * Requires token authentication.
-    * Only admin users are able to access this view.
-    """
-    def get(self, request, workflow_state_id, *args, **kwargs):
-
-        # Get the workflow
-        workflow_state = get_object_or_404(WorkflowState, id=workflow_state_id)
-
-        # Set context
-        context = {
-            "workflow": workflow_state,
-        }
-
-        # Render html
-        return render(request, "manage/workflow-base.html", context)

@@ -63,8 +63,7 @@ $(document).ready(function() {
     form.find(".file-upload-submit").text('File uploaded successfully');
 
     // Refresh
-    var workflowStepContainer = form.closest(".workflow-step-container");
-    PathDeps.refresh(workflowStepContainer.attr("hx-get"));
+    refreshStep(form[0]);
   }
 
   function onAbort() {

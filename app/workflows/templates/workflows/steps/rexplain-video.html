@@ -30,7 +30,7 @@
   </button>
   <script>
     document.getElementById("{{ step.step.slug }}-submit").addEventListener("click", function(event) {
-      PathDeps.refresh('{% url 'workflows:v1:step-state-detail' pk=step.id %}')
+      refreshStep(this);
     });
   </script>
 {% endblock %}

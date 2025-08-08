@@ -19,7 +19,7 @@
           notify('success', 'The review was submitted successfully!', 'glyphicon glyphicon-ok');
 
           // Refresh parent
-          workflowsRefreshParent(event.target, ".workflow-step-container");
+          refreshStep(event.target);
       }, 500);
     }
   });
