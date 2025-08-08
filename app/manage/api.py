@@ -39,7 +39,7 @@ from manage.utils import zip_submission_file
 from projects.templatetags import projects_extras
 
 from manage.models import ChallengeTaskSubmissionExport
-from projects.models import AgreementForm, DataProjectWorkflow
+from projects.models import AgreementForm
 from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import HostedFile
@@ -50,14 +50,7 @@ from projects.models import TeamComment
 from projects.serializers import HostedFileSerializer, HostedFileDownloadSerializer
 from projects.models import AGREEMENT_FORM_TYPE_MODEL, AGREEMENT_FORM_TYPE_FILE
 from projects.models import InstitutionalOfficial
-from workflows.models import WorkflowState
-from workflows.models import Workflow
-from workflows.serializers import WorkflowSerializer
-from workflows.serializers import WorkflowStateSerializer
-from workflows.serializers import StepStateSerializer
-from workflows.api import WorkflowViewSet
 from workflows.api import WorkflowStateViewSet
-from workflows.api import StepStateViewSet
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

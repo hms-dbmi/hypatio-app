@@ -11,7 +11,6 @@ from manage.views import team_notification
 from manage.views import UploadSignedAgreementFormView
 from manage.views import UploadSignedAgreementFormFileView
 from manage.views import ProjectDataUseReportParticipants
-from manage.views import WorkflowStateView
 
 from manage.api import set_dataproject_details
 from manage.api import set_dataproject_registration_status
@@ -74,7 +73,6 @@ urlpatterns = [
     re_path(r'^get-project-data-use-reporting-participants/(?P<project_key>[^/]+)/$', ProjectDataUseReportParticipants.as_view(), name='get-project-data-use-reporting-participants'),
     re_path(r'^upload-signed-agreement-form/(?P<project_key>[^/]+)/(?P<user_email>[^/]+)/$', UploadSignedAgreementFormView.as_view(), name='upload-signed-agreement-form'),
     re_path(r'^upload-signed-agreement-form-file/(?P<signed_agreement_form_id>[^/]+)/$', UploadSignedAgreementFormFileView.as_view(), name='upload-signed-agreement-form-file'),
-    re_path(r'^workflow/(?P<workflow_state_id>[^/]+)/$', WorkflowStateView.as_view(), name='workflow-state'),
     path('', include(router.urls)),
     re_path(r'^(?P<project_key>[^/]+)/$', DataProjectManageView.as_view(), name='manage-project'),
     re_path(r'^(?P<project_key>[^/]+)/(?P<team_leader>[^/]+)/$', manage_team, name='manage-team'),
