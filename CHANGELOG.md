@@ -1,3 +1,10 @@
+# [1.3.0-rc.17](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.16...v1.3.0-rc.17) (2025-08-08)
+
+
+### Bug Fixes
+
+* **manage:** Removed references to removed view ([0e05552](https://github.com/hms-dbmi/hypatio-app/commit/0e05552f535833c99ca7e521ebd48937c236d1ba))
+
 # [1.3.0-rc.16](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.15...v1.3.0-rc.16) (2025-08-08)
 
 
