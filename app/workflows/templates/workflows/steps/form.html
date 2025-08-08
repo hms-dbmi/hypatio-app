@@ -6,9 +6,7 @@
 {% block step_body_current %}
 {{ block.super }}
   <form id="{{ step.step.slug }}-form" name="{{ step.step.slug }}-form"
-        hx-post="{% url 'workflows:v1:step-state-data' pk=step.id %}"
-        hx-target="#{{ step.step.slug }}-content"
-        hx-swap="outerHTML">
+        hx-post="{% url 'workflows:v1:step-state-data' pk=step.id %}">
     {% crispy form %}
   </form>
 <script nonce="{{request.csp_nonce}}">
@@ -25,7 +23,7 @@
     toggleFormButtons('#{{ step.step.slug }}-form');
 
     // Refresh any dependent steps
-    PathDeps.refresh('{% url 'workflows:v1:step-state-data' pk=step.id %}');
+    refreshStep(this);
 
     // Check if successful
     if(event.detail.successful) {

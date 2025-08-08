@@ -23,9 +23,9 @@
             class="workflow-step-container"
             hx-get="{% if admin %}{% url 'workflows:v1:admin-step-state-detail' pk=step.id %}{% else %}{% url 'workflows:v1:step-state-detail' pk=step.id %}{% endif %}"
             {% if not step.get_dependencies %}
-            hx-trigger="load"></div>
+            hx-trigger="load,refresh-step"></div>
             {% else %}
-            hx-trigger="load,path-deps"
+            hx-trigger="load,path-deps,refresh-step"
             path-deps="{% for dependency in step.get_dependencies %}{% if admin %}{% url 'workflows:v1:admin-step-state-detail' pk=dependency.id %}{% else %}{% url 'workflows:v1:step-state-detail' pk=dependency.id %}{% endif %}{% if not forloop.last %},{% endif %}{% endfor %}">
             </div>
             <script>

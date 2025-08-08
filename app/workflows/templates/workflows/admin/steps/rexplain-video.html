@@ -64,7 +64,7 @@ $(document).ready(function() {
     form.find(".file-upload-submit").text('File uploaded successfully');
 
     // Refresh
-    workflowsRefreshParent(form[0], ".workflow-step-container");
+    refreshStep(form[0]);
   }
 
   function onAbort() {
