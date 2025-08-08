@@ -15,6 +15,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
 <script src="/static/bootstrap_datepicker_plus/js/datepicker-widget.js"></script>
+<link href="{% static 'css/workflows/workflows.css' %}" rel="stylesheet" />
+<script src="{% static 'js/workflows/workflows.js' %}"></script>
+<script src="{% static 'js/workflows/file-uploader.js' %}"></script>
 {% endblock %}
 
 {% block title %}
@@ -492,15 +495,31 @@
 <script nonce="{{request.csp_nonce}}">
 $(function() {
     $('#workflows-approvals-table,#workflows-initializations-table,#workflows-workflows-table').on('click', 'tbody tr', function() {
-
-       let workflowState = {
+      // Get the workflow ID
+      let workflowState = {
         id: $(this).data('workflow-id')
-       }
-       window.location = getWorkflowUrl(workflowState);
+      }
+      console.log(`workflows click: ${workflowState.id}`);
+      // Trigger a request and load it into a modal window
+      htmx.ajax('GET', getWorkflowUrl(workflowState), {
+        target: '#manage-workflow-modal-body',
+        swap: 'innerHTML',
+        headers: {
+          'HX-Request': 'true'
+        }
+      }).then(() => {
+        console.log(`onAfterSwap: ${workflowState.id}`);
+        $('#manage-workflow-modal').modal('show');
+      });
+    });
+
+    $('#manage-workflow-modal').on('hide.bs.modal', function (e) {
+      // Refresh workflow tables
+      $('#workflows-refresh-button').click();
     });
 
     function getWorkflowUrl(workflowState) {
-        return "{% url 'manage:workflow-state' workflow_state_id='00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", workflowState.id);
+        return "{% url 'workflows:v1:admin-workflow-state-detail' pk='00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", workflowState.id);
     }
 
     // Initialize DataTable for workflows
@@ -892,6 +911,21 @@ $(function() {
 
             <div class="modal-body" id="modal-hosted-file-logs-body">
                 {# Loaded via Intercooler.js #}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="manage-workflow-modal" class="modal fade">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h5 class="modal-title">Workflow</h5>
+            </div>
+
+            <div class="modal-body" id="manage-workflow-modal-body">
+                {# Loaded via HTMX #}
             </div>
         </div>
     </div>
