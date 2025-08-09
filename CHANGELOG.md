@@ -1,3 +1,10 @@
+# [1.3.0-rc.18](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.17...v1.3.0-rc.18) (2025-08-09)
+
+
+### Bug Fixes
+
+* **projects:** Uses Django reverse utility for redirect URLs ([7307ab8](https://github.com/hms-dbmi/hypatio-app/commit/7307ab831d28b830969fca46da4dbbbd10506d01))
+
 # [1.3.0-rc.17](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.16...v1.3.0-rc.17) (2025-08-08)
 
 
