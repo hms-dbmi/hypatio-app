@@ -17,6 +17,7 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.template import loader
 from django.core.files.base import ContentFile
+from django.urls import reverse
 from dal import autocomplete
 
 from hypatio.auth0authenticate import user_auth_and_jwt
@@ -234,7 +235,7 @@ def leave_team(request):
     participant.team_wait_on_leader = False
     participant.save()
 
-    return redirect('/projects/' + request.POST.get('project_key') + '/')
+    return redirect(reverse("projects:view-project", kwargs={"project_key": project_key}))
 
 @user_auth_and_jwt
 def join_team(request):
@@ -282,7 +283,7 @@ def join_team(request):
                   "administrators for help."
             messages.error(request, msg)
 
-            return redirect('/projects/' + request.POST.get('project_key') + '/')
+        return redirect(reverse("projects:view-project", kwargs={"project_key": project_key}))
     except ObjectDoesNotExist:
         # If this team leader has not yet created a team, mark the person as waiting
         participant.team_wait_on_leader_email = team_leader
@@ -305,7 +306,7 @@ def join_team(request):
     sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
     sciauthz.create_profile_permission(team_leader, project_key)
 
-    return redirect('/projects/' + request.POST.get('project_key') + '/')
+    return redirect(reverse("projects:view-project", kwargs={"project_key": project_key}))
 
 @user_auth_and_jwt
 def create_team(request):
@@ -339,7 +340,7 @@ def create_team(request):
         participant.assign_pending(new_team)
         participant.save()
 
-    return redirect('/projects/' + project_key + '/')
+    return redirect(reverse("projects:view-project", kwargs={"project_key": project_key}))
 
 @user_auth_and_jwt
 def download_dataset(request):
