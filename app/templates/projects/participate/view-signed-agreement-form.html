@@ -25,26 +25,26 @@
                   {% endif %}
                 </h2>
             </div>
-            <div class="panel-body" style="height: 850px;">
+            <div class="panel-body signed-agreement-form-container">
                 {# Check type #}
                 {% if signed_form.agreement_form.type == "FILE" or signed_form.upload %}
 
                     {# Handle instances where a DUA was submitted when it was not required to upload a file #}
                     {% if not signed_form.upload %}
-                    <div style="display: flex; width: 100%; height: 100%; flex-direction: column; overflow: hidden;">
+                    <div id="signed-agreement-form-iframe-container">
                         <div class="alert alert-danger" role="alert">
                             This agreement form was completed prior to file uploads being required. This agreement form must be rejected to ensure the user fulfills the updated agreement form requirements.
                         </div>
                     </div>
                     {% else %}
-                    <div style="display: flex; width: 100%; height: 100%; flex-direction: column; overflow: hidden;">
-                    <iframe src="{{ signed_form.upload.url }}" style="flex-grow: 1; border: none; margin: 0; padding: 0;"></iframe>
+                    <div id="signed-agreement-form-iframe-container">
+                    <iframe src="{{ signed_form.upload.url }}"></iframe>
                     </div>
                     {% endif %}
 
                 {% elif signed_form.document %}
-                  <div style="display: flex; width: 100%; height: 100%; flex-direction: column; overflow: hidden;">
-                  <iframe src="{{ signed_form.document.url }}" style="flex-grow: 1; border: none; margin: 0; padding: 0;"></iframe>
+                  <div id="signed-agreement-form-iframe-container">
+                  <iframe src="{{ signed_form.document.url }}"></iframe>
                   </div>
                 {% else %}
                 {{ signed_form.agreement_text|linebreaks }}
@@ -67,15 +67,15 @@
                 <p><strong>Signed on:</strong> {{ signed_form.date_signed|timezone:"America/New_York" }} (EST)</p>
                 {% if signed_form.fields %}
                 <p><strong>Fields:</strong></p>
-                <table class="table-bordered">
+                <table id="signed-agreement-form-fields-table" class="table-bordered">
                   <tr>
-                    <th style="padding: 10px;">Field</th>
-                    <th style="padding: 10px;">Value</th>
+                    <th>Field</th>
+                    <th>Value</th>
                   </tr>
                   {% for field, value in signed_form.fields.items %}
                   <tr>
-                    <td style="padding: 10px;">{{ field }}</td>
-                    <td style="padding: 10px;">{{ value }}</td>
+                    <td>{{ field }}</td>
+                    <td>{{ value }}</td>
                   </tr>
                   {% endfor %}
                 </table>
@@ -96,7 +96,7 @@
                         <button type="button" class="btn btn-danger" id="reject-form">Reject</button>
                     </div>
                 </div>
-                <div class="row" id="reject-form-confirmation" style="display: none;">
+                <div class="row" id="reject-form-confirmation">
                     <div class="col-xs-12">
                         <hr>
 

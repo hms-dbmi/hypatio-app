@@ -410,6 +410,7 @@ CONTENT_SECURITY_POLICY = {
         "frame-src": [
             SELF,
             "www.google.com",
+            "*.s3.amazonaws.com",
         ],
         "img-src": [
             SELF,

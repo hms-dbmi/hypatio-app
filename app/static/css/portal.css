@@ -473,6 +473,36 @@ table.project-available-downloads-table {
   height: auto !important;
 }
 
+/* Signed Agreement Forms */
+
+.signed-agreement-form-container {
+    height: 850px;
+}
+
+#signed-agreement-form-iframe-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    overflow: hidden
+}
+
+#signed-agreement-form-iframe-container iframe {
+    flex-grow: 1;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+#reject-form-confirmation {
+    display: none;
+}
+
+#signed-agreement-form-fields-table tr th,
+#signed-agreement-form-fields-table tr td {
+    padding: 10x;
+}
+
 /* Manage */
 
 #manage-hosted-file-logs-button {
@@ -514,4 +544,52 @@ table.project-available-downloads-table {
 
 .workflows-table-row {
     cursor: pointer;
+}
+
+/* Agreement Forms */
+
+.rexplain-header-table {
+    margin-bottom: 20px;
+}
+
+.rexplain-header-table tr {
+    border: 1px solid;
+}
+
+.rexplain-header-table tr td {
+    padding: 5px;
+}
+
+.rexplain-header-table colgroup col {
+    width: 100%;
+}
+
+.rexplain-key-information-table {
+    margin-bottom: 20px;
+}
+
+.rexplain-key-information-table tr {
+    border: 1px solid;
+}
+
+.rexplain-key-information-table tr td {
+    padding: 5px;
+}
+
+.rexplain-key-information-table colgroup col {
+    width: 100%;
+}
+
+.rexplain-key-information-header {
+    text-align: center;
+}
+
+.rexplain-form-age-input {
+    margin-right: 10px;
+    margin-bottom: 15px;
+}
+
+.rexplain-form-input-label {
+    margin-right: 10px;
+    margin-bottom: 15px;
 }
