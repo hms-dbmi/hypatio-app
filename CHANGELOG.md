@@ -1,3 +1,10 @@
+# [1.3.0-rc.19](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.18...v1.3.0-rc.19) (2025-09-12)
+
+
+### Bug Fixes
+
+* **manage:** Fixed some inline styles in viewing signed agreement forms; added consent for ReXplain ([9c34d6f](https://github.com/hms-dbmi/hypatio-app/commit/9c34d6f55ab1fde344f663841ee41e7cabf085ba))
+
 # [1.3.0-rc.18](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.17...v1.3.0-rc.18) (2025-08-09)
 
 
