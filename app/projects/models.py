@@ -274,6 +274,7 @@ class AgreementForm(models.Model):
     template = models.CharField(max_length=300, blank=True, null=True)
     institutional_signers = models.BooleanField(default=False, help_text="Allows institutional signers to sign for their members. This will auto-approve this agreement form for members whose institutional official has had their agreement form approved.")
     form_class = models.CharField(max_length=300, null=True, blank=True)
+    automatic_approval = models.BooleanField(default=False, blank=False, null=False, help_text="Determines if signed agreement forms will be automatically approved by the system.")
 
     handler = models.CharField(max_length=512, null=True, blank=True, help_text="Set an absolute function's path to be called after the SignedAgreementForm has successfully saved")
 

@@ -20,6 +20,7 @@ from workflows.forms import StepStateFileForm
 from workflows.models import StepStateInitialization
 from workflows.models import StepStateReview
 from workflows.models import StepStateVersion
+from workflows.models import MediaTypeGroup
 
 import logging
 logger = logging.getLogger(__name__)
@@ -363,7 +364,7 @@ class FileUploadStepController(BaseStepController):
             # Initialize the form class
             form = self.step_state.step.form(
                 initial=initial_data,
-                allowed_media_types=[m.value for m in self.step_state.step.allowed_media_types.all()]
+                allowed_media_types=[m for m in self.step_state.step.allowed_media_types.all()]
             )
 
             # Add form
@@ -400,16 +401,8 @@ class RexplainVideoStepController(BaseStepController):
         # Check if admin
         if self.is_administration:
 
-            # Set allowed media types
-            allowed_media_types = [
-                "video/mp4",
-                "video/webm",
-                "video/ogg",
-                "video/x-matroska",
-                "video/quicktime",
-                "video/x-msvideo",
-                "video/x-flv",
-            ]
+            # Set allowed media types, videos in this instance
+            allowed_media_types = list(MediaTypeGroup.objects.get(name="Video Types").media_types.all())
 
             # Set initial data
             initial = {
@@ -418,7 +411,10 @@ class RexplainVideoStepController(BaseStepController):
             }
 
             # Initialize the form class
-            form = StepStateFileForm(initial=initial, allowed_media_types=allowed_media_types)
+            form = StepStateFileForm(
+                initial=initial,
+                allowed_media_types=allowed_media_types,
+            )
 
             # Render it
             context["form"] = form

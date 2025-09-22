@@ -1077,14 +1077,59 @@ class MediaType(models.Model):
     """
     Represents a media type for a file.
     """
+    name = models.CharField(max_length=255, null=True, blank=True, help_text="The optional name of this media type to be used in the interface")
     value = models.CharField(max_length=255, unique=True, help_text="The value of the media type.")
-
-    def __str__(self):
-        return self.value
 
     # Meta
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.value
+
+    @classmethod
+    def media_types_summary(cls, media_types: list["MediaType"]) -> str:
+        """
+        Returns a human-readable string of the types of files as passed by
+        the list of MediaType objects using their 'name' property, if defined.
+
+        Example output:
+            "ZIP, PDF or TAR"
+
+        Arguments:
+            media_types (list[MediaType]): The media types to detail
+
+        Returns:
+            A string listing the friendly media type names
+        """
+        labels = list(set(m.name or m.value for m in media_types))
+
+        if not labels:
+            return ""
+
+        if len(labels) == 1:
+            return labels[0]
+        elif len(labels) == 2:
+            return f"{labels[0]} or {labels[1]}"
+        else:
+            return f"{', '.join(labels[:-1])} or {labels[-1]}"
+
+class MediaTypeGroup(models.Model):
+    """
+    Represents a group of media types.
+    """
+    name = models.CharField(max_length=255, help_text="The name of this media type group")
+    media_types = models.ManyToManyField(
+        to=MediaType,
+        help_text="The media types that comprise this grouping"
+    )
+
+    # Meta
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
 
 
 class FormStepMixin:

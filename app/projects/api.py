@@ -718,9 +718,18 @@ def save_signed_agreement_form(request):
         fields=fields,
     )
 
+    # Check if auto-approval is set
+    if agreement_form.automatic_approval:
+        logger.info(f"{agreement_form.short_name}/{request.user.email}: Signed agreement form automatically approved")
+        signed_agreement_form.status = SIGNED_FORM_APPROVED
+
     try:
         # Check for a template
         if agreement_form.template:
+
+            # Check required properties
+            if not agreement_form.form_file_path:
+                raise ValueError(f"AgreementForm does not have required property 'form_file_path'")
 
             # Convert hypens to underscore in context
             safe_fields = {k.replace("-", "_"):v for k,v in fields.items()}

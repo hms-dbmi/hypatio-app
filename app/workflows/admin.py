@@ -14,7 +14,7 @@ from workflows.models import FileUploadStep
 from workflows.models import StepStateInitialization
 from workflows.models import StepStateReview
 from workflows.models import StepStateVersion
-
+from workflows.models import MediaTypeGroup
 
 @admin.register(Workflow)
 class WorkflowAdmin(admin.ModelAdmin):
@@ -84,6 +84,12 @@ class StepStateVersionAdmin(admin.ModelAdmin):
 @admin.register(MediaType)
 class MediaTypeAdmin(admin.ModelAdmin):
     list_display = ('value', 'created_at', 'modified_at', )
+    readonly_fields = ('created_at', 'modified_at', )
+
+
+@admin.register(MediaTypeGroup)
+class MediaTypeGroupAdmin(admin.ModelAdmin):
+    list_display = ('name', 'created_at', 'modified_at', )
     readonly_fields = ('created_at', 'modified_at', )
 
 
