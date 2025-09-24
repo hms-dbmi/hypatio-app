@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -7,6 +9,7 @@ from crispy_forms.layout import Layout, Div, Field, HTML
 from hypatio.forms import SanitizedCharField
 from workflows.models import StepStateReview
 from workflows.widgets import HorizontalRadioSelect
+from workflows.models import MediaType
 
 
 class StepReviewForm(forms.Form):
@@ -41,7 +44,7 @@ class StepStateFileForm(forms.Form):
     A form for uploading files.
     This form is used to test file upload functionality in workflows.
     """
-    def __init__(self, *args, allowed_media_types=None, **kwargs):
+    def __init__(self, *args, allowed_media_types: Optional[list[MediaType]] = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.form_tag = False
@@ -49,9 +52,18 @@ class StepStateFileForm(forms.Form):
         # Set allowed media types
         if not allowed_media_types:
             allowed_media_types = []
+
+        # Update file widget
         self.fields['file'].widget.attrs.update({
-            "accept": ",".join(allowed_media_types)
+            "accept": ",".join([m.value for m in allowed_media_types])
         })
+
+        # Update help message
+        if allowed_media_types:
+            allowed_media_types_help = MediaType.media_types_summary(allowed_media_types)
+            if allowed_media_types_help:
+                self.fields['file'].help_text += f" (only {allowed_media_types_help} files are allowed)"
+
 
     user = SanitizedCharField(
         widget=forms.HiddenInput,
