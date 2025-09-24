@@ -1,6 +1,6 @@
 # Set arch
 ARG BUILD_ARCH=amd64
-ARG DBMISVC_IMAGE=hmsdbmitc/dbmisvc:debian12-slim-python3.11-0.7.1
+ARG DBMISVC_IMAGE=hmsdbmitc/dbmisvc:debian12-slim-python3.11-0.7.2
 
 FROM ${DBMISVC_IMAGE} AS builder
 
