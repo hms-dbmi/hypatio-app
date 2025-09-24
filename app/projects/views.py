@@ -12,6 +12,7 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.utils import timezone
 from dbmi_client import reg
 
@@ -1088,4 +1089,7 @@ def qualtrics(request):
         status=SIGNED_FORM_APPROVED,
     )
 
-    return redirect(f"/projects/{project_key}/")  # Redirect to the project page
+    return redirect(reverse(
+        'projects:view-project',
+        kwargs={'project_key': project.project_key}
+    ))
