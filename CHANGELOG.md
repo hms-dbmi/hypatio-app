@@ -1,3 +1,10 @@
+# [1.3.0-rc.22](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.21...v1.3.0-rc.22) (2025-09-24)
+
+
+### Bug Fixes
+
+* **projects:** Adding missing fixture ([235e1ec](https://github.com/hms-dbmi/hypatio-app/commit/235e1ec66ccb32be8455d141922657f8efd76b60))
+
 # [1.3.0-rc.21](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.20...v1.3.0-rc.21) (2025-09-24)
 
 
