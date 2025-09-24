@@ -1,3 +1,10 @@
+# [1.3.0-rc.20](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.19...v1.3.0-rc.20) (2025-09-24)
+
+
+### Features
+
+* **projects:** Allowed SignedAgreementForms to be auto-approved; fixed some ReXplain media type configurations ([8afd2ca](https://github.com/hms-dbmi/hypatio-app/commit/8afd2cacafbc5c06e6515d50cf74f083a13c7aa0))
+
 # [1.3.0-rc.19](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.18...v1.3.0-rc.19) (2025-09-12)
 
 
