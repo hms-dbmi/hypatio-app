@@ -1,3 +1,11 @@
+# [1.3.0-rc.21](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.20...v1.3.0-rc.21) (2025-09-24)
+
+
+### Bug Fixes
+
+* **projects:** Fixed a redirect ([1dd60b4](https://github.com/hms-dbmi/hypatio-app/commit/1dd60b4dafcb280ecabfe687df1b70472ecea46e))
+* **settings:** Removed unused configurations; updated base Dockerfile version ([b501562](https://github.com/hms-dbmi/hypatio-app/commit/b5015627b4cb594a9105cfc8cee055e8c139044f))
+
 # [1.3.0-rc.20](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.19...v1.3.0-rc.20) (2025-09-24)
 
 
