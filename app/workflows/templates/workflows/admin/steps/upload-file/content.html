@@ -1,0 +1,6 @@
+{% load workflows %}
+
+<pre>
+{{ step.data|pretty_json }}
+</pre>
+<a class="btn btn-primary" type="button" href="{% url 'manage:dataproject-file-download' data_project_key=data_project.project_key pk=step.data.uuid %}">Download File</a>

@@ -122,6 +122,11 @@ li.dropdown.open a#download.dropdown-toggle {
     font-weight: 300;
 }
 
+#hero-heading h2 strong {
+    font-weight: 800;
+    letter-spacing: .5px;
+}
+
 
 /* hero heading responsive sizes */
 
@@ -216,6 +221,63 @@ footer {
     font-size: 0.8rem;
     background-color: rgba(51, 109, 168, 0.350);
     line-height: 1.5rem;
+    margin-top: 3em;
+}
+
+footer #footer-logo-container {
+    padding-left: 0;
+    padding-top: 1em;
+}
+
+footer #footer-logo-container img {
+    margin-top: .8rem;
+}
+
+footer #footer-location-container {
+    padding-left: 6em;
+    font-size: 1.2rem;
+    font-weight: 300;
+}
+
+footer #footer-copyright-container {
+    padding-left: 2em;
+    font-size: 1rem;
+    font-weight: 300;
+}
+
+div.profile-email-verified-badge-container {
+    margin-top: 8px;
+}
+
+#jwt-copy {
+    cursor: pointer;
+}
+
+img.country-select-flag {
+    margin: 6px 4px 0;
+}
+
+p.login-or-register-link-paragraph {
+    margin-top: 15px;
+}
+
+div.contact-link-container {
+    font-size: 20px;
+}
+
+li a.contact-form-link {
+    color: white;
+}
+
+span.data-project-blurb-commercial-badge {
+    font-size: 1em;
+    margin-bottom: 8px;
+    margin-left: 10px;
+}
+
+span.data-project-blurb-name {
+    font-size:24px;
+    font-weight: bold;
 }
 
 /* Bootstrap callout styling */
@@ -331,7 +393,7 @@ footer {
 /* Bootstrap accordian panels styling */
 
 .panel-group {
-    padding-top: 10px;
+    padding-bottom: 20px;
  }
 
 .panel-heading.panel-heading-toggle .panel-title:after {
@@ -362,4 +424,172 @@ table.dataTable.table-hover > tbody > tr:hover > * {
 #files-collapse .panel-body {
     max-height: 600px;
     overflow: auto;
+}
+
+#request-access-form-submit i.fa-spinner {
+    display: none;
+    margin-left: 5px;
+}
+
+/* Projects */
+
+div.project-actionable-panel {
+    margin-bottom: 15px;
+}
+
+div.hosted-files-container {
+    margin-bottom: 10px;
+}
+
+table.project-available-downloads-table {
+    margin-bottom: 0px;
+}
+
+/* Workflows */
+
+.likert-end-label, .likert-label {
+    display: block;
+    font-weight: 400;
+    font-size: 1.3rem;
+}
+
+.likert-radio-select-container {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.likert-radio-select-option {
+    display: table-cell;
+    text-align: center;
+    vertical-align: bottom;
+}
+
+/* VideoJS */
+
+.video-js.vjs-fluid {
+  padding-top: 56.25% !important; /* for 16:9 aspect ratio */
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* Signed Agreement Forms */
+
+.signed-agreement-form-container {
+    height: 850px;
+}
+
+#signed-agreement-form-iframe-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    overflow: hidden
+}
+
+#signed-agreement-form-iframe-container iframe {
+    flex-grow: 1;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+#reject-form-confirmation {
+    display: none;
+}
+
+#signed-agreement-form-fields-table tr th,
+#signed-agreement-form-fields-table tr td {
+    padding: 10x;
+}
+
+/* Manage */
+
+#manage-hosted-file-logs-button {
+    margin-right: 10px;
+}
+
+.manage-panel-header-right-button.btn-xs {
+    margin-left: 10px;
+}
+
+#workflows-tab-list {
+    margin-bottom: 10px;
+}
+
+#workflows-refresh-button {
+    margin-left: 10px;
+}
+
+#workflows-initializations-table, #workflows-approvals-table, #workflows-workflows-table {
+    width: 100% !important;
+}
+
+.manage-column {
+    margin-bottom: 15px;
+}
+
+.tr.team-row {
+    cursor: pointer;
+}
+
+.manage-table-cell-button.btn-xs {
+    margin-top: 4px;
+}
+
+#modal-hosted-file-logs-loading {
+    text-align: center;
+    margin: 20px;
+}
+
+.workflows-table-row {
+    cursor: pointer;
+}
+
+/* Agreement Forms */
+
+.rexplain-header-table {
+    margin-bottom: 20px;
+}
+
+.rexplain-header-table tr {
+    border: 1px solid;
+}
+
+.rexplain-header-table tr td {
+    padding: 5px;
+}
+
+.rexplain-header-table colgroup col {
+    width: 100%;
+}
+
+.rexplain-key-information-table {
+    margin-bottom: 20px;
+}
+
+.rexplain-key-information-table tr {
+    border: 1px solid;
+}
+
+.rexplain-key-information-table tr td {
+    padding: 5px;
+}
+
+.rexplain-key-information-table colgroup col {
+    width: 100%;
+}
+
+.rexplain-key-information-header {
+    text-align: center;
+}
+
+.rexplain-form-age-input {
+    margin-right: 10px;
+    margin-bottom: 15px;
+}
+
+.rexplain-form-input-label {
+    margin-right: 10px;
+    margin-bottom: 15px;
 }

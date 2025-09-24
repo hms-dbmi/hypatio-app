@@ -1,0 +1,68 @@
+a.workflow-panel-heading-link,
+a.workflow-panel-heading-link:hover,
+a.workflow-panel-heading-link:active,
+a.workflow-panel-heading-link:visited,
+a.workflow-panel-heading-link:focus {
+    text-decoration:none;
+    color: white;
+}
+
+a.workflow-step-panel-heading-link,
+a.workflow-step-panel-heading-link:hover,
+a.workflow-step-panel-heading-link:active,
+a.workflow-step-panel-heading-link:visited,
+a.workflow-step-panel-heading-link:focus {
+    text-decoration:none;
+    color: #337ab7;
+}
+
+.workflow-panel-heading-link .panel-title:after {
+    font-family:'Glyphicons Halflings';
+    float: right;
+    content:"\e113";
+}
+
+.workflow-panel-heading-link.collapsed .panel-title:after {
+    content:"\e114";
+}
+
+.workflow-step-panel-heading-link .panel-title:after {
+    font-family:'Glyphicons Halflings';
+    float: right;
+    content:"\e113";
+}
+
+.workflow-step-panel-heading-link.collapsed .panel-title:after {
+    content:"\e114";
+}
+
+.step-content {
+    margin-bottom: 10px;
+}
+
+.workflow-step-panel-title-icon-alert {
+    color: #f0ad4e;
+}
+
+.workflow-step-panel-title-icon-checked {
+    color: #5cb85c;
+}
+
+.workflows-admin-step-column {
+    margin-bottom: 10px;
+}
+
+#file-upload-progress {
+    min-width: 2em;
+    width: 2%;
+    padding-top: 3px;
+}
+
+#file-upload-abort-button {
+    display: none;
+}
+
+.workflows-submit-indicator {
+    display: none;
+    margin-left: 5px;
+}

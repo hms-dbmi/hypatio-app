@@ -3,6 +3,7 @@ from django.core.validators import RegexValidator
 from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 from dal import autocomplete
 
+from hypatio.forms import SanitizedCharField
 from projects.models import AgreementForm, DataProject
 from projects.models import HostedFile
 from projects.models import Team
@@ -16,8 +17,8 @@ class EditHostedFileForm(forms.ModelForm):
     project = forms.ModelChoiceField(queryset=DataProject.objects.all(), widget=forms.HiddenInput)
 
     # Temporarily hidden fields for now
-    file_name = forms.CharField(widget=forms.HiddenInput)
-    file_location = forms.CharField(widget=forms.HiddenInput)
+    file_name = SanitizedCharField(widget=forms.HiddenInput)
+    file_location = SanitizedCharField(widget=forms.HiddenInput)
 
     class Meta:
         model = HostedFile
@@ -43,8 +44,8 @@ file_name_validator = RegexValidator(
 
 class HostSubmissionForm(forms.ModelForm):
     project = forms.ModelChoiceField(queryset=DataProject.objects.all(), widget=forms.Select(attrs={'class': 'form-control'}))
-    file_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), validators=[file_name_validator])
-    file_location = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), validators=[file_path_validator])
+    file_name = SanitizedCharField(widget=forms.TextInput(attrs={'class': 'form-control'}), validators=[file_name_validator])
+    file_location = SanitizedCharField(widget=forms.TextInput(attrs={'class': 'form-control'}), validators=[file_path_validator])
 
     class Meta:
         model = HostedFile
@@ -62,14 +63,14 @@ class NotificationForm(forms.Form):
     Determines the fields that will appear.
     """
     project = forms.ModelChoiceField(queryset=DataProject.objects.all(), widget=forms.HiddenInput)
-    message = forms.CharField(label='Message', required=True, widget=forms.Textarea)
+    message = SanitizedCharField(label='Message', required=True, widget=forms.Textarea)
     team = forms.ModelChoiceField(queryset=Team.objects.all(), widget=forms.HiddenInput)
 
 
 class UploadSignedAgreementFormForm(forms.Form):
     agreement_form = forms.ModelChoiceField(queryset=AgreementForm.objects.filter(type=AGREEMENT_FORM_TYPE_FILE, internal=True), widget=forms.Select(attrs={'class': 'form-control'}))
-    project_key = forms.CharField(label='Project Key', max_length=128, required=True, widget=forms.HiddenInput())
-    participant = forms.CharField(label='Participant', max_length=128, required=True, widget=forms.HiddenInput())
+    project_key = SanitizedCharField(label='Project Key', max_length=128, required=True, widget=forms.HiddenInput())
+    participant = SanitizedCharField(label='Participant', max_length=128, required=True, widget=forms.HiddenInput())
     signed_agreement_form = forms.FileField(label="Signed Agreement Form PDF", required=True)
 
     def __init__(self, *args, **kwargs):

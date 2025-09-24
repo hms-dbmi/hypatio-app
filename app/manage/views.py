@@ -28,7 +28,7 @@ from manage.forms import NotificationForm
 from manage.models import ChallengeTaskSubmissionExport
 from manage.forms import UploadSignedAgreementFormForm
 from manage.forms import UploadSignedAgreementFormFileForm
-from projects.models import AgreementForm, ChallengeTaskSubmission
+from projects.models import AgreementForm, ChallengeTaskSubmission, DataProjectWorkflow
 from projects.models import DataProject
 from projects.models import Participant
 from projects.models import Team
@@ -37,6 +37,7 @@ from projects.models import SignedAgreementForm
 from projects.models import HostedFile
 from projects.models import HostedFileDownload
 from projects.models import SIGNED_FORM_APPROVED
+from workflows.models import WorkflowState
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -258,6 +259,10 @@ class DataProjectManageView(TemplateView):
                 'group_name': group_name,
                 'files': files_without_a_set.order_by(F('order').asc(nulls_last=True))
             })
+
+        # Check for workflows
+        if DataProjectWorkflow.objects.filter(data_project=self.project).exists():
+            context['workflows'] = DataProjectWorkflow.objects.filter(data_project=self.project)
 
         return context
 
@@ -1034,17 +1039,8 @@ class UploadSignedAgreementFormView(View):
         signed_agreement_form.save()
 
         # Create the response.
-        response = HttpResponse(status=201)
-
-        # Setup the script run.
-        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-            "success", "Signed agreement form successfully uploaded", "thumbs-up"
-        )
-
-        # Close the modal
-        response['X-IC-Script'] += "$('#page-modal').modal('hide');"
-
-        return response
+        # TODO: Ensure a notification is shown
+        return HttpResponse(status=201)
 
 
 @method_decorator([user_auth_and_jwt], name='dispatch')
@@ -1118,14 +1114,6 @@ class UploadSignedAgreementFormFileView(View):
         signed_agreement_form.save()
 
         # Create the response.
-        response = HttpResponse(status=201)
-
-        # Setup the script run.
-        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-            "success", "Signed agreement form file successfully uploaded", "thumbs-up"
-        )
-
-        # Close the modal
-        response['X-IC-Script'] += "$('#page-modal').modal('hide');"
-
-        return response
+        # TODO: Ensure a notification is shown
+        # TODO: Ensure modal is closed
+        return HttpResponse(status=201)

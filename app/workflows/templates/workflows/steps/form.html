@@ -1,0 +1,76 @@
+{% extends "workflows/step.html" %}
+
+{% load bootstrap3 %}
+{% load crispy_forms_tags %}
+
+{% block step_body_current %}
+{{ block.super }}
+  <form id="{{ step.step.slug }}-form" name="{{ step.step.slug }}-form"
+        hx-post="{% url 'workflows:v1:step-state-data' pk=step.id %}">
+    {% crispy form %}
+  </form>
+<script nonce="{{request.csp_nonce}}">
+  document.getElementById("{{ step.step.slug }}-form").addEventListener("htmx:beforeSend", function(event) {
+    console.log(`{{ step.step.slug }}-form/htmx:beforeSend`);
+
+    // Toggle buttons
+    toggleFormButtons('#{{ step.step.slug }}-form');
+  });
+  document.getElementById("{{ step.step.slug }}-form").addEventListener("htmx:afterRequest", function(event) {
+    console.log(`{{ step.step.slug }}-form/htmx:afterRequest`);
+
+    // Toggle buttons
+    toggleFormButtons('#{{ step.step.slug }}-form');
+
+    // Refresh any dependent steps
+    refreshStep(this);
+
+    // Check if successful
+    if(event.detail.successful) {
+      console.log(`{{ step.step.slug }}-form/htmx:afterRequest/successful`);
+
+      // Update the submit button.
+      $('#{{ step.step.slug }}-submit').html('Submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success');
+
+      // Add a little delay
+      setTimeout(function(){
+          notify('success', 'The form was submitted successfully!', 'glyphicon glyphicon-ok');
+      }, 500);
+    } else if(event.detail.failed) {
+      console.log(`{{ step.step.slug }}-form/htmx:afterRequest/failed`);
+
+      // Handle form errors
+      handleFormError(status, str, xhr, '#{{ step.step.slug }}-form');
+    }
+  });
+</script>
+{% endblock %}
+
+{% block step_footer_current %}
+{{ block.super }}
+<button id="{{ step.step.slug }}-submit" type="submit" form="{{ step.step.slug }}-form" class="btn btn-primary">
+  Submit
+  <i class="hx-indicator fa fa-spinner fa-spin workflows-submit-indicator"></i>
+</button>
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{request.csp_nonce}}">
+
+function handleFormError(status, str, xhr, formId) {
+  console.log("Form submission error:", status, str, xhr);
+
+  $(formId + ' .hx-indicator').hide();
+  $(formId + ' button[type="submit"]').prop('disabled', false);
+  $(formId + ' .form-group').removeClass('has-error');
+  $(formId + ' .error-message').remove();
+
+  // Handle specific error messages
+  const errors = JSON.parse(xhr.responseText);
+  for (let field in errors) {
+    const fieldElement = $(formId + ' [name="' + field + '"]');
+    fieldElement.closest('.form-group').addClass('has-error');
+  }
+}
+</script>
+{% endblock %}

@@ -12,9 +12,12 @@
 <script src="{% static 'plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
 <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.dataTables.min.css' %}">
 <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.min.css' %}">
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
-<script type="text/javascript" src="/static/bootstrap_datepicker_plus/js/datepicker-widget.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="/static/bootstrap_datepicker_plus/js/datepicker-widget.js"></script>
+<link href="{% static 'css/workflows/workflows.css' %}" rel="stylesheet" />
+<script src="{% static 'js/workflows/workflows.js' %}"></script>
+<script src="{% static 'js/workflows/file-uploader.js' %}"></script>
 {% endblock %}
 
 {% block title %}
@@ -26,8 +29,8 @@
 <div class="page-header">
   <div class='btn-toolbar pull-right'>
       <div class='btn-group'>
-          <button type='button' class='btn btn-primary' onclick="$('.panel-collapse').collapse('hide');">Collapse All</button>
-          <button type='button' class='btn btn-primary' onclick="$('.panel-collapse').collapse('show');">Expand All</button>
+          <button id="manage-collapse-panels-button" type='button' class='btn btn-primary'>Collapse All</button>
+          <button id="manage-show-panels-button" type='button' class='btn btn-primary'>Expand All</button>
       </div>
   </div>
   <h3>Essentials</h3>
@@ -109,7 +112,7 @@
 </div>
 
 <div class="row">
-    <div class="col-md-12" style="margin-bottom: 15px;">
+    <div class="col-md-12 manage-column">
         <hr>
         <h3>Agreement forms and downloadable files</h3>
     </div>
@@ -134,9 +137,9 @@
                             <a class="preview-agreement-form"
                                 data-toggle="modal"
                                 data-target="#modal-preview-agreement-form"
-                                ic-target="#preview-agreement-form-body"
-                                ic-get-from="{% url 'manage:get-static-agreement-form-html' %}"
-                                ic-include='{"project-key": "{{ project.project_key }}", "form-id": "{{ agreement_form.id }}"}'>
+                                hx-target="#preview-agreement-form-body"
+                                hx-get="{% url 'manage:get-static-agreement-form-html' %}"
+                                hx-include='{"project-key": "{{ project.project_key }}", "form-id": "{{ agreement_form.id }}"}'>
                                 See preview
                             </a>
                         {% endif %}
@@ -167,7 +170,7 @@
                           </div>
                       </div>
                       {% for hosted_file in file_group.files %}
-                          <div class="row" style="margin-bottom: 10px;">
+                          <div class="row hosted-files-container">
                               <div class="col-sm-8">
                                   <h5>
                                       {{ hosted_file.long_name }}
@@ -187,21 +190,19 @@
                                           role="button"
                                           data-toggle="modal"
                                           data-target="#modal-edit-hosted-file"
-                                          ic-get-from="{% url 'manage:get-hosted-file-edit-form' %}"
-                                          ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
-                                          ic-target="#modal-edit-hosted-file-body">
+                                          hx-get="{% url 'manage:get-hosted-file-edit-form' %}"
+                                          hx-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
+                                          hx-target="#modal-edit-hosted-file-body">
                                           Edit
                                       </a>
-                                      <a class="btn btn-default pull-right"
-                                        style="margin-right: 10px;"
+                                      <a class="btn btn-default pull-right manage-hosted-file-logs-button"
                                           href="#"
                                           role="button"
                                           data-toggle="modal"
                                           data-target="#modal-hosted-file-logs"
-                                          ic-get-from="{% url 'manage:get-hosted-file-logs' %}"
-                                          ic-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
-                                          ic-target="#modal-hosted-file-logs-body"
-                                          ic-beforeSend-action="initDownloadLogs">
+                                          hx-get="{% url 'manage:get-hosted-file-logs' %}"
+                                          hx-include='{"hosted-file-uuid": "{{ hosted_file.uuid }}", "project-key": "{{ project.project_key }}"}'
+                                          hx-target="#modal-hosted-file-logs-body">
                                           Logs
                                       </a>
                                   </div>
@@ -212,63 +213,22 @@
                   {% endfor %}
                   <p class="help-block">Please contact a DBMI Tech-Core developer for help with adding a new data file or to move files to different subgroups.</p>
                   <!-- <button class="btn btn-primary pull-right">Add another</button> -->
+                   <script nonce="{{request.csp_nonce}}">
+                    document.querySelectorAll(".manage-hosted-file-logs-button").forEach((button) => {
+                      button.addEventListener("htmx:beforeRequest", function(event) {
+                        // Ensure content is removed and loading is shown
+                        $("#modal-hosted-file-logs-body").html('<div id="modal-hosted-file-logs-loading" style="text-align: center; margin: 20px;"><i class="fas fa-circle-notch fa-spin fa-2x"></i>&nbsp;&nbsp;Loading...</div>');
+                      });
+                    });
+                   </script>
               </div>
             </div>
         </div>
     </div>
 </div>
 
-<!--
 <div class="row">
-    <div class="col-md-12" style="margin-bottom: 15px;">
-        <hr>
-        <h3>Reports and Visualizations</h3>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-4">
-        <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Reports</h2>
-            </div>
-            <div class="panel-body">
-                <p><i>Please only click once and wait for the download to complete. This may take a few moments.</i></p>
-                {% for form in project.agreement_forms.all %}
-                    {% if form.type == "EXTERNAL_LINK" %}
-                        <p><a href="{% url 'manage:download-email-list' %}?project={{ project.project_key }}&team-status=Ready&agreement-form-id={{ form.id }}&agreement-form-status=P" class="btn btn-sm btn-primary btn-block" download>
-                            {{ form.name }} Forms to Approve
-                        </a></p>
-                    {% endif %}
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Downloads</h2>
-            </div>
-            <div class="panel-body">
-                Coming soon...
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="heading-description">
-                <h2 class="panel-title">Uploads</h2>
-            </div>
-            <div class="panel-body">
-                Coming soon...
-            </div>
-        </div>
-    </div>
-</div>
--->
-
-<div class="row">
-    <div class="col-md-12" style="margin-bottom: 15px;">
+    <div class="col-md-12 manage-column">
         <hr>
         <h3>Access management</h3>
     </div>
@@ -307,7 +267,7 @@
                       </thead>
                       <tbody>
                       {% for team in teams %}
-                          <tr class="team-row" data-team="{{ team.team_leader }}" style="cursor: pointer;">
+                          <tr class="team-row" data-team="{{ team.team_leader }}">
                               <td>{{ team.team_leader }}</td>
                               <td>{{ team.member_count }}</td>
                               <td class="team-status-column">
@@ -334,6 +294,7 @@
     </div>
 </div>
 
+{% if not project.automatic_authorization %}
 <div class="row">
   <div class="col-lg-12">
       <div class="panel panel-default">
@@ -368,6 +329,7 @@
       </div>
   </div>
 </div>
+{% endif %}
 
 {% if project.data_use_report_agreement_form %}
 <div class="row">
@@ -412,13 +374,6 @@
           <div class="panel-heading panel-heading-toggle heading-description" role="tab" data-toggle="collapse" data-target="#participants-collapse">
                 <h2 class="panel-title">
                     Full participant list
-                    <small>
-                        <button type="button" class="btn btn-primary btn-xs pull-right" style="margin-left: 10px;"
-                                ic-post-to="{% url 'manage:sync-view-permissions' project.project_key %}"
-                                ic-on-success="$('#sync-modal').modal();">
-                            Sync VIEW permissions <i class="ic-indicator fa fa-spinner fa-spin" style="display:none"></i>
-                        </button>
-                    </small>
                 </h2>
             </div>
             <div id="participants-collapse" class="panel-collapse collapse in">
@@ -450,8 +405,309 @@
     </div>
 </div>
 
+{# Display a table containing all users with workflows #}
+{% if workflows %}
+
 <div class="row">
-    <div class="col-md-12" style="margin-bottom: 15px;">
+    <div class="col-md-12 manage-column">
+        <hr>
+        <h3>Workflow management</h3>
+    </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-12">
+    <div class="panel panel-default">
+      <div class="panel-heading panel-heading-toggle heading-description" role="tab" data-toggle="collapse" data-target="#workflows-collapse">
+            <h2 class="panel-title">
+              Workflows
+                <button id="workflows-refresh-button" type="button" class="btn btn-primary btn-xs pull-right">
+                  <i class="glyphicon glyphicon-refresh"></i>
+                </button>
+            </h2>
+      </div>
+      <div id="workflows-collapse" class="panel-collapse collapse in">
+        <div class="panel-body">
+          <ul id="workflows-tab-list" class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="active">
+              <a href="#workflows-initializations-tab" aria-controls="workflows-initializations-tab" role="tab" data-toggle="tab">
+                Initialization Required&nbsp;&nbsp;&nbsp;<span id="workflows-initializations-tab-badge" class="badge"></span>
+              </a>
+            </li>
+            <li role="presentation">
+              <a href="#workflows-approvals-tab" aria-controls="workflows-approvals-tab" role="tab" data-toggle="tab">
+                Approval Required&nbsp;&nbsp;&nbsp;<span id="workflows-approvals-tab-badge" class="badge"></span>
+              </a>
+            </li>
+            <li role="presentation">
+              <a href="#workflows-workflows-tab" aria-controls="workflows-workflows-tab" role="tab" data-toggle="tab">
+                Workflows&nbsp;&nbsp;&nbsp;<span id="workflows-workflows-tab-badge" class="badge"></span>
+              </a>
+            </li>
+          </ul>
+          <div class="tab-content">
+            <div id="workflows-initializations-tab" role="tabpanel" class="tab-pane fade in active">
+              <table id="workflows-initializations-table" class="table table-bordered table-hover table-responsive">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Workflow</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+            <div id="workflows-approvals-tab" role="tabpanel" class="tab-pane fade">
+              <table id="workflows-approvals-table" class="table table-bordered table-hover table-responsive">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Workflow</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+            <div id="workflows-workflows-tab" role="tabpanel" class="tab-pane fade" id="two">
+              <table id="workflows-workflows-table" class="table table-bordered table-hover table-responsive">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Workflow</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script nonce="{{request.csp_nonce}}">
+$(function() {
+    $('#workflows-approvals-table,#workflows-initializations-table,#workflows-workflows-table').on('click', 'tbody tr', function() {
+      // Get the workflow ID
+      let workflowState = {
+        id: $(this).data('workflow-id')
+      }
+      console.log(`workflows click: ${workflowState.id}`);
+      // Trigger a request and load it into a modal window
+      htmx.ajax('GET', getWorkflowUrl(workflowState), {
+        target: '#manage-workflow-modal-body',
+        swap: 'innerHTML',
+        headers: {
+          'HX-Request': 'true'
+        }
+      }).then(() => {
+        console.log(`onAfterSwap: ${workflowState.id}`);
+        $('#manage-workflow-modal').modal('show');
+      });
+    });
+
+    $('#manage-workflow-modal').on('hide.bs.modal', function (e) {
+      // Refresh workflow tables
+      $('#workflows-refresh-button').click();
+    });
+
+    function getWorkflowUrl(workflowState) {
+        return "{% url 'workflows:v1:admin-workflow-state-detail' pk='00000000-0000-0000-0000-000000000000' %}".replace("00000000-0000-0000-0000-000000000000", workflowState.id);
+    }
+
+    // Initialize DataTable for workflows
+    var workflowsApprovalsTable = $('#workflows-approvals-table').DataTable({
+        "ajax": {
+            "url": "{% url 'manage:dataproject-workflow-state-list' data_project_key=project.project_key %}?review_required=true",
+            "dataSrc": ""
+        },
+        "columns": [
+            { "data": "user.email" },
+            { "data": "workflow.name" },
+            { "data": "status" }
+        ],
+        "order": [[0, 'asc']],
+        "language": {
+            "emptyTable": "No users with workflows found."
+        },
+        "createdRow": function (row, data, dataIndex) {
+            $(row).attr('data-workflow-id', data.id);
+            $(row).addClass('workflows-table-row');
+        },
+        "initComplete": function(settings, json) {
+
+          // Update the tab's badge
+          $('#workflows-approvals-tab-badge').text(json.length ? json.length : '');
+        },
+        "autoWidth": false
+    });
+
+    // Initialize DataTable for workflows
+    var workflowsInitializationsTable = $('#workflows-initializations-table').DataTable({
+        "ajax": {
+            "url": "{% url 'manage:dataproject-workflow-state-list' data_project_key=project.project_key %}?initialization_required=true",
+            "dataSrc": ""
+        },
+        "columns": [
+            { "data": "user.email" },
+            { "data": "workflow.name" },
+            { "data": null, "render": function(data, type, row) {
+                // Generate URL
+                var workflowUrl = getWorkflowUrl(data);
+                return `<a type="button" class="btn btn-primary btn-xs" href="${workflowUrl}">Initialize</a>`;
+            } },
+        ],
+        "order": [[0, 'asc']],
+        "language": {
+            "emptyTable": "No users with workflows found."
+        },
+        "createdRow": function (row, data, dataIndex) {
+            $(row).attr('data-workflow-id', data.id);
+            $(row).addClass('workflows-table-row');
+        },
+        "initComplete": function(settings, json) {
+
+          // Update the tab's badge
+          $('#workflows-initializations-tab-badge').text(json.length ? json.length : '');
+        },
+        "autoWidth": false
+    });
+
+    // Initialize DataTable for workflows
+    var workflowsWorkflowsTable = $('#workflows-workflows-table').DataTable({
+        "ajax": {
+            "url": "{% url 'manage:dataproject-workflow-state-list' data_project_key=project.project_key %}",
+            "dataSrc": ""
+        },
+        "columns": [
+            { "data": "user.email" },
+            { "data": "workflow.name" },
+            { "data": "status" }
+        ],
+        "order": [[0, 'asc']],
+        "language": {
+            "emptyTable": "No users with workflows found."
+        },
+        "createdRow": function (row, data, dataIndex) {
+            $(row).attr('data-workflow-id', data.id);
+            $(row).addClass('workflows-table-row');
+        },
+        "initComplete": function(settings, json) {
+
+          // Update the tab's badge
+          $('#workflows-workflows-tab-badge').text(json.length ? json.length : '');
+        },
+        "autoWidth": false
+    });
+
+    // Update the badge count for a table
+    function updateWorkflowTableBadgeCount(badge, json) {
+
+      // Update the tab's badge
+      if ( json.length ) {
+        $(badge).text(json.length);
+      } else {
+        $(badge).text("");
+      }
+    }
+
+    // Track completions
+    var completions = {
+      workflowsApprovalsTable: false,
+      workflowsInitializationsTable: false,
+      workflowsWorkflowsTable: false
+    };
+
+    $('#workflows-refresh-button').on('click', function(e) {
+      e.preventDefault();
+
+      // Animate it
+      $(this).find("i").first().addClass("fa-spin");
+
+      // Reset completions.
+      Object.keys(completions).forEach(key => {
+        completions[key] = false;
+      });
+
+      // Refresh the tables.
+      workflowsApprovalsTable.ajax.reload(function(json) {
+
+          // Update the tab's badge
+          $('#workflows-approvals-tab-badge').text(json.length ? json.length : '');
+
+          // Set completed
+          completions.workflowsApprovalsTable = true;
+          updateWorkflowsRefreshButton();
+      });
+      workflowsInitializationsTable.ajax.reload(function(json) {
+
+          // Update the tab's badge
+          $('#workflows-initializations-tab-badge').text(json.length ? json.length : '');
+
+          // Set completed
+          completions.workflowsInitializationsTable = true;
+          updateWorkflowsRefreshButton();
+      });
+      workflowsWorkflowsTable.ajax.reload(function(json) {
+
+          // Update the tab's badge
+          $('#workflows-workflows-tab-badge').text(json.length ? json.length : '');
+
+          // Set completed
+          completions.workflowsWorkflowsTable = true;
+          updateWorkflowsRefreshButton();
+      });
+
+      return false;
+    });
+
+    function updateWorkflowsRefreshButton() {
+
+      // If all are done, stop animating.
+      if (Object.values(completions).every(value => value === true)) {
+        $('#workflows-refresh-button').find("i").first().removeClass("fa-spin");
+      }
+    }
+
+    // Ensure tables fit their width when being shown when initially hidden.
+    $('#workflows-tab-list a[data-toggle="tab"]').on('shown.bs.tab', function (event) {
+      DataTable.tables({ visible: true, api: true }).columns.adjust();
+    } );
+
+    // Detect when this page is shown when using the browser's back button.
+    window.addEventListener("pageshow", function (event) {
+      var historyTraversal = event.persisted,
+        perf = window.performance,
+        perfEntries =
+          perf && perf.getEntriesByType && perf.getEntriesByType("navigation"),
+        perfEntryType = perfEntries && perfEntries[0] && perfEntries[0].type,
+        navigationType = perf && perf.navigation && perf.navigation.type;
+      if (
+        historyTraversal ||
+        perfEntryType === "back_forward" ||
+        navigationType === 2
+      ) {
+        // Handle page restore.
+        //workflowsApprovalsTable.ajax.reload();
+        //workflowsInitializationsTable.ajax.reload();
+        //workflowsWorkflowsTable.ajax.reload();
+      }
+    });
+});
+</script>
+{% endif %}
+
+{% if project.challengetask_set.count %}
+
+<div class="row">
+    <div class="col-md-12 manage-column">
         <hr>
         <h3>Submissions management</h3>
     </div>
@@ -496,14 +752,13 @@
                                       Download
                                   </a>
                                   {% if project.hosted_submissions %}
-                                  <a class="btn btn-default btn-xs btn-success"
-                                    style="margin-top: 4px;"
+                                  <a class="btn btn-default btn-xs btn-success manage-table-cell-button"
                                       href="#"
                                       role="button"
                                       data-toggle="modal"
                                       data-target="#modal-host-submission"
-                                      ic-get-from="{% url 'manage:host-submission' submission.uuid %}"
-                                      ic-target="#modal-host-submission-body">
+                                      hx-get="{% url 'manage:host-submission' submission.uuid %}"
+                                      hx-target="#modal-host-submission-body">
                                       Host
                                   </a>
                                   {% endif %}
@@ -524,11 +779,23 @@
           <div class="panel-heading panel-heading-toggle heading-description" role="tab" data-toggle="collapse" data-target="#submission-exports-collapse">
                 <h2 class="panel-title">Submissions Exports
                   <small>
-                      <button type="button" class="btn btn-primary btn-xs pull-right" style="margin-left: 10px;"
-                        ic-get-from="{% url 'manage:export-submissions' project.project_key %}"
-                        ic-on-success="$('#export-modal').modal();">
-                          Export Submissions <i class="ic-indicator fa fa-spinner fa-spin" style="display:none"></i>
+                      <button id="manage-export-submissions-button"
+                        type="button"
+                        class="btn btn-primary btn-xs pull-right manage-panel-header-right-button"
+                        hx-indicator="#manage-export-submissions-indicator"
+                        hx-get="{% url 'manage:export-submissions' project.project_key %}">
+                          Export Submissions <i id="manage-export-submissions-indicator" class="hx-indicator fa fa-spinner fa-spin"></i>
                       </button>
+                      <script nonce="{{request.csp_nonce}}">
+                        document.getElementById("manage-export-submissions-button").addEventListener("htmx:afterRequest", function(event) {
+                          // Ensure success
+                          if(event.detail.successful) {
+
+                            // Open the modal
+                            $('#export-modal').modal();
+                          }
+                        });
+                      </script>
                   </small>
                 </h2>
             </div>
@@ -563,6 +830,8 @@
         </div>
     </div>
 </div>
+
+{% endif %}
 
 <div id="modal-submission-info" class="modal fade">
     <div class="modal-dialog" role="document">
@@ -647,6 +916,21 @@
     </div>
 </div>
 
+<div id="manage-workflow-modal" class="modal fade">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h5 class="modal-title">Workflow</h5>
+            </div>
+
+            <div class="modal-body" id="manage-workflow-modal-body">
+                {# Loaded via HTMX #}
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="sync-modal" tabindex="-1" role="dialog" aria-labelledby="sync-modal-title">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -661,7 +945,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:window.location.reload();">Reload Page</button>
+        <button type="button" class="btn btn-primary manage-reload-page-button" data-dismiss="modal">Reload Page</button>
       </div>
     </div>
   </div>
@@ -681,7 +965,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:window.location.reload();">Reload Page</button>
+          <button type="button" class="btn btn-primary manage-reload-page-button" data-dismiss="modal">Reload Page</button>
         </div>
       </div>
     </div>
@@ -690,12 +974,7 @@
 {% endblock %}
 
 {% block footerscripts %}
-<script type="application/javascript">
-    function initDownloadLogs() {
-
-        // Ensure content is remove and loading is hown
-        $("#modal-hosted-file-logs-body").html('<div id="modal-hosted-file-logs-loading" style="text-align: center; margin: 20px;"><i class="fas fa-circle-notch fa-spin fa-2x"></i>&nbsp;&nbsp;Loading...</div>');
-    }
+<script nonce="{{request.csp_nonce}}">
 
     $('#modal-hosted-file-logs').on('shown.bs.modal', function () {
       $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
@@ -787,8 +1066,9 @@
                             var buttonUrl = '{% url "manage:remove-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
 
                             // Return the button to revoke
-                            return '<button type="button" class="btn btn-default btn-xs" ic-post-to="' + buttonUrl +
-                                '" ic-on-success="$(\'#pending-participant-table\').DataTable().draw(false);$(\'#data-use-reporting-participant-table\').DataTable().draw(false);$(\'#participant-table\').DataTable().draw(false);">Revoke access  ' +
+                            return '<button type="button" class="btn btn-default btn-xs manage-participant-change-access-button" ' +
+                                'hx-post="' + buttonUrl + '">' +
+                                'Revoke access  ' +
                                 '<span class="glyphicon glyphicon-ban-circle" ' +
                                 'aria-hidden="true"></span></button>';
 
@@ -798,9 +1078,9 @@
                             var buttonUrl = '{% url "manage:grant-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
 
                             // Return button to approve user
-                            return '<button type="button" class="btn btn-default btn-xs btn-success" ' +
-                                'ic-post-to="' + buttonUrl +
-                                '" ic-on-success="$(\'#pending-participant-table\').DataTable().draw(false);$(\'#data-use-reporting-participant-table\').DataTable().draw(false);$(\'#participant-table\').DataTable().draw(false);">Grant access  ' +
+                            return '<button type="button" class="btn btn-default btn-xs btn-success manage-participant-change-access-button" ' +
+                                'hx-post="' + buttonUrl + '">' +
+                                'Grant access  ' +
                                 '<span class="glyphicon glyphicon-alert" aria-hidden="true"></span>' +
                                 '</button>';
 
@@ -836,18 +1116,20 @@
             ],
             "drawCallback": function( settings ) {
 
-                // Collect all Intercooler links
-                $('#pending-participant-table [ic-get-from], #pending-participant-table [ic-post-to], ' +
-                  '#pending-participant-table [ic-put-to], #pending-participant-table [ic-patch-to], ' +
-                  '#pending-participant-table [ic-delete-from]').each(function() {
+              // Collect all Intercooler links
+              htmx.process(document.querySelector('#pending-participant-table tbody'));
 
-                    // Check attribute
-                    if( !$(this).attr('ic-id') ) {
+              document.querySelectorAll(".manage-participant-change-access-button").forEach((button) => {
 
-                        // Process it
-                        Intercooler.processNodes($(this));
+                  // Add event listener
+                  button.addEventListener("htmx:afterRequest", function(event) {
+
+                    // Check success
+                    if(event.detail.successful) {
+                      reloadParticipantTables();
                     }
-                });
+                  });
+              });
             },
         });
 
@@ -942,8 +1224,9 @@
                             var buttonUrl = '{% url "manage:remove-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
 
                             // Return the button to revoke
-                            return '<button type="button" class="btn btn-default btn-xs" ic-post-to="' + buttonUrl +
-                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);$(\'#pending-participant-table\').DataTable().draw(false);$(\'#data-use-reporting-participant-table\').DataTable().draw(false);">Revoke access  ' +
+                            return '<button type="button" class="btn btn-default btn-xs manage-participant-change-access-button" ' +
+                                'hx-post="' + buttonUrl + '">' +
+                                'Revoke access  ' +
                                 '<span class="glyphicon glyphicon-ban-circle" ' +
                                 'aria-hidden="true"></span></button>';
 
@@ -953,9 +1236,9 @@
                             var buttonUrl = '{% url "manage:grant-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
 
                             // Return button to approve user
-                            return '<button type="button" class="btn btn-default btn-xs btn-success" ' +
-                                'ic-post-to="' + buttonUrl +
-                                '" ic-on-success="$(\'#participant-table\').DataTable().draw(false);$(\'#pending-participant-table\').DataTable().draw(false);$(\'#data-use-reporting-participant-table\').DataTable().draw(false);">Grant access  ' +
+                            return '<button type="button" class="btn btn-default btn-xs btn-success manage-participant-change-access-button" ' +
+                                'hx-post="' + buttonUrl + '">' +
+                                'Grant access  ' +
                                 '<span class="glyphicon glyphicon-alert" aria-hidden="true"></span>' +
                                 '</button>';
 
@@ -972,17 +1255,20 @@
             ],
             "drawCallback": function( settings ) {
 
-                // Collect all Intercooler links
-                $('#participant-table [ic-get-from], #participant-table [ic-post-to], #participant-table [ic-put-to],' +
-                    '#participant-table [ic-patch-to], #participant-table [ic-delete-from]').each(function() {
+              // Collect all Intercooler links
+              htmx.process(document.querySelector('#participant-table tbody'));
 
-                    // Check attribute
-                    if( !$(this).attr('ic-id') ) {
+              document.querySelectorAll(".manage-participant-change-access-button").forEach((button) => {
 
-                        // Process it
-                        Intercooler.processNodes($(this));
+                  // Add event listener
+                  button.addEventListener("htmx:afterRequest", function(event) {
+
+                    // Check success
+                    if(event.detail.successful) {
+                      setTimeout(function() { reloadParticipantTables(); }, 500);
                     }
-                });
+                  });
+              });
             },
         });
 
@@ -1118,8 +1404,9 @@
                           var buttonUrl = '{% url "manage:remove-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
 
                           // Return the button to revoke
-                          return '<button type="button" class="btn btn-default btn-xs" ic-post-to="' + buttonUrl +
-                              '" ic-on-success="$(\'#pending-participant-table\').DataTable().draw(false);$(\'#data-use-reporting-participant-table\').DataTable().draw(false);$(\'#participant-table\').DataTable().draw(false);">Revoke access  ' +
+                          return '<button type="button" class="btn btn-default btn-xs manage-participant-change-access-button" ' +
+                              'hx-post="' + buttonUrl + '">' +
+                              'Revoke access  ' +
                               '<span class="glyphicon glyphicon-ban-circle" ' +
                               'aria-hidden="true"></span></button>';
 
@@ -1129,9 +1416,9 @@
                           var buttonUrl = '{% url "manage:grant-view-permission" project_key=project_key user_email='USER_EMAIL' %}'.replace('USER_EMAIL',  data['email']);
 
                           // Return button to approve user
-                          return '<button type="button" class="btn btn-default btn-xs btn-success" ' +
-                              'ic-post-to="' + buttonUrl +
-                              '" ic-on-success="$(\'#pending-participant-table\').DataTable().draw(false);$(\'#data-use-reporting-participant-table\').DataTable().draw(false);$(\'#participant-table\').DataTable().draw(false);">Grant access  ' +
+                          return '<button type="button" class="btn btn-default btn-xs btn-success manage-participant-change-access-button" ' +
+                              'hx-post="' + buttonUrl + '">' +
+                              'Grant access  ' +
                               '<span class="glyphicon glyphicon-alert" aria-hidden="true"></span>' +
                               '</button>';
 
@@ -1168,16 +1455,18 @@
           "drawCallback": function( settings ) {
 
               // Collect all Intercooler links
-              $('#data-use-reporting-participant-table [ic-get-from], #data-use-reporting-participant-table [ic-post-to], ' +
-                '#data-use-reporting-participant-table [ic-put-to], #data-use-reporting-participant-table [ic-patch-to], ' +
-                '#data-use-reporting-participant-table [ic-delete-from]').each(function() {
+              htmx.process(document.querySelector('#data-use-reporting-participant-table tbody'));
 
-                  // Check attribute
-                  if( !$(this).attr('ic-id') ) {
+              document.querySelectorAll(".manage-participant-change-access-button").forEach((button) => {
 
-                      // Process it
-                      Intercooler.processNodes($(this));
-                  }
+                  // Add event listener
+                  button.addEventListener("htmx:afterRequest", function(event) {
+
+                    // Check success
+                    if(event.detail.successful) {
+                      reloadParticipantTables();
+                    }
+                  });
               });
           },
       });
@@ -1185,22 +1474,18 @@
 </script>
 
 <!-- When clicking a team row, open a new window for team managment -->
-<script type="application/javascript">
-    $(document).ready(function() {
-        $('#team-table').on("click", ".team-row", function() {
-            var team = $(this).data('team');
-            window.open("./" + team + "/");
+<script nonce="{{request.csp_nonce}}">
+  $(document).ready(function() {
+      $('#team-table').on("click", ".team-row", function() {
+          var team = $(this).data('team');
+          window.open("./" + team + "/");
 
-            // Because the user may now delete the team or change its status, mention
-            // that they should refresh the page to see any changes
-            var teamStatus = $(this).find('.team-status-column');
-            teamStatus.html('<span class="label label-default">Refresh to see changes</span>');
-        });
-    });
-</script>
+          // Because the user may now delete the team or change its status, mention
+          // that they should refresh the page to see any changes
+          var teamStatus = $(this).find('.team-status-column');
+          teamStatus.html('<span class="label label-default">Refresh to see changes</span>');
+      });
 
-<!-- Populate the submission info modal with data about the selected submission -->
-<script type="application/javascript">
     $('.view-submission-info').on('click', function() {
         var submission_uuid = $(this).data('submission-uuid');
 
@@ -1213,48 +1498,14 @@
         // Paste the json into the modal and pretty print it
         $('#submission-info-display').html(submission_info_json_prettyprint);
     });
-</script>
+  });
 
-<!-- Populate the edit agreement form modal with the values present in the link -->
-<script type="application/javascript">
-    // $('.edit-agreement-form-button').on('click', function() {
+  function reloadParticipantTables() {
 
-    //     var form_name = $(this).data('form-name');
-    //     var form_short_name = $(this).data('form-short-name');
-    //     var form_description = $(this).data('form-description');
-    //     var form_type = $(this).data('form-type');
-    //     var form_file_location = $(this).data('form-file-location');
-    //     var form_external_link = $(this).data('form-external-link');
-
-    //     $('#edit-agreement-form input[name=agreement-form-name').val(form_name);
-    //     $('#edit-agreement-form input[name=agreement-form-short-name').val(form_short_name);
-    //     $('#edit-agreement-form textarea[name=agreement-form-description').html(form_description);
-    //     $('#edit-agreement-form input[name=agreement-form-html-file').val(form_file_location);        // TODO
-    //     $('#edit-agreement-form input[name=agreement-form-external-link').val(form_external_link);
-
-    //     if (form_type == "STATIC") {
-    //         $('#agreement-form-type-html').prop('checked', true);
-    //         $('#agreement-form-type-external').prop('checked', false);
-
-    //         $('#agreement-form-html-file-block').show();
-    //         $('#agreement-form-external-link-block').hide();
-    //     } else if (form_type == "EXTERNAL_LINK") {
-    //         $('#agreement-form-type-html').prop('checked', false);
-    //         $('#agreement-form-type-external').prop('checked', true);
-
-    //         $('#agreement-form-html-file-block').hide();
-    //         $('#agreement-form-external-link-block').show();
-    //     }
-    // });
-
-    // // Adjust agreement form questions based on form type change
-    // $('#agreement-form-type-html').on('click', function() {
-    //     $('#agreement-form-html-file-block').show();
-    //     $('#agreement-form-external-link-block').hide();
-    // });
-    // $('#agreement-form-type-external').on('click', function() {
-    //     $('#agreement-form-html-file-block').hide();
-    //     $('#agreement-form-external-link-block').show();
-    // });
+    // Force redraw each of the tables
+    $('#pending-participant-table').DataTable().draw(false);
+    $('#data-use-reporting-participant-table').DataTable().draw(false);
+    $('#participant-table').DataTable().draw(false);
+  }
 </script>
 {% endblock %}

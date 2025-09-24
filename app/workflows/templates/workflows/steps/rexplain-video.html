@@ -1,0 +1,40 @@
+{% extends "workflows/step.html" %}
+
+{% block step_body_uninitialized %}
+  <p>Your video will be generated and posted to this step soon. Please wait until you receive a notification that your video is ready.</p>
+{% endblock %}
+
+{% block step_body_current %}
+{{ block.super }}
+{% include "workflows/steps/rexplain-video/video.html" %}
+{% endblock %}
+
+{% block step_body_completed %}
+{{ block.super }}
+{% include "workflows/steps/rexplain-video/video.html" %}
+{% endblock %}
+
+{% block step_body_indefinite %}
+{{ block.super }}
+<div class="alert alert-info" role="alert">
+<p>You have already completed this step but this video will remain available for you to watch here</p>
+</div>
+{% include "workflows/steps/rexplain-video/video.html" %}
+{% endblock %}
+
+{% block step_footer_current %}
+{{ block.super }}
+  <button id="{{ step.step.slug }}-submit" class="btn btn-primary">
+    Next
+    <i class="hx-indicator fa fa-spinner fa-spin workflows-submit-indicator"></i>
+  </button>
+  <script>
+    document.getElementById("{{ step.step.slug }}-submit").addEventListener("click", function(event) {
+      refreshStep(this);
+    });
+  </script>
+{% endblock %}
+
+{% block step_footer_indefinite %}
+{{ block.super }}
+{% endblock %}

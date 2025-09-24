@@ -1,4 +1,5 @@
-from django.urls import re_path
+from django.urls import re_path, path, include
+from rest_framework import routers
 
 from manage.apps import ManageConfig
 from manage.views import DataProjectListManageView
@@ -33,8 +34,14 @@ from manage.api import remove_view_permission
 from manage.api import sync_view_permissions
 from manage.api import export_submissions
 from manage.api import download_submissions_export
+from manage.api import DataProjectWorkflowStateViewSet
+from manage.api import DataProjectFileViewSet
 
 app_name = ManageConfig.name
+
+router = routers.SimpleRouter()
+router.register(r'(?P<data_project_key>[^/]+)/workflow-state', DataProjectWorkflowStateViewSet, basename='dataproject-workflow-state')
+router.register(r'(?P<data_project_key>[^/]+)/file', DataProjectFileViewSet, basename='dataproject-file')
 
 urlpatterns = [
     re_path(r'^$', DataProjectListManageView.as_view(), name='manage-projects'),
@@ -66,6 +73,7 @@ urlpatterns = [
     re_path(r'^get-project-data-use-reporting-participants/(?P<project_key>[^/]+)/$', ProjectDataUseReportParticipants.as_view(), name='get-project-data-use-reporting-participants'),
     re_path(r'^upload-signed-agreement-form/(?P<project_key>[^/]+)/(?P<user_email>[^/]+)/$', UploadSignedAgreementFormView.as_view(), name='upload-signed-agreement-form'),
     re_path(r'^upload-signed-agreement-form-file/(?P<signed_agreement_form_id>[^/]+)/$', UploadSignedAgreementFormFileView.as_view(), name='upload-signed-agreement-form-file'),
+    path('', include(router.urls)),
     re_path(r'^(?P<project_key>[^/]+)/$', DataProjectManageView.as_view(), name='manage-project'),
     re_path(r'^(?P<project_key>[^/]+)/(?P<team_leader>[^/]+)/$', manage_team, name='manage-team'),
 ]

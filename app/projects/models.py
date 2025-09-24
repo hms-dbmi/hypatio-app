@@ -3,6 +3,7 @@ import re
 import importlib
 from datetime import datetime
 from typing import Optional, Tuple
+from collections import defaultdict, deque
 
 import boto3
 from botocore.exceptions import ClientError
@@ -13,8 +14,13 @@ from django.core.exceptions import ValidationError
 from django.db.models import JSONField
 from django.core.files.uploadedfile import UploadedFile
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 import projects
+from hypatio.models import SanitizedTextField
+from workflows.models import Workflow
+from workflows.models import WorkflowDependency
+from workflows.models import WorkflowState
 
 import logging
 logger = logging.getLogger(__name__)
@@ -46,12 +52,14 @@ AGREEMENT_FORM_TYPE_STATIC = 'STATIC'
 AGREEMENT_FORM_TYPE_EXTERNAL_LINK = 'EXTERNAL_LINK'
 AGREEMENT_FORM_TYPE_MODEL = 'MODEL'
 AGREEMENT_FORM_TYPE_FILE = 'FILE'
+AGREEMENT_FORM_TYPE_BLANK = 'BLANK'
 
 AGREEMENT_FORM_TYPE = (
     (AGREEMENT_FORM_TYPE_STATIC, 'STATIC'),
     (AGREEMENT_FORM_TYPE_EXTERNAL_LINK, 'EXTERNAL LINK'),
     (AGREEMENT_FORM_TYPE_MODEL, 'MODEL'),
     (AGREEMENT_FORM_TYPE_FILE, 'FILE'),
+    (AGREEMENT_FORM_TYPE_BLANK, 'BLANK'),
 )
 
 FILE_TYPE_ZIP = "zip"
@@ -266,6 +274,7 @@ class AgreementForm(models.Model):
     template = models.CharField(max_length=300, blank=True, null=True)
     institutional_signers = models.BooleanField(default=False, help_text="Allows institutional signers to sign for their members. This will auto-approve this agreement form for members whose institutional official has had their agreement form approved.")
     form_class = models.CharField(max_length=300, null=True, blank=True)
+    automatic_approval = models.BooleanField(default=False, blank=False, null=False, help_text="Determines if signed agreement forms will be automatically approved by the system.")
 
     handler = models.CharField(max_length=512, null=True, blank=True, help_text="Set an absolute function's path to be called after the SignedAgreementForm has successfully saved")
 
@@ -326,7 +335,7 @@ class DataProject(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name of project", unique=False)
     project_key = models.CharField(max_length=100, blank=True, null=True, verbose_name="Project Key", unique=True)
     institution = models.ForeignKey(Institution, blank=True, null=True, on_delete=models.PROTECT)
-    description = models.TextField(blank=True, null=True, verbose_name="Description")
+    description = SanitizedTextField(blank=True, null=True, verbose_name="Description")
     short_description = models.CharField(max_length=255, blank=True, null=True, verbose_name="Short Description")
 
     # A comma delimited string of email addresses.
@@ -337,6 +346,7 @@ class DataProject(models.Model):
     informational_only = models.BooleanField(default=False, blank=False, null=False, help_text="Set this to true if this project has no registration or participation steps and should only render the description panel. The Registration Open value will be ignored. The Requires Authorization flag should be set to false.")
     registration_open = models.BooleanField(default=False, blank=False, null=False, help_text="Set this to true if you want to allow users without existing permissions on this item to be able to sign up for access.")
     requires_authorization = models.BooleanField(default=True, blank=False, null=False, help_text="Set this to true if you want to explicitly require a user to have VIEW permissions on this project before they can access the project's downloads, uploads, etc.")
+    automatic_authorization = models.BooleanField(default=False, blank=False, null=False, help_text="Set this to true if you want users to automatically be granted VIEW permissions on this project when they complete signup steps and request access. This is only applicable if the project is set to require authorization.")
 
     # Which forms users need to sign before accessing any data.
     agreement_forms = models.ManyToManyField(AgreementForm, blank=True, related_name='data_project_agreement_forms')
@@ -367,7 +377,7 @@ class DataProject(models.Model):
         limit_choices_to={"shares_teams": True, "has_teams": True},
         help_text="Set this to a Data Project from which approved and activated teams should be imported for use in this Data Project. Only Data Projects that are configured to share will be available."
     )
-    teams_source_message = models.TextField(default="Teams approved there will be automatically added to this project but will need still need approval for this project.", blank=True, null=True, verbose_name="Teams Source Message")
+    teams_source_message = SanitizedTextField(default="Teams approved there will be automatically added to this project but will need still need approval for this project.", blank=True, null=True, verbose_name="Teams Source Message")
 
     # Set this to show badging to indicate that only commercial entities should apply for access
     commercial_only = models.BooleanField(default=False, blank=False, null=False, help_text="Commercial only projects are for commercial entities only")
@@ -433,6 +443,138 @@ class DataProject(models.Model):
         if self.teams_source and self.shares_teams:
             raise ValidationError('A Project cannot share teams if it is using shared teams from another project')
 
+    def get_ordered_workflows(self) -> list[Workflow]:
+
+        # Fetch all workflows and their dependencies for the data project
+        workflows = [data_project_workflow.workflow for data_project_workflow in DataProjectWorkflow.objects.filter(data_project=self)]
+        dependencies = WorkflowDependency.objects.filter(workflow__in=workflows)
+
+        # Build graph
+        graph = defaultdict(list)
+        in_degree = {workflow.id: 0 for workflow in workflows}
+
+        for dep in dependencies:
+            graph[dep.depends_on_id].append(dep.workflow_id)
+            in_degree[dep.workflow_id] += 1
+
+        # Kahn's algorithm (topological sort)
+        queue = deque([workflow_id for workflow_id, deg in in_degree.items() if deg == 0])
+        step_map = {workflow.id: workflow for workflow in workflows}
+        ordered = []
+
+        while queue:
+            current = queue.popleft()
+            ordered.append(step_map[current])
+            for neighbor in graph[current]:
+                in_degree[neighbor] -= 1
+                if in_degree[neighbor] == 0:
+                    queue.append(neighbor)
+
+        if len(ordered) != len(workflows):
+            raise Exception("Cycle detected in workflow dependencies.")
+
+        return ordered
+
+    def get_ordered_workflow_states(self, user) -> list[WorkflowState]:
+        """
+        Returns an ordered list of all WorkflowState objects that map to the
+        Workflow objects returned in `get_ordered_workflows`.
+        """
+        # Get workflows
+        workflows = self.get_ordered_workflows()
+
+        # Get workflow states
+        workflow_states = WorkflowState.objects.filter(workflow__in=workflows, user=user)
+
+        # Order them and return them
+        ordered_workflow_states = []
+        for workflow in workflows:
+
+            # Get matching workflow state
+            ordered_workflow_states.append(next((w for w in workflow_states if w.workflow == workflow), None))
+
+        return ordered_workflow_states
+
+    def get_or_create_workflow_state(self, workflow, user) -> tuple[WorkflowState, bool]:
+        """
+        Fetches or creates a WorkflowState object for the given Workflow and User.
+        Returns the WorkflowState object and a bool indicating whether it was
+        created or not.
+        """
+        # Track creation
+        created = False
+
+        # Attempt to fetch it.
+        workflow_state = next((w for w in self.get_ordered_workflow_states(user) if w is not None and w.workflow == workflow), None)
+        if not workflow_state:
+
+            # Create it.
+            workflow_state = WorkflowState.objects.create(
+                workflow=workflow,
+                user=user,
+            )
+
+            # Track it
+            created = True
+
+        return workflow_state, created
+
+    def set_workflow_states(self, user) -> list[WorkflowState]:
+        """
+        Iterates Workflows assigned to this DataProject and fetches or creates
+        each of the WorkflowState objects for the current user.
+        """
+        # Get ordered workflows
+        workflows = self.get_ordered_workflows()
+        if not workflows:
+            return []
+
+        # Keep a list
+        workflow_states = []
+
+        # Iterate Workflows
+        for index, workflow in enumerate(workflows):
+
+            # Check for a workflow state for each workflow.
+            workflow_state, created = self.get_or_create_workflow_state(workflow, user)
+            if created:
+
+                # Determine status by checking the dependent workflows
+                status = WorkflowState.Status.Current.value
+                for workflow in workflow.get_dependencies():
+
+                    # Get the matching WorkflowState
+                    workflow_state_dependency = next((w for w in workflow_states if w.workflow == workflow), None)
+                    if workflow_state_dependency.status != WorkflowState.Status.Completed.value:
+                        status = WorkflowState.Status.Pending.value
+
+                # Update it
+                workflow_state.status = status
+                workflow_state.started_at = timezone.now() if status == WorkflowState.Status.Current.value else None
+                workflow_state.save()
+
+            # Add it
+            workflow_states.append(workflow_state)
+
+        return workflow_states
+
+class DataProjectWorkflow(models.Model):
+    """
+    This represents a workflow that is associated with a DataProject.
+    """
+
+    data_project = models.ForeignKey(DataProject, on_delete=models.CASCADE, related_name='workflows')
+    workflow = models.ForeignKey("workflows.Workflow", on_delete=models.CASCADE, related_name='data_project_workflows')
+    requires_approval = models.BooleanField(default=False, help_text="Set this to true if this workflow requires approval before it can be marked as completed. This is used to determine if the workflow should be shown to users who have not yet been authorized for the project.")
+    post_authorization = models.BooleanField(default=False, help_text="Set this to true if this workflow is intended for post-authorization dashboards. This will be used to determine if the workflow should be shown to users who have not yet been authorized for the project.")
+    is_repeatable = models.BooleanField(default=False, help_text="Set this to true if this workflow can be repeated by users. This is used to determine if the workflow should be shown to users who have already completed it.")
+
+    # Meta
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('data_project', 'workflow',)
 
 
 class InstitutionalOfficial(models.Model):
@@ -441,7 +583,7 @@ class InstitutionalOfficial(models.Model):
     """
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     project = models.ForeignKey(DataProject, on_delete=models.PROTECT)
-    institution = models.TextField(null=False, blank=False)
+    institution = SanitizedTextField(null=False, blank=False)
     signed_agreement_form = models.ForeignKey("SignedAgreementForm", on_delete=models.PROTECT)
     member_emails = models.JSONField(null=False, blank=False, editable=True)
 
@@ -476,7 +618,7 @@ class SignedAgreementForm(models.Model):
     agreement_form = models.ForeignKey(AgreementForm, on_delete=models.PROTECT)
     project = models.ForeignKey(DataProject, on_delete=models.PROTECT)
     date_signed = models.DateTimeField(auto_now_add=True)
-    agreement_text = models.TextField(null=True, blank=True)
+    agreement_text = SanitizedTextField(null=True, blank=True)
     status = models.CharField(max_length=1, null=False, blank=False, default='P', choices=SIGNED_FORM_STATUSES)
     upload = models.FileField(null=True, blank=True, validators=[validate_pdf_file], upload_to=signed_agreement_form_path)
     fields = JSONField(null=True, blank=True)
@@ -735,7 +877,7 @@ class ChallengeTask(models.Model):
     submission_form_file_path = models.CharField(max_length=300, blank=True, null=True)
 
     # Optional HTML content to be displayed along with submission upload for instructions on upload preparation
-    submission_instructions = models.TextField(blank=True, null=True)
+    submission_instructions = SanitizedTextField(blank=True, null=True)
 
     # If blank, allow infinite submissions
     max_submissions = models.IntegerField(default=1, blank=True, null=True, help_text="Leave blank if you want there to be no cap.")
@@ -780,7 +922,7 @@ class ChallengeTaskSubmission(models.Model):
     upload_date = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(null=False, unique=True, primary_key=True, default=None)
     location = models.CharField(max_length=12, default=None, blank=True, null=True)
-    submission_info = models.TextField(default=None, blank=True, null=True)
+    submission_info = SanitizedTextField(default=None, blank=True, null=True)
     deleted = models.BooleanField(default=False)
     file_type = models.CharField(max_length=15, default=FILE_TYPE_ZIP, choices=FILES_TYPES)
 
@@ -817,7 +959,7 @@ class Group(models.Model):
 
     key = models.CharField(max_length=100, blank=False, null=False, unique=True)
     title = models.CharField(max_length=255, blank=False, null=False)
-    description = models.TextField(blank=True)
+    description = SanitizedTextField(blank=True)
     navigation_title = models.CharField(max_length=20, blank=True, null=True)
     parent = models.ForeignKey("Group", on_delete=models.PROTECT, blank=True, null=True)
 
@@ -830,180 +972,3 @@ class Group(models.Model):
 
     def active_project_child_groups(self):
         return self.group_set.filter(dataproject__isnull=False, dataproject__visible=True).distinct()
-
-################################################################################
-# Deprecated models
-################################################################################
-
-
-class MIMIC3SignedAgreementFormFields(models.Model):
-
-    signed_agreement_form = models.ForeignKey(SignedAgreementForm, on_delete=models.CASCADE)
-    email = models.CharField(max_length=255)
-
-    # Meta
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = 'MIMIC3 Signed Agreement Form Fields'
-        verbose_name_plural = 'MIMIC3 Signed Agreement Forms Fields'
-
-
-class ROCSignedAgreementFormFields(models.Model):
-
-    signed_agreement_form = models.ForeignKey(SignedAgreementForm, on_delete=models.CASCADE)
-
-    # All DUAs
-    day = models.CharField(max_length=2, null=True, blank=True)
-    month = models.CharField(max_length=20, null=True, blank=True)
-    year = models.CharField(max_length=4, null=True, blank=True)
-
-    # N2C2-t1 ROC
-    e_signature = models.CharField(max_length=255, null=True, blank=True)
-    organization = models.CharField(max_length=255, null=True, blank=True)
-
-    # Meta
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-    class Meta:
-        verbose_name = 'ROC signed agreement form fields'
-        verbose_name_plural = 'ROC signed agreement form fields'
-
-class DUASignedAgreementFormFields(models.Model):
-
-    signed_agreement_form = models.ForeignKey(SignedAgreementForm, on_delete=models.CASCADE)
-
-    # All DUAs
-    day = models.CharField(max_length=2, null=True, blank=True)
-    month = models.CharField(max_length=20, null=True, blank=True)
-    year = models.CharField(max_length=4, null=True, blank=True)
-
-    # N2C2-T1 DUA
-    person_name = models.CharField(max_length=1024, null=True, blank=True)
-    institution = models.CharField(max_length=255, null=True, blank=True)
-    address = models.TextField(null=True, blank=True)
-    city = models.CharField(max_length=255, null=True, blank=True)
-    state = models.CharField(max_length=255, null=True, blank=True)
-    zip = models.CharField(max_length=255, null=True, blank=True)
-    country = models.CharField(max_length=255, null=True, blank=True)
-    person_phone = models.CharField(max_length=255, null=True, blank=True)
-    person_email = models.CharField(max_length=255, null=True, blank=True)
-    place_of_business = models.CharField(max_length=255, null=True, blank=True)
-    contact_name = models.CharField(max_length=1024, null=True, blank=True)
-    business_phone = models.CharField(max_length=255, null=True, blank=True)
-    business_email = models.CharField(max_length=255, null=True, blank=True)
-    electronic_signature = models.CharField(max_length=255, null=True, blank=True)
-    professional_title = models.CharField(max_length=255, null=True, blank=True)
-    date = models.CharField(max_length=255, null=True, blank=True)
-    i_agree = models.CharField(max_length=10, null=True, blank=True)
-
-    # Meta
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-    class Meta:
-        verbose_name = 'DUA signed agreement form fields'
-        verbose_name_plural = 'DUA signed agreement form fields'
-
-class MAYOSignedAgreementFormFields(models.Model):
-
-    signed_agreement_form = models.ForeignKey(SignedAgreementForm, on_delete=models.CASCADE)
-
-    # All DUAs
-    day = models.CharField(max_length=2, null=True, blank=True)
-    month = models.CharField(max_length=20, null=True, blank=True)
-    year = models.CharField(max_length=4, null=True, blank=True)
-
-    # Mayo DUA
-    institution = models.CharField(max_length=255, null=True, blank=True)
-    pi_name = models.CharField(max_length=1024, null=True, blank=True)
-    i_agree = models.CharField(max_length=3, null=True, blank=True)
-    recipient_institution = models.CharField(max_length=1024, null=True, blank=True)
-    recipient_by = models.CharField(max_length=255, null=True, blank=True)
-    recipient_its = models.CharField(max_length=255, null=True, blank=True)
-    recipient_attn = models.CharField(max_length=255, null=True, blank=True)
-    recipient_phone = models.CharField(max_length=255, null=True, blank=True)
-    recipient_fax = models.CharField(max_length=1024, null=True, blank=True)
-
-    # Meta
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-    class Meta:
-        verbose_name = 'Mayo DUA signed agreement form fields'
-        verbose_name_plural = 'Mayo DUA signed agreement form fields'
-
-class NLPWHYSignedAgreementFormFields(models.Model):
-
-    signed_agreement_form = models.ForeignKey(SignedAgreementForm, on_delete=models.CASCADE)
-
-    # All DUAs
-    day = models.CharField(max_length=2, null=True, blank=True)
-    month = models.CharField(max_length=20, null=True, blank=True)
-    year = models.CharField(max_length=4, null=True, blank=True)
-
-    # NLP Research Purpose
-    research_use = models.TextField(null=True, blank=True)
-
-    # Meta
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-    class Meta:
-        verbose_name = 'NLP Research Purpose signed agreement form fields'
-        verbose_name_plural = 'NLP Research Purpose signed agreement form fields'
-
-class NLPDUASignedAgreementFormFields(models.Model):
-
-    signed_agreement_form = models.ForeignKey(SignedAgreementForm, on_delete=models.CASCADE)
-
-    # All DUAs
-    day = models.CharField(max_length=2, null=True, blank=True)
-    month = models.CharField(max_length=20, null=True, blank=True)
-    year = models.CharField(max_length=4, null=True, blank=True)
-
-    # NLP DUA
-    form_type = models.CharField(max_length=255, null=True, blank=True)
-    data_user = models.CharField(max_length=255, null=True, blank=True)
-    individual_name = models.CharField(max_length=255, null=True, blank=True)
-    individual_professional_title = models.CharField(max_length=255, null=True, blank=True)
-    individual_address_1 = models.TextField(null=True, blank=True)
-    individual_address_2 = models.TextField(null=True, blank=True)
-    individual_address_city = models.CharField(max_length=255, null=True, blank=True)
-    individual_address_state = models.CharField(max_length=255, null=True, blank=True)
-    individual_address_zip = models.CharField(max_length=255, null=True, blank=True)
-    individual_address_country = models.CharField(max_length=255, null=True, blank=True)
-    individual_phone = models.CharField(max_length=255, null=True, blank=True)
-    individual_fax = models.CharField(max_length=255, null=True, blank=True)
-    individual_email = models.CharField(max_length=255, null=True, blank=True)
-    corporation_place_of_business = models.CharField(max_length=255, null=True, blank=True)
-    corporation_contact_name = models.CharField(max_length=255, null=True, blank=True)
-    corporation_phone = models.CharField(max_length=255, null=True, blank=True)
-    corporation_fax = models.CharField(max_length=255, null=True, blank=True)
-    corporation_email = models.CharField(max_length=255, null=True, blank=True)
-    research_team_person_1 = models.CharField(max_length=1024, null=True, blank=True)
-    research_team_person_2 = models.CharField(max_length=1024, null=True, blank=True)
-    research_team_person_3 = models.CharField(max_length=1024, null=True, blank=True)
-    research_team_person_4 = models.CharField(max_length=1024, null=True, blank=True)
-    data_user_signature = models.CharField(max_length=255, null=True, blank=True)
-    data_user_name = models.CharField(max_length=255, null=True, blank=True)
-    data_user_title = models.CharField(max_length=255, null=True, blank=True)
-    data_user_address_1 = models.TextField(null=True, blank=True)
-    data_user_address_2 = models.TextField(null=True, blank=True)
-    data_user_address_city = models.CharField(max_length=255, null=True, blank=True)
-    data_user_address_state = models.CharField(max_length=255, null=True, blank=True)
-    data_user_address_zip = models.CharField(max_length=255, null=True, blank=True)
-    data_user_address_country = models.CharField(max_length=255, null=True, blank=True)
-    data_user_date = models.CharField(max_length=255, null=True, blank=True)
-    registrant_is = models.CharField(max_length=255, null=True, blank=True)
-    commercial_registrant_is = models.CharField(max_length=255, null=True, blank=True)
-    data_user_acknowledge = models.CharField(max_length=3, null=True, blank=True)
-    partners_name = models.CharField(max_length=255, null=True, blank=True)
-    partners_title = models.CharField(max_length=255, null=True, blank=True)
-    partners_address = models.TextField(null=True, blank=True)
-    partners_date = models.CharField(max_length=255, null=True, blank=True)
-
-    # Meta
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-    class Meta:
-        verbose_name = 'NLP DUA signed agreement form fields'
-        verbose_name_plural = 'NLP DUA signed agreement form fields'

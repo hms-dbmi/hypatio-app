@@ -1,0 +1,45 @@
+<div id="workflow-{{ workflow.workflow.slug }}-content" class="workflow-content workflow-status-{{ workflow.status }}" data-workflow-state-status="{{ workflow.status }}">
+  <div class="panel panel-primary workflow-panel">
+    <div class="panel-heading">
+      <a class="workflow-panel-heading-link {{ workflow.status }}" role="button" data-toggle="collapse" data-parent="#workflows-accordian" href="#workflow-{{ workflow.id }}-collapse" aria-expanded="false" aria-controls="workflow-{{ workflow.id }}-collapse">
+        <h2 id="workflow-{{ workflow.id }}-panel-title" class="panel-title">
+          {{ workflow.workflow.name }}
+          {% if workflow.status == WorkflowStateStatus.Completed.value %}&nbsp;&nbsp;<span class="glyphicon glyphicon-check workflow-step-panel-title-icon-checked"></span>{% endif %}
+        </h2>
+      </a>
+    </div>
+    <div id="workflow-{{ workflow.id }}-collapse" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="workflow-{{ workflow.id }}-panel-heading">
+      <div class="panel-body">
+        <div class="workflow-description">
+          <p>{{ workflow.workflow.description }}</p>
+        </div>
+        <div class="workflow-steps-container">
+          <div class="panel-group" id="workflow-{{ workflow.id }}-steps-accordion" role="tablist" aria-multiselectable="true">
+          {% if workflow.status == WorkflowStateStatus.Pending.value %}
+            <p>Please finish dependent workflows.</p>
+          {% else %}
+            {% for step in steps %}
+            <div id="workflow-step-{{ step.step.slug }}-container"
+            class="workflow-step-container"
+            hx-get="{% if admin %}{% url 'workflows:v1:admin-step-state-detail' pk=step.id %}{% else %}{% url 'workflows:v1:step-state-detail' pk=step.id %}{% endif %}"
+            {% if not step.get_dependencies %}
+            hx-trigger="load,refresh-step"></div>
+            {% else %}
+            hx-trigger="load,path-deps,refresh-step"
+            path-deps="{% for dependency in step.get_dependencies %}{% if admin %}{% url 'workflows:v1:admin-step-state-detail' pk=dependency.id %}{% else %}{% url 'workflows:v1:step-state-detail' pk=dependency.id %}{% endif %}{% if not forloop.last %},{% endif %}{% endfor %}">
+            </div>
+            <script>
+              // Stop 'path-deps' event from bubbling up to the workflow, forcing a refresh of everything
+              document.getElementById("workflow-step-{{ step.step.slug }}-container").addEventListener("path-deps", function(event) {
+                event.stopPropagation();
+              });
+            </script>
+            {% endif %}
+            {% endfor %}
+          {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

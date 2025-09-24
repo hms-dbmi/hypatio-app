@@ -18,8 +18,14 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.core.files.storage import default_storage
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 
 from hypatio.auth0authenticate import user_auth_and_jwt
+from hypatio.auth import DataProjectManagerPermission
+from hypatio.serializers import UserSerializer
 
 from contact.views import email_send
 from hypatio.sciauthz_services import SciAuthZ
@@ -27,6 +33,8 @@ from hypatio.scireg_services import get_names
 from hypatio.file_services import host_file
 from manage.forms import EditHostedFileForm
 from manage.forms import HostSubmissionForm
+from manage.serializers import DataProjectWorkflowSerializer
+from manage.serializers import DataProjectWorkflowStateSerializer
 from manage.utils import zip_submission_file
 from projects.templatetags import projects_extras
 
@@ -42,6 +50,7 @@ from projects.models import TeamComment
 from projects.serializers import HostedFileSerializer, HostedFileDownloadSerializer
 from projects.models import AGREEMENT_FORM_TYPE_MODEL, AGREEMENT_FORM_TYPE_FILE
 from projects.models import InstitutionalOfficial
+from workflows.api import WorkflowStateViewSet
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -1351,3 +1360,68 @@ def sync_view_permissions(request, project_key):
             participant.save()
 
     return HttpResponse(status=200)
+
+
+class DataProjectWorkflowStateViewSet(WorkflowStateViewSet):
+    """
+    An API view that returns the WorkflowState objects for a DataProject.
+    """
+
+    permission_classes = [DataProjectManagerPermission]
+    serializer_class = DataProjectWorkflowStateSerializer
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+
+        # Set administration mode
+        self.is_administration = True
+
+    def get_queryset(self):
+        self.check_object_permissions(self.request, self.kwargs['data_project_key'])
+
+        # Get super's queryset
+        queryset = super().get_queryset()
+
+        # Filter Workflows for the given DataProject.
+        return queryset.filter(workflow__data_project_workflows__data_project__project_key=self.kwargs['data_project_key'])
+
+
+class DataProjectFileViewSet(viewsets.ViewSet):
+    """
+    An API view that manages files for the DataProject.
+    """
+
+    permission_classes = [DataProjectManagerPermission]
+
+    def retrieve(self, request, data_project_key=None, file_uuid=None):
+        """
+        Returns a file download URL for the given DataProject and file UUID.
+        """
+        self.check_object_permissions(request, data_project_key)
+
+        # Get the file download URL
+        file = fileservice.get_archivefile(file_uuid)
+
+        return Response(file, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='download')
+    def download(self, request, data_project_key=None, pk=None):
+        """
+        Downloads a file for the given DataProject and file UUID.
+        """
+        self.check_object_permissions(request, data_project_key)
+
+        # Get the file download URL
+        url = fileservice.get_archivefile_download_url(pk)
+        filename = fileservice.get_archivefile(pk)["filename"]
+
+        # Prepare the parts
+        protocol = urlparse(url).scheme
+        path = urllib.parse.quote_plus(url.replace(protocol + '://', ''))
+
+        # Let NGINX handle it
+        response = HttpResponse()
+        response['X-Accel-Redirect'] = '/proxy/' + protocol + '/' + path
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        return response

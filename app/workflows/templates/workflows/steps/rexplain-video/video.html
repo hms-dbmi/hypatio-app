@@ -1,0 +1,126 @@
+<div class="step-video-container">
+  <video id="step-{{ step.step.id }}-video" class="video-js">
+    <source src="{{ video_url }}" type="video/mp4" />
+    <p class="vjs-no-js">
+      To view this video please enable JavaScript, and consider upgrading to a
+      web browser that
+      <a href="https://videojs.com/html5-video-support/" target="_blank">
+        supports HTML5 video
+      </a>
+    </p>
+  </video>
+</div>
+<script nonce="{{request.csp_nonce}}">
+$(function(){
+
+  // Add a random string to the video element's ID to prevent issues
+  // when reloading the component as videojs will not reinitialize a video
+  // element with the same ID.
+  var videoElementId = 'step-{{ step.step.id }}-video';
+  var videoElement = document.getElementById(videoElementId);
+  videoElement.id = `${videoElementId}-${generateRandomString(5)}`;
+  var player = videojs(videoElement.id, {
+    controls: true,
+    autoplay: false,
+    preload: 'auto',
+    fluid: true,
+    plugins: {
+      // Add any plugins you want to use here
+    }
+  });
+
+  function saveEvent(event, data) {
+
+    // Set the object tracking the event
+    var trackingEvent = {
+      event: event,
+      timestamp: Date.now(),
+      data: data
+    };
+
+    fetch('{% url "workflows:v1:step-state-data" pk=step.id %}', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({"video-tracking-event": trackingEvent})
+    }).then(response => {
+      if(!response.ok){
+        throw new Error('Request failed!');
+      }
+    }, networkError => {
+      console.log(networkError.message);
+    })
+  }
+
+  player.eventTracking({
+    performance: function(data) {
+
+      // Save it
+      saveEvent('tracking:performance', data);
+    }
+  });
+
+  player.on('tracking:firstplay', function(e, data) {
+
+      // Save it
+      saveEvent(e.type, data);
+  });
+
+  player.on('error', function(e) {
+    console.log(e.type, { message: e.message });
+
+      // Save it
+      saveEvent("error", data);
+  });
+
+  player.on('tracking:play', function(e, data) {
+
+      // Save it
+      saveEvent(e.type, data);
+  });
+
+  player.on('tracking:pause', function(e, data) {
+
+      // Save it
+      saveEvent(e.type, data);
+  });
+
+  player.on('tracking:first-quarter', function(e, data) {
+
+      // Save it
+      saveEvent(e.type, data);
+  });
+
+  player.on('tracking:second-quarter', function(e, data) {
+
+      // Save it
+      saveEvent(e.type, data);
+  });
+
+  player.on('tracking:third-quarter', function(e, data) {
+
+      // Save it
+      saveEvent(e.type, data);
+  });
+
+  player.on('tracking:fourth-quarter', function(e, data) {
+
+      // Save it
+      saveEvent(e.type, data);
+  });
+
+  player.on('tracking:buffered', function(e, data) {
+
+      // Save it
+      saveEvent(e.type, data);
+  });
+
+  player.on('tracking:seek', function(e, data) {
+
+      // Save it
+      saveEvent(e.type, data);
+  });
+});
+</script>

@@ -18,6 +18,7 @@ from os.path import normpath, join, dirname, abspath
 from dbmi_client import environment
 from dbmi_client import reporting
 from dbmi_client.logging import config
+from csp.constants import NONCE, SELF
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -59,10 +60,23 @@ INSTALLED_APPS = [
     'django_jsonfield_backport',
     'django_q',
     'django_ses',
+    'crispy_forms',
+    'crispy_bootstrap3',
+    'polymorphic',
     'pdf',
+    'workflows',
+    'rest_framework',
+    'csp',
 ]
 
+# Enable development apps if running in development mode
+if DEBUG:
+    INSTALLED_APPS += [
+        'django_extensions',
+    ]
+
 MIDDLEWARE = [
+    'csp.middleware.CSPMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -209,6 +223,23 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 ##########
 
 #####################################################################################
+# Crispy Forms Configurations
+#####################################################################################
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = ("bootstrap3", "maida-forms", )
+CRISPY_TEMPLATE_PACK = "bootstrap3"
+
+##########
+
+#####################################################################################
+# Data Project Configurations
+#####################################################################################
+
+MAIDA_UPLOAD_QUESTIONNAIRE_URL = environment.get_str('MAIDA_UPLOAD_QUESTIONNAIRE_URL', required=True)
+
+##########
+
+#####################################################################################
 # DBMI Client Configurations
 #####################################################################################
 
@@ -235,6 +266,16 @@ DBMI_CLIENT_CONFIG = {
 
     # Misc
     'DRF_OBJECT_OWNER_KEY': 'email',
+}
+
+#####################################################################################
+
+#####################################################################################
+# Django Rest Framework Configurations
+#####################################################################################
+
+REST_FRAMEWORK = {
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning'
 }
 
 #####################################################################################
@@ -326,5 +367,68 @@ LOGGING = config('HYPATIO', root_level=logging.DEBUG, logger_levels={
     "s3transfer": "INFO",
     "urllib3": "INFO",
 })
+
+#####################################################################################
+
+#####################################################################################
+# CSP settings
+#####################################################################################
+
+CONTENT_SECURITY_POLICY = {
+    "EXCLUDE_URL_PREFIXES": ["/excluded-path/"],
+    "DIRECTIVES": {
+        "default-src": [
+            SELF,
+        ],
+        "font-src": [
+            SELF,
+            "data:",
+            "fonts.gstatic.com",
+            "cdn.jsdelivr.net",
+        ],
+        "script-src": [
+            SELF,
+            NONCE,
+            "www.googletagmanager.com",
+            "www.gstatic.com",
+            "vjs.zencdn.net",
+            "www.google.com",
+            "cdn.jsdelivr.net",
+            "code.jquery.com",
+            "unpkg.com",
+            "cdnjs.cloudflare.com",
+        ],
+        "style-src": [
+            SELF,
+            NONCE,
+            "fonts.googleapis.com",
+            "vjs.zencdn.net",
+            "www.google.com",
+            "cdn.jsdelivr.net",
+            "code.jquery.com",
+        ],
+        "frame-src": [
+            SELF,
+            "www.google.com",
+            "*.s3.amazonaws.com",
+        ],
+        "img-src": [
+            SELF,
+            "www.googletagmanager.com",
+        ],
+        "connect-src": [
+            SELF,
+            "www.google.com",
+            "*.s3.amazonaws.com",
+        ],
+        "media-src": [
+            SELF,
+            "*.s3.amazonaws.com",
+        ],
+        "frame-ancestors": [SELF],
+        "form-action": [SELF],
+        "report-uri": "/csp-report/",
+    },
+}
 
 #####################################################################################

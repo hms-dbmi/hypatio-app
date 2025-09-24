@@ -1,3 +1,168 @@
+# [1.3.0-rc.20](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.19...v1.3.0-rc.20) (2025-09-24)
+
+
+### Features
+
+* **projects:** Allowed SignedAgreementForms to be auto-approved; fixed some ReXplain media type configurations ([8afd2ca](https://github.com/hms-dbmi/hypatio-app/commit/8afd2cacafbc5c06e6515d50cf74f083a13c7aa0))
+
+# [1.3.0-rc.19](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.18...v1.3.0-rc.19) (2025-09-12)
+
+
+### Bug Fixes
+
+* **manage:** Fixed some inline styles in viewing signed agreement forms; added consent for ReXplain ([9c34d6f](https://github.com/hms-dbmi/hypatio-app/commit/9c34d6f55ab1fde344f663841ee41e7cabf085ba))
+
+# [1.3.0-rc.18](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.17...v1.3.0-rc.18) (2025-08-09)
+
+
+### Bug Fixes
+
+* **projects:** Uses Django reverse utility for redirect URLs ([7307ab8](https://github.com/hms-dbmi/hypatio-app/commit/7307ab831d28b830969fca46da4dbbbd10506d01))
+
+# [1.3.0-rc.17](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.16...v1.3.0-rc.17) (2025-08-08)
+
+
+### Bug Fixes
+
+* **manage:** Removed references to removed view ([0e05552](https://github.com/hms-dbmi/hypatio-app/commit/0e05552f535833c99ca7e521ebd48937c236d1ba))
+
+# [1.3.0-rc.16](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.15...v1.3.0-rc.16) (2025-08-08)
+
+
+### Bug Fixes
+
+* **workflows:** Fixed bug where all steps would refresh when only needing one to refresh ([0199e0b](https://github.com/hms-dbmi/hypatio-app/commit/0199e0bce16496f47a0f32f2931462b5e44df36e))
+* **workflows:** Fixed some bugs in how workflows and their steps are refreshed ([6740d0e](https://github.com/hms-dbmi/hypatio-app/commit/6740d0e198f95bc073457840daddc95212f157ef))
+
+
+### Features
+
+* **manage:** Set to open Workflows in modal view ([11c87c0](https://github.com/hms-dbmi/hypatio-app/commit/11c87c0facd185db9dd678b77af3a72506611534))
+
+# [1.3.0-rc.15](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.14...v1.3.0-rc.15) (2025-08-06)
+
+
+### Bug Fixes
+
+* **profile:** Removed test code ([2211821](https://github.com/hms-dbmi/hypatio-app/commit/22118214d4daa2eaa69233a8cd08407401f78a8a))
+
+# [1.3.0-rc.14](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.13...v1.3.0-rc.14) (2025-08-06)
+
+
+### Bug Fixes
+
+* **workflows:** Fixed event name ([9c4a188](https://github.com/hms-dbmi/hypatio-app/commit/9c4a188682a05570e21ac1d8a29ba49aa4ed1ced))
+
+# [1.3.0-rc.13](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.12...v1.3.0-rc.13) (2025-08-06)
+
+
+### Bug Fixes
+
+* **all:** Setup subclasses of form/model inputs that use NH3 to sanitize user input and remove dangerous entities ([d70a0ee](https://github.com/hms-dbmi/hypatio-app/commit/d70a0ee07dc64b4679537bb9a174fecccd340fe2))
+* **all:** Tightened CSP by removing all inline scripts/styles; migrated Intercooler to HTMX 2 ([3666d4d](https://github.com/hms-dbmi/hypatio-app/commit/3666d4d460da2eda3578194a9c2697b52f18d1b3))
+* **hypatio:** Enabled logging of CSP violations ([6b4c7bb](https://github.com/hms-dbmi/hypatio-app/commit/6b4c7bb0951ef41698a4d1341fcd4fed0a63ee81))
+* **profile:** Refactored profile workflow to protect uneditable properties of a user's profile ([bdc8ff6](https://github.com/hms-dbmi/hypatio-app/commit/bdc8ff6f4156e35c8076624d2a9272edb6fdbe89))
+* **projects/manage:** Migrated server-side initiated notifications from Intercooler response headers to HTMX event triggers ([55bb298](https://github.com/hms-dbmi/hypatio-app/commit/55bb29897e8dbc1041d5b7b462bdaf20e83ffed3))
+* **templates:** Refactored base template to simplify; updated FontAwesome ([6dc6f9e](https://github.com/hms-dbmi/hypatio-app/commit/6dc6f9ecd8d0fd02c9024888d4dddd103f8ba3b1))
+
+
+### Features
+
+* **csp:** Adding packages for sanitization of user inputs and CSP policy ([a1e9d02](https://github.com/hms-dbmi/hypatio-app/commit/a1e9d02608f3d9440ed8e8e9bc839f3497a458f4))
+
+# [1.3.0-rc.12](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.11...v1.3.0-rc.12) (2025-07-22)
+
+
+### Features
+
+* **workflows:** Implemented process for step rejections ([b59059f](https://github.com/hms-dbmi/hypatio-app/commit/b59059f651c7bd53cc22a5ba70284ae4e6e400d7))
+
+# [1.3.0-rc.11](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.10...v1.3.0-rc.11) (2025-07-11)
+
+
+### Bug Fixes
+
+* **workflows:** Fixed permission check for administrators, again ([dd04760](https://github.com/hms-dbmi/hypatio-app/commit/dd04760e224ec530b5d34669763d2c729f728d08))
+
+# [1.3.0-rc.10](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.9...v1.3.0-rc.10) (2025-07-11)
+
+
+### Bug Fixes
+
+* **workflows:** Fixed permission check for administrators ([1eef4ea](https://github.com/hms-dbmi/hypatio-app/commit/1eef4eabaf49f06430faa042ab6032455f8028d6))
+
+# [1.3.0-rc.9](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.8...v1.3.0-rc.9) (2025-07-10)
+
+
+### Bug Fixes
+
+* **hypatio:** Added auth module ([597627e](https://github.com/hms-dbmi/hypatio-app/commit/597627e13e8f361cb4affbce01e2e73dc7b0283a))
+
+# [1.3.0-rc.8](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.7...v1.3.0-rc.8) (2025-07-10)
+
+
+### Bug Fixes
+
+* **manage:** Removed unused API views ([d004eb4](https://github.com/hms-dbmi/hypatio-app/commit/d004eb4da1bcffb32c283e67b7a4778ba3ce58af))
+* **workflows:** Fixed and improved Workflow rendering process; fixed Workflow dependency updates ([e51eb6b](https://github.com/hms-dbmi/hypatio-app/commit/e51eb6b6654c4304016dad94c701a3736a8e246b))
+
+
+### Features
+
+* **projects/manage:** Added preliminary admin dashboard support for workflows ([54630bd](https://github.com/hms-dbmi/hypatio-app/commit/54630bd812cd15cc4656d2f9d71e70dc3173d84d))
+* **settings:** Added django-extensions for debugging ([df35e68](https://github.com/hms-dbmi/hypatio-app/commit/df35e6891ce2f37aceea71c5510b31c474f2aa56))
+* **workflows:** Added administration views; added review/initialization routines ([807aea4](https://github.com/hms-dbmi/hypatio-app/commit/807aea4f27b67173ee6de0083942c4edffe8ec44))
+* **workflows:** Filled out API; improved initialization/review processes; improved administrator views ([718a718](https://github.com/hms-dbmi/hypatio-app/commit/718a718223caf4231637e51567b6258669a04c38))
+
+# [1.3.0-rc.7](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.6...v1.3.0-rc.7) (2025-06-13)
+
+
+### Features
+
+* **workflows:** Added workflow dependencies; fixed some of the initialization of a workflow state; updated UI elements in a workflow ([7a04b00](https://github.com/hms-dbmi/hypatio-app/commit/7a04b00312d2c97915e7932605bb911bb1911ea8))
+
+# [1.3.0-rc.6](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.5...v1.3.0-rc.6) (2025-06-10)
+
+
+### Features
+
+* **workflows:** Added workflows app with an implementation for the MAIDA workflow ([ccf3440](https://github.com/hms-dbmi/hypatio-app/commit/ccf3440df84b3f3f53d4ee5d2dfebb1b434c31c7))
+
+# [1.3.0-rc.5](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.4...v1.3.0-rc.5) (2025-05-23)
+
+
+### Bug Fixes
+
+* **projects:** Altered wording on requesting access when automated authorization is enabled for a project ([568395d](https://github.com/hms-dbmi/hypatio-app/commit/568395d6ddfc3ed56299574edaef1634fc8a0ad9))
+
+# [1.3.0-rc.4](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.3...v1.3.0-rc.4) (2025-05-22)
+
+
+### Bug Fixes
+
+* **projects:** Fixed premature creation of Participant for Qualtrics surveys ([8f932be](https://github.com/hms-dbmi/hypatio-app/commit/8f932be21499d7c05af0531ca7a7cda47a2e489d))
+
+# [1.3.0-rc.3](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.2...v1.3.0-rc.3) (2025-05-22)
+
+
+### Bug Fixes
+
+* **projects:** Fixed how automatic authorizations work ([8db0244](https://github.com/hms-dbmi/hypatio-app/commit/8db02440044abc8fca7e90aaa0718f659c9bf0fc))
+
+# [1.3.0-rc.2](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.1...v1.3.0-rc.2) (2025-05-22)
+
+
+### Bug Fixes
+
+* **projects:** Fixed fetch of AgreementForm in Qualtrics view ([2372bb9](https://github.com/hms-dbmi/hypatio-app/commit/2372bb92569d041a42e3548b0fc9cb3b094fd638))
+
+# [1.3.0-rc.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.2.2...v1.3.0-rc.1) (2025-05-22)
+
+
+### Features
+
+* **projects:** Added support for a Qualtrics survey registration step; added improved file upload functionality ([b34e261](https://github.com/hms-dbmi/hypatio-app/commit/b34e26197cc539ab23c774c31db5bd7208c40f5b))
+
 ## [1.2.2](https://github.com/hms-dbmi/hypatio-app/compare/v1.2.1...v1.2.2) (2025-04-04)
 
 

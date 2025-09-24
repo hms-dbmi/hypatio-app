@@ -2,9 +2,9 @@
 <div class="btn-group btn-group-justified" role="group" aria-label="...">
     {% if project.visible %}
     <a class="btn btn-primary" href="" role="button" disabled>Display <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
-    <a class="btn btn-default" href="" role="button" ic-target="#visible-status" ic-post-to="{% url 'manage:set-dataproject-visible-status' %}" ic-include='{"project_key": "{{ project.project_key }}", "visible_status": "invisible"}'>Hide</a>
+    <a class="btn btn-default" href="" role="button" hx-target="#visible-status" hx-post="{% url 'manage:set-dataproject-visible-status' %}" hx-include='{"project_key": "{{ project.project_key }}", "visible_status": "invisible"}'>Hide</a>
     {% else %}
-    <a class="btn btn-default" href="" role="button" ic-target="#visible-status" ic-post-to="{% url 'manage:set-dataproject-visible-status' %}" ic-include='{"project_key": "{{ project.project_key }}", "visible_status": "visible"}'>Display</a>
+    <a class="btn btn-default" href="" role="button" hx-target="#visible-status" hx-post="{% url 'manage:set-dataproject-visible-status' %}" hx-include='{"project_key": "{{ project.project_key }}", "visible_status": "visible"}'>Display</a>
     <a class="btn btn-danger" href="" role="button" disabled>Hide <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
     {% endif %}
 </div>

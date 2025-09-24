@@ -1,8 +1,16 @@
 {% extends 'sub-base.html' %}
 {% load projects_extras %}
 {% load bootstrap3 %}
+{% load static %}
+{% load workflows %}
 
 {% block headscripts %}
+<link href="https://vjs.zencdn.net/8.20.0/video-js.css" rel="stylesheet" />
+<link href="{% static 'css/workflows/workflows.css' %}" rel="stylesheet" />
+<script src="https://vjs.zencdn.net/8.20.0/video.min.js"></script>
+<script src="{% static 'js/videojs-event-tracking.min.js' %}"></script>
+<script src="{% static 'js/workflows/workflows.js' %}"></script>
+<script src="{% static 'js/workflows/file-uploader.js' %}"></script>
 {% endblock %}
 
 {% block tab_name %}{{ project.name }}{% endblock %}
@@ -50,7 +58,12 @@
         </div>
     </div>
 
-    <div class="col-md-7">
+    <div class="col-md-7" hx-ext='path-deps'>
+
+        {# Render any workflows #}
+        {% if workflows %}
+        {{ workflows|workflows }}
+        {% endif %}
 
         {% for panel in setup_panels %}
         <div class="panel panel-{{ panel.bootstrap_color }}">
@@ -79,7 +92,7 @@
 
         <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
             {% for panel in actionable_panels %}
-            <div class="panel panel-default" style="margin-bottom: 15px;">
+            <div class="panel panel-default project-actionable-panel">
                 <div class="panel-heading heading-description" role="tab">
                     <a class="{% if actionable_panels|length > 3 %}collapsed{% endif %}"
                         role="button"
@@ -136,7 +149,7 @@
 {% endblock %}
 
 {% block footerscripts %}
-<script type="application/javascript">
+<script nonce="{{request.csp_nonce}}">
 $( document ).ready(function() {
 
     $('#sign-agreement-form').on('input', function() {

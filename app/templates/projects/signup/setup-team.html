@@ -134,7 +134,7 @@
 {% endif %}
 
 {% block footerscripts %}
-<script type="application/javascript">
+<script nonce="{{request.csp_nonce}}">
     $('.finalize-team').click(function(){
         var project_key = $(this).data("project");
         var team = $(this).data("team");
@@ -155,9 +155,6 @@
                 // TODO Fail message needed
             });
     });
-</script>
-
-<script type="application/javascript">
     $('.accept-participant').click(function(){
         var project_key = $(this).data("project");
         var participant = $(this).data("participant");
@@ -178,9 +175,6 @@
                 // TODO Fail message needed
             });
     });
-</script>
-
-<script type="application/javascript">
     $('.reject-participant').click(function(){
         var project_key = $(this).data("project");
         var participant = $(this).data("participant");

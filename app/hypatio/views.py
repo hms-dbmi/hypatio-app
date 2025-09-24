@@ -1,7 +1,7 @@
 
 from django.shortcuts import render
 from django.utils.functional import SimpleLazyObject
-from django.urls import resolve, Resolver404
+from django.urls import resolve, Resolver404, reverse
 
 from hypatio.auth0authenticate import public_user_auth_and_jwt
 from projects.apps import ProjectsConfig
@@ -42,7 +42,7 @@ def navigation_context(request):
         # Attempt to resolve the current URL
         try:
             match = resolve(request.path)
-            
+
             # Check if projects
             if match and match.app_name == ProjectsConfig.name and "project_key" in match.kwargs:
                 project = DataProject.objects.filter(project_key=match.kwargs["project_key"]).first()
@@ -63,6 +63,17 @@ def navigation_context(request):
 
         # Remove groups that will be placed under a parent group
         groups = groups.filter(parent__isnull=True)
+
+        # For remaining groups, find those with only one active Project and set that link
+        for group in groups:
+
+            # Filter visible data projects
+            data_projects = group.dataproject_set.filter(visible=True)
+            if data_projects.count() == 1:
+
+                # Get the URL
+                data_project_url = reverse("projects:view-project", kwargs={"project_key": data_projects.first().project_key})
+                setattr(group, "group_url", data_project_url)
 
         return {
             "parent_groups": parent_groups,

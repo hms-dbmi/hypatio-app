@@ -11,9 +11,9 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
-from django.urls import reverse
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
+from django.shortcuts import redirect
+from django.utils import timezone
+from dbmi_client import reg
 
 from hypatio.sciauthz_services import SciAuthZ
 from hypatio.dbmiauthz_services import DBMIAuthz
@@ -22,10 +22,11 @@ from hypatio.scireg_services import get_user_email_confirmation_status
 from profile.forms import RegistrationForm
 from hypatio.auth0authenticate import public_user_auth_and_jwt
 from hypatio.auth0authenticate import user_auth_and_jwt
-from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK, TEAM_ACTIVE, TEAM_READY
+from projects.models import AGREEMENT_FORM_TYPE_EXTERNAL_LINK, TEAM_ACTIVE, TEAM_READY, DataProjectWorkflow
 from projects.models import AGREEMENT_FORM_TYPE_STATIC
 from projects.models import AGREEMENT_FORM_TYPE_MODEL
 from projects.models import AGREEMENT_FORM_TYPE_FILE
+from projects.models import AGREEMENT_FORM_TYPE_BLANK
 from projects.models import ChallengeTaskSubmission
 from projects.models import DataProject
 from projects.models import HostedFile
@@ -35,6 +36,7 @@ from projects.models import SignedAgreementForm
 from projects.models import Group
 from projects.models import InstitutionalOfficial
 from projects.models import DataUseReportRequest
+from projects.models import SIGNED_FORM_APPROVED
 from projects.panels import SIGNUP_STEP_COMPLETED_STATUS
 from projects.panels import SIGNUP_STEP_CURRENT_STATUS
 from projects.panels import SIGNUP_STEP_FUTURE_STATUS
@@ -44,6 +46,7 @@ from projects.panels import DataProjectSignupPanel
 from projects.panels import DataProjectActionablePanel
 from projects.panels import DataProjectSharedTeamsPanel
 from projects.panels import DataProjectInstitutionalOfficialPanel
+from workflows.models import Workflow, WorkflowState
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -302,6 +305,7 @@ class DataProjectView(TemplateView):
 
         # Otherwise, prompt the user to sign up.
         self.get_signup_context(context)
+
         return context
 
     def get_informational_only_context(self, context):
@@ -418,6 +422,9 @@ class DataProjectView(TemplateView):
         # Add panel for institutional officials
         self.panel_institutional_official(context)
 
+        # Add panel for workflows
+        self.panel_workflows(context)
+
         return context
 
     def get_manager_context(self, context):
@@ -483,36 +490,22 @@ class DataProjectView(TemplateView):
         Builds the context needed for users to complete or update their SciReg profile.
         This is a required step.
         """
+        # Fetch their profile, if any, from dbmi-reg
+        profile_data = reg.get_dbmi_user(self.request, self.request.user.email)
 
-        scireg_profile_results = get_current_user_profile(self.user_jwt)
+        # Set defaults
+        email_confirmed = profile_data and profile_data.get("email_confirmed", False)
+        new_registration = profile_data is None
 
-        try:
-            profile_data = scireg_profile_results["results"][0]
+        # Check if complete by simulating a form submission with existing data
+        step_complete = RegistrationForm(
+            initial={"email": self.request.user.email},
+            data=profile_data,
+            email_confirmed=email_confirmed,
+            new_registration=new_registration,
+        ).is_valid()
 
-            # Populate our RegistrationForm with SciReg data and check if required fields are completed.
-            registration_form = RegistrationForm(profile_data)
-            profile_complete = registration_form.is_valid()
-
-            # If the profile is incomplete, use the initial parameter to prevent binding the form data
-            # which causes form errors not needed at this time.
-            if not profile_complete:
-                registration_form = RegistrationForm(initial=profile_data)
-
-                # Log errors
-                logger.debug(f"{self.project.project_key}/{self.request.user.email}: Registration form errors: {registration_form.errors.as_json()}")
-
-        except (KeyError, IndexError):
-            profile_data = None
-            profile_complete = False
-
-            # User does not have a registration object in SciReg. Prepare one for them.
-            registration_form = RegistrationForm(
-                initial={'email': self.request.user.email},
-                new_registration=True
-            )
-
-        step_complete = profile_complete
-
+        # Check for a required update of profile data
         if profile_data is not None:
             try:
                 profile_last_updated_date = dateutil.parser.parse(profile_data['last_updated']).date()
@@ -523,6 +516,25 @@ class DataProjectView(TemplateView):
                     step_complete = False
             except KeyError:
                 pass
+
+        # If not complete, make a form
+        if not step_complete:
+
+            # Set initial data
+            if profile_data:
+                initial = profile_data
+            else:
+                initial = {"email": self.request.user.email}
+
+            # Make the form
+            registration_form = RegistrationForm(
+                initial=initial,
+                email_confirmed=email_confirmed,
+                new_registration=new_registration,
+            )
+        else:
+            # Step is complete, nothing to render
+            registration_form = None
 
         step_status = self.get_step_status('complete_profile', step_complete)
 
@@ -608,6 +620,8 @@ class DataProjectView(TemplateView):
                 template = 'projects/signup/upload-agreement-form.html'
             elif agreement_form.type == AGREEMENT_FORM_TYPE_EXTERNAL_LINK:
                 template = 'projects/signup/sign-external-agreement-form.html'
+            elif agreement_form.type == AGREEMENT_FORM_TYPE_BLANK:
+                template = 'projects/signup/blank-agreement-form.html'
             else:
                 raise Exception("Agreement form type Not implemented")
 
@@ -621,16 +635,22 @@ class DataProjectView(TemplateView):
                 except Exception as e:
                     logger.exception(f"Agreement form error: {e}", exc_info=True)
 
+            # Get additional context if required by specific AgreementForm
+            additional_context = self.get_agreement_form_additional_context(agreement_form, context)
+
+            # Update it with general context
+            additional_context.update({
+                "agreement_form": agreement_form,
+                "form": form,
+                "institutional_official": context.get("institutional_official"),
+            })
+
             panel = DataProjectSignupPanel(
                 title=title,
                 bootstrap_color='default',
                 template=template,
                 status=step_status,
-                additional_context={
-                    "agreement_form": agreement_form,
-                    "form": form,
-                    "institutional_official": context.get("institutional_official"),
-                }
+                additional_context=additional_context,
             )
 
             context['setup_panels'].append(panel)
@@ -680,7 +700,8 @@ class DataProjectView(TemplateView):
             template='projects/signup/request-access.html',
             status=step_status,
             additional_context={
-                'requested_access': requested_access
+                'requested_access': requested_access,
+                'automatic_authorization': self.project.automatic_authorization,
             }
         )
 
@@ -868,6 +889,24 @@ class DataProjectView(TemplateView):
         except ObjectDoesNotExist:
             pass
 
+    def panel_workflows(self, context):
+        """
+        Builds the context needed for a user to view workflows related to this DataProject.
+        """
+        # Get workflow states
+        workflow_states = self.project.get_ordered_workflow_states(user=self.request.user)
+
+        # Check for any that are missing and rebuild if necessary.
+        if None in workflow_states:
+            workflow_states = self.project.set_workflow_states(user=self.request.user)
+
+        # Have each WorkflowState check its StepStates
+        for workflow_state in workflow_states:
+            workflow_state.set_step_states()
+
+        # Add it to the context
+        context["workflows"] = workflow_states
+
     def panel_submit_task_solutions(self, context):
         """
         Builds the context needed for a user to submit solutions for a data
@@ -979,3 +1018,90 @@ class DataProjectView(TemplateView):
         # ...
 
         return False
+
+    def get_agreement_form_additional_context(self, agreement_form, context):
+        """
+        Adds to the AgreementForm's context
+        """
+        # Default to empty object
+        additional_context = {}
+
+        # Set the method name using the project key.
+        method_name = agreement_form.short_name.replace("-", "_") + '_additional_context'
+
+        # Check if this method is implemented.
+        if hasattr(self, method_name):
+            # Call the method dynamically.
+            method = getattr(self, method_name)
+            if callable(method):
+                logger.debug(f"Calling {method_name}()")
+                additional_context = method(agreement_form, context)
+            else:
+                logger.warning(f"{method_name} is not callable.")
+        else:
+            logger.warning(f"{method_name} does not exist.")
+
+        return additional_context
+
+    def maida_question_additional_context(self, agreement_form, context):
+        """
+        Adds to the view's context anything needed for users to sign up for the MAIDA upload project.
+        """
+        # Set new object for additional context
+        additional_context = {}
+
+        # Set the the questionnaire URL.
+        questionnaire_url = furl(settings.MAIDA_UPLOAD_QUESTIONNAIRE_URL)
+        questionnaire_url.args['email'] = self.request.user.email
+        questionnaire_url.args['project_key'] = self.project.project_key
+        questionnaire_url.args['agreement_form_id'] = agreement_form.id
+        additional_context['maida_questionnaire_url'] = questionnaire_url.url
+
+        return additional_context
+
+
+@public_user_auth_and_jwt
+def qualtrics(request):
+    """
+    An HTTP GET endpoint that handles Qualtrics redirects when a user finishes a survey
+    """
+    logger.debug(f"[qualtrics]: GET -> {request.GET}")
+
+    # Get the AgreementForm ID
+    agreement_form_id = request.GET.get("agreement_form_id", None)
+    if not agreement_form_id:
+        return HttpResponse("Error: 'agreement_form_id' is a required parameter.", status=400)
+
+    # Get the survey ID
+    survey_id = request.GET.get("survey_id", None)
+    if not survey_id:
+        return HttpResponse("Error: 'survey_id' is a required parameter.", status=400)
+
+    # Get the project key
+    project_key = request.GET.get("project_key", None)
+    if not project_key:
+        return HttpResponse("Error: 'project_key' is a required parameter.", status=400)
+
+    # Get the project key
+    response_id = request.GET.get("response_id", None)
+    if not project_key:
+        return HttpResponse("Error: 'response_id' is a required parameter.", status=400)
+
+    # Get the project
+    project = get_object_or_404(DataProject, project_key=project_key)
+    agreement_form = get_object_or_404(AgreementForm, id=agreement_form_id)
+
+    # Create a SignedAgreementForm object
+    SignedAgreementForm.objects.create(
+        user=request.user,
+        agreement_form=agreement_form,
+        project=project,
+        date_signed=datetime.now(),
+        fields={
+            "survey_id": survey_id,
+            "response_id": response_id,
+        },
+        status=SIGNED_FORM_APPROVED,
+    )
+
+    return redirect(f"/projects/{project_key}/")  # Redirect to the project page

@@ -17,6 +17,7 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.template import loader
 from django.core.files.base import ContentFile
+from django.urls import reverse
 from dal import autocomplete
 
 from hypatio.auth0authenticate import user_auth_and_jwt
@@ -41,7 +42,7 @@ from projects.models import HostedFileDownload
 from projects.models import Participant
 from projects.models import SignedAgreementForm
 from projects.models import Team
-from projects.models import SIGNED_FORM_REJECTED
+from projects.models import SIGNED_FORM_REJECTED, SIGNED_FORM_APPROVED
 from projects.models import HostedFileSet
 from projects.models import InstitutionalOfficial
 
@@ -234,7 +235,7 @@ def leave_team(request):
     participant.team_wait_on_leader = False
     participant.save()
 
-    return redirect('/projects/' + request.POST.get('project_key') + '/')
+    return redirect(reverse("projects:view-project", kwargs={"project_key": project_key}))
 
 @user_auth_and_jwt
 def join_team(request):
@@ -282,7 +283,7 @@ def join_team(request):
                   "administrators for help."
             messages.error(request, msg)
 
-            return redirect('/projects/' + request.POST.get('project_key') + '/')
+        return redirect(reverse("projects:view-project", kwargs={"project_key": project_key}))
     except ObjectDoesNotExist:
         # If this team leader has not yet created a team, mark the person as waiting
         participant.team_wait_on_leader_email = team_leader
@@ -305,7 +306,7 @@ def join_team(request):
     sciauthz = SciAuthZ(request.COOKIES.get("DBMI_JWT", None), request.user.email)
     sciauthz.create_profile_permission(team_leader, project_key)
 
-    return redirect('/projects/' + request.POST.get('project_key') + '/')
+    return redirect(reverse("projects:view-project", kwargs={"project_key": project_key}))
 
 @user_auth_and_jwt
 def create_team(request):
@@ -339,7 +340,7 @@ def create_team(request):
         participant.assign_pending(new_team)
         participant.save()
 
-    return redirect('/projects/' + project_key + '/')
+    return redirect(reverse("projects:view-project", kwargs={"project_key": project_key}))
 
 @user_auth_and_jwt
 def download_dataset(request):
@@ -660,9 +661,14 @@ def save_signed_agreement_form(request):
 
                 # Setup the script run.
                 response = HttpResponse(content=form.errors.as_json(), status=400)
-                response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-                    "warning", f"The agreement form contained errors, please review", "warning-sign"
-                )
+
+                # Setup the notification.
+                response["HX-Trigger"] = json.dumps({"showNotification": {
+                    "level" : "warning",
+                    "icon": "warning-sign",
+                    "message" : "The agreement form contained errors, please review",
+                }})
+
                 return response
 
             # Use the data from the form
@@ -712,9 +718,18 @@ def save_signed_agreement_form(request):
         fields=fields,
     )
 
+    # Check if auto-approval is set
+    if agreement_form.automatic_approval:
+        logger.info(f"{agreement_form.short_name}/{request.user.email}: Signed agreement form automatically approved")
+        signed_agreement_form.status = SIGNED_FORM_APPROVED
+
     try:
         # Check for a template
         if agreement_form.template:
+
+            # Check required properties
+            if not agreement_form.form_file_path:
+                raise ValueError(f"AgreementForm does not have required property 'form_file_path'")
 
             # Convert hypens to underscore in context
             safe_fields = {k.replace("-", "_"):v for k,v in fields.items()}
@@ -827,33 +842,43 @@ def submit_user_permission_request(request):
         project_key = request.POST.get('project_key', None)
         project = DataProject.objects.get(project_key=project_key)
     except ObjectDoesNotExist:
-        # Create the response.
-        response = HttpResponse(status=404)
-
-        # Setup the script run.
-        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-            "danger", "The requested project could not be found", "warning-sign"
-        )
-
-        return response
+        return HttpResponse(status=404)
 
     if project.has_teams or not project.requires_authorization:
 
         # Create the response.
         response = HttpResponse(status=400)
 
-        # Setup the script run.
-        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-            "danger", "The action could not be completed", "warning-sign"
-        )
+        # Setup the notification.
+        response["HX-Trigger"] = json.dumps({"showNotification": {
+            "level" : "danger",
+            "icon": "exclamation-sign",
+            "message" : "The action could not be completed",
+        }})
 
         return response
 
     # Create a new participant record if one does not exist already.
-    participant, created = Participant.objects.get_or_create(
+    participant, _ = Participant.objects.get_or_create(
         user=request.user,
         project=project
     )
+
+    # Check for auto-approvals
+    if project.automatic_authorization:
+
+        # Grant this user access immediately if all agreement forms are accepted
+        for agreement_form in project.agreement_forms.all():
+            if not SignedAgreementForm.objects.filter(
+                agreement_form=agreement_form,
+                project=project,
+                user=request.user,
+                status="A"
+                ):
+                break
+        else:
+            participant.permission = "VIEW"
+            participant.save()
 
     # Check if this project allows institutional signers
     if project.institutional_signers:
@@ -939,14 +964,12 @@ def submit_user_permission_request(request):
     # Create the response.
     response = HttpResponse(content, status=201)
 
-    # Setup the script run.
-    response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-        "success", "Your request for access has been submitted", "thumbs-up"
-    )
-
-    # Reload page if approved
-    if participant.permission == "VIEW":
-        response['X-IC-Script'] += "setTimeout(function() { location.reload(); }, 2000);"
+    # Setup the notification.
+    response["HX-Trigger"] = json.dumps({"showNotification": {
+        "level" : "success",
+        "icon": "thumbs-up",
+        "message" : "Your request for access has been submitted",
+    }})
 
     return response
 
@@ -1010,10 +1033,12 @@ def update_institutional_members(request):
         # Create the response.
         response = HttpResponse(status=404)
 
-        # Setup the script run.
-        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-            "danger", "An error occurred during the update. Please try again or contact support", "exclamation-sign"
-        )
+        # Setup the notification.
+        response["HX-Trigger"] = json.dumps({"showNotification": {
+            "level" : "danger",
+            "icon": "exclamation-sign",
+            "message" : "An error occurred during the update. Please try again or contact support",
+        }})
 
         return response
 
@@ -1030,10 +1055,12 @@ def update_institutional_members(request):
         # Create the response.
         response = HttpResponse(status=400)
 
-        # Setup the script run.
-        response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-            "warning", "Duplicate email addresses are not allowed", "exclamation-sign"
-        )
+        # Setup the notification.
+        response["HX-Trigger"] = json.dumps({"showNotification": {
+            "level" : "warning",
+            "icon": "exclamation-sign",
+            "message" : "Duplicate email addresses are not allowed",
+        }})
 
         return response
 
@@ -1067,11 +1094,5 @@ def update_institutional_members(request):
             pass
 
     # Create the response.
-    response = HttpResponse(status=201)
-
-    # Setup the script run.
-    response['X-IC-Script'] = "notify('{}', '{}', 'glyphicon glyphicon-{}');".format(
-        "success", "Institutional members updated", "thumbs-up"
-    )
-
-    return response
+    # TODO: Ensure a notification is shown
+    return HttpResponse(status=201)

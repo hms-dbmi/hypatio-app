@@ -2,9 +2,7 @@
 <p>You're the official for the institution '{{ panel.additional_context.official.institution }}'.</p>
 <p>Use the following form to manage members of your institution that you represent with your signing authority:</p>
 <h4>Member Details</h4>
-<form id="institutional-members-form" ic-post-to="{% url 'projects:update_institutional_members' %}"
-      ic-on-beforeSend="toggleFormButtons('#institutional-members-form');"
-      ic-on-complete="toggleFormButtons('#institutional-members-form');">
+<form id="institutional-members-form" hx-post="{% url 'projects:update_institutional_members' %}">
   <input type="hidden" name="signed-agreement-form" value="{{ panel.additional_context.official.signed_agreement_form.id }}" autocomplete="off" />
   <div id="member-details">
     {% csrf_token %}
@@ -14,9 +12,9 @@
       <input type="email" class="form-control member-emails" id="member-email-{{ forloop.counter0 }}" name="member-emails" autocomplete="false" placeholder="Enter member's email address" value="{{ member }}" required />
       <div class="input-group-btn">
       {% if forloop.counter0 == 0 %}
-        <button class="btn btn-success" type="button"  onclick="addMember();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+        <button class="btn btn-success team-add-member-button" type="button"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
       {% else %}
-        <button class="btn btn-danger" type="button" onclick="removeMember('{{ forloop.counter0 }}');"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>
+        <button class="btn btn-danger team-remove-member-button" type="button" data-team-member-index="{{ forloop.counter0 }}"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>
       {% endif %}
       </div>
     </div>
@@ -26,7 +24,7 @@
   <div class="row">
       <div class="col-xs-12 col-sm-6 submit_form">
         <button id="institutional-members-form-submit" type="submit" class="btn btn-primary">
-          Submit <i class="ic-indicator fa fa-spinner fa-spin" style="display:none; margin-left: 5px;"></i>
+          Submit <i class="hx-indicator fa fa-spinner fa-spin" style="display:none; margin-left: 5px;"></i>
         </button>
       </div>
     </div>
@@ -35,7 +33,34 @@
 <p>You're a member of the the institution '{{ panel.additional_context.member.official.institution }}'. The official that represents you and your institution is <a href="emailto:{{ panel.additional_context.member.official.user.email }}">{{ panel.additional_context.member.official.user.email }}</a>.</p>
 {% endif %}
 
-<script type="text/javascript">
+<script nonce="{{request.csp_nonce}}">
+
+  // Add htmx event listeners
+  const institutionalMembersForm = document.getElementById("institutional-members-form");
+  institutionalMembersForm.addEventListener("htmx:beforeSend", function(event) {
+    toggleFormButtons('#institutional-members-form');
+  });
+  institutionalMembersForm.addEventListener("htmx:afterRequest", function(event) {
+    toggleFormButtons('#institutional-members-form');
+  });
+
+  document.addEventListener('DOMContentLoaded', (event) => {
+    // Iterate add member buttons
+    document.querySelectorAll(".team-add-member-button").forEach((button) => {
+      button.addEventListener("click", function(event) {
+        addMember();
+      });
+    });
+    // Iterate remove member buttons
+    document.querySelectorAll(".team-remove-member-button").forEach((button) => {
+      button.addEventListener("click", function(event) {
+
+        // Get the index
+        const index = button.dataset.teamMemberIndex;
+        removeMember(index);
+      });
+    });
+  });
 
   // Start an index for added member inputs
   var memberIndex = {{ panel.additional_context.official.institutionalmember_set.all|length }};

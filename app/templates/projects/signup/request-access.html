@@ -3,31 +3,51 @@
 {% if panel.additional_context.requested_access %}
     Your request is being reviewed. Please use the 'Contact Us' link for any further questions.
 {% else %}
-    <form name="access_request_form"
-      ic-post-to="{% url 'projects:submit_user_permission_request' %}"
-      ic-target="this" ic-replace-target="true" ic-transition-duration="2s"
-      ic-on-beforeSend="toggleFormButtons('#access_request_form');"
-      ic-on-complete="toggleFormButtons('#access_request_form');"
-      ic-on-success="$('#request-access-form-submit').html('Request submitted &nbsp;<i class=\'fa fa-check\'></i>').prop('disabled', 'disabled').toggleClass('btn-primary btn-success')">
-        <fieldset>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <input type="hidden" id="project_key" name="project_key" value="{{ project.project_key }}" />
-                        Please click the button below to confirm your request to access this dataset. An administrator will review any agreement forms you have signed and may follow up with you for additional information. Your request will typically be reviewed within five business days.
-                    </div>
+<form id="access-request-form" name="access_request_form"
+  hx-post="{% url 'projects:submit_user_permission_request' %}"
+  hx-target="this" hx-swap="OuterHTML" hx-indicator="#request-access-form-indicator">
+    <fieldset>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <input type="hidden" id="project_key" name="project_key" value="{{ project.project_key }}" />
+                    {% if panel.additional_context.automatic_authorization %}
+                    Please click the button below to confirm your access to this data project.
+                    {% else %}
+                    Please click the button below to confirm your request to access this dataset. An administrator will review any agreement forms you have signed and may follow up with you for additional information. Your request will typically be reviewed within five business days.
+                    {% endif %}
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <button id="request-access-form-submit" type="submit" class="btn btn-primary">
-                            Request Access <i class="ic-indicator fa fa-spinner fa-spin" style="display:none; margin-left: 5px;"></i>
-                        </button>
-                    </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <button id="request-access-form-submit" type="submit" class="btn btn-primary">
+                        {% if panel.additional_context.automatic_authorization %}
+                        Confirm Access
+                        {% else %}
+                        Request Access
+                        {% endif %}
+                        <i id="request-access-form-indicator" class="hx-indicator fa fa-spinner fa-spin"></i>
+                    </button>
                 </div>
             </div>
-        </fieldset>
-        {% csrf_token %}
-    </form>
+        </div>
+    </fieldset>
+    {% csrf_token %}
+</form>
+<script nonce="{{ request.csp_nonce }}">
+  // Handle updates
+  document.getElementById('access-request-form').addEventListener("htmx:afterOnLoad", function(event) {
+    notify('success', "Access request submitted!", 'thumbs-up');
+
+    {# If automatic access is granted, reload page for updated dashboard #}
+    {% if panel.additional_context.automatic_authorization %}
+    // Reload
+    setTimeout(function() {
+      location.reload();
+    }, 1000);
+    {% endif %}
+  });
+</script>
 {% endif %}

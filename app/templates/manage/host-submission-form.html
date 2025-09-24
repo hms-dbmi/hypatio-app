@@ -11,7 +11,7 @@
         height: 34px;
     }
 </style>
-<form id="host-submission-form" method="post" ic-on-success="window.location.reload();" ic-on-error="displayErrorMessage(xhr);" ic-post-to="{% url 'manage:host-submission' fileservice_uuid %}">
+<form id="host-submission-form" method="post" hx-post="{% url 'manage:host-submission' fileservice_uuid %}">
     {% csrf_token %}
 
     <div class="row">
@@ -123,57 +123,62 @@
     </div>
 </form>
 
-<script type="application/javascript">
-    // Change display of the open/close times depending on file being enabled or that status being toggled.
-    $(document).ready(function() {
-        if ($("#host-submission-form input[name=enabled]").prop('checked')) {
-            $('#hosted-file-open-close-row').show();
-        } else {
-            // Clear values, if any
-            $("#host-submission-form input[name=opened_time]").val("");
-            $("#host-submission-form input[name=closed_time]").val("");
-            $('#hosted-file-open-close-row').hide();
-        }
-    });
-    $("#host-submission-form input[name=enabled]").on('click', function() {
-        if ($("#host-submission-form input[name=enabled]").prop('checked')) {
-            $('#hosted-file-open-close-row').show();
-        } else {
-            $("#host-submission-form input[name=opened_time]").val("");
-            $("#host-submission-form input[name=closed_time]").val("");
-            $('#hosted-file-open-close-row').hide();
-        }
-    });
-</script>
-
-<script type="application/javascript">
-    // Display the upload form if a user clicks on the replace button.
-    $('#hosted-file-replace-button').on('click', function() {
-        $('#hosted-file-replace-button-row').hide();
-        $('#hosted-file-upload-row').show();
-    });
-</script>
-
-<script type="application/javascript">
-    function displayErrorMessage(xhr) {
-
-        // Reset existing error messages
-        $(".bs-callout-danger").html("");
-        $(".bs-callout-danger").hide();
-
-        // Parse errors
-        var formErrors = JSON.parse(xhr.responseText);
-        Object.keys(formErrors).forEach(field => {
-            console.log("Errors: %s", field);
-
-            // Parse errors
-            $.each(formErrors[field], function (index, fieldError) {
-                console.log("Errors[%s]: %s", field, fieldError["code"]);
-
-                // Get the field error div
-                $("#" + field + "-errors").append("<small class=\"error\">" + fieldError["message"] + "</small>");
-                $("#" + field + "-errors").show();
-            });
-        });
+<script nonce="{{request.csp_nonce}}">
+  // Add Htmx Event listeners
+  document.getElementById("host-submission-form").addEventListener("htmx:afterRequest", function(event) {
+    // Check if successful
+    if(event.detail.successful) {
+      window.location.reload();
+    } else if(event.detail.failed) {
+      displayErrorMessage(event.detail.xhr);
     }
+  });
+  // Change display of the open/close times depending on file being enabled or that status being toggled.
+  $(document).ready(function() {
+      if ($("#host-submission-form input[name=enabled]").prop('checked')) {
+          $('#hosted-file-open-close-row').show();
+      } else {
+          // Clear values, if any
+          $("#host-submission-form input[name=opened_time]").val("");
+          $("#host-submission-form input[name=closed_time]").val("");
+          $('#hosted-file-open-close-row').hide();
+      }
+  });
+  $("#host-submission-form input[name=enabled]").on('click', function() {
+      if ($("#host-submission-form input[name=enabled]").prop('checked')) {
+          $('#hosted-file-open-close-row').show();
+      } else {
+          $("#host-submission-form input[name=opened_time]").val("");
+          $("#host-submission-form input[name=closed_time]").val("");
+          $('#hosted-file-open-close-row').hide();
+      }
+  });
+
+  // Display the upload form if a user clicks on the replace button.
+  $('#hosted-file-replace-button').on('click', function() {
+      $('#hosted-file-replace-button-row').hide();
+      $('#hosted-file-upload-row').show();
+  });
+
+  function displayErrorMessage(xhr) {
+
+      // Reset existing error messages
+      $(".bs-callout-danger").html("");
+      $(".bs-callout-danger").hide();
+
+      // Parse errors
+      var formErrors = JSON.parse(xhr.responseText);
+      Object.keys(formErrors).forEach(field => {
+          console.log("Errors: %s", field);
+
+          // Parse errors
+          $.each(formErrors[field], function (index, fieldError) {
+              console.log("Errors[%s]: %s", field, fieldError["code"]);
+
+              // Get the field error div
+              $("#" + field + "-errors").append("<small class=\"error\">" + fieldError["message"] + "</small>");
+              $("#" + field + "-errors").show();
+          });
+      });
+  }
 </script>
