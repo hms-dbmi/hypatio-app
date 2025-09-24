@@ -12,6 +12,7 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.utils import timezone
 from dbmi_client import reg
 
@@ -1043,22 +1044,6 @@ class DataProjectView(TemplateView):
 
         return additional_context
 
-    def maida_question_additional_context(self, agreement_form, context):
-        """
-        Adds to the view's context anything needed for users to sign up for the MAIDA upload project.
-        """
-        # Set new object for additional context
-        additional_context = {}
-
-        # Set the the questionnaire URL.
-        questionnaire_url = furl(settings.MAIDA_UPLOAD_QUESTIONNAIRE_URL)
-        questionnaire_url.args['email'] = self.request.user.email
-        questionnaire_url.args['project_key'] = self.project.project_key
-        questionnaire_url.args['agreement_form_id'] = agreement_form.id
-        additional_context['maida_questionnaire_url'] = questionnaire_url.url
-
-        return additional_context
-
 
 @public_user_auth_and_jwt
 def qualtrics(request):
@@ -1104,4 +1089,7 @@ def qualtrics(request):
         status=SIGNED_FORM_APPROVED,
     )
 
-    return redirect(f"/projects/{project_key}/")  # Redirect to the project page
+    return redirect(reverse(
+        'projects:view-project',
+        kwargs={'project_key': project.project_key}
+    ))
