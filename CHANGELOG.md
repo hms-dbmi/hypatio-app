@@ -1,3 +1,10 @@
+# [1.3.0-rc.23](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.22...v1.3.0-rc.23) (2025-09-25)
+
+
+### Bug Fixes
+
+* **workflows:** Set workflow steps to use optional bucket for data; fixed workflow refresh ([326ded6](https://github.com/hms-dbmi/hypatio-app/commit/326ded6af4585cee0d3a29ec761727a2294b714d))
+
 # [1.3.0-rc.22](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.0-rc.21...v1.3.0-rc.22) (2025-09-24)
 
 
