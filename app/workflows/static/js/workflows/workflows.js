@@ -193,7 +193,7 @@ function checkWorkflowStateStatus(workflowContainer, stepContainer) {
 
         // Update the workflow state
         console.log(`[checkWorkflowStateStatus][${workflowId}] Updating`);
-        htmx.trigger(workflowContainer, "refresh-workflow");
+        htmx.trigger(workflowContainer[0], "refresh-workflow");
     }
 }
 
