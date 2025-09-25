@@ -1,6 +1,7 @@
 from copy import copy
 from http import HTTPStatus
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -409,8 +410,11 @@ class StepStateViewSet(viewsets.GenericViewSet):
         # Set tags
         tags = ["hypatio", "dbmi-portal", "step-state-file", "workflows", ]
 
+        # Determine bucket
+        bucket = step_state.step.s3_bucket if step_state.step.s3_bucket else settings.FILESERVICE_AWS_BUCKET
+
         # Create a new record in fileservice for this file and get back information on where it should live in S3.
-        uuid, upload = fileservice.create_archivefile_upload(filename, metadata, tags)
+        uuid, upload = fileservice.create_archivefile_upload(filename, metadata, tags, bucket=bucket)
 
         # Form the data for the File object.
         file = {'uuid': uuid, 'location': upload['locationid'], 'filename': filename}
