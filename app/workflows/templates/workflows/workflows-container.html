@@ -11,9 +11,11 @@
     data-workflow-original-status="{{ workflow.status }}"
     data-workflow-admin="{{ admin }}"
     hx-get="{% if admin %}{% url 'workflows:v1:admin-workflow-state-detail' pk=workflow.id %}{% else %}{% url 'workflows:v1:workflow-state-detail' pk=workflow.id %}{% endif %}"
-    hx-trigger="load,path-deps"
     {% if workflow.get_dependencies %}
+    hx-trigger="load,path-deps,refresh-workflow"
     path-deps="{% for dep in workflow.get_dependencies %}{% if admin %}{% url 'workflows:v1:admin-workflow-state-detail' pk=dep.id %}{% else %}{% url 'workflows:v1:workflow-state-detail' pk=dep.id %}{% endif %}{% if not forloop.last %},{% endif %}{% endfor %}"
+    {% else %}
+    hx-trigger="load,refresh-workflow"
     {% endif %}>
   </div>
 {% endfor %}
