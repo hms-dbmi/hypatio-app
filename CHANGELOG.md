@@ -1,3 +1,10 @@
+## [1.3.5](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.4...v1.3.5) (2026-03-12)
+
+
+### Bug Fixes
+
+* **requirements:** Updated Python requirements ([7b35a7e](https://github.com/hms-dbmi/hypatio-app/commit/7b35a7e77383ed1ea050667a2dc8864e8cec1dab))
+
 ## [1.3.5-rc.1](https://github.com/hms-dbmi/hypatio-app/compare/v1.3.4...v1.3.5-rc.1) (2026-03-11)
 
 
